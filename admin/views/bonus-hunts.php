@@ -132,7 +132,7 @@ if ( 'close' === $view ) :
 		</tr>
 	  </tbody>
 	</table>
-	<?php submit_button( __( 'Close Hunt', 'bonus-hunt-guesser' ) ); ?>
+        <?php submit_button( esc_html__( 'Close Hunt', 'bonus-hunt-guesser' ) ); ?>
   </form>
 </div>
 <?php
@@ -208,7 +208,7 @@ if ($view === 'add') : ?>
 		</tr>
 	  </tbody>
 	</table>
-	<?php submit_button(__('Create Bonus Hunt', 'bonus-hunt-guesser')); ?>
+        <?php submit_button( esc_html__( 'Create Bonus Hunt', 'bonus-hunt-guesser' ) ); ?>
   </form>
 </div>
 <?php endif; ?>
@@ -303,7 +303,7 @@ if ($view === 'edit') :
 		</tr>
 	  </tbody>
 	</table>
-	<?php submit_button(__('Save Hunt', 'bonus-hunt-guesser')); ?>
+        <?php submit_button( esc_html__( 'Save Hunt', 'bonus-hunt-guesser' ) ); ?>
   </form>
 
   <h2 class="bhg-margin-top-large"><?php echo esc_html__('Participants', 'bonus-hunt-guesser'); ?></h2>
@@ -323,7 +323,7 @@ if ($view === 'edit') :
 		  <td>
 			<?php
                           /* translators: %d: user ID. */
-                          $name = $g->display_name ? $g->display_name : sprintf( __( 'user#%d', 'bonus-hunt-guesser' ), (int) $g->user_id );
+                          $name = $g->display_name ? $g->display_name : sprintf( esc_html__( 'user#%d', 'bonus-hunt-guesser' ), (int) $g->user_id );
 			  $url  = admin_url('user-edit.php?user_id=' . (int)$g->user_id);
 			  echo '<a href="' . esc_url($url) . '">' . esc_html($name) . '</a>';
 			?>
