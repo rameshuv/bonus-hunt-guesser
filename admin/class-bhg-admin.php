@@ -82,7 +82,7 @@ class BHG_Admin {
 		 * @param string $hook Current admin page hook.
 		 */
 	public function assets( $hook ) {
-		if ( strpos( $hook, 'bhg' ) !== false ) {
+		if ( false !== strpos( $hook, 'bhg' ) ) {
 			wp_enqueue_style(
 				'bhg-admin',
 				BHG_PLUGIN_URL . 'assets/css/admin.css',
