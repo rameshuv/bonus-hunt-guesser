@@ -1,5 +1,5 @@
 Bonus Hunt Guesser — Consolidated Build
-Date: 2025-09-03
+Date: 2025-09-05
 
 ## Stage-1 (Hotfix & Hardening)
 - Always run DB migrations on init via bhg_check_tables() → fixes missing tournament columns.
@@ -26,5 +26,9 @@ Date: 2025-09-03
 - Hunt form: Affiliate Site dropdown saved to affiliate_site_id.
 - User profile: Affiliate Websites section with per-site flags (bhg_affiliate_website_{ID}).
 - Frontend dot: consistent per-hunt/per-site affiliate status display.
+
+
+## Stage-6 (Cleanup)
+- Removed legacy deprecated database files (deprecated/ directory and includes/deprecated-db.php).
 
 Compatibility: PHP 7.4, WordPress 5.5.5, MySQL 5.5.5
