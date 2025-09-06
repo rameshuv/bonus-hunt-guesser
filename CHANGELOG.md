@@ -8,6 +8,9 @@
 
 # Changelog
 
+## 8.0.06 — 2025-09-05
+- Removed legacy deprecated database layer (deprecated/ directory and includes/deprecated-db.php).
+
 ## 8.0.05 — 2025-09-03
 - Fix: Affiliate Websites edit query querying wrong table (now selects by `id`).
 - Security: Server-side enforcement — guesses can only be added/edited while a hunt is `open`.
