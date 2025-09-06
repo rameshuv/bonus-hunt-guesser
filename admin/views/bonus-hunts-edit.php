@@ -96,7 +96,7 @@ $base     = remove_query_arg( 'ppaged' );
 				</tr>
 			</tbody>
 		</table>
-		<?php submit_button( __( 'Save Hunt', 'bonus-hunt-guesser' ) ); ?>
+                <?php submit_button( esc_html__( 'Save Hunt', 'bonus-hunt-guesser' ) ); ?>
 	</form>
 
 	<h2 class="bhg-margin-top-large"><?php esc_html_e( 'Participants', 'bonus-hunt-guesser' ); ?></h2>
@@ -118,7 +118,7 @@ $base     = remove_query_arg( 'ppaged' );
 			else :
 				foreach ( $rows as $r ) :
 					$u    = get_userdata( (int) $r->user_id );
-					$name = $u ? $u->display_name : sprintf( __( 'user#%d', 'bonus-hunt-guesser' ), (int) $r->user_id );
+                                        $name = $u ? $u->display_name : sprintf( esc_html__( 'user#%d', 'bonus-hunt-guesser' ), (int) $r->user_id );
 					?>
 				<tr>
 					<td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $r->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
