@@ -537,7 +537,7 @@ echo '<a' . $class . ' href="' . esc_url( add_query_arg( array( 'page' => $p ), 
                );
 
 		// If a specific tournament ID is requested, render details
-		$details_id = isset($_GET['bhg_tournament_id']) ? absint($_GET['bhg_tournament_id']) : 0;
+               $details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
 		if ($details_id > 0) {
 			$t = $wpdb->prefix . 'bhg_tournaments';
 			$r = $wpdb->prefix . 'bhg_tournament_results';
@@ -552,8 +552,8 @@ echo '<a' . $class . ' href="' . esc_url( add_query_arg( array( 'page' => $p ), 
 			}
 
 			// Sortable results (whitelisted)
-			$orderby = isset($_GET['orderby']) ? strtolower(sanitize_key($_GET['orderby'])) : 'wins';
-			$order   = isset($_GET['order'])   ? strtolower(sanitize_key($_GET['order']))   : 'desc';
+                       $orderby = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
+                       $order   = isset( $_GET['order'] )   ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) )   : 'desc';
 
 			$allowed = array(
 				'wins'        => 'r.wins',
@@ -635,8 +635,8 @@ echo '<td>' . ( $row->last_win_date ? esc_html( mysql2date( get_option( 'date_fo
 			   $t          = $wpdb->prefix . 'bhg_tournaments';
 			   $where      = array();
 			   $args       = array();
-			   $status     = isset( $_GET['bhg_status'] ) ? sanitize_key( $_GET['bhg_status'] ) : sanitize_key( $a['status'] );
-			   $timeline   = isset( $_GET['bhg_timeline'] ) ? sanitize_key( $_GET['bhg_timeline'] ) : sanitize_key( $a['timeline'] );
+                          $status     = isset( $_GET['bhg_status'] ) ? sanitize_key( wp_unslash( $_GET['bhg_status'] ) ) : sanitize_key( $a['status'] );
+                          $timeline   = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : sanitize_key( $a['timeline'] );
 			   $tournament = absint( $a['tournament'] );
 			   $website    = absint( $a['website'] );
 
@@ -673,17 +673,17 @@ echo '<td>' . ( $row->last_win_date ? esc_html( mysql2date( get_option( 'date_fo
 
 				ob_start();
 echo '<form method="get" class="bhg-tournament-filters">';
-				foreach ( $_GET as $raw_key => $v ) {
-						$key = sanitize_key( $raw_key );
+                               foreach ( $_GET as $raw_key => $v ) {
+                                               $key = sanitize_key( wp_unslash( $raw_key ) );
 						if ( $key === 'bhg_timeline' || $key === 'bhg_status' || $key === 'bhg_tournament_id' ) {
 								continue;
 						}
-						echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : $v ) . '">';
+                                               echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
 				}
 echo '<label class="bhg-tournament-label">' . esc_html__( 'Timeline:', 'bonus-hunt-guesser' ) . ' ';
 				echo '<select name="bhg_timeline">';
 				$timelines = array( 'all' => __( 'All', 'bonus-hunt-guesser' ), 'weekly' => __( 'Weekly', 'bonus-hunt-guesser' ), 'monthly' => __( 'Monthly', 'bonus-hunt-guesser' ), 'yearly' => __( 'Yearly', 'bonus-hunt-guesser' ), 'quarterly' => __( 'Quarterly', 'bonus-hunt-guesser' ), 'alltime' => __( 'All-Time', 'bonus-hunt-guesser' ) );
-				$timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( $_GET['bhg_timeline'] ) : $timeline;
+                               $timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline;
 				foreach ( $timelines as $key => $label ) {
 						echo '<option value="' . esc_attr( $key ) . '"' . selected( $timeline_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
 				}
@@ -692,7 +692,7 @@ echo '<label class="bhg-tournament-label">' . esc_html__( 'Timeline:', 'bonus-hu
 				echo '<label>' . esc_html__( 'Status:', 'bonus-hunt-guesser' ) . ' ';
 				echo '<select name="bhg_status">';
 				$statuses = array( 'active' => __( 'Active', 'bonus-hunt-guesser' ), 'closed' => __( 'Closed', 'bonus-hunt-guesser' ), 'all' => __( 'All', 'bonus-hunt-guesser' ) );
-				$status_key = isset( $_GET['bhg_status'] ) ? sanitize_key( $_GET['bhg_status'] ) : $status;
+                               $status_key = isset( $_GET['bhg_status'] ) ? sanitize_key( wp_unslash( $_GET['bhg_status'] ) ) : $status;
 				foreach ( $statuses as $key => $label ) {
 						echo '<option value="' . esc_attr( $key ) . '"' . selected( $status_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
 				}
