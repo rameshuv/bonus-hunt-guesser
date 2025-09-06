@@ -97,7 +97,8 @@ if (isset($_POST['bhg_action'])) {
     }
     
     // Redirect to avoid form resubmission
-    wp_redirect(add_query_arg('message', $message, $_SERVER['REQUEST_URI']));
+    $redirect_url = esc_url_raw( add_query_arg( 'message', $message, $_SERVER['REQUEST_URI'] ) );
+    wp_safe_redirect( $redirect_url );
     exit;
 }
 
@@ -110,24 +111,24 @@ if (isset($_GET['message'])) {
     $message_type = sanitize_text_field($_GET['message']);
     switch ($message_type) {
         case 'success':
-            echo '<div class="notice notice-success is-dismissible"><p>' . 
-                 __('Bonus hunt created successfully!', 'bonus-hunt-guesser') . 
-                 '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' .
+                esc_html__( 'Bonus hunt created successfully!', 'bonus-hunt-guesser' ) .
+                '</p></div>';
             break;
         case 'updated':
-            echo '<div class="notice notice-success is-dismissible"><p>' . 
-                 __('Bonus hunt updated successfully!', 'bonus-hunt-guesser') . 
-                 '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' .
+                esc_html__( 'Bonus hunt updated successfully!', 'bonus-hunt-guesser' ) .
+                '</p></div>';
             break;
         case 'deleted':
-            echo '<div class="notice notice-success is-dismissible"><p>' . 
-                 __('Bonus hunt deleted successfully!', 'bonus-hunt-guesser') . 
-                 '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' .
+                esc_html__( 'Bonus hunt deleted successfully!', 'bonus-hunt-guesser' ) .
+                '</p></div>';
             break;
         case 'error':
-            echo '<div class="notice notice-error is-dismissible"><p>' . 
-                 __('An error occurred. Please try again.', 'bonus-hunt-guesser') . 
-                 '</p></div>';
+            echo '<div class="notice notice-error is-dismissible"><p>' .
+                esc_html__( 'An error occurred. Please try again.', 'bonus-hunt-guesser' ) .
+                '</p></div>';
             break;
     }
 }
