@@ -297,20 +297,27 @@ class BHG_Admin {
 					if ( ! $u ) {
 						continue;
 					}
-					$body = strtr(
-						$template,
-						array(
-							'{{username}}' => $u->user_login,
-							'{{hunt}}'     => $hunt_title,
-							'{{final}}'    => number_format( $final_balance, 2 ),
-							'{{winner}}'   => $winner_first,
-							'{{winners}}'  => $winner_list,
-						)
-					);
+										$username   = sanitize_text_field( $u->user_login );
+										$hunt_title = sanitize_text_field( $hunt_title );
+
+										$body = strtr(
+											$template,
+											array(
+												'{{username}}' => esc_html( $username ),
+												'{{hunt}}' => esc_html( $hunt_title ),
+												'{{final}}' => number_format( $final_balance, 2 ),
+												'{{winner}}' => $winner_first,
+												'{{winners}}' => $winner_list,
+											)
+										);
+
 										wp_mail(
 											$u->user_email,
-											// translators: %s: bonus hunt title.
-												sprintf( __( 'Results for %s', 'bonus-hunt-guesser' ), $hunt_title ? $hunt_title : 'Bonus Hunt' ),
+											sprintf(
+														/* translators: %s: bonus hunt title. */
+												__( 'Results for %s', 'bonus-hunt-guesser' ),
+												$hunt_title ? $hunt_title : __( 'Bonus Hunt', 'bonus-hunt-guesser' )
+											),
 											$body
 										);
 				}
