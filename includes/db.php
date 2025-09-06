@@ -123,12 +123,25 @@ function bhg_compute_and_notify_winners($hunt_id){
     });
     // Take top 3 for emailing (customize as needed)
     $winners = array_slice($rows, 0, 3);
-    foreach($winners as $pos => $row){
-        $user = get_userdata($row->user_id);
-        if(!$user) continue;
-        $subject = sprintf(__('You placed #%d in %s','bonus-hunt-guesser'), $pos+1, $hunt->title);
-        $body = sprintf("Hello %s,\n\nGood news! You placed #%d in the bonus hunt '%s'.\nFinal balance: €%s\nYour guess: €%s\n\nWe will contact you with prize details.\n\nThanks,\nBonus Hunt Team",
-            $user->display_name, $pos+1, $hunt->title, number_format_i18n($hunt->final_balance,2), number_format_i18n($row->guess_value,2));
-        wp_mail($user->user_email, $subject, $body);
+    foreach ( $winners as $pos => $row ) {
+        $user = get_userdata( $row->user_id );
+        if ( ! $user ) {
+            continue;
+        }
+
+        $hunt_title        = sanitize_text_field( $hunt->title );
+        $user_display_name = sanitize_text_field( $user->display_name );
+
+        /* translators: 1: position number, 2: bonus-hunt title */
+        $subject = sprintf( __( 'You placed #%1$d in %2$s', 'bonus-hunt-guesser' ), $pos + 1, $hunt_title );
+        $body    = sprintf(
+            "Hello %s,\n\nGood news! You placed #%d in the bonus hunt '%s'.\nFinal balance: €%s\nYour guess: €%s\n\nWe will contact you with prize details.\n\nThanks,\nBonus Hunt Team",
+            $user_display_name,
+            $pos + 1,
+            $hunt_title,
+            number_format_i18n( $hunt->final_balance, 2 ),
+            number_format_i18n( $row->guess_value, 2 )
+        );
+        wp_mail( $user->user_email, $subject, $body );
     }
 }
