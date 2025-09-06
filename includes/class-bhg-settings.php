@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 class BHG_Settings {
 	public static function render(){
 		BHG_Utils::require_cap();
-		if ($_SERVER['REQUEST_METHOD'] === 'POST' && BHG_Utils::verify_nonce('bhg_save_settings')) {
+               if ('POST' === $_SERVER['REQUEST_METHOD'] && BHG_Utils::verify_nonce('bhg_save_settings')) {
 			$allow = isset($_POST['allow_guess_edit']) ? 1 : 0;
 			$ads   = isset($_POST['ads_enabled']) ? 1 : 0;
 			$email = sanitize_email($_POST['email_from'] ?? get_bloginfo('admin_email'));
