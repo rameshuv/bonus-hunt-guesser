@@ -6,9 +6,8 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+		exit;
 }
-
 
 if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
 		/**

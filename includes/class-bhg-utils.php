@@ -1,9 +1,9 @@
 <?php
 /**
- * Utility functions and helpers for Bonus Hunt Guesser plugin.
- *
- * @package Bonus_Hunt_Guesser
- */
+* Utility functions and helpers for Bonus Hunt Guesser plugin.
+*
+* @package Bonus_Hunt_Guesser
+*/
 
 // phpcs:disable WordPress.Files.FileOrganization
 
@@ -11,10 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-
 /**
- * General utility methods used throughout the plugin.
- */
+* General utility methods used throughout the plugin.
+*/
 class BHG_Utils {
 	/**
 	 * Register hooks used by utility functions.

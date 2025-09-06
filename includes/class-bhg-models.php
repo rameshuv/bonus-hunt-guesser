@@ -1,4 +1,6 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
 /**
  * Data layer utilities for Bonus Hunt Guesser.
  *
@@ -7,15 +9,7 @@
  * `bonus-hunt-guesser.php`. The methods related to form handling and request
  * routing were removed to avoid duplication and ensure a single canonical
  * implementation.
- *
- * @package BonusHuntGuesser
  */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
-
 class BHG_Models {
 
 	/**
@@ -40,44 +34,40 @@ class BHG_Models {
 		$guesses_tbl = $wpdb->prefix . 'bhg_guesses';
 
 		// Determine number of winners for this hunt.
-				$winners_count = (int) $wpdb->get_var(
-						$wpdb->prepare(
-								// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is a variable.
-								"SELECT winners_count FROM {$hunts_tbl} WHERE id = %d",
-								$hunt_id
-						)
-				);
+		$winners_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT winners_count FROM {$hunts_tbl} WHERE id = %d",
+				$hunt_id
+			)
+		);
 		if ( $winners_count <= 0 ) {
 			$winners_count = 1;
 		}
 
 		// Update hunt status and final details.
 		$now = current_time( 'mysql' );
-                $wpdb->update(
-                        $hunts_tbl,
-                        array(
-                                'status'        => 'closed',
-                                'final_balance' => $final_balance,
-                                'closed_at'     => $now,
-                                'updated_at'    => $now,
-                        ),
-                        array( 'id' => $hunt_id ),
-                        array( '%s', '%f', '%s', '%s' ),
-                        array( '%d' )
-                );
-
-                bhg_flush_hunt_cache( $hunt_id );
+		$wpdb->update(
+			$hunts_tbl,
+			array(
+				'status'        => 'closed',
+				'final_balance' => $final_balance,
+				'closed_at'     => $now,
+				'updated_at'    => $now,
+			),
+			array( 'id' => $hunt_id ),
+			array( '%s', '%f', '%s', '%s' ),
+			array( '%d' )
+		);
 
 		// Fetch winners based on proximity to final balance.
-				$rows = $wpdb->get_results(
-						$wpdb->prepare(
-								// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is a variable.
-								"SELECT user_id FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(guess - %f) ASC, id ASC LIMIT %d",
-								$hunt_id,
-								$final_balance,
-								$winners_count
-						)
-				);
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT user_id FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(guess - %f) ASC, id ASC LIMIT %d",
+				$hunt_id,
+				$final_balance,
+				$winners_count
+			)
+		);
 
 		if ( empty( $rows ) ) {
 			return array();
