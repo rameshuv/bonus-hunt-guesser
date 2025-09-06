@@ -49,7 +49,12 @@ class BHG_Shortcodes {
 	/** [bhg_active_hunt] — list all open hunts */
         public function active_hunt_shortcode($atts) {
                 global $wpdb;
-                $hunts = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}bhg_bonus_hunts WHERE status='open' ORDER BY created_at DESC" );
+                $hunts = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT * FROM {$wpdb->prefix}bhg_bonus_hunts WHERE status = %s ORDER BY created_at DESC",
+                                'open'
+                        )
+                );
                 if (!$hunts) {
                         return '<div class="bhg-active-hunt"><p>' . esc_html__('No active bonus hunts at the moment.', 'bonus-hunt-guesser') . '</p></div>';
                 }
