@@ -1,23 +1,25 @@
 <?php
 /**
- * Plugin Name: Bonus Hunt Guesser
- * Plugin URI: https://yourdomain.com/
- * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality
- * Version: 8.0.08
- * Author: Bonus Hunt Guesser Development Team
- * Text Domain: bonus-hunt-guesser
- * Domain Path: /languages
- * Requires at least: 6.3.5
- * Requires PHP: 7.4
- * License: GPLv2 or later
- * MySQL tested up to: 5.5.5
+ * Plugin Name: Bonus Hunt Guesser.
+ * Plugin URI: https://yourdomain.com/.
+ * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality.
+ * Version: 8.0.08.
+ * Author: Bonus Hunt Guesser Development Team.
+ * Text Domain: bonus-hunt-guesser.
+ * Domain Path: /languages.
+ * Requires at least: 6.3.5.
+ * Requires PHP: 7.4.
+ * License: GPLv2 or later.
+ * MySQL tested up to: 5.5.5.
+ *
+ * @package Bonus_Hunt_Guesser
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Helper: parse human-entered money-like strings into float
+// Helper: parse human-entered money-like strings into float.
 if ( ! function_exists( 'bhg_parse_amount' ) ) {
 	/**
 	 * Parse a human-entered money-like string into a float.
@@ -29,82 +31,82 @@ if ( ! function_exists( 'bhg_parse_amount' ) ) {
 		if ( ! is_string( $s ) ) {
 			return null;
 		}
-		// Normalize unicode spaces (NBSP / NNBSP) and trim
+                // Normalize unicode spaces (NBSP / NNBSP) and trim.
 		$s = str_replace( array( "\xc2\xa0", "\xe2\x80\xaf" ), ' ', $s );
 		$s = trim( wp_unslash( $s ) );
-		if ( $s === '' ) {
+                if ( '' === $s ) {
 			return null;
 		}
 
-		// Remove currency symbols/letters while keeping digits, separators, minus
+                // Remove currency symbols/letters while keeping digits, separators, minus.
 		$s = preg_replace( '/[^\d,\.\-\s]/u', '', $s );
 		$s = str_replace( ' ', '', $s );
 
-		$has_comma = strpos( $s, ',' ) !== false;
-		$has_dot   = strpos( $s, '.' ) !== false;
+                $has_comma = false !== strpos( $s, ',' );
+                $has_dot   = false !== strpos( $s, '.' );
 
 		if ( $has_comma && $has_dot ) {
-			// Use the last occurring symbol as decimal separator
+                        // Use the last occurring symbol as decimal separator.
 			$last_comma = strrpos( $s, ',' );
 			$last_dot   = strrpos( $s, '.' );
-			if ( $last_comma !== false && ( $last_dot === false || $last_comma > $last_dot ) ) {
-				// Comma as decimal
-				$s = str_replace( '.', '', $s );  // thousands
-				$s = str_replace( ',', '.', $s ); // decimal
-			} else {
-				// Dot as decimal
-				$s = str_replace( ',', '', $s );
-			}
-		} elseif ( $has_comma ) {
-			// Only comma present
-			$last = strrpos( $s, ',' );
-			$frac = substr( $s, $last + 1 );
-			if ( ctype_digit( $frac ) && strlen( $frac ) >= 1 && strlen( $frac ) <= 2 ) {
-				// Treat as decimal
-				$s = str_replace( ',', '.', $s );
-			} else {
-				// Treat as thousands (incl. Indian grouping)
-				$s = str_replace( ',', '', $s );
-			}
-		} elseif ( $has_dot ) {
-			// Only dot present
-			$last = strrpos( $s, '.' );
-			$frac = substr( $s, $last + 1 );
-			if ( ctype_digit( $frac ) && strlen( $frac ) > 3 ) {
-				// Likely thousands separators → remove all dots
-				$s = str_replace( '.', '', $s );
-			}
-		}
+                        if ( false !== $last_comma && ( false === $last_dot || $last_comma > $last_dot ) ) {
+                                // Comma as decimal.
+                                $s = str_replace( '.', '', $s );  // Thousands.
+                                $s = str_replace( ',', '.', $s ); // Decimal.
+                        } else {
+                                // Dot as decimal.
+                                $s = str_replace( ',', '', $s );
+                        }
+                } elseif ( $has_comma ) {
+                        // Only comma present.
+                        $last = strrpos( $s, ',' );
+                        $frac = substr( $s, $last + 1 );
+                        if ( ctype_digit( $frac ) && strlen( $frac ) >= 1 && strlen( $frac ) <= 2 ) {
+                                // Treat as decimal.
+                                $s = str_replace( ',', '.', $s );
+                        } else {
+                                // Treat as thousands (incl. Indian grouping).
+                                $s = str_replace( ',', '', $s );
+                        }
+                } elseif ( $has_dot ) {
+                        // Only dot present.
+                        $last = strrpos( $s, '.' );
+                        $frac = substr( $s, $last + 1 );
+                        if ( ctype_digit( $frac ) && strlen( $frac ) > 3 ) {
+                                // Likely thousands separators → remove all dots.
+                                $s = str_replace( '.', '', $s );
+                        }
+                }
 
-		// Keep only digits, one leading minus, and dots
-		$s = preg_replace( '/[^0-9\.\-]/', '', $s );
-		if ( $s === '' || $s === '-' || $s === '.' || $s === '-.' || $s === '.-' ) {
-			return null;
-		}
+                // Keep only digits, one leading minus, and dots.
+                $s = preg_replace( '/[^0-9\.\-]/', '', $s );
+                if ( '' === $s || '-' === $s || '.' === $s || '-.' === $s || '.-' === $s ) {
+                        return null;
+                }
 
-		// Collapse multiple dots to a single decimal point (keep first as decimal)
-		$parts = explode( '.', $s );
-		if ( count( $parts ) > 2 ) {
-			$s = $parts[0] . '.' . implode( '', array_slice( $parts, 1 ) );
-		}
+                // Collapse multiple dots to a single decimal point (keep first as decimal).
+                $parts = explode( '.', $s );
+                if ( count( $parts ) > 2 ) {
+                        $s = $parts[0] . '.' . implode( '', array_slice( $parts, 1 ) );
+                }
 
-		if ( is_numeric( $s ) ) {
-			return (float) $s;
-		}
+                if ( is_numeric( $s ) ) {
+                        return (float) $s;
+                }
 
-		// Permissive fallback: first number pattern
-		if ( preg_match( '/\d+(?:\.\d+)?/', $s, $m2 ) ) {
-			return (float) $m2[0];
-		}
+                // Permissive fallback: first number pattern.
+                if ( preg_match( '/\d+(?:\.\d+)?/', $s, $m2 ) ) {
+                        return (float) $m2[0];
+                }
 
 		return null;
 	}
 }
 
-// Ensure canonical DB class is loaded
+// Ensure canonical DB class is loaded.
 require_once __DIR__ . '/includes/class-bhg-db.php';
 
-// Define plugin constants
+// Define plugin constants.
 define( 'BHG_VERSION', '8.0.08' );
 define( 'BHG_MIN_WP', '6.3.5' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
@@ -113,7 +115,7 @@ define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'BHG_TABLE_PREFIX', 'bhg_' );
 
 
-// Table creation function
+// Table creation function.
 /**
  * Create plugin database tables using active DB class.
  *
@@ -127,7 +129,7 @@ function bhg_create_tables() {
 		}
 }
 
-// Check and create tables if needed
+// Check and create tables if needed.
 /**
  * Create tables on first run if they do not exist.
  *
@@ -140,9 +142,9 @@ function bhg_check_tables() {
 	}
 }
 
-// Autoloader for plugin classes
+// Autoloader for plugin classes.
 spl_autoload_register( function ( $class ) {
-	if ( strpos( $class, 'BHG_' ) !== 0 ) {
+        if ( 0 !== strpos( $class, 'BHG_' ) ) {
 		return;
 	}
 	
@@ -167,11 +169,11 @@ spl_autoload_register( function ( $class ) {
 	}
 } );
 
-// Include helper functions
+// Include helper functions.
 require_once BHG_PLUGIN_DIR . 'includes/helpers.php';
 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
 
-// Activation hook: create tables and set default options
+// Activation hook: create tables and set default options.
 /**
  * Activation callback for setting up the plugin.
  *
@@ -189,7 +191,7 @@ function bhg_activate_plugin( $network_wide ) {
 		bhg_seed_default_translations_if_empty();
 	}
 
-	// Set default options
+        // Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
 	add_option( 'bhg_plugin_settings', [
 		'allow_guess_changes' => 'yes',
@@ -201,26 +203,26 @@ function bhg_activate_plugin( $network_wide ) {
 		'email_from' => get_bloginfo( 'admin_email' ),
 	]);
 	
-	// Seed demo data if empty
+        // Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
 		bhg_seed_demo_if_empty();
 	}
 	update_option( 'bhg_demo_notice', 1 );
 	
-	// Set tables created flag
+        // Set tables created flag.
 	update_option( 'bhg_tables_created', true );
 	
-	// Flush rewrite rules after database changes
+        // Flush rewrite rules after database changes.
 	flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, 'bhg_activate_plugin' );
 
-// Deactivation hook ( no destructive actions )
+// Deactivation hook (no destructive actions).
 register_deactivation_hook( __FILE__, function () {
-	// Keep data intact by default
+        // Keep data intact by default.
 } );
 
-// Frontend asset loader
+// Frontend asset loader.
 add_action( 'wp_enqueue_scripts', 'bhg_enqueue_public_assets' );
 
 /**
@@ -279,7 +281,7 @@ function bhg_enqueue_public_assets() {
 	wp_enqueue_script( 'bhg-public' );
 }
 
-// Initialize plugin
+// Initialize plugin.
 add_action( 'plugins_loaded', 'bhg_init_plugin' );
 /**
  * Initialize plugin components.
@@ -287,10 +289,10 @@ add_action( 'plugins_loaded', 'bhg_init_plugin' );
  * @return void
  */
 function bhg_init_plugin() {
-	// Load text domain
+        // Load text domain.
 	load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
-	// Initialize components
+        // Initialize components.
 	if ( is_admin() ) {
 		if ( class_exists( 'BHG_Admin' ) ) {
 			new BHG_Admin();
@@ -323,7 +325,7 @@ function bhg_init_plugin() {
 		BHG_Utils::init_hooks();
 	}
 
-	// Register form handlers
+        // Register form handlers.
 	add_action( 'admin_post_bhg_submit_guess', 'bhg_handle_submit_guess' );
 	add_action( 'admin_post_nopriv_bhg_submit_guess', function () {
 		$ref = wp_get_referer();
@@ -335,28 +337,28 @@ function bhg_init_plugin() {
 	add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
 }
 
-// Early table check on init
+// Early table check on init.
 add_action( 'init', 'bhg_check_tables', 0 );
 
-// Form handler for settings save
+// Form handler for settings save.
 /**
  * Handle saving of plugin settings.
  *
  * @return void
  */
 function bhg_handle_settings_save() {
-	// Check user capabilities
+        // Check user capabilities.
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'bonus-hunt-guesser' ) );
 	}
 
-	// Verify nonce
+        // Verify nonce.
         if ( ! isset( $_POST['bhg_settings_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['bhg_settings_nonce'] ), 'bhg_save_settings_nonce' ) ) {
 		wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg_settings&error=nonce_failed' ) ) );
 		exit;
 	}
 
-	// Sanitize and validate data
+        // Sanitize and validate data.
 	$settings = array();
 
         if ( isset( $_POST['bhg_default_tournament_period'] ) ) {
@@ -368,19 +370,19 @@ function bhg_handle_settings_save() {
 
         if ( isset( $_POST['bhg_max_guess_amount'] ) ) {
                 $max = floatval( wp_unslash( $_POST['bhg_max_guess_amount'] ) );
-		if ( $max >= 0 ) {
-			$settings['max_guess_amount'] = $max;
-		}
-	}
+                if ( 0 <= $max ) {
+                        $settings['max_guess_amount'] = $max;
+                }
+        }
 
         if ( isset( $_POST['bhg_min_guess_amount'] ) ) {
                 $min = floatval( wp_unslash( $_POST['bhg_min_guess_amount'] ) );
-		if ( $min >= 0 ) {
-			$settings['min_guess_amount'] = $min;
-		}
-	}
+                if ( 0 <= $min ) {
+                        $settings['min_guess_amount'] = $min;
+                }
+        }
 
-	// Validate that min is not greater than max
+        // Validate that min is not greater than max.
 	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
 		$settings['min_guess_amount'] > $settings['max_guess_amount'] ) {
 		wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg_settings&error=invalid_data' ) ) );
@@ -396,7 +398,7 @@ function bhg_handle_settings_save() {
 
         if ( isset( $_POST['bhg_ads_enabled'] ) ) {
                 $ads_enabled           = sanitize_text_field( wp_unslash( $_POST['bhg_ads_enabled'] ) );
-		$settings['ads_enabled'] = $ads_enabled === '1' ? 1 : 0;
+                $settings['ads_enabled'] = '1' === $ads_enabled ? 1 : 0;
 	}
 
         if ( isset( $_POST['bhg_email_from'] ) ) {
@@ -406,16 +408,16 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	// Save settings
+        // Save settings.
 	$existing = get_option( 'bhg_plugin_settings', [] );
 	update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
-	// Redirect back to settings page
+        // Redirect back to settings page.
 	wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg_settings&message=saved' ) ) );
 	exit;
 }
 
-// Canonical guess submit handler
+// Canonical guess submit handler.
 /**
  * Process a guess submission from admin-post or AJAX.
  *
@@ -439,15 +441,15 @@ function bhg_handle_submit_guess() {
 		wp_die( esc_html__( 'You must be logged in to submit a guess.', 'bonus-hunt-guesser' ) );
 	}
 
-	$hunt_id = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
-	if ( $hunt_id <= 0 ) {
+        $hunt_id = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+        if ( 0 >= $hunt_id ) {
 		if ( wp_doing_ajax() ) {
 			wp_send_json_error( __( 'Invalid hunt.', 'bonus-hunt-guesser' ) );
 		}
 		wp_die( esc_html__( 'Invalid hunt.', 'bonus-hunt-guesser' ) );
 	}
 
-	// Parse guess robustly
+        // Parse guess robustly.
 	if ( wp_doing_ajax() ) {
 		$raw_guess = isset( $_POST['guess_amount'] ) ? wp_unslash( $_POST['guess_amount'] ) : '';
 	} else {
@@ -464,7 +466,7 @@ function bhg_handle_submit_guess() {
 	$min_guess  = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
 	$max_guess  = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 	$max        = isset( $settings['max_guesses'] ) ? (int) $settings['max_guesses'] : 1;
-	$allow_edit = isset( $settings['allow_guess_changes'] ) && $settings['allow_guess_changes'] === 'yes';
+        $allow_edit = isset( $settings['allow_guess_changes'] ) && 'yes' === $settings['allow_guess_changes'];
 
 	if ( $guess < $min_guess || $guess > $max_guess ) {
 		if ( function_exists( 'error_log' ) ) {
@@ -487,14 +489,14 @@ function bhg_handle_submit_guess() {
 		}
 		wp_die( esc_html__( 'Hunt not found.', 'bonus-hunt-guesser' ) );
 	}
-	if ( $hunt->status !== 'open' ) {
+        if ( 'open' !== $hunt->status ) {
 		if ( wp_doing_ajax() ) {
 			wp_send_json_error( __( 'This hunt is closed. You cannot submit or change a guess.', 'bonus-hunt-guesser' ) );
 		}
 		wp_die( esc_html__( 'This hunt is closed. You cannot submit or change a guess.', 'bonus-hunt-guesser' ) );
 	}
 
-	// Insert or update last guess per settings
+        // Insert or update last guess per settings.
 
 	$count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `$g_tbl` WHERE hunt_id=%d AND user_id=%d", $hunt_id, $user_id ) );
 	if ( $count >= $max ) {
@@ -515,7 +517,7 @@ function bhg_handle_submit_guess() {
 		wp_die( esc_html__( 'You have reached the maximum number of guesses.', 'bonus-hunt-guesser' ) );
 	}
 
-	// Insert
+        // Insert.
 	$wpdb->insert(
 		$g_tbl,
 		[
@@ -535,7 +537,7 @@ function bhg_handle_submit_guess() {
 	exit;
 }
 
-// Frontend ads rendering
+// Frontend ads rendering.
 /**
  * Determine if an advertisement should be displayed.
  *
@@ -543,21 +545,21 @@ function bhg_handle_submit_guess() {
  * @return bool True if ad should be shown, false otherwise.
  */
 function bhg_should_show_ad( $visibility ) {
-	if ($visibility === 'all') {
-		return true;
-	}
-	if ($visibility === 'logged_in') {
-		return (function_exists('is_user_logged_in') && is_user_logged_in());
-	}
-	if ($visibility === 'guests') {
-		return !(function_exists('is_user_logged_in') && is_user_logged_in());
-	}
-	if ($visibility === 'affiliates') {
-		return (function_exists('is_user_logged_in') && is_user_logged_in()) && bhg_is_affiliate();
-	}
-	if ($visibility === 'non_affiliates') {
-		return !(function_exists('is_user_logged_in') && is_user_logged_in()) || !bhg_is_affiliate();
-	}
+        if ( 'all' === $visibility ) {
+                return true;
+        }
+        if ( 'logged_in' === $visibility ) {
+                return ( function_exists( 'is_user_logged_in' ) && is_user_logged_in() );
+        }
+        if ( 'guests' === $visibility ) {
+                return ! ( function_exists( 'is_user_logged_in' ) && is_user_logged_in() );
+        }
+        if ( 'affiliates' === $visibility ) {
+                return ( function_exists( 'is_user_logged_in' ) && is_user_logged_in() ) && bhg_is_affiliate();
+        }
+        if ( 'non_affiliates' === $visibility ) {
+                return ! ( function_exists( 'is_user_logged_in' ) && is_user_logged_in() ) || ! bhg_is_affiliate();
+        }
 	return true;
 }
 
@@ -601,9 +603,9 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
         return $rows;
 }
 
-// AJAX handler for loading leaderboard data
-add_action('wp_ajax_bhg_load_leaderboard', 'bhg_load_leaderboard_ajax');
-add_action('wp_ajax_nopriv_bhg_load_leaderboard', 'bhg_load_leaderboard_ajax');
+// AJAX handler for loading leaderboard data.
+add_action( 'wp_ajax_bhg_load_leaderboard', 'bhg_load_leaderboard_ajax' );
+add_action( 'wp_ajax_nopriv_bhg_load_leaderboard', 'bhg_load_leaderboard_ajax' );
 
 /**
  * AJAX handler for loading leaderboard markup.
@@ -611,7 +613,7 @@ add_action('wp_ajax_nopriv_bhg_load_leaderboard', 'bhg_load_leaderboard_ajax');
  * @return void
  */
 function bhg_load_leaderboard_ajax() {
-	check_ajax_referer('bhg_public_nonce', 'nonce');
+        check_ajax_referer( 'bhg_public_nonce', 'nonce' );
 	
 	if ( ! isset( $_POST['timeframe'] ) ) {
 		wp_send_json_error( __( 'Invalid timeframe', 'bonus-hunt-guesser' ) );
@@ -623,13 +625,13 @@ function bhg_load_leaderboard_ajax() {
 		wp_send_json_error( __( 'Invalid timeframe', 'bonus-hunt-guesser' ) );
 	}
 	
-	// Generate leaderboard HTML based on timeframe
-	$html = bhg_generate_leaderboard_html($timeframe);
+        // Generate leaderboard HTML based on timeframe.
+        $html = bhg_generate_leaderboard_html( $timeframe );
 	
-	wp_send_json_success($html);
+        wp_send_json_success( $html );
 }
 
-// Helper function to generate leaderboard HTML
+// Helper function to generate leaderboard HTML.
 /**
  * Generate leaderboard HTML for a timeframe.
  *
@@ -739,7 +741,7 @@ function bhg_generate_leaderboard_html( $timeframe ) {
 	if ( $pages > 1 ) {
 		echo '<div class="bhg-pagination">';
 		for ( $p = 1; $p <= $pages; $p++ ) {
-			$current = $p === $paged ? ' class="current"' : '';
+        $current = $paged === $p ? ' class="current"' : '';
 			echo '<a href="#" data-page="' . (int) $p . '"' . $current . '>' . (int) $p . '</a> ';
 		}
 		echo '</div>';
@@ -748,7 +750,7 @@ function bhg_generate_leaderboard_html( $timeframe ) {
 	return ob_get_clean();
 }
 
-// Helper function to check if user is affiliate
+// Helper function to check if user is affiliate.
 /**
  * Check whether a user has affiliate status.
  *
@@ -756,20 +758,20 @@ function bhg_generate_leaderboard_html( $timeframe ) {
  * @return bool True if user is an affiliate.
  */
 function bhg_is_affiliate( $user_id = null ) {
-	if (!$user_id) {
+        if ( ! $user_id ) {
 		$user_id = get_current_user_id();
 	}
 
-	if (!$user_id) {
+        if ( ! $user_id ) {
 		return false;
 	}
 
-	return (bool) get_user_meta($user_id, 'bhg_is_affiliate', true);
+        return (bool) get_user_meta( $user_id, 'bhg_is_affiliate', true );
 }
 
-// Add user profile fields for affiliate status
-add_action('show_user_profile', 'bhg_extra_user_profile_fields');
-add_action('edit_user_profile', 'bhg_extra_user_profile_fields');
+// Add user profile fields for affiliate status.
+add_action( 'show_user_profile', 'bhg_extra_user_profile_fields' );
+add_action( 'edit_user_profile', 'bhg_extra_user_profile_fields' );
 
 /**
  * Display affiliate status field on user profile.
@@ -778,27 +780,27 @@ add_action('edit_user_profile', 'bhg_extra_user_profile_fields');
  * @return void
  */
 function bhg_extra_user_profile_fields( $user ) {
-	if (!current_user_can('manage_options')) {
+        if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 	
-	$affiliate_status = get_user_meta($user->ID, 'bhg_is_affiliate', true);
+        $affiliate_status = get_user_meta( $user->ID, 'bhg_is_affiliate', true );
 	?>
-	<h3><?php esc_html_e('Bonus Hunt Guesser Information', 'bonus-hunt-guesser'); ?></h3>
+          <h3><?php esc_html_e( 'Bonus Hunt Guesser Information', 'bonus-hunt-guesser' ); ?></h3>
 	<table class="form-table">
 		<tr>
-			<th><label for="bhg_is_affiliate"><?php esc_html_e('Affiliate Status', 'bonus-hunt-guesser'); ?></label></th>
+                          <th><label for="bhg_is_affiliate"><?php esc_html_e( 'Affiliate Status', 'bonus-hunt-guesser' ); ?></label></th>
 			<td>
-				<input type="checkbox" name="bhg_is_affiliate" id="bhg_is_affiliate" value="1" <?php checked($affiliate_status, 1); ?> />
-				<span class="description"><?php esc_html_e('Check if this user is an affiliate.', 'bonus-hunt-guesser'); ?></span>
+                                  <input type="checkbox" name="bhg_is_affiliate" id="bhg_is_affiliate" value="1" <?php checked( $affiliate_status, 1 ); ?> />
+                                  <span class="description"><?php esc_html_e( 'Check if this user is an affiliate.', 'bonus-hunt-guesser' ); ?></span>
 			</td>
 		</tr>
 	</table>
 	<?php
 }
 
-add_action('personal_options_update', 'bhg_save_extra_user_profile_fields');
-add_action('edit_user_profile_update', 'bhg_save_extra_user_profile_fields');
+add_action( 'personal_options_update', 'bhg_save_extra_user_profile_fields' );
+add_action( 'edit_user_profile_update', 'bhg_save_extra_user_profile_fields' );
 
 /**
  * Save affiliate status from user profile.
@@ -807,31 +809,35 @@ add_action('edit_user_profile_update', 'bhg_save_extra_user_profile_fields');
  * @return void|false Returns false if the user cannot be edited.
  */
 function bhg_save_extra_user_profile_fields( $user_id ) {
-	if (!current_user_can('edit_user', $user_id)) {
+        if ( ! current_user_can( 'edit_user', $user_id ) ) {
 		return false;
 	}
 
-	$affiliate_status = isset($_POST['bhg_is_affiliate']) ? 1 : 0;
-	update_user_meta($user_id, 'bhg_is_affiliate', $affiliate_status);
+        $affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
+        update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
 }
 
-if (!function_exists('bhg_self_heal_db')) {
+if ( ! function_exists( 'bhg_self_heal_db' ) ) {
 	/**
 	 * Attempt to repair missing database tables.
 	 *
 	 * @return void
 	 */
 	function bhg_self_heal_db() {
-		if (!class_exists('BHG_DB')) require_once __DIR__ . '/includes/class-bhg-db.php';
-		try {
-			$db = new BHG_DB();
-			$db->create_tables();
-		} catch (Throwable $e) {
-			if (function_exists('error_log')) error_log('[BHG] DB self-heal failed: ' . $e->getMessage());
-		}
+                if ( ! class_exists( 'BHG_DB' ) ) {
+                        require_once __DIR__ . '/includes/class-bhg-db.php';
+                }
+                try {
+                        $db = new BHG_DB();
+                        $db->create_tables();
+                } catch ( Throwable $e ) {
+                        if ( function_exists( 'error_log' ) ) {
+                                error_log( '[BHG] DB self-heal failed: ' . $e->getMessage() );
+                        }
+                }
 	}
-	add_action('admin_init', 'bhg_self_heal_db');
-	register_activation_hook(__FILE__, 'bhg_self_heal_db');
+        add_action( 'admin_init', 'bhg_self_heal_db' );
+        register_activation_hook( __FILE__, 'bhg_self_heal_db' );
 }
 
 
