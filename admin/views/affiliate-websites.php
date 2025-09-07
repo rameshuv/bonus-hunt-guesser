@@ -1,18 +1,23 @@
 <?php
+/**
+ * Admin view for affiliate websites.
+ *
+ * @package BonusHuntGuesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; }
+		exit; }
 if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+				wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
 }
 global $wpdb;
 $table          = $wpdb->prefix . 'bhg_affiliates';
 $allowed_tables = array( $wpdb->prefix . 'bhg_affiliates' );
 if ( ! in_array( $table, $allowed_tables, true ) ) {
-		wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
+				wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 }
-$table = esc_sql( $table );
 
-// Load for edit
+// Load for edit.
 $edit_id = isset( $_GET['edit'] ) ? (int) $_GET['edit'] : 0;
 $row     = $edit_id ? $wpdb->get_row(
 	$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $edit_id )

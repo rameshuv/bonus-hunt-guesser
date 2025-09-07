@@ -1,13 +1,15 @@
 <?php
+/**
+ * Admin view for managing bonus hunts.
+ *
+ * @package BonusHuntGuesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
-/**
-	* Admin view for managing bonus hunts.
-	*/
-
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+		wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
 }
 
 global $wpdb;
