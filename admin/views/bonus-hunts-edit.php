@@ -33,15 +33,15 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 $base     = remove_query_arg( 'ppaged' );
 ?>
 <div class="wrap">
-        <?php
-        $message = isset( $_GET['message'] ) ? sanitize_text_field( wp_unslash( $_GET['message'] ) ) : '';
-        if ( 'guess_deleted' === $message ) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Guess removed successfully.', 'bonus-hunt-guesser' ) . '</p></div>';
-        } elseif ( 'error' === $message ) {
-                echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'An error occurred. Please try again.', 'bonus-hunt-guesser' ) . '</p></div>';
-        }
-        ?>
-        <h1 class="wp-heading-inline"><?php echo esc_html__( 'Edit Bonus Hunt', 'bonus-hunt-guesser' ); ?> <?php echo esc_html__( '—', 'bonus-hunt-guesser' ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
+		<?php
+		$message = isset( $_GET['message'] ) ? sanitize_text_field( wp_unslash( $_GET['message'] ) ) : '';
+		if ( 'guess_deleted' === $message ) {
+				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Guess removed successfully.', 'bonus-hunt-guesser' ) . '</p></div>';
+		} elseif ( 'error' === $message ) {
+				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'An error occurred. Please try again.', 'bonus-hunt-guesser' ) . '</p></div>';
+		}
+		?>
+		<h1 class="wp-heading-inline"><?php echo esc_html__( 'Edit Bonus Hunt', 'bonus-hunt-guesser' ); ?> <?php echo esc_html__( '—', 'bonus-hunt-guesser' ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
 
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
 		<?php wp_nonce_field( 'bhg_save_hunt' ); ?>
@@ -83,7 +83,7 @@ $base     = remove_query_arg( 'ppaged' );
 				</tr>
 				<tr>
 					<th scope="row"><label for="bhg_final"><?php echo esc_html__( 'Final Balance', 'bonus-hunt-guesser' ); ?></label></th>
-                                       <td><input type="number" step="0.01" min="0" id="bhg_final" name="final_balance" value="<?php echo esc_attr( $hunt->final_balance ); ?>" placeholder="<?php echo esc_attr( esc_html__( '-', 'bonus-hunt-guesser' ) ); ?>"></td>
+										<td><input type="number" step="0.01" min="0" id="bhg_final" name="final_balance" value="<?php echo esc_attr( $hunt->final_balance ); ?>" placeholder="<?php echo esc_attr( esc_html__( '-', 'bonus-hunt-guesser' ) ); ?>"></td>
 				</tr>
 				<tr>
 					<th scope="row"><label for="bhg_status"><?php echo esc_html__( 'Status', 'bonus-hunt-guesser' ); ?></label></th>
@@ -96,7 +96,7 @@ $base     = remove_query_arg( 'ppaged' );
 				</tr>
 			</tbody>
 		</table>
-                <?php submit_button( esc_html__( 'Save Hunt', 'bonus-hunt-guesser' ) ); ?>
+				<?php submit_button( esc_html__( 'Save Hunt', 'bonus-hunt-guesser' ) ); ?>
 	</form>
 
 	<h2 class="bhg-margin-top-large"><?php esc_html_e( 'Participants', 'bonus-hunt-guesser' ); ?></h2>
@@ -117,29 +117,29 @@ $base     = remove_query_arg( 'ppaged' );
 				<?php
 			else :
 				foreach ( $rows as $r ) :
-					$u    = get_userdata( (int) $r->user_id );
-                                        $name = $u ? $u->display_name : sprintf( esc_html__( 'user#%d', 'bonus-hunt-guesser' ), (int) $r->user_id );
+					$u                        = get_userdata( (int) $r->user_id );
+										$name = $u ? $u->display_name : sprintf( esc_html__( 'user#%d', 'bonus-hunt-guesser' ), (int) $r->user_id );
 					?>
 				<tr>
 					<td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $r->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
 					<td><?php echo esc_html( number_format_i18n( (float) $r->guess, 2 ) ); ?></td>
-                                       <td><?php echo $r->created_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->created_at ) ) ) : esc_html__( '-', 'bonus-hunt-guesser' ); ?></td>
-                                       <td>
-                                               <?php
-                                               $delete_url = wp_nonce_url(
-                                                       add_query_arg(
-                                                               array(
-                                                                       'action'   => 'bhg_delete_guess',
-                                                                       'guess_id' => (int) $r->id,
-                                                               ),
-                                                               admin_url( 'admin-post.php' )
-                                                       ),
-                                                       'bhg_delete_guess'
-                                               );
-                                               ?>
-                                               <a href="<?php echo esc_url( $delete_url ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( __( 'Delete this guess?', 'bonus-hunt-guesser' ) ); ?>');"><?php esc_html_e( 'Remove', 'bonus-hunt-guesser' ); ?></a>
-                                       </td>
-                                </tr>
+										<td><?php echo $r->created_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->created_at ) ) ) : esc_html__( '-', 'bonus-hunt-guesser' ); ?></td>
+										<td>
+												<?php
+												$delete_url = wp_nonce_url(
+													add_query_arg(
+														array(
+															'action'   => 'bhg_delete_guess',
+															'guess_id' => (int) $r->id,
+														),
+														admin_url( 'admin-post.php' )
+													),
+													'bhg_delete_guess'
+												);
+												?>
+												<a href="<?php echo esc_url( $delete_url ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( __( 'Delete this guess?', 'bonus-hunt-guesser' ) ); ?>');"><?php esc_html_e( 'Remove', 'bonus-hunt-guesser' ); ?></a>
+										</td>
+								</tr>
 							<?php
 			endforeach;
 endif;
