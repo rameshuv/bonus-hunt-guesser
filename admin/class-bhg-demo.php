@@ -23,13 +23,13 @@ class BHG_Demo {
 		echo '<div class="wrap"><h1>Demo Tools</h1>';
 				echo '<form method="post" action="' . admin_url( 'admin-post.php' ) . '">';
 				echo '<input type="hidden" name="action" value="bhg_demo_reseed" />';
-				wp_nonce_field( 'bhg_demo_reseed' );
+								wp_nonce_field( 'bhg_demo_reseed', 'bhg_demo_reseed_nonce' );
 				submit_button( __( 'Reset & Reseed Demo', 'bonus-hunt-guesser' ) );
 				echo '</form></div>';
 	}
 
 	public function reseed() {
-			check_admin_referer( 'bhg_demo_reseed' );
+						check_admin_referer( 'bhg_demo_reseed', 'bhg_demo_reseed_nonce' );
 			global $wpdb;
 
 			// Wipe demo data

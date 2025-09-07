@@ -70,7 +70,7 @@ endif;
 
 	<h2 class="bhg-margin-top-large"><?php echo $row ? esc_html__( 'Edit Tournament', 'bonus-hunt-guesser' ) : esc_html__( 'Add Tournament', 'bonus-hunt-guesser' ); ?></h2>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900">
-	<?php wp_nonce_field( 'bhg_tournament_save_action' ); ?>
+		<?php wp_nonce_field( 'bhg_tournament_save_action', 'bhg_tournament_save_nonce' ); ?>
 	<input type="hidden" name="action" value="bhg_tournament_save" />
 	<?php
 	if ( $row ) :
