@@ -134,18 +134,18 @@ class BHG_Ads {
 	}
 
 	/**
-		* Shortcode handler for rendering a single ad row regardless of placement.
-		*
-		* Usage examples:
-		* [bhg_ad id="123"]
-		* [bhg_advertising ad="123" status="inactive"]
-		*
-		* @param array  $atts    Shortcode attributes.
-		* @param string $content Content enclosed by shortcode (unused).
-		* @param string $tag     Shortcode tag.
-		*
-		* @return string
-		*/
+	 * Shortcode handler for rendering a single ad row regardless of placement.
+	 *
+	 * Usage examples:
+	 * [bhg_ad id="123"]
+	 * [bhg_advertising ad="123" status="inactive"]
+	 *
+	 * @param array  $atts    Shortcode attributes.
+	 * @param string $content Content enclosed by shortcode (unused).
+	 * @param string $tag     Shortcode tag.
+	 *
+	 * @return string
+	 */
 	public static function shortcode( $atts = array(), $content = '', $tag = '' ) {
 		$a = shortcode_atts(
 			array(
