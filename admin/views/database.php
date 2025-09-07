@@ -90,18 +90,34 @@ function bhg_insert_demo_data() {
 }
 ?>
 <div class="wrap bhg-wrap">
-	<h1><?php echo esc_html( bhg_t( 'database_tools', 'Database Tools' ) );; ?></h1>
-	<p><?php echo esc_html( bhg_t( 'tables_are_automatically_created_on_activation_if_you_need_to_reinstall_them_deactivate_and_activate_the_plugin_again', 'Tables are automatically created on activation. If you need to reinstall them, deactivate and activate the plugin again.' ) );; ?></p>
+	<h1>
+	<?php
+	echo esc_html( bhg_t( 'database_tools', 'Database Tools' ) );
+	?>
+</h1>
+	<p>
+	<?php
+	echo esc_html( bhg_t( 'tables_are_automatically_created_on_activation_if_you_need_to_reinstall_them_deactivate_and_activate_the_plugin_again', 'Tables are automatically created on activation. If you need to reinstall them, deactivate and activate the plugin again.' ) );
+	?>
+</p>
 	
 	<?php if ( isset( $cleanup_completed ) && $cleanup_completed ) : ?>
 		<div class="notice notice-success">
-			<p><?php echo esc_html( bhg_t( 'database_cleanup_completed_successfully', 'Database cleanup completed successfully.' ) );; ?></p>
+			<p>
+			<?php
+			echo esc_html( bhg_t( 'database_cleanup_completed_successfully', 'Database cleanup completed successfully.' ) );
+			?>
+</p>
 		</div>
 	<?php endif; ?>
 	
 	<?php if ( isset( $optimize_completed ) && $optimize_completed ) : ?>
 		<div class="notice notice-success">
-			<p><?php echo esc_html( bhg_t( 'database_optimization_completed_successfully', 'Database optimization completed successfully.' ) );; ?></p>
+			<p>
+			<?php
+			echo esc_html( bhg_t( 'database_optimization_completed_successfully', 'Database optimization completed successfully.' ) );
+			?>
+</p>
 		</div>
 	<?php endif; ?>
 	
@@ -109,21 +125,43 @@ function bhg_insert_demo_data() {
 		<?php wp_nonce_field( 'bhg_db_cleanup_action', 'bhg_nonce' ); ?>
 		<input type="hidden" name="bhg_action" value="db_cleanup">
 		<p>
-			<input type="submit" name="bhg_db_cleanup" class="button button-secondary" value="<?php echo esc_attr( bhg_t( 'run_database_cleanup', 'Run Database Cleanup' ) );; ?>"
+			<input type="submit" name="bhg_db_cleanup" class="button button-secondary" value="
+			<?php
+			echo esc_attr( bhg_t( 'run_database_cleanup', 'Run Database Cleanup' ) );
+			?>
+"
 					onclick="return confirm('<?php echo esc_js( bhg_t( 'are_you_sure_you_want_to_run_database_cleanup_this_action_cannot_be_undone', 'Are you sure you want to run database cleanup? This action cannot be undone.' ) ); ?>')">
 		</p>
 		<p class="description">
-			<?php echo esc_html( bhg_t( 'note_this_will_remove_any_demo_data_and_reset_tables_to_their_initial_state', 'Note: This will remove any demo data and reset tables to their initial state.' ) );; ?>
+			<?php
+			echo esc_html( bhg_t( 'note_this_will_remove_any_demo_data_and_reset_tables_to_their_initial_state', 'Note: This will remove any demo data and reset tables to their initial state.' ) );
+			?>
 		</p>
 	</form>
 	
-	<h2><?php echo esc_html( bhg_t( 'current_database_status', 'Current Database Status' ) );; ?></h2>
+	<h2>
+	<?php
+	echo esc_html( bhg_t( 'current_database_status', 'Current Database Status' ) );
+	?>
+</h2>
 	<table class="wp-list-table widefat fixed striped">
 		<thead>
 			<tr>
-				<th><?php echo esc_html( bhg_t( 'table_name', 'Table Name' ) );; ?></th>
-				<th><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></th>
-				<th><?php echo esc_html( bhg_t( 'rows', 'Rows' ) );; ?></th>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'table_name', 'Table Name' ) );
+				?>
+</th>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+				?>
+</th>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'rows', 'Rows' ) );
+				?>
+</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -155,12 +193,20 @@ function bhg_insert_demo_data() {
 		</tbody>
 	</table>
 	
-	<h2><?php echo esc_html( bhg_t( 'database_maintenance', 'Database Maintenance' ) );; ?></h2>
+	<h2>
+	<?php
+	echo esc_html( bhg_t( 'database_maintenance', 'Database Maintenance' ) );
+	?>
+</h2>
 	<form method="post" action="">
 		<?php wp_nonce_field( 'bhg_db_optimize_action', 'bhg_nonce' ); ?>
 		<input type="hidden" name="bhg_action" value="db_optimize">
 		<p>
-			<input type="submit" name="bhg_db_optimize" class="button button-primary" value="<?php echo esc_attr( bhg_t( 'optimize_database_tables', 'Optimize Database Tables' ) );; ?>">
+			<input type="submit" name="bhg_db_optimize" class="button button-primary" value="
+			<?php
+			echo esc_attr( bhg_t( 'optimize_database_tables', 'Optimize Database Tables' ) );
+			?>
+">
 		</p>
 	</form>
 </div>

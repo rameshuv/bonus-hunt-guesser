@@ -5,11 +5,11 @@ if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 
-$paged           = max( 1, isset( $_GET['paged'] ) ? (int) $_GET['paged'] : 1 );
-$per_page        = 30;
-$search          = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+$paged    = max( 1, isset( $_GET['paged'] ) ? (int) $_GET['paged'] : 1 );
+$per_page = 30;
+$search   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 if ( isset( $_GET['s'] ) ) {
-        check_admin_referer( 'bhg_users_search', 'bhg_users_search_nonce' );
+		check_admin_referer( 'bhg_users_search', 'bhg_users_search_nonce' );
 }
 $allowed_orderby = array( 'user_login', 'display_name', 'user_email' );
 $orderby         = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'user_login';
@@ -36,10 +36,10 @@ $base_url = remove_query_arg( array( 'paged' ) );
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_users', 'Users' ) ); ?></h1>
 
-        <form method="get" class="bhg-margin-top-small">
-       <input type="hidden" name="page" value="bhg-users" />
-       <input type="hidden" name="action" value="bhg_users_search" />
-       <?php wp_nonce_field( 'bhg_users_search', 'bhg_users_search_nonce' ); ?>
+		<form method="get" class="bhg-margin-top-small">
+		<input type="hidden" name="page" value="bhg-users" />
+		<input type="hidden" name="action" value="bhg_users_search" />
+		<?php wp_nonce_field( 'bhg_users_search', 'bhg_users_search_nonce' ); ?>
 	<p class="search-box">
 		<label class="screen-reader-text" for="user-search-input"><?php echo esc_html( bhg_t( 'search_users', 'Search Users' ) ); ?></label>
 		<input type="search" id="user-search-input" name="s" value="<?php echo esc_attr( $search ); ?>" />
@@ -114,7 +114,7 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			<form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="bhg_save_user_meta" />
 				<input type="hidden" name="user_id" value="<?php echo (int) $u->ID; ?>" />
-                                <?php wp_nonce_field( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' ); ?>
+								<?php wp_nonce_field( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' ); ?>
 				<button type="submit" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button>
 			</form>
 			<a class="button" href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $u->ID ) ); ?>"><?php echo esc_html( bhg_t( 'view_edit', 'View / Edit' ) ); ?></a>

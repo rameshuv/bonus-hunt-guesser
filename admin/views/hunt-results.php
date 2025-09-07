@@ -26,9 +26,21 @@ $winners_limit = (int) ( $hunt->winners_limit ?? 3 );
 	<table class="widefat striped">
 	<thead><tr>
 		<th>#</th>
-		<th><?php echo esc_html( bhg_t( 'sc_user', 'User' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_diff_short', 'Diff' ) );; ?></th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_user', 'User' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'label_diff_short', 'Diff' ) );
+		?>
+</th>
 	</tr></thead>
 	<tbody>
 		<?php
@@ -48,7 +60,11 @@ $winners_limit = (int) ( $hunt->winners_limit ?? 3 );
 					++$i;
 endforeach; else :
 	?>
-		<tr><td colspan="4"><?php echo esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) );; ?></td></tr>
+		<tr><td colspan="4">
+		<?php
+		echo esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) );
+		?>
+</td></tr>
 		<?php endif; ?>
 	</tbody>
 	</table>

@@ -21,36 +21,36 @@ class BHG_Demo {
 
 	public function render_demo() {
 		echo '<div class="wrap"><h1>Demo Tools</h1>';
-                                echo '<form method="post" action="' . admin_url( 'admin-post.php' ) . '">';
-                                echo '<input type="hidden" name="action" value="bhg_demo_reseed" />';
-                                wp_nonce_field( 'bhg_demo_reseed', 'bhg_demo_reseed_nonce' );
+								echo '<form method="post" action="' . admin_url( 'admin-post.php' ) . '">';
+								echo '<input type="hidden" name="action" value="bhg_demo_reseed" />';
+								wp_nonce_field( 'bhg_demo_reseed', 'bhg_demo_reseed_nonce' );
 				submit_button( __( 'Reset & Reseed Demo', 'bonus-hunt-guesser' ) );
 				echo '</form></div>';
 	}
 
 	public function reseed() {
-                        check_admin_referer( 'bhg_demo_reseed', 'bhg_demo_reseed_nonce' );
+						check_admin_referer( 'bhg_demo_reseed', 'bhg_demo_reseed_nonce' );
 			global $wpdb;
 
-                       // Wipe demo data
-                       $hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
-                       $tournaments_table = $wpdb->prefix . 'bhg_tournaments';
+						// Wipe demo data
+						$hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
+						$tournaments_table = $wpdb->prefix . 'bhg_tournaments';
 
-                       $wpdb->query(
-                               $wpdb->prepare(
-                                       'DELETE FROM %i WHERE title LIKE %s',
-                                       $hunts_table,
-                                       '%(Demo)%'
-                               )
-                       );
+						$wpdb->query(
+							$wpdb->prepare(
+								'DELETE FROM %i WHERE title LIKE %s',
+								$hunts_table,
+								'%(Demo)%'
+							)
+						);
 
-                       $wpdb->query(
-                               $wpdb->prepare(
-                                       'DELETE FROM %i WHERE title LIKE %s',
-                                       $tournaments_table,
-                                       '%(Demo)%'
-                               )
-                       );
+						$wpdb->query(
+							$wpdb->prepare(
+								'DELETE FROM %i WHERE title LIKE %s',
+								$tournaments_table,
+								'%(Demo)%'
+							)
+						);
 
 		// Insert demo hunt
 		$wpdb->insert(

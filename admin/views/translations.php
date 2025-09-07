@@ -16,7 +16,7 @@ global $wpdb;
 $table = $wpdb->prefix . 'bhg_translations';
 
 if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-       bhg_seed_default_translations_if_empty();
+		bhg_seed_default_translations_if_empty();
 }
 
 $default_translations = function_exists( 'bhg_get_default_translations' ) ? bhg_get_default_translations() : array();
@@ -47,17 +47,17 @@ if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'
 	if ( '' === $tkey ) {
 			$form_error = bhg_t( 'key_field_is_required', 'Key field is required.' );
 	} else {
-                        $wpdb->replace(
-                                $table,
-                                array(
-                                        'tkey'   => $tkey,
-                                        'tvalue' => $tvalue,
-                                ),
-                                array( '%s', '%s' )
-                        );
-                       wp_cache_delete( 'bhg_translation_' . $tkey );
-                        $notice = bhg_t( 'translation_saved', 'Translation saved.' );
-        }
+						$wpdb->replace(
+							$table,
+							array(
+								'tkey'   => $tkey,
+								'tvalue' => $tvalue,
+							),
+							array( '%s', '%s' )
+						);
+						wp_cache_delete( 'bhg_translation_' . $tkey );
+						$notice = bhg_t( 'translation_saved', 'Translation saved.' );
+	}
 }
 
 // Fetch rows with pagination.
@@ -122,16 +122,28 @@ $pagination  = paginate_links(
 <table class="form-table" role="presentation">
 <tbody>
 <tr>
-<th scope="row"><label for="tkey"><?php echo esc_html( bhg_t( 'key', 'Key' ) );; ?></label></th>
+<th scope="row"><label for="tkey">
+<?php
+echo esc_html( bhg_t( 'key', 'Key' ) );
+?>
+</label></th>
 <td><input name="tkey" id="tkey" type="text" class="regular-text" required></td>
 </tr>
 <tr>
-<th scope="row"><label for="tvalue"><?php echo esc_html( bhg_t( 'value', 'Value' ) );; ?></label></th>
+<th scope="row"><label for="tvalue">
+<?php
+echo esc_html( bhg_t( 'value', 'Value' ) );
+?>
+</label></th>
 <td><textarea name="tvalue" id="tvalue" class="large-text" rows="4"></textarea></td>
 </tr>
 </tbody>
 </table>
-<p class="submit"><button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) );; ?></button></p>
+<p class="submit"><button type="submit" name="bhg_save_translation" class="button button-primary">
+<?php
+echo esc_html( bhg_t( 'button_save', 'Save' ) );
+?>
+</button></p>
 </form>
 
 <form method="get" class="bhg-translations-search">

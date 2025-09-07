@@ -40,16 +40,36 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 
 	<!-- Your existing edit form for the hunt would be above this line -->
 
-	<h2 style="margin-top:2em;"><?php echo esc_html( bhg_t( 'participants', 'Participants' ) );; ?></h2>
+	<h2 style="margin-top:2em;">
+	<?php
+	echo esc_html( bhg_t( 'participants', 'Participants' ) );
+	?>
+</h2>
 	<p><?php echo esc_html( sprintf( _n( '%s participant', '%s participants', $total, 'bonus-hunt-guesser' ), number_format_i18n( $total ) ) ); ?></p>
 
 	<table class="widefat striped">
 	<thead>
 		<tr>
-		<th><?php echo esc_html( bhg_t( 'sc_user', 'User' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'date', 'Date' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) );; ?></th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_user', 'User' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'date', 'Date' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
+		?>
+</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -68,13 +88,19 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 				<?php wp_nonce_field( 'bhg_remove_guess_action', 'bhg_remove_guess_nonce' ); ?>
 				<input type="hidden" name="guess_id" value="<?php echo (int) $r->id; ?>">
 				<button type="submit" name="bhg_remove_guess" class="button button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'remove_this_guess', 'Remove this guess?' ) ); ?>');">
-				<?php echo esc_html( bhg_t( 'remove', 'Remove' ) );; ?>
+				<?php
+				echo esc_html( bhg_t( 'remove', 'Remove' ) );
+				?>
 				</button>
 			</form>
 			</td>
 		</tr>
 						<?php endforeach; else : ?>
-		<tr><td colspan="4"><?php echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) );; ?></td></tr>
+		<tr><td colspan="4">
+							<?php
+							echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) );
+							?>
+</td></tr>
 		<?php endif; ?>
 	</tbody>
 	</table>

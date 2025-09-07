@@ -9,7 +9,7 @@ global $wpdb;
 $ads_table      = $wpdb->prefix . 'bhg_ads';
 $allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
 if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
-        wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 $ads_table = esc_sql( $ads_table );
 
@@ -19,9 +19,9 @@ $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 
 // Delete action
 if ( 'delete' === $action && $ad_id ) {
-                check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
+				check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
 	if ( current_user_can( 'manage_options' ) ) {
-                $wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
+				$wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
 		wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
 		exit;
 	}
@@ -30,7 +30,7 @@ if ( 'delete' === $action && $ad_id ) {
 // Fetch ads
 // db call ok; no-cache ok.
 $ads = $wpdb->get_results(
-        $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $ads_table )
+	$wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $ads_table )
 );
 ?>
 <div class="wrap">
@@ -65,18 +65,18 @@ $ads = $wpdb->get_results(
 			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $ad->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
 			<a class="button-link-delete" href="
 				<?php
-                                echo esc_url(
-                                        wp_nonce_url(
-                                                add_query_arg(
-                                                        array(
-                                                                'action' => 'delete',
-                                                                'id'     => (int) $ad->id,
-                                                        )
-                                                ),
-                                                'bhg_delete_ad',
-                                                'bhg_delete_ad_nonce'
-                                        )
-                                );
+								echo esc_url(
+									wp_nonce_url(
+										add_query_arg(
+											array(
+												'action' => 'delete',
+												'id'     => (int) $ad->id,
+											)
+										),
+										'bhg_delete_ad',
+										'bhg_delete_ad_nonce'
+									)
+								);
 				?>
 												" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></a>
 			</td>
@@ -93,13 +93,13 @@ endif;
 		$ad = null;
 	if ( $edit_id ) {
 									// db call ok; no-cache ok.
-                                                                       $ad = $wpdb->get_row(
-                                                                                $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $ads_table, $edit_id )
-                                                                        );
+																		$ad = $wpdb->get_row(
+																			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $ads_table, $edit_id )
+																		);
 	}
 	?>
-        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
-                <?php wp_nonce_field( 'bhg_save_ad', 'bhg_save_ad_nonce' ); ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
+				<?php wp_nonce_field( 'bhg_save_ad', 'bhg_save_ad_nonce' ); ?>
 	<input type="hidden" name="action" value="bhg_save_ad">
 	<?php if ( $ad ) : ?>
 		<input type="hidden" name="id" value="<?php echo (int) $ad->id; ?>">
