@@ -1026,4 +1026,3 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 
 		return true;
 	}
-}
