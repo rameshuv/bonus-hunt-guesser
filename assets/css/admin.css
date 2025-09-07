@@ -163,9 +163,9 @@ flex: 1;
 }
 
 /* Enhanced dashboard layout */
-.bhg-dashboard .dashboard-widgets {
-    display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+.bhg-dashboard-cards {
+    display: flex;
+    flex-direction: column;
     gap: var(--bhg-spacing);
 }
 
@@ -175,6 +175,7 @@ flex: 1;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     line-height: 1.5;
     font-size: 14px;
+    width: 100%;
 }
 
 .bhg-dashboard-meta li + li {
@@ -209,9 +210,4 @@ flex: 1;
     padding: 8px 10px;
 }
 
-@media (max-width: 782px) {
-    .bhg-dashboard .dashboard-widgets {
-        grid-template-columns: 1fr;
-    }
-}
 
