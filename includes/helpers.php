@@ -996,9 +996,11 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 			}
 		}
 
-		// Seed translations (upsert).
-		$tr_tbl = "{$p}bhg_translations";
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
+                // Seed translations (upsert).
+                global $wpdb;
+                $p      = $wpdb->prefix;
+                $tr_tbl = "{$p}bhg_translations";
+                if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
 			$pairs = array(
 				'email_results_title'    => 'The Bonus Hunt has been closed!',
 				'email_final_balance'    => 'Final Balance',
