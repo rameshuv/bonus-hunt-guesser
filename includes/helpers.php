@@ -220,12 +220,20 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_closed_at'             => 'Closed At',
 			'label_hunt'                  => 'Hunt',
 			'label_title'                 => 'Title',
-			'notice_no_user_specified'    => 'No user specified.',
-			'notice_no_guesses_found'     => 'No guesses found.',
-			'msg_no_ads_yet'              => 'No ads yet.',
-			'notice_no_winners_yet'       => 'No winners yet.',
-			// Shortcode labels for public views.
-			'sc_hunt'                     => 'Hunt',
+                        'notice_no_user_specified'    => 'No user specified.',
+                        'notice_no_guesses_found'     => 'No guesses found.',
+                        'msg_no_ads_yet'              => 'No ads yet.',
+                        'notice_no_winners_yet'       => 'No winners yet.',
+                        'notice_login_view_profile'   => 'Please log in to view your profile.',
+                        'notice_please_log_in'        => 'Please log in.',
+                        'notice_results_pending'      => 'Results pending.',
+                        'label_affiliate_sites'       => 'Affiliate Sites',
+                        'label_your_hunts'            => 'Your Hunts',
+                        'label_your_guesses'          => 'Your Guesses',
+                        'label_winner_notifications'  => 'Winner Notifications',
+                        'label_timeline'              => 'Timeline',
+                        // Shortcode labels for public views.
+                        'sc_hunt'                     => 'Hunt',
 			'sc_guess'                    => 'Guess',
 			'sc_final'                    => 'Final',
 			'sc_title'                    => 'Title',
@@ -426,23 +434,32 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
 
 		$table = $wpdb->prefix . 'bhg_translations';
 
-		foreach ( bhg_get_default_translations() as $tkey => $tvalue ) {
-			$tkey = trim( (string) $tkey );
-			if ( '' === $tkey ) {
-				continue; // Skip invalid keys.
-			}
+                foreach ( bhg_get_default_translations() as $tkey => $tvalue ) {
+                        $tkey = trim( (string) $tkey );
+                        if ( '' === $tkey ) {
+                                continue; // Skip invalid keys.
+                        }
 
-			$wpdb->replace(
-				$table,
-				array(
-					'tkey'   => $tkey,
-					'tvalue' => $tvalue,
-					'locale' => get_locale(),
-				),
-				array( '%s', '%s', '%s' )
-			);
-		}
-	}
+                        $exists = (int) $wpdb->get_var(
+                                $wpdb->prepare(
+                                        "SELECT COUNT(*) FROM {$table} WHERE tkey = %s",
+                                        $tkey
+                                )
+                        );
+
+                        if ( 0 === $exists ) {
+                                $wpdb->insert(
+                                        $table,
+                                        array(
+                                                'tkey'   => $tkey,
+                                                'tvalue' => $tvalue,
+                                                'locale' => get_locale(),
+                                        ),
+                                        array( '%s', '%s', '%s' )
+                                );
+                        }
+                }
+        }
 }
 
 /**
