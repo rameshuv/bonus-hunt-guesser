@@ -584,13 +584,20 @@ public function leaderboard_shortcode( $atts ) {
                         $h       = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
                         $ranking = max( 0, min( 10, (int) $a['ranking'] ) );
 
-                        $fields_raw    = explode( ',', (string) $a['fields'] );
-                        $allowed_field = array( 'position', 'user', 'guess' );
-                        $fields_arr    = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
-                        if ( empty( $fields_arr ) ) {
-                                $fields_arr = $allowed_field;
-                        }
-                        $fields = implode( ',', $fields_arr );
+                       $fields_raw    = explode( ',', (string) $a['fields'] );
+                       $allowed_field = array( 'position', 'user', 'guess' );
+                       $fields_arr    = array_values(
+                               array_unique(
+                                       array_intersect(
+                                               $allowed_field,
+                                               array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) )
+                                       )
+                               )
+                       );
+                       if ( empty( $fields_arr ) ) {
+                               $fields_arr = $allowed_field;
+                       }
+                       $fields = implode( ',', $fields_arr );
 
 			$where  = array();
 			$params = array();
