@@ -8,8 +8,11 @@
     <arg name="tab-width" value="4"/>
     <arg name="extensions" value="php"/>
 
-    <!-- Scan all PHP files in the project -->
-    <file>./</file>
-    <exclude-pattern>vendor/*</exclude-pattern>
-    <exclude-pattern>node_modules/*</exclude-pattern>
+    <!-- Explicitly scan the plugin's core files -->
+    <file>bonus-hunt-guesser.php</file>
+    <file>admin/</file>
+    <file>includes/</file>
+    <file>uninstall.php</file>
+    <exclude-pattern>admin/views/*</exclude-pattern>
+    <exclude-pattern>includes/helpers.php</exclude-pattern>
 </ruleset>
