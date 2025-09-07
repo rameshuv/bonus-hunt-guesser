@@ -432,9 +432,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         }
 
                         // db call ok; no-cache ok.
-                        $rows = $wpdb->get_results(
-                                $wpdb->prepare( $sql, $params )
-                        );
+                       $rows = $wpdb->get_results(
+                               $wpdb->prepare( $sql, ...$params )
+                       );
 			if ( ! $rows ) {
 				return '<p>' . esc_html__( 'No guesses found.', 'bonus-hunt-guesser' ) . '</p>';
 			}

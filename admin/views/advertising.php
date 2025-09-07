@@ -6,12 +6,11 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$table          = $wpdb->prefix . 'bhg_ads';
+$ads_table      = esc_sql( $wpdb->prefix . 'bhg_ads' );
 $allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
-if ( ! in_array( $table, $allowed_tables, true ) ) {
-	wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
+if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
+        wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 }
-$table = esc_sql( $table );
 
 $action  = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
 $ad_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
@@ -21,7 +20,7 @@ $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 if ( 'delete' === $action && $ad_id ) {
 		check_admin_referer( 'bhg_delete_ad', '_wpnonce' );
 	if ( current_user_can( 'manage_options' ) ) {
-		$wpdb->delete( $table, array( 'id' => $ad_id ), array( '%d' ) );
+                $wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
 		wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
 		exit;
 	}
@@ -30,7 +29,7 @@ if ( 'delete' === $action && $ad_id ) {
 // Fetch ads
 // db call ok; no-cache ok.
 $ads = $wpdb->get_results(
-	$wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $table )
+        $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $ads_table )
 );
 ?>
 <div class="wrap">
@@ -92,9 +91,9 @@ endif;
 		$ad = null;
 	if ( $edit_id ) {
 									// db call ok; no-cache ok.
-									$ad = $wpdb->get_row(
-										$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $edit_id )
-									);
+                                                                       $ad = $wpdb->get_row(
+                                                                                $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $ads_table, $edit_id )
+                                                                        );
 	}
 	?>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
