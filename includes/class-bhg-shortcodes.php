@@ -389,12 +389,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$g = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
 			$h = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 
-			// Ensure hunts table has created_at column. If missing, attempt migration and fall back.
-			$has_created_at = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$h} LIKE %s", 'created_at' ) );
-			if ( empty( $has_created_at ) && class_exists( 'BHG_DB' ) ) {
-				BHG_DB::migrate();
-				$has_created_at = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$h} LIKE %s", 'created_at' ) );
-			}
+                        // Ensure hunts table has created_at column. If missing, attempt migration and fall back.
+                        $has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
+                        if ( empty( $has_created_at ) && class_exists( 'BHG_DB' ) ) {
+                                BHG_DB::migrate();
+                                $has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
+                        }
 
 			$where  = array( 'g.user_id = %d' );
 			$params = array( $user_id );
@@ -432,16 +432,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$orderby_key = isset( $orderby_map[ $a['orderby'] ] ) ? $a['orderby'] : 'hunt';
 			$orderby     = $orderby_map[ $orderby_key ];
 
-			$sql = "SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id WHERE " . implode( ' AND ', $where );
-			$sql .= ' ORDER BY ' . $orderby . ' ' . $order;
-			if ( 'recent' === strtolower( $a['timeline'] ) ) {
-				$sql .= ' LIMIT 10';
-			}
+                        $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where );
+                        $sql .= ' ORDER BY ' . $orderby . ' ' . $order;
+                        if ( 'recent' === strtolower( $a['timeline'] ) ) {
+                                $sql .= ' LIMIT 10';
+                        }
 
                         // db call ok; no-cache ok.
-                       $rows = $wpdb->get_results(
-                               $wpdb->prepare( $sql, ...$params )
-                       );
+                        $rows = $wpdb->get_results(
+                                $wpdb->prepare( $sql, $g, $h, ...$params )
+                        );
 			if ( ! $rows ) {
 				return '<p>' . esc_html__( 'No guesses found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
