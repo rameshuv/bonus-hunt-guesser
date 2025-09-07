@@ -37,8 +37,9 @@ $base_url = remove_query_arg( array( 'paged' ) );
 	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Users', 'bonus-hunt-guesser' ); ?></h1>
 
         <form method="get" class="bhg-margin-top-small">
-        <input type="hidden" name="page" value="bhg-users" />
-        <?php wp_nonce_field( 'bhg_users_search' ); ?>
+       <input type="hidden" name="page" value="bhg-users" />
+       <input type="hidden" name="action" value="bhg_users_search" />
+       <?php wp_nonce_field( 'bhg_users_search' ); ?>
 	<p class="search-box">
 		<label class="screen-reader-text" for="user-search-input"><?php echo esc_html__( 'Search Users', 'bonus-hunt-guesser' ); ?></label>
 		<input type="search" id="user-search-input" name="s" value="<?php echo esc_attr( $search ); ?>" />
