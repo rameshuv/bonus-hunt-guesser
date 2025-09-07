@@ -180,15 +180,17 @@ class BHG_Admin {
 			require $view; } else {
 			echo '<div class="wrap"><h1>' . esc_html__( 'Settings', 'bonus-hunt-guesser' ) . '</h1><p>' . esc_html__( 'No settings UI found.', 'bonus-hunt-guesser' ) . '</p></div>'; }
 	}
-	/**
-	 * Render the tools demo page.
-	 */
-	public function bhg_tools_page() {
-		$view = BHG_PLUGIN_DIR . 'admin/views/demo-tools.php';
-		if ( file_exists( $view ) ) {
-			require $view; } else {
-			echo '<div class="wrap"><h1>' . esc_html__( 'BHG Tools', 'bonus-hunt-guesser' ) . '</h1><p>' . esc_html__( 'No tools UI found.', 'bonus-hunt-guesser' ) . '</p></div>'; }
-	}
+       /**
+        * Render the tools page.
+        */
+       public function bhg_tools_page() {
+               $view = BHG_PLUGIN_DIR . 'admin/views/tools.php';
+               if ( file_exists( $view ) ) {
+                       require $view;
+               } else {
+                       echo '<div class="wrap"><h1>' . esc_html__( 'BHG Tools', 'bonus-hunt-guesser' ) . '</h1><p>' . esc_html__( 'No tools UI found.', 'bonus-hunt-guesser' ) . '</p></div>';
+               }
+       }
 
 	// -------------------- Handlers --------------------
 
