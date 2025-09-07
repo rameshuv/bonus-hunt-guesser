@@ -26,14 +26,11 @@ $default_keys         = array_keys( $default_translations );
 $search_term = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 
 // Handle form submission.
-if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['bhg_save_translation'] ) ) {
-		// Verify nonce.
-		$nonce = isset( $_POST['bhg_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_nonce'] ) ) : '';
-	if ( ! $nonce || ! wp_verify_nonce( $nonce, 'bhg_save_translation_action' ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'bonus-hunt-guesser' ) );
-	}
 
-		// Sanitize input.
+if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['bhg_save_translation'] ) ) {
+	check_admin_referer( 'bhg_save_translation_action', 'bhg_nonce' );
+
+	// Sanitize input.
 		$tkey   = isset( $_POST['tkey'] ) ? sanitize_text_field( wp_unslash( $_POST['tkey'] ) ) : '';
 		$tvalue = isset( $_POST['tvalue'] ) ? sanitize_textarea_field( wp_unslash( $_POST['tvalue'] ) ) : '';
 

@@ -18,9 +18,7 @@ if ( isset( $_POST['bhg_action'] ) ) {
 
 	// Verify nonce based on action
 	$nonce_action = 'bhg_' . $action;
-	if ( ! isset( $_POST['bhg_nonce'] ) || ! wp_verify_nonce( $_POST['bhg_nonce'], $nonce_action ) ) {
-		wp_die( 'Security check failed' );
-	}
+	check_admin_referer( $nonce_action, 'bhg_nonce' );
 
 	switch ( $action ) {
 		case 'create_bonus_hunt':

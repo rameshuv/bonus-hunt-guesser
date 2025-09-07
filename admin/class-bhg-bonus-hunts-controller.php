@@ -78,12 +78,9 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 			}
 
 			$action       = sanitize_text_field( wp_unslash( $_POST['bhg_action'] ) );
-			$nonce        = isset( $_POST['bhg_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_nonce'] ) ) : '';
 			$nonce_action = 'bhg_' . $action;
 
-			if ( ! wp_verify_nonce( $nonce, $nonce_action ) ) {
-				wp_die( 'Security check failed' );
-			}
+			check_admin_referer( $nonce_action, 'bhg_nonce' );
 
 			$db      = new BHG_DB();
 			$message = 'error';

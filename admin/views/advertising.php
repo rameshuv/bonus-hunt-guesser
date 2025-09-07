@@ -18,9 +18,9 @@ $ad_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 
 // Delete action
-if ( 'delete' === $action && $ad_id && isset( $_GET['_wpnonce'] ) ) {
-	$nonce = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
-	if ( wp_verify_nonce( $nonce, 'bhg_delete_ad' ) && current_user_can( 'manage_options' ) ) {
+if ( 'delete' === $action && $ad_id ) {
+	check_admin_referer( 'bhg_delete_ad' );
+	if ( current_user_can( 'manage_options' ) ) {
 		$wpdb->delete( $table, array( 'id' => $ad_id ), array( '%d' ) );
 		wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
 		exit;
