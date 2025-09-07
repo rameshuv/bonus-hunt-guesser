@@ -100,7 +100,7 @@ if ( 'list' === $view ) :
 			<td><?php echo esc_html( number_format_i18n( (float) $h->starting_balance, 2 ) ); ?></td>
 					<td><?php echo null !== $h->final_balance ? esc_html( number_format_i18n( (float) $h->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 			<td><?php echo (int) ( $h->winners_count ?? 3 ); ?></td>
-			<td><?php echo esc_html( $h->status ); ?></td>
+                       <td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
 			<td>
 			<a class="button" href="
 				<?php

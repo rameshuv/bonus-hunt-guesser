@@ -327,9 +327,9 @@ if ( isset( $_GET['message'] ) ) {
 							</td>
 							<td><?php echo esc_html( $hunt->num_bonuses ); ?></td>
 							<td>
-								<span class="bhg-status bhg-status-<?php echo esc_attr( $hunt->status ); ?>">
-									<?php echo esc_html( ucfirst( $hunt->status ) ); ?>
-								</span>
+                                                            <span class="bhg-status bhg-status-<?php echo esc_attr( $hunt->status ); ?>">
+                                                                    <?php echo esc_html( bhg_t( strtolower( (string) $hunt->status ), ucfirst( $hunt->status ) ) ); ?>
+                                                            </span>
 							</td>
 							<td><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $hunt->created_at ) ) ); ?></td>
 							<td>

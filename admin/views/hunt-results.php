@@ -25,7 +25,7 @@ $winners_limit = (int) ( $hunt->winners_limit ?? 3 );
 	<h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title ) ); ?></h1>
 	<table class="widefat striped">
 	<thead><tr>
-		<th>#</th>
+                <th><?php echo esc_html( bhg_t( 'label_hash', '#' ) ); ?></th>
 		<th>
 		<?php
 		echo esc_html( bhg_t( 'sc_user', 'User' ) );

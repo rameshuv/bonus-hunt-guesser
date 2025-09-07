@@ -96,7 +96,7 @@ $labels = array(
 			<td><?php echo esc_html( $labels[ $r->type ] ?? $r->type ); ?></td>
 			<td><?php echo esc_html( $r->start_date ); ?></td>
 			<td><?php echo esc_html( $r->end_date ); ?></td>
-			<td><?php echo esc_html( $r->status ); ?></td>
+                       <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 			<td>
 			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
 				<?php

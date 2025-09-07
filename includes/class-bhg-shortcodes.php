@@ -590,7 +590,8 @@ $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $
 				echo '<td>' . esc_html( $row->title ) . '</td>';
 				echo '<td>' . esc_html( number_format_i18n( (float) $row->starting_balance, 2 ) ) . '</td>';
 				echo '<td>' . ( isset( $row->final_balance ) ? esc_html( number_format_i18n( (float) $row->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-				echo '<td>' . esc_html( $row->status ) . '</td>';
+                                $status_key = strtolower( (string) $row->status );
+                                echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
 				if ( $show_aff ) {
 					echo '<td>' . ( $row->aff_name ? esc_html( $row->aff_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 				}
@@ -802,7 +803,8 @@ $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $
 					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
 					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
 					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
-					echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( $tournament->status ) . '</p>';
+                                        $status_key = strtolower( (string) $tournament->status );
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
 
 				if ( ! $rows ) {
 					echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
@@ -812,7 +814,7 @@ $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $
 
 					echo '<table class="bhg-leaderboard">';
 					echo '<thead><tr>';
-					echo '<th>#</th>';
+                                        echo '<th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th>';
 					echo '<th><a href="' . $toggle( 'username' ) . '">' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</a></th>';
 					echo '<th><a href="' . $toggle( 'wins' ) . '">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</a></th>';
 					echo '<th><a href="' . $toggle( 'last_win_at' ) . '">' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</a></th>';
@@ -972,7 +974,8 @@ $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $
 				echo '<td>' . esc_html( ucfirst( $row->type ) ) . '</td>';
 				echo '<td>' . esc_html( mysql2date( get_option( 'date_format' ), $row->start_date ) ) . '</td>';
 				echo '<td>' . esc_html( mysql2date( get_option( 'date_format' ), $row->end_date ) ) . '</td>';
-				echo '<td>' . esc_html( $row->status ) . '</td>';
+                                $status_key = strtolower( (string) $row->status );
+                                echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
 				echo '<td><a href="' . $detail_url . '">' . esc_html( bhg_t( 'label_show_details', 'Show details' ) ) . '</a></td>';
 				echo '</tr>';
 			}
@@ -1179,7 +1182,7 @@ $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $
 				if ( ! $rows ) {
 					echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 				} else {
-					echo '<table class="bhg-leaderboard"><thead><tr><th>#</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
+                                echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
 					$pos = 1;
 					foreach ( $rows as $r ) {
 						/* translators: %d: user ID. */
