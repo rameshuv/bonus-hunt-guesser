@@ -143,3 +143,33 @@ background-color: #fff8e5;
     color: var(--bhg-accent-color);
 }
 
+.bhg-dashboard-meta li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.bhg-dashboard-meta .dashicons {
+    color: var(--bhg-accent-color);
+}
+
+.bhg-dashboard-table-wrapper {
+    overflow-x: auto;
+}
+
+.bhg-dashboard-table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.bhg-dashboard-table-wrapper th,
+.bhg-dashboard-table-wrapper td {
+    padding: 8px 10px;
+}
+
+@media (max-width: 782px) {
+    .bhg-dashboard .dashboard-widgets {
+        grid-template-columns: 1fr;
+    }
+}
+
