@@ -18,7 +18,7 @@ $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 
 // Delete action
 if ( 'delete' === $action && $ad_id ) {
-		check_admin_referer( 'bhg_delete_ad', '_wpnonce' );
+                check_admin_referer( 'bhg_delete_ad' );
 	if ( current_user_can( 'manage_options' ) ) {
                 $wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
 		wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
@@ -96,8 +96,8 @@ endif;
                                                                         );
 	}
 	?>
-	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
-		<?php wp_nonce_field( 'bhg_save_ad', 'bhg_save_ad_nonce' ); ?>
+        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
+                <?php wp_nonce_field( 'bhg_save_ad' ); ?>
 	<input type="hidden" name="action" value="bhg_save_ad">
 	<?php if ( $ad ) : ?>
 		<input type="hidden" name="id" value="<?php echo (int) $ad->id; ?>">

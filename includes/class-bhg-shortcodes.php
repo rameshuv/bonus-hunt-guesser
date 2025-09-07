@@ -155,9 +155,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			);
 
 			ob_start(); ?>
-			<form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="bhg_submit_guess">
-					<?php wp_nonce_field( 'bhg_submit_guess', 'bhg_nonce' ); ?>
+                        <form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                                <input type="hidden" name="action" value="bhg_submit_guess">
+                                <?php wp_nonce_field( 'bhg_submit_guess' ); ?>
 
 					<?php if ( $open_hunts && count( $open_hunts ) > 1 ) : ?>
 					<label for="bhg-hunt-select"><?php esc_html_e( 'Choose a hunt:', 'bonus-hunt-guesser' ); ?></label>
