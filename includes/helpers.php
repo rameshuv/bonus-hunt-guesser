@@ -172,6 +172,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'label_existing_ads'                           => 'Existing Ads',
                         'label_yes'                                    => 'Yes',
                         'label_no'                                     => 'No',
+                        'label_default'                                => 'Default',
+                        'label_custom'                                 => 'Custom',
+                        'label_items_per_page'                         => 'Items per page',
+                        'label_search_translations'                    => 'Search translations',
                         'label_start_date'                             => 'Start Date',
                         'label_end_date'                               => 'End Date',
                         'label_email'                                  => 'Email',
@@ -248,11 +252,12 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'label_user_hash'                              => 'user#%d',
                         'label_emdash'                                 => '—',
                         'placeholder_enter_guess'                      => 'Enter your guess',
+                        'placeholder_custom_value'                     => 'Custom value',
 
                         // Buttons.
                         'button_save'                                  => 'Save',
-			'button_cancel'                                => 'Cancel',
-			'button_delete'                                => 'Delete',
+                        'button_cancel'                                => 'Cancel',
+                        'button_delete'                                => 'Delete',
                         'button_edit'                                  => 'Edit',
                         'button_view'                                  => 'View',
                         'button_back'                                  => 'Back',
@@ -261,6 +266,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'button_filter'                                => 'Filter',
                         'button_log_in'                                => 'Log in',
                         'button_view_edit'                             => 'View / Edit',
+                        'button_update'                                => 'Update',
 
 			// Notices / messages.
 			'notice_login_required'                        => 'You must be logged in to guess.',

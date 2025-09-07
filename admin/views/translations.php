@@ -107,7 +107,7 @@ $pagination  = paginate_links(
 );
 ?>
 <div class="wrap">
-<h1><?php esc_html_e( 'Translations', 'bonus-hunt-guesser' ); ?></h1>
+<h1><?php echo esc_html( bhg_t( 'menu_translations', 'Translations' ) ); ?></h1>
 
 <?php if ( ! empty( $notice ) ) : ?>
 <div class="notice notice-success"><p><?php echo esc_html( $notice ); ?></p></div>
@@ -136,19 +136,19 @@ $pagination  = paginate_links(
 <form method="get" class="bhg-translations-search">
 <input type="hidden" name="page" value="bhg-translations" />
 <p class="search-box">
-<label class="screen-reader-text" for="bhg-translation-search-input"><?php esc_html_e( 'Search translations', 'bonus-hunt-guesser' ); ?></label>
+<label class="screen-reader-text" for="bhg-translation-search-input"><?php echo esc_html( bhg_t( 'label_search_translations', 'Search translations' ) ); ?></label>
 <input type="search" id="bhg-translation-search-input" name="s" value="<?php echo esc_attr( $search_term ); ?>" />
-<label class="screen-reader-text" for="bhg-per-page"><?php esc_html_e( 'Items per page', 'bonus-hunt-guesser' ); ?></label>
+<label class="screen-reader-text" for="bhg-per-page"><?php echo esc_html( bhg_t( 'label_items_per_page', 'Items per page' ) ); ?></label>
 <select id="bhg-per-page" name="per_page">
 <option value="10" <?php selected( $items_per_page, 10 ); ?>>10</option>
 <option value="20" <?php selected( $items_per_page, 20 ); ?>>20</option>
 <option value="50" <?php selected( $items_per_page, 50 ); ?>>50</option>
 </select>
-<button class="button"><?php esc_html_e( 'Filter', 'bonus-hunt-guesser' ); ?></button>
+<button class="button"><?php echo esc_html( bhg_t( 'button_filter', 'Filter' ) ); ?></button>
 </p>
 </form>
 
-<h2><?php esc_html_e( 'Existing keys', 'bonus-hunt-guesser' ); ?></h2>
+<h2><?php echo esc_html( bhg_t( 'existing_keys', 'Existing keys' ) ); ?></h2>
 <?php if ( $pagination ) : ?>
 <div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
 <?php endif; ?>
@@ -170,7 +170,7 @@ if ( ! empty( $grouped ) ) :
 <div class="bhg-translation-group">
 <h3><?php echo esc_html( ucwords( str_replace( '_', ' ', $context ) ) ); ?></h3>
 <table class="widefat striped bhg-translations-table">
-<thead><tr><th><?php esc_html_e( 'Key', 'bonus-hunt-guesser' ); ?></th><th><?php esc_html_e( 'Default', 'bonus-hunt-guesser' ); ?></th><th><?php esc_html_e( 'Custom', 'bonus-hunt-guesser' ); ?></th></tr></thead>
+<thead><tr><th><?php echo esc_html( bhg_t( 'label_key', 'Key' ) ); ?></th><th><?php echo esc_html( bhg_t( 'label_default', 'Default' ) ); ?></th><th><?php echo esc_html( bhg_t( 'label_custom', 'Custom' ) ); ?></th></tr></thead>
 <tbody>
 		<?php
 		foreach ( $items as $r ) :
@@ -184,8 +184,8 @@ if ( ! empty( $grouped ) ) :
 <form method="post" class="bhg-inline-form">
 				<?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
 <input type="hidden" name="tkey" value="<?php echo esc_attr( $r->tkey ); ?>" />
-<input type="text" name="tvalue" value="<?php echo esc_attr( $r->tvalue ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'Custom value', 'bonus-hunt-guesser' ); ?>" />
-<button type="submit" name="bhg_save_translation" class="button button-primary"><?php esc_html_e( 'Update', 'bonus-hunt-guesser' ); ?></button>
+<input type="text" name="tvalue" value="<?php echo esc_attr( $r->tvalue ); ?>" class="regular-text" placeholder="<?php echo esc_attr( bhg_t( 'placeholder_custom_value', 'Custom value' ) ); ?>" />
+<button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_update', 'Update' ) ); ?></button>
 </form>
 </td>
 </tr>
@@ -199,7 +199,7 @@ if ( ! empty( $grouped ) ) :
 				endforeach;
 else :
 	?>
-<p><?php esc_html_e( 'No translations yet.', 'bonus-hunt-guesser' ); ?></p>
+<p><?php echo esc_html( bhg_t( 'no_translations_yet', 'No translations yet.' ) ); ?></p>
 <?php endif; ?>
 
 <?php if ( $pagination ) : ?>
