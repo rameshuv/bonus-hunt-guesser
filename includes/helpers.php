@@ -232,12 +232,13 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_bottom'                                 => 'Bottom',
 			'label_sidebar'                                => 'Sidebar',
 			'label_shortcode'                              => 'Shortcode',
-			'label_timeline_colon'                         => 'Timeline:',
-			'label_user_hash'                              => 'user#%d',
-			'label_emdash'                                 => '—',
+                        'label_timeline_colon'                         => 'Timeline:',
+                        'label_user_hash'                              => 'user#%d',
+                        'label_emdash'                                 => '—',
+                        'placeholder_enter_guess'                      => 'Enter your guess',
 
-			// Buttons.
-			'button_save'                                  => 'Save',
+                        // Buttons.
+                        'button_save'                                  => 'Save',
 			'button_cancel'                                => 'Cancel',
 			'button_delete'                                => 'Delete',
 			'button_edit'                                  => 'Edit',
@@ -432,10 +433,12 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'guess_required'                               => 'Please enter a guess.',
 			'please_enter_a_valid_number'                  => 'Please enter a valid number.',
 			'guess_numeric'                                => 'Please enter a valid number.',
-			'guess_range'                                  => 'Guess must be between %1$s and %2$s.',
-			'guess_submitted'                              => 'Your guess has been submitted!',
-			'ajax_error'                                   => 'An error occurred. Please try again.',
-			'profile'                                      => 'Profile',
+                        'guess_range'                                  => 'Guess must be between %1$s and %2$s.',
+                        'guess_submitted'                              => 'Your guess has been submitted!',
+                        'msg_thank_you'                                => 'Thank you!',
+                        'msg_error'                                    => 'An error occurred.',
+                        'ajax_error'                                   => 'An error occurred. Please try again.',
+                        'profile'                                      => 'Profile',
 			'reminder_assign_your_bhg_menus_adminmoderator_loggedin_guest_under_appearance_menus_manage_locations_use_shortcode_bhgnav_to_display' => 'Reminder: Assign your BHG menus (Admin/Moderator, Logged-in, Guest) under Appearance → Menus → Manage Locations. Use shortcode [bhg_nav] to display.',
 			'remove'                                       => 'Remove',
 			'remove_this_guess'                            => 'Remove this guess?',
@@ -531,7 +534,27 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
 				);
 			}
 		}
-	}
+        }
+}
+
+if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
+               /**
+                * Seed default translations if the translations table is empty.
+                *
+                * @return void
+                */
+       function bhg_seed_default_translations_if_empty() {
+               global $wpdb;
+
+               $table = $wpdb->prefix . 'bhg_translations';
+               $count = (int) $wpdb->get_var(
+                       $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table )
+               );
+
+               if ( 0 === $count ) {
+                       bhg_seed_default_translations();
+               }
+       }
 }
 
 /**
