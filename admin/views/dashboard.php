@@ -24,7 +24,7 @@ if ( ! function_exists( 'bhg_get_latest_closed_hunts' ) ) {
 	);
 }
 
-$hunts = bhg_get_latest_closed_hunts( 3 ); // Expect array of objects with: id, title, starting_balance, final_balance, winners_count, closed_at.
+$hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balance, final_balance, winners_count, closed_at.
 ?>
 <div class="wrap bhg-dashboard">
 	<h1><?php esc_html_e( 'Latest Hunts', 'bonus-hunt-guesser' ); ?></h1>
@@ -53,9 +53,12 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect array of objects with: id, 
 						$winners = array();
 					}
 				}
+
+				$title = isset( $h->title ) ? (string) $h->title : '';
+				$start = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
 				?>
 				<tr>
-					<td><?php echo isset( $h->title ) ? esc_html( (string) $h->title ) : esc_html__( '(untitled)', 'bonus-hunt-guesser' ); ?></td>
+					<td><?php echo $title !== '' ? esc_html( $title ) : esc_html__( '(untitled)', 'bonus-hunt-guesser' ); ?></td>
 					<td>
 						<?php
 						if ( ! empty( $winners ) ) {
@@ -72,7 +75,7 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect array of objects with: id, 
 									$user_id
 								);
 
-								// Build a plain-text, safely escaped chunk: "name — 1,234.00 (diff 12.34)".
+								// Compose: "name — 1,234.00 (diff 12.34)".
 								$out[] = sprintf(
 									'%1$s %2$s %3$s (%4$s %5$s)',
 									esc_html( $nm ),
@@ -82,18 +85,14 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect array of objects with: id, 
 									esc_html( number_format_i18n( $diff, 2 ) )
 								);
 							}
+							// Implode to a single, safely-escaped string separated by dots.
 							echo esc_html( implode( ' • ', $out ) );
 						} else {
 							esc_html_e( 'No winners yet', 'bonus-hunt-guesser' );
 						}
 						?>
 					</td>
-					<td>
-						<?php
-						$start = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
-						echo esc_html( number_format_i18n( $start, 2 ) );
-						?>
-					</td>
+					<td><?php echo esc_html( number_format_i18n( $start, 2 ) ); ?></td>
 					<td>
 						<?php
 						if ( isset( $h->final_balance ) && null !== $h->final_balance ) {
