@@ -2,33 +2,33 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( __( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) ); }
+	wp_die( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ); }
 
 $hunt_id = isset( $_GET['id'] ) ? (int) $_GET['id'] : 0;
 if ( ! $hunt_id ) {
-	wp_die( __( 'Missing hunt id', 'bonus-hunt-guesser' ) ); }
+	wp_die( bhg_t( 'missing_hunt_id', 'Missing hunt id' ) ); }
 
 check_admin_referer( 'bhg_view_results_' . $hunt_id, 'bhg_nonce' );
 
 if ( ! function_exists( 'bhg_get_hunt' ) || ! function_exists( 'bhg_get_all_ranked_guesses' ) ) {
-	wp_die( __( 'Required helper functions are missing. Please include class-bhg-bonus-hunts.php helpers.', 'bonus-hunt-guesser' ) );
+	wp_die( bhg_t( 'notice_required_helpers_missing', 'Required helper functions are missing. Please include class-bhg-bonus-hunts.php helpers.' ) );
 }
 
 $hunt = bhg_get_hunt( $hunt_id );
 if ( ! $hunt ) {
-	wp_die( __( 'Hunt not found', 'bonus-hunt-guesser' ) ); }
+	wp_die( bhg_t( 'hunt_not_found', 'Hunt not found' ) ); }
 
 $rows          = bhg_get_all_ranked_guesses( $hunt_id );
 $winners_limit = (int) ( $hunt->winners_limit ?? 3 );
 ?>
 <div class="wrap">
-	<h1><?php echo esc_html( sprintf( __( 'Results — %s', 'bonus-hunt-guesser' ), $hunt->title ) ); ?></h1>
+	<h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title ) ); ?></h1>
 	<table class="widefat striped">
 	<thead><tr>
 		<th>#</th>
-		<th><?php esc_html_e( 'User', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Guess', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Diff', 'bonus-hunt-guesser' ); ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_user', 'User' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'label_diff_short', 'Diff' ) );; ?></th>
 	</tr></thead>
 	<tbody>
 		<?php
@@ -48,7 +48,7 @@ $winners_limit = (int) ( $hunt->winners_limit ?? 3 );
 					++$i;
 endforeach; else :
 	?>
-		<tr><td colspan="4"><?php esc_html_e( 'No guesses yet.', 'bonus-hunt-guesser' ); ?></td></tr>
+		<tr><td colspan="4"><?php echo esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) );; ?></td></tr>
 		<?php endif; ?>
 	</tbody>
 	</table>

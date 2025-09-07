@@ -11,16 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die(
-		esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' )
+		esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) )
 	);
 }
 
 if ( ! function_exists( 'bhg_get_latest_closed_hunts' ) ) {
 	wp_die(
-		esc_html__(
-			'Helper function bhg_get_latest_closed_hunts() missing. Please include class-bhg-bonus-hunts.php helpers.',
-			'bonus-hunt-guesser'
-		)
+		esc_html( bhg_t( 'helper_function_bhggetlatestclosedhunts_missing_please_include_classbhgbonushuntsphp_helpers', 'Helper function bhg_get_latest_closed_hunts() missing. Please include class-bhg-bonus-hunts.php helpers.' ) )
 	);
 }
 
@@ -38,32 +35,32 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 ?>
 
 <div class="wrap bhg-dashboard">
-<h1><?php esc_html_e( 'Dashboard', 'bonus-hunt-guesser' ); ?></h1>
+<h1><?php echo esc_html( bhg_t( 'menu_dashboard', 'Dashboard' ) );; ?></h1>
 
 <div class="bhg-dashboard-cards">
 <div class="bhg-dashboard-card">
-<h2 class="title"><?php esc_html_e( 'Summary', 'bonus-hunt-guesser' ); ?></h2>
+<h2 class="title"><?php echo esc_html( bhg_t( 'summary', 'Summary' ) );; ?></h2>
 <div class="inside">
 <ul class="bhg-dashboard-meta">
-<li><span class="dashicons dashicons-book-alt"></span> <strong><?php esc_html_e( 'Hunts:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $hunts_count ) ); ?></li>
-<li><span class="dashicons dashicons-groups"></span> <strong><?php esc_html_e( 'Users:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $users_count ) ); ?></li>
-<li><span class="dashicons dashicons-awards"></span> <strong><?php esc_html_e( 'Tournaments:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $tournaments_count ) ); ?></li>
+<li><span class="dashicons dashicons-book-alt"></span> <strong><?php echo esc_html( bhg_t( 'hunts', 'Hunts:' ) );; ?></strong> <?php echo esc_html( number_format_i18n( $hunts_count ) ); ?></li>
+<li><span class="dashicons dashicons-groups"></span> <strong><?php echo esc_html( bhg_t( 'users', 'Users:' ) );; ?></strong> <?php echo esc_html( number_format_i18n( $users_count ) ); ?></li>
+<li><span class="dashicons dashicons-awards"></span> <strong><?php echo esc_html( bhg_t( 'tournaments', 'Tournaments:' ) );; ?></strong> <?php echo esc_html( number_format_i18n( $tournaments_count ) ); ?></li>
 </ul>
 </div>
 </div>
 
 <div class="bhg-dashboard-card">
-<h2 class="title"><?php esc_html_e( 'Latest Hunts', 'bonus-hunt-guesser' ); ?></h2>
+<h2 class="title"><?php echo esc_html( bhg_t( 'label_latest_hunts', 'Latest Hunts' ) );; ?></h2>
 <div class="inside">
 <div class="bhg-dashboard-table-wrapper">
 <table class="wp-list-table widefat striped bhg-dashboard-table">
                                                 <thead>
                                                         <tr>
-                                                                <th><?php esc_html_e( 'Bonushunt', 'bonus-hunt-guesser' ); ?></th>
-                                                                <th><?php esc_html_e( 'All Winners', 'bonus-hunt-guesser' ); ?></th>
-                                                                <th><?php esc_html_e( 'Start Balance', 'bonus-hunt-guesser' ); ?></th>
-                                                                <th><?php esc_html_e( 'Final Balance', 'bonus-hunt-guesser' ); ?></th>
-                                                                <th><?php esc_html_e( 'Closed At', 'bonus-hunt-guesser' ); ?></th>
+                                                                <th><?php echo esc_html( bhg_t( 'label_bonushunt', 'Bonushunt' ) );; ?></th>
+                                                                <th><?php echo esc_html( bhg_t( 'label_all_winners', 'All Winners' ) );; ?></th>
+                                                                <th><?php echo esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) );; ?></th>
+                                                                <th><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) );; ?></th>
+                                                                <th><?php echo esc_html( bhg_t( 'label_closed_at', 'Closed At' ) );; ?></th>
                                                         </tr>
                                                 </thead>
                                                 <tbody>
@@ -85,10 +82,10 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 								$start      = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
 								?>
 								<tr>
-									<td data-label="<?php esc_attr_e( 'Bonushunt', 'bonus-hunt-guesser' ); ?>">
-										<?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html__( '(untitled)', 'bonus-hunt-guesser' ); ?>
+									<td data-label="<?php echo esc_attr( bhg_t( 'label_bonushunt', 'Bonushunt' ) );; ?>">
+										<?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?>
 									</td>
-									<td data-label="<?php esc_attr_e( 'All Winners', 'bonus-hunt-guesser' ); ?>">
+									<td data-label="<?php echo esc_attr( bhg_t( 'label_all_winners', 'All Winners' ) );; ?>">
 										<?php
 										if ( ! empty( $winners ) ) {
 											$out = array();
@@ -100,7 +97,7 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 												$u  = $user_id ? get_userdata( $user_id ) : false;
 												$nm = $u ? $u->user_login : sprintf(
 													/* translators: %d: user ID. */
-													esc_html__( 'User #%d', 'bonus-hunt-guesser' ),
+													esc_html( bhg_t( 'label_user_number', 'User #%d' ) ),
 													$user_id
 												);
 
@@ -110,30 +107,30 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 													esc_html( $nm ),
 													esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ),
 													esc_html( number_format_i18n( $guess, 2 ) ),
-													esc_html__( 'diff', 'bonus-hunt-guesser' ),
+													esc_html( bhg_t( 'label_diff', 'diff' ) ),
 													esc_html( number_format_i18n( $diff, 2 ) )
 												);
 											}
 											// Implode to a single, safely-escaped string separated by dots.
 											echo esc_html( implode( ' • ', $out ) );
 										} else {
-											esc_html_e( 'No winners yet', 'bonus-hunt-guesser' );
+											echo esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) );;
 										}
 										?>
 									</td>
-									<td data-label="<?php esc_attr_e( 'Start Balance', 'bonus-hunt-guesser' ); ?>">
+									<td data-label="<?php echo esc_attr( bhg_t( 'sc_start_balance', 'Start Balance' ) );; ?>">
 										<?php echo esc_html( number_format_i18n( $start, 2 ) ); ?>
 									</td>
-									<td data-label="<?php esc_attr_e( 'Final Balance', 'bonus-hunt-guesser' ); ?>">
+									<td data-label="<?php echo esc_attr( bhg_t( 'sc_final_balance', 'Final Balance' ) );; ?>">
 										<?php
 										if ( isset( $h->final_balance ) && null !== $h->final_balance ) {
 											echo esc_html( number_format_i18n( (float) $h->final_balance, 2 ) );
 										} else {
-											esc_html_e( '—', 'bonus-hunt-guesser' );
+											echo esc_html( bhg_t( 'label_emdash', '—' ) );;
 										}
 										?>
 									</td>
-									<td data-label="<?php esc_attr_e( 'Closed At', 'bonus-hunt-guesser' ); ?>">
+									<td data-label="<?php echo esc_attr( bhg_t( 'label_closed_at', 'Closed At' ) );; ?>">
 										<?php
 										if ( ! empty( $h->closed_at ) ) {
 											$ts = strtotime( (string) $h->closed_at );
@@ -146,7 +143,7 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 													: (string) $h->closed_at
 											);
 										} else {
-											esc_html_e( '—', 'bonus-hunt-guesser' );
+											echo esc_html( bhg_t( 'label_emdash', '—' ) );;
 										}
 										?>
 									</td>
@@ -154,13 +151,13 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 							<?php endforeach; ?>
 						<?php else : ?>
 							<tr>
-								<td colspan="5"><?php esc_html_e( 'No closed hunts yet.', 'bonus-hunt-guesser' ); ?></td>
+								<td colspan="5"><?php echo esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) );; ?></td>
 							</tr>
     <?php endif; ?>
     </tbody>
     </table>
     </div>
-    <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts' ) ); ?>" class="button button-primary"><?php esc_html_e( 'View All Hunts', 'bonus-hunt-guesser' ); ?></a></p>
+    <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts' ) ); ?>" class="button button-primary"><?php echo esc_html( bhg_t( 'view_all_hunts', 'View All Hunts' ) );; ?></a></p>
     </div>
 </div>
 </div><!-- .bhg-dashboard-cards -->

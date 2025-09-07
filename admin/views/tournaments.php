@@ -2,13 +2,13 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 global $wpdb;
 $table          = $wpdb->prefix . 'bhg_tournaments';
 $allowed_tables = array( $wpdb->prefix . 'bhg_tournaments' );
 if ( ! in_array( $table, $allowed_tables, true ) ) {
-	wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 $table = esc_sql( $table );
 
@@ -20,32 +20,32 @@ $row     = $edit_id
 $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY id DESC" );
 
 $labels = array(
-	'weekly'    => __( 'Weekly', 'bonus-hunt-guesser' ),
-	'monthly'   => __( 'Monthly', 'bonus-hunt-guesser' ),
-	'quarterly' => __( 'Quarterly', 'bonus-hunt-guesser' ),
-	'yearly'    => __( 'Yearly', 'bonus-hunt-guesser' ),
-	'alltime'   => __( 'Alltime', 'bonus-hunt-guesser' ),
+	'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+	'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+	'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+	'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+	'alltime'   => bhg_t( 'label_alltime', 'Alltime' ),
 );
 ?>
 <div class="wrap">
-	<h1 class="wp-heading-inline"><?php esc_html_e( 'Tournaments', 'bonus-hunt-guesser' ); ?></h1>
+	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_tournaments', 'Tournaments' ) );; ?></h1>
 
-	<h2 class="bhg-margin-top-small"><?php esc_html_e( 'All Tournaments', 'bonus-hunt-guesser' ); ?></h2>
+	<h2 class="bhg-margin-top-small"><?php echo esc_html( bhg_t( 'all_tournaments', 'All Tournaments' ) );; ?></h2>
 	<table class="widefat striped">
 	<thead>
 		<tr>
-		<th><?php esc_html_e( 'ID', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Title', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Type', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Start', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'End', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Status', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Actions', 'bonus-hunt-guesser' ); ?></th>
+		<th><?php echo esc_html( bhg_t( 'id', 'ID' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_title', 'Title' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'label_type', 'Type' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_start', 'Start' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_end', 'End' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) );; ?></th>
 		</tr>
 	</thead>
 	<tbody>
 		<?php if ( empty( $rows ) ) : ?>
-		<tr><td colspan="7"><em><?php esc_html_e( 'No tournaments yet.', 'bonus-hunt-guesser' ); ?></em></td></tr>
+		<tr><td colspan="7"><em><?php echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );; ?></em></td></tr>
 			<?php
 		else :
 			foreach ( $rows as $r ) :
@@ -58,7 +58,7 @@ $labels = array(
 			<td><?php echo esc_html( $r->end_date ); ?></td>
 			<td><?php echo esc_html( $r->status ); ?></td>
 			<td>
-			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>"><?php esc_html_e( 'Edit', 'bonus-hunt-guesser' ); ?></a>
+			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) );; ?></a>
 			</td>
 		</tr>
 					<?php
@@ -68,7 +68,7 @@ endif;
 	</tbody>
 	</table>
 
-	<h2 class="bhg-margin-top-large"><?php echo $row ? esc_html__( 'Edit Tournament', 'bonus-hunt-guesser' ) : esc_html__( 'Add Tournament', 'bonus-hunt-guesser' ); ?></h2>
+	<h2 class="bhg-margin-top-large"><?php echo $row ? esc_html( bhg_t( 'edit_tournament', 'Edit Tournament' ) ) : esc_html( bhg_t( 'add_tournament', 'Add Tournament' ) ); ?></h2>
         <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900">
                 <?php wp_nonce_field( 'bhg_tournament_save_action' ); ?>
         <input type="hidden" name="action" value="bhg_tournament_save" />
@@ -78,15 +78,15 @@ endif;
 		<input type="hidden" name="id" value="<?php echo (int) $row->id; ?>" /><?php endif; ?>
 	<table class="form-table">
 		<tr>
-		<th><label for="bhg_t_title"><?php esc_html_e( 'Title', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="bhg_t_title"><?php echo esc_html( bhg_t( 'sc_title', 'Title' ) );; ?></label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
 		<tr>
-		<th><label for="bhg_t_desc"><?php esc_html_e( 'Description', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="bhg_t_desc"><?php echo esc_html( bhg_t( 'description', 'Description' ) );; ?></label></th>
 		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
 		</tr>
 		<tr>
-		<th><label for="bhg_t_type"><?php esc_html_e( 'Type', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="bhg_t_type"><?php echo esc_html( bhg_t( 'label_type', 'Type' ) );; ?></label></th>
 		<td>
 			<?php
 			$types = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
@@ -100,15 +100,15 @@ endif;
 		</td>
 		</tr>
 		<tr>
-		<th><label for="bhg_t_start"><?php esc_html_e( 'Start Date', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="bhg_t_start"><?php echo esc_html( bhg_t( 'label_start_date', 'Start Date' ) );; ?></label></th>
 		<td><input id="bhg_t_start" type="date" name="start_date" value="<?php echo esc_attr( $row->start_date ?? '' ); ?>" /></td>
 		</tr>
 		<tr>
-		<th><label for="bhg_t_end"><?php esc_html_e( 'End Date', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="bhg_t_end"><?php echo esc_html( bhg_t( 'label_end_date', 'End Date' ) );; ?></label></th>
 		<td><input id="bhg_t_end" type="date" name="end_date" value="<?php echo esc_attr( $row->end_date ?? '' ); ?>" /></td>
 		</tr>
 		<tr>
-		<th><label for="bhg_t_status"><?php esc_html_e( 'Status', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="bhg_t_status"><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></label></th>
 		<td>
 			<?php
 			$st  = array( 'active', 'archived' );
@@ -122,6 +122,6 @@ endif;
 		</td>
 		</tr>
 	</table>
-	<?php submit_button( $row ? __( 'Update Tournament', 'bonus-hunt-guesser' ) : __( 'Create Tournament', 'bonus-hunt-guesser' ) ); ?>
+	<?php submit_button( $row ? bhg_t( 'update_tournament', 'Update Tournament' ) : bhg_t( 'create_tournament', 'Create Tournament' ) ); ?>
 	</form>
 </div>

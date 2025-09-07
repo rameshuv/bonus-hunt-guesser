@@ -2,7 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html__( 'Insufficient permissions', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html( bhg_t( 'insufficient_permissions', 'Insufficient permissions' ) ) );
 }
 global $wpdb;
 $hunt_id = isset( $_GET['id'] ) ? (int) $_GET['id'] : 0;
@@ -10,7 +10,7 @@ $hunts   = $wpdb->prefix . 'bhg_bonus_hunts';
 $guesses = $wpdb->prefix . 'bhg_guesses';
 $hunt    = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$hunts` WHERE id=%d", $hunt_id ) );
 if ( ! $hunt ) {
-	echo '<div class="wrap"><h1>' . esc_html__( 'Hunt not found', 'bonus-hunt-guesser' ) . '</h1></div>';
+	echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
 	return; }
 $rows = $wpdb->get_results(
 	$wpdb->prepare(
@@ -21,13 +21,13 @@ $rows = $wpdb->get_results(
 );
 ?>
 <div class="wrap">
-	<h1><?php echo esc_html__( 'Results for ', 'bonus-hunt-guesser' ) . esc_html( $hunt->title ); ?></h1>
+	<h1><?php echo esc_html( bhg_t( 'results_for', 'Results for ' ) ) . esc_html( $hunt->title ); ?></h1>
 	<table class="widefat striped">
 	<thead><tr>
-		<th><?php esc_html_e( 'Position', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'User', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Guess', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Difference', 'bonus-hunt-guesser' ); ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_position', 'Position' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_user', 'User' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'difference', 'Difference' ) );; ?></th>
 	</tr></thead>
 	<tbody>
 	<?php

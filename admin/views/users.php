@@ -2,7 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 
 $paged           = max( 1, isset( $_GET['paged'] ) ? (int) $_GET['paged'] : 1 );
@@ -34,16 +34,16 @@ $total      = $user_query->get_total();
 $base_url = remove_query_arg( array( 'paged' ) );
 ?>
 <div class="wrap">
-	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Users', 'bonus-hunt-guesser' ); ?></h1>
+	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_users', 'Users' ) ); ?></h1>
 
         <form method="get" class="bhg-margin-top-small">
        <input type="hidden" name="page" value="bhg-users" />
        <input type="hidden" name="action" value="bhg_users_search" />
        <?php wp_nonce_field( 'bhg_users_search' ); ?>
 	<p class="search-box">
-		<label class="screen-reader-text" for="user-search-input"><?php echo esc_html__( 'Search Users', 'bonus-hunt-guesser' ); ?></label>
+		<label class="screen-reader-text" for="user-search-input"><?php echo esc_html( bhg_t( 'search_users', 'Search Users' ) ); ?></label>
 		<input type="search" id="user-search-input" name="s" value="<?php echo esc_attr( $search ); ?>" />
-		<input type="submit" id="search-submit" class="button" value="<?php echo esc_attr__( 'Search', 'bonus-hunt-guesser' ); ?>" />
+		<input type="submit" id="search-submit" class="button" value="<?php echo esc_attr( bhg_t( 'label_search', 'Search' ) ); ?>" />
 	</p>
 	</form>
 
@@ -62,7 +62,7 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			)
 		);
 		?>
-		"><?php echo esc_html__( 'Username', 'bonus-hunt-guesser' ); ?></a></th>
+		"><?php echo esc_html( bhg_t( 'label_username', 'Username' ) ); ?></a></th>
 		<th><a href="
 		<?php
 		echo esc_url(
@@ -75,8 +75,8 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			)
 		);
 		?>
-		"><?php echo esc_html__( 'Name', 'bonus-hunt-guesser' ); ?></a></th>
-		<th><?php echo esc_html__( 'Real Name', 'bonus-hunt-guesser' ); ?></th>
+		"><?php echo esc_html( bhg_t( 'name', 'Name' ) ); ?></a></th>
+		<th><?php echo esc_html( bhg_t( 'label_real_name', 'Real Name' ) ); ?></th>
 		<th><a href="
 		<?php
 		echo esc_url(
@@ -89,14 +89,14 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			)
 		);
 		?>
-		"><?php echo esc_html__( 'Email', 'bonus-hunt-guesser' ); ?></a></th>
-		<th><?php echo esc_html__( 'Affiliate', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php echo esc_html__( 'Actions', 'bonus-hunt-guesser' ); ?></th>
+		"><?php echo esc_html( bhg_t( 'label_email', 'Email' ) ); ?></a></th>
+		<th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
+		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
 		<?php if ( empty( $users ) ) : ?>
-		<tr><td colspan="6"><?php echo esc_html__( 'No users found.', 'bonus-hunt-guesser' ); ?></td></tr>
+		<tr><td colspan="6"><?php echo esc_html( bhg_t( 'no_users_found', 'No users found.' ) ); ?></td></tr>
 			<?php
 		else :
 			foreach ( $users as $u ) :
@@ -115,9 +115,9 @@ $base_url = remove_query_arg( array( 'paged' ) );
 				<input type="hidden" name="action" value="bhg_save_user_meta" />
 				<input type="hidden" name="user_id" value="<?php echo (int) $u->ID; ?>" />
 				<?php wp_nonce_field( 'bhg_save_user_meta' ); ?>
-				<button type="submit" class="button button-primary"><?php echo esc_html__( 'Save', 'bonus-hunt-guesser' ); ?></button>
+				<button type="submit" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button>
 			</form>
-			<a class="button" href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $u->ID ) ); ?>"><?php echo esc_html__( 'View / Edit', 'bonus-hunt-guesser' ); ?></a>
+			<a class="button" href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $u->ID ) ); ?>"><?php echo esc_html( bhg_t( 'view_edit', 'View / Edit' ) ); ?></a>
 			</td>
 		</tr>
 					<?php

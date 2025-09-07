@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Check user capabilities
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 
 // Get current settings
@@ -23,7 +23,7 @@ $current_settings = get_option(
 $message = isset( $_GET['message'] ) ? sanitize_text_field( wp_unslash( $_GET['message'] ) ) : '';
 if ( 'saved' === $message ) {
 	echo '<div class="notice notice-success is-dismissible"><p>' .
-		esc_html__( 'Settings saved successfully.', 'bonus-hunt-guesser' ) .
+		esc_html( bhg_t( 'settings_saved_successfully', 'Settings saved successfully.' ) ) .
 		'</p></div>';
 }
 
@@ -33,13 +33,13 @@ if ( ! empty( $error ) ) {
 	$error_message = '';
 	switch ( $error ) {
 		case 'nonce_failed':
-				$error_message = esc_html__( 'Security check failed. Please try again.', 'bonus-hunt-guesser' );
+				$error_message = esc_html( bhg_t( 'security_check_failed_please_try_again', 'Security check failed. Please try again.' ) );
 			break;
 		case 'invalid_data':
-				$error_message = esc_html__( 'Invalid data submitted. Please check your inputs.', 'bonus-hunt-guesser' );
+				$error_message = esc_html( bhg_t( 'invalid_data_submitted_please_check_your_inputs', 'Invalid data submitted. Please check your inputs.' ) );
 			break;
 		default:
-				$error_message = esc_html__( 'An error occurred while saving settings.', 'bonus-hunt-guesser' );
+				$error_message = esc_html( bhg_t( 'an_error_occurred_while_saving_settings', 'An error occurred while saving settings.' ) );
 	}
 
 	if ( ! empty( $error_message ) ) {
@@ -49,7 +49,7 @@ if ( ! empty( $error ) ) {
 ?>
 
 <div class="wrap">
-	<h1><?php esc_html_e( 'Bonus Hunt Guesser Settings', 'bonus-hunt-guesser' ); ?></h1>
+	<h1><?php echo esc_html( bhg_t( 'bonus_hunt_guesser_settings', 'Bonus Hunt Guesser Settings' ) );; ?></h1>
 	
         <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                 <input type="hidden" name="action" value="bhg_save_settings">
@@ -59,29 +59,29 @@ if ( ! empty( $error ) ) {
 			<tr>
 				<th scope="row">
 					<label for="bhg_default_tournament_period">
-												<?php esc_html_e( 'Default Tournament Period', 'bonus-hunt-guesser' ); ?>
+												<?php echo esc_html( bhg_t( 'default_tournament_period', 'Default Tournament Period' ) );; ?>
 					</label>
 				</th>
 				<td>
 					<select name="bhg_default_tournament_period" id="bhg_default_tournament_period" class="regular-text">
 						<option value="weekly" <?php selected( $current_settings['default_tournament_period'], 'weekly' ); ?>>
-														<?php esc_html_e( 'Weekly', 'bonus-hunt-guesser' ); ?>
+														<?php echo esc_html( bhg_t( 'label_weekly', 'Weekly' ) );; ?>
 						</option>
 						<option value="monthly" <?php selected( $current_settings['default_tournament_period'], 'monthly' ); ?>>
-														<?php esc_html_e( 'Monthly', 'bonus-hunt-guesser' ); ?>
+														<?php echo esc_html( bhg_t( 'label_monthly', 'Monthly' ) );; ?>
 						</option>
 						<option value="quarterly" <?php selected( $current_settings['default_tournament_period'], 'quarterly' ); ?>>
-														<?php esc_html_e( 'Quarterly', 'bonus-hunt-guesser' ); ?>
+														<?php echo esc_html( bhg_t( 'label_quarterly', 'Quarterly' ) );; ?>
 						</option>
 						<option value="yearly" <?php selected( $current_settings['default_tournament_period'], 'yearly' ); ?>>
-														<?php esc_html_e( 'Yearly', 'bonus-hunt-guesser' ); ?>
+														<?php echo esc_html( bhg_t( 'label_yearly', 'Yearly' ) );; ?>
 						</option>
 						<option value="alltime" <?php selected( $current_settings['default_tournament_period'], 'alltime' ); ?>>
-														<?php esc_html_e( 'All-Time', 'bonus-hunt-guesser' ); ?>
+														<?php echo esc_html( bhg_t( 'label_all_time', 'All-Time' ) );; ?>
 						</option>
 					</select>
 					<p class="description">
-												<?php esc_html_e( 'Default period for tournament calculations.', 'bonus-hunt-guesser' ); ?>
+												<?php echo esc_html( bhg_t( 'default_period_for_tournament_calculations', 'Default period for tournament calculations.' ) );; ?>
 					</p>
 				</td>
 			</tr>
@@ -89,7 +89,7 @@ if ( ! empty( $error ) ) {
 			<tr>
 				<th scope="row">
 					<label for="bhg_min_guess_amount">
-												<?php esc_html_e( 'Minimum Guess Amount', 'bonus-hunt-guesser' ); ?>
+												<?php echo esc_html( bhg_t( 'minimum_guess_amount', 'Minimum Guess Amount' ) );; ?>
 					</label>
 				</th>
 				<td>
@@ -97,7 +97,7 @@ if ( ! empty( $error ) ) {
 							value="<?php echo esc_attr( $current_settings['min_guess_amount'] ); ?>" 
 							class="regular-text" step="0.01" min="0" required>
 					<p class="description">
-												<?php esc_html_e( 'Minimum amount users can guess for a bonus hunt.', 'bonus-hunt-guesser' ); ?>
+												<?php echo esc_html( bhg_t( 'minimum_amount_users_can_guess_for_a_bonus_hunt', 'Minimum amount users can guess for a bonus hunt.' ) );; ?>
 					</p>
 				</td>
 			</tr>
@@ -105,7 +105,7 @@ if ( ! empty( $error ) ) {
 			<tr>
 				<th scope="row">
 					<label for="bhg_max_guess_amount">
-												<?php esc_html_e( 'Maximum Guess Amount', 'bonus-hunt-guesser' ); ?>
+												<?php echo esc_html( bhg_t( 'maximum_guess_amount', 'Maximum Guess Amount' ) );; ?>
 					</label>
 				</th>
 				<td>
@@ -113,7 +113,7 @@ if ( ! empty( $error ) ) {
 							value="<?php echo esc_attr( $current_settings['max_guess_amount'] ); ?>" 
 							class="regular-text" step="0.01" min="0" required>
 					<p class="description">
-												<?php esc_html_e( 'Maximum amount users can guess for a bonus hunt.', 'bonus-hunt-guesser' ); ?>
+												<?php echo esc_html( bhg_t( 'maximum_amount_users_can_guess_for_a_bonus_hunt', 'Maximum amount users can guess for a bonus hunt.' ) );; ?>
 					</p>
 				</td>
 			</tr>
@@ -121,20 +121,20 @@ if ( ! empty( $error ) ) {
 			<tr>
 				<th scope="row">
 					<label for="bhg_allow_guess_changes">
-												<?php esc_html_e( 'Allow Guess Changes', 'bonus-hunt-guesser' ); ?>
+												<?php echo esc_html( bhg_t( 'allow_guess_changes', 'Allow Guess Changes' ) );; ?>
 					</label>
 				</th>
 				<td>
 					<select name="bhg_allow_guess_changes" id="bhg_allow_guess_changes" class="regular-text">
 						<option value="yes" <?php selected( $current_settings['allow_guess_changes'], 'yes' ); ?>>
-														<?php esc_html_e( 'Yes', 'bonus-hunt-guesser' ); ?>
+														<?php echo esc_html( bhg_t( 'yes', 'Yes' ) );; ?>
 						</option>
 						<option value="no" <?php selected( $current_settings['allow_guess_changes'], 'no' ); ?>>
-														<?php esc_html_e( 'No', 'bonus-hunt-guesser' ); ?>
+														<?php echo esc_html( bhg_t( 'no', 'No' ) );; ?>
 						</option>
 					</select>
 					<p class="description">
-												<?php esc_html_e( 'Allow users to change their guesses before a bonus hunt closes.', 'bonus-hunt-guesser' ); ?>
+												<?php echo esc_html( bhg_t( 'allow_users_to_change_their_guesses_before_a_bonus_hunt_closes', 'Allow users to change their guesses before a bonus hunt closes.' ) );; ?>
 					</p>
 				</td>
 			</tr>
@@ -142,7 +142,7 @@ if ( ! empty( $error ) ) {
 		
 		<p class="submit">
 			<input type="submit" name="bhg_settings_submit" id="submit" 
-								class="button button-primary" value="<?php esc_html_e( 'Save Changes', 'bonus-hunt-guesser' ); ?>">
+								class="button button-primary" value="<?php echo esc_html( bhg_t( 'save_changes', 'Save Changes' ) );; ?>">
 		</p>
 	</form>
 </div>

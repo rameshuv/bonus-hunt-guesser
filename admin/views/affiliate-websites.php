@@ -8,13 +8,13 @@
 if ( ! defined( 'ABSPATH' ) ) {
 		exit; }
 if ( ! current_user_can( 'manage_options' ) ) {
-				wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+				wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 global $wpdb;
 $table          = $wpdb->prefix . 'bhg_affiliates';
 $allowed_tables = array( $wpdb->prefix . 'bhg_affiliates' );
 if ( ! in_array( $table, $allowed_tables, true ) ) {
-	wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 $table = esc_sql( $table );
 
@@ -31,22 +31,22 @@ $rows = $wpdb->get_results(
 );
 ?>
 <div class="wrap">
-	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Affiliates', 'bonus-hunt-guesser' ); ?></h1>
+	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_affiliates', 'Affiliates' ) ); ?></h1>
 
-	<h2 style="margin-top:1em"><?php echo esc_html__( 'All Affiliate Websites', 'bonus-hunt-guesser' ); ?></h2>
+	<h2 style="margin-top:1em"><?php echo esc_html( bhg_t( 'all_affiliate_websites', 'All Affiliate Websites' ) ); ?></h2>
 	<table class="widefat striped">
 	<thead>
 		<tr>
-		<th><?php esc_html_e( 'ID', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Name', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'URL', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Status', 'bonus-hunt-guesser' ); ?></th>
-		<th><?php esc_html_e( 'Actions', 'bonus-hunt-guesser' ); ?></th>
+		<th><?php echo esc_html( bhg_t( 'id', 'ID' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'name', 'Name' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'url', 'URL' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></th>
+		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) );; ?></th>
 		</tr>
 	</thead>
 	<tbody>
 		<?php if ( empty( $rows ) ) : ?>
-		<tr><td colspan="5"><em><?php esc_html_e( 'No affiliates yet.', 'bonus-hunt-guesser' ); ?></em></td></tr>
+		<tr><td colspan="5"><em><?php echo esc_html( bhg_t( 'no_affiliates_yet', 'No affiliates yet.' ) );; ?></em></td></tr>
 			<?php
 		else :
 			foreach ( $rows as $r ) :
@@ -57,12 +57,12 @@ $rows = $wpdb->get_results(
 			<td><?php echo esc_html( $r->url ); ?></td>
 			<td><?php echo esc_html( $r->status ); ?></td>
 			<td>
-			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>"><?php esc_html_e( 'Edit', 'bonus-hunt-guesser' ); ?></a>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline" onsubmit="return confirm('<?php echo esc_js( __( 'Delete this affiliate?', 'bonus-hunt-guesser' ) ); ?>');">
+			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) );; ?></a>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_affiliate', 'Delete this affiliate?' ) ); ?>');">
 							<?php wp_nonce_field( 'bhg_delete_affiliate' ); ?>
 				<input type="hidden" name="action" value="bhg_delete_affiliate">
 				<input type="hidden" name="id" value="<?php echo (int) $r->id; ?>">
-				<button class="button-link-delete" type="submit"><?php esc_html_e( 'Remove', 'bonus-hunt-guesser' ); ?></button>
+				<button class="button-link-delete" type="submit"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) );; ?></button>
 			</form>
 			</td>
 		</tr>
@@ -73,7 +73,7 @@ endif;
 	</tbody>
 	</table>
 
-	<h2 style="margin-top:2em"><?php echo $row ? esc_html__( 'Edit Affiliate', 'bonus-hunt-guesser' ) : esc_html__( 'Add Affiliate', 'bonus-hunt-guesser' ); ?></h2>
+	<h2 style="margin-top:2em"><?php echo $row ? esc_html( bhg_t( 'edit_affiliate', 'Edit Affiliate' ) ) : esc_html( bhg_t( 'add_affiliate', 'Add Affiliate' ) ); ?></h2>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
 	<?php wp_nonce_field( 'bhg_save_affiliate' ); ?>
 	<input type="hidden" name="action" value="bhg_save_affiliate">
@@ -83,15 +83,15 @@ endif;
 		<input type="hidden" name="id" value="<?php echo (int) $row->id; ?>"><?php endif; ?>
 	<table class="form-table">
 		<tr>
-		<th><label for="aff_name"><?php esc_html_e( 'Name', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="aff_name"><?php echo esc_html( bhg_t( 'name', 'Name' ) );; ?></label></th>
 		<td><input class="regular-text" id="aff_name" name="name" value="<?php echo esc_attr( $row->name ?? '' ); ?>" required></td>
 		</tr>
 		<tr>
-		<th><label for="aff_url"><?php esc_html_e( 'URL', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="aff_url"><?php echo esc_html( bhg_t( 'url', 'URL' ) );; ?></label></th>
 		<td><input class="regular-text" id="aff_url" name="url" value="<?php echo esc_attr( $row->url ?? '' ); ?>" placeholder="https://example.com"></td>
 		</tr>
 		<tr>
-		<th><label for="aff_status"><?php esc_html_e( 'Status', 'bonus-hunt-guesser' ); ?></label></th>
+		<th><label for="aff_status"><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></label></th>
 		<td>
 			<select id="aff_status" name="status">
 			<?php
@@ -104,6 +104,6 @@ endif;
 		</td>
 		</tr>
 	</table>
-	<?php submit_button( $row ? __( 'Update Affiliate', 'bonus-hunt-guesser' ) : __( 'Create Affiliate', 'bonus-hunt-guesser' ) ); ?>
+	<?php submit_button( $row ? bhg_t( 'update_affiliate', 'Update Affiliate' ) : bhg_t( 'create_affiliate', 'Create Affiliate' ) ); ?>
 	</form>
 </div>
