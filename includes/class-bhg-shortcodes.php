@@ -252,26 +252,31 @@ echo '<a' . $class . ' href="' . esc_url( add_query_arg( array( 'page' => $p ), 
 			   return ob_get_clean();
 	   }
 
-	   /**
-		* Display guesses submitted by a user.
-		*
-		* @param array $atts Shortcode attributes.
-		* @return string HTML output.
-		*/
-	   public function user_guesses_shortcode( $atts ) {
-			   $a = shortcode_atts(
-					   array(
-							   'id'       => 0,
-							   'aff'      => 'yes',
-							   'website'  => 0,
-							   'status'   => '',
-							   'timeline' => '',
-							   'orderby'  => 'hunt',
-							   'order'    => 'DESC',
-					   ),
-					   $atts,
-					   'bhg_user_guesses'
-			   );
+           /**
+                * Display guesses submitted by a user.
+                *
+                * Accepted attributes:
+                * - id: User ID (defaults to current user).
+                * - timeline: Limit results to past 'day', 'week', 'month', or 'year'.
+                * - aff, website, status, orderby, order.
+                *
+                * @param array $atts Shortcode attributes.
+                * @return string HTML output.
+                */
+           public function user_guesses_shortcode( $atts ) {
+                           $a = shortcode_atts(
+                                           array(
+                                                           'id'       => 0,
+                                                           'aff'      => 'yes',
+                                                           'website'  => 0,
+                                                           'status'   => '',
+                                                           'timeline' => '',
+                                                           'orderby'  => 'hunt',
+                                                           'order'    => 'DESC',
+                                           ),
+                                           $atts,
+                                           'bhg_user_guesses'
+                           );
 
 			   global $wpdb;
 
@@ -289,29 +294,42 @@ echo '<a' . $class . ' href="' . esc_url( add_query_arg( array( 'page' => $p ), 
 			   $where  = array( 'g.user_id = %d' );
 			   $params = array( $user_id );
 
-			   if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
-					   $where[]  = 'h.status = %s';
-					   $params[] = $a['status'];
-			   }
+                            if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
+                                            $where[]  = 'h.status = %s';
+                                            $params[] = $a['status'];
+                            }
 
-			   $website = (int) $a['website'];
-			   if ( $website > 0 ) {
-					   $where[]  = 'h.affiliate_site_id = %d';
-					   $params[] = $website;
-			   }
+                            $website = (int) $a['website'];
+                            if ( $website > 0 ) {
+                                            $where[]  = 'h.affiliate_site_id = %d';
+                                            $params[] = $website;
+                            }
 
-			   $order = strtoupper( $a['order'] ) === 'ASC' ? 'ASC' : 'DESC';
-			   $orderby_map = array(
-					   'guess' => 'g.guess',
-					   'hunt'  => 'h.created_at',
-			   );
+                            $timeline  = sanitize_key( $a['timeline'] );
+                            $intervals = array(
+                                            'day'   => '-1 day',
+                                            'week'  => '-1 week',
+                                            'month' => '-1 month',
+                                            'year'  => '-1 year',
+                            );
+                            if ( isset( $intervals[ $timeline ] ) ) {
+                                            $since    = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
+                                            $where[]  = 'g.created_at >= %s';
+                                            $params[] = $since;
+                            }
+
+                            $order = strtoupper( $a['order'] ) === 'ASC' ? 'ASC' : 'DESC';
+                            $orderby_map = array(
+                                            'guess' => 'g.guess',
+                                            'hunt'  => 'h.created_at',
+                            );
 			   $orderby_key = isset( $orderby_map[ $a['orderby'] ] ) ? $a['orderby'] : 'hunt';
 			   $orderby     = $orderby_map[ $orderby_key ];
 
-			   $limit_sql = '';
-			   if ( 'recent' === strtolower( $a['timeline'] ) ) {
-					   $limit_sql = ' LIMIT 10';
-			   }
+                            $limit_sql = '';
+                            if ( 'recent' === $timeline ) {
+                                            $limit_sql = ' LIMIT 10';
+                            }
 
 			   $sql = "SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id
 					   FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id
@@ -349,177 +367,214 @@ echo '<a' . $class . ' href="' . esc_url( add_query_arg( array( 'page' => $p ), 
 			   return ob_get_clean();
 	   }
 
-	   /**
-		* Display a list of bonus hunts.
-		*
-		* @param array $atts Shortcode attributes.
-		* @return string HTML output.
-		*/
-	   public function hunts_shortcode( $atts ) {
-			   $a = shortcode_atts(
-					   array(
-							   'id'       => 0,
-							   'aff'      => 'no',
-							   'website'  => 0,
-							   'status'   => '',
-							   'timeline' => '',
-					   ),
-					   $atts,
-					   'bhg_hunts'
-			   );
+           /**
+                * Display a list of bonus hunts.
+                *
+                * Accepted attributes:
+                * - id: Specific hunt ID.
+                * - timeline: Limit hunts created within past 'day', 'week', 'month', or 'year'.
+                * - aff, website, status.
+                *
+                * @param array $atts Shortcode attributes.
+                * @return string HTML output.
+                */
+           public function hunts_shortcode( $atts ) {
+                           $a = shortcode_atts(
+                                           array(
+                                                           'id'       => 0,
+                                                           'aff'      => 'no',
+                                                           'website'  => 0,
+                                                           'status'   => '',
+                                                           'timeline' => '',
+                                           ),
+                                           $atts,
+                                           'bhg_hunts'
+                           );
 
-			   global $wpdb;
-			   $h = $wpdb->prefix . 'bhg_bonus_hunts';
-			   $aff_table = $wpdb->prefix . 'bhg_affiliates';
+                           global $wpdb;
+                           $h = $wpdb->prefix . 'bhg_bonus_hunts';
+                           $aff_table = $wpdb->prefix . 'bhg_affiliates';
 
-			   $where  = array();
-			   $params = array();
+                           $where  = array();
+                           $params = array();
 
-			   $id = (int) $a['id'];
-			   if ( $id > 0 ) {
-					   $where[]  = 'h.id = %d';
-					   $params[] = $id;
-			   }
+                           $id = (int) $a['id'];
+                           if ( $id > 0 ) {
+                                           $where[]  = 'h.id = %d';
+                                           $params[] = $id;
+                           }
 
-			   if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
-					   $where[]  = 'h.status = %s';
-					   $params[] = $a['status'];
-			   }
+                           if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
+                                           $where[]  = 'h.status = %s';
+                                           $params[] = $a['status'];
+                           }
 
-			   $website = (int) $a['website'];
-			   if ( $website > 0 ) {
-					   $where[]  = 'h.affiliate_site_id = %d';
-					   $params[] = $website;
-			   }
+                           $website = (int) $a['website'];
+                           if ( $website > 0 ) {
+                                           $where[]  = 'h.affiliate_site_id = %d';
+                                           $params[] = $website;
+                           }
 
-			   $sql = "SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at, a.name AS aff_name
-					   FROM {$h} h
-					   LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id";
-			   if ( $where ) {
-					   $sql .= ' WHERE ' . implode( ' AND ', $where );
-			   }
-			   $sql .= ' ORDER BY h.created_at DESC';
+                           $timeline  = sanitize_key( $a['timeline'] );
+                           $intervals = array(
+                                           'day'   => '-1 day',
+                                           'week'  => '-1 week',
+                                           'month' => '-1 month',
+                                           'year'  => '-1 year',
+                           );
+                           if ( isset( $intervals[ $timeline ] ) ) {
+                                           $since    = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
+                                           $where[]  = 'h.created_at >= %s';
+                                           $params[] = $since;
+                           }
 
-			   if ( 'recent' === strtolower( $a['timeline'] ) ) {
-					   $sql .= ' LIMIT 10';
-			   }
+                           $sql = "SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at, a.name AS aff_name"
+                                           . " FROM {$h} h"
+                                           . " LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id";
+                           if ( $where ) {
+                                           $sql .= ' WHERE ' . implode( ' AND ', $where );
+                           }
+                           $sql .= ' ORDER BY h.created_at DESC';
 
-			   $rows = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
-			   if ( ! $rows ) {
-					   return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
-			   }
+                           if ( 'recent' === $timeline ) {
+                                           $sql .= ' LIMIT 10';
+                           }
 
-			   $show_aff = filter_var( $a['aff'], FILTER_VALIDATE_BOOLEAN );
+                           $rows = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
+                           if ( ! $rows ) {
+                                           return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
+                           }
 
-			   ob_start();
-			   echo '<table class="bhg-hunts"><thead><tr>';
-			   echo '<th>' . esc_html__( 'Title', 'bonus-hunt-guesser' ) . '</th>';
-			   echo '<th>' . esc_html__( 'Start Balance', 'bonus-hunt-guesser' ) . '</th>';
-			   echo '<th>' . esc_html__( 'Final Balance', 'bonus-hunt-guesser' ) . '</th>';
-			   echo '<th>' . esc_html__( 'Status', 'bonus-hunt-guesser' ) . '</th>';
-			   if ( $show_aff ) {
-					   echo '<th>' . esc_html__( 'Affiliate', 'bonus-hunt-guesser' ) . '</th>';
-			   }
-			   echo '</tr></thead><tbody>';
+                           $show_aff = filter_var( $a['aff'], FILTER_VALIDATE_BOOLEAN );
 
-			   foreach ( $rows as $row ) {
-					   echo '<tr>';
-					   echo '<td>' . esc_html( $row->title ) . '</td>';
-					   echo '<td>' . esc_html( number_format_i18n( (float) $row->starting_balance, 2 ) ) . '</td>';
-					   echo '<td>';
+                           ob_start();
+                           echo '<table class="bhg-hunts"><thead><tr>';
+                           echo '<th>' . esc_html__( 'Title', 'bonus-hunt-guesser' ) . '</th>';
+                           echo '<th>' . esc_html__( 'Start Balance', 'bonus-hunt-guesser' ) . '</th>';
+                           echo '<th>' . esc_html__( 'Final Balance', 'bonus-hunt-guesser' ) . '</th>';
+                           echo '<th>' . esc_html__( 'Status', 'bonus-hunt-guesser' ) . '</th>';
+                           if ( $show_aff ) {
+                                           echo '<th>' . esc_html__( 'Affiliate', 'bonus-hunt-guesser' ) . '</th>';
+                           }
+                           echo '</tr></thead><tbody>';
+
+                           foreach ( $rows as $row ) {
+                                           echo '<tr>';
+                                           echo '<td>' . esc_html( $row->title ) . '</td>';
+                                           echo '<td>' . esc_html( number_format_i18n( (float) $row->starting_balance, 2 ) ) . '</td>';
+                                           echo '<td>';
                                            echo isset( $row->final_balance ) ? esc_html( number_format_i18n( (float) $row->final_balance, 2 ) ) : esc_html__( '&mdash;', 'bonus-hunt-guesser' );
                                            echo '</td>';
                                            echo '<td>' . esc_html( $row->status ) . '</td>';
                                            if ( $show_aff ) {
                                                            echo '<td>' . ( $row->aff_name ? esc_html( $row->aff_name ) : esc_html__( '—', 'bonus-hunt-guesser' ) ) . '</td>';
                                            }
-					   echo '</tr>';
-			   }
-			   echo '</tbody></table>';
-			   return ob_get_clean();
-	   }
+                                           echo '</tr>';
+                           }
+                           echo '</tbody></table>';
+                           return ob_get_clean();
+           }
 
-	   /**
-		* Display leaderboards for multiple hunts.
-		*
-		* @param array $atts Shortcode attributes.
-		* @return string HTML output.
-		*/
-	   public function leaderboards_shortcode( $atts ) {
-			   $a = shortcode_atts(
-					   array(
-							   'id'       => 0,
-							   'aff'      => 'yes',
-							   'website'  => 0,
-							   'status'   => '',
-							   'timeline' => '',
-					   ),
-					   $atts,
-					   'bhg_leaderboards'
-			   );
+           /**
+                * Display leaderboards for multiple hunts.
+                *
+                * Accepted attributes:
+                * - id: Specific hunt ID.
+                * - timeline: Limit hunts created within past 'day', 'week', 'month', or 'year'.
+                * - aff, website, status.
+                *
+                * @param array $atts Shortcode attributes.
+                * @return string HTML output.
+                */
+           public function leaderboards_shortcode( $atts ) {
+                           $a = shortcode_atts(
+                                           array(
+                                                           'id'       => 0,
+                                                           'aff'      => 'yes',
+                                                           'website'  => 0,
+                                                           'status'   => '',
+                                                           'timeline' => '',
+                                           ),
+                                           $atts,
+                                           'bhg_leaderboards'
+                           );
 
-			   global $wpdb;
-			   $h = $wpdb->prefix . 'bhg_bonus_hunts';
+                           global $wpdb;
+                           $h = $wpdb->prefix . 'bhg_bonus_hunts';
 
-			   $where  = array();
-			   $params = array();
+                           $where  = array();
+                           $params = array();
 
-			   $id = (int) $a['id'];
-			   if ( $id > 0 ) {
-					   $where[]  = 'id = %d';
-					   $params[] = $id;
-			   }
+                           $id = (int) $a['id'];
+                           if ( $id > 0 ) {
+                                           $where[]  = 'id = %d';
+                                           $params[] = $id;
+                           }
 
-			   if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
-					   $where[]  = 'status = %s';
-					   $params[] = $a['status'];
-			   }
+                           if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
+                                           $where[]  = 'status = %s';
+                                           $params[] = $a['status'];
+                           }
 
-			   $website = (int) $a['website'];
-			   if ( $website > 0 ) {
-					   $where[]  = 'affiliate_site_id = %d';
-					   $params[] = $website;
-			   }
+                           $website = (int) $a['website'];
+                           if ( $website > 0 ) {
+                                           $where[]  = 'affiliate_site_id = %d';
+                                           $params[] = $website;
+                           }
 
-			   $sql = "SELECT id, title FROM {$h}";
-			   if ( $where ) {
-					   $sql .= ' WHERE ' . implode( ' AND ', $where );
-			   }
-			   $sql .= ' ORDER BY created_at DESC';
+                           $timeline  = sanitize_key( $a['timeline'] );
+                           $intervals = array(
+                                           'day'   => '-1 day',
+                                           'week'  => '-1 week',
+                                           'month' => '-1 month',
+                                           'year'  => '-1 year',
+                           );
+                           if ( isset( $intervals[ $timeline ] ) ) {
+                                           $since    = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
+                                           $where[]  = 'created_at >= %s';
+                                           $params[] = $since;
+                           }
 
-			   if ( 'recent' === strtolower( $a['timeline'] ) ) {
-					   $sql .= ' LIMIT 5';
-			   }
+                           $sql = "SELECT id, title FROM {$h}";
+                           if ( $where ) {
+                                           $sql .= ' WHERE ' . implode( ' AND ', $where );
+                           }
+                           $sql .= ' ORDER BY created_at DESC';
 
-			   $hunts = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
-			   if ( ! $hunts ) {
-					   return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
-			   }
+                           if ( 'recent' === $timeline ) {
+                                           $sql .= ' LIMIT 5';
+                           }
 
-			   $show_aff = filter_var( $a['aff'], FILTER_VALIDATE_BOOLEAN );
+                           $hunts = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
+                           if ( ! $hunts ) {
+                                           return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
+                           }
 
-			   ob_start();
-			   foreach ( $hunts as $hunt ) {
-					   echo '<div class="bhg-leaderboard-wrap">';
-					   echo '<h3>' . esc_html( $hunt->title ) . '</h3>';
-					   $html = $this->leaderboard_shortcode( array( 'hunt_id' => (int) $hunt->id ) );
-					   if ( ! $show_aff ) {
-							   $html = preg_replace( '/<span class="bhg-aff-dot[^>]*><\/span>/', '', $html );
-					   }
-					   echo $html;
-					   echo '</div>';
-			   }
-			   return ob_get_clean();
-	   }
+                           $show_aff = filter_var( $a['aff'], FILTER_VALIDATE_BOOLEAN );
 
-	   /**
-		* [bhg_tournaments] List tournaments or show details.
-		*
-		* Attributes:
-		* - status    (string) Filter by tournament status (active|closed).
-		* - tournament(int)    Specific tournament ID.
-		* - website   (int)    Affiliate website ID.
-		* - timeline  (string) Tournament type (weekly|monthly|yearly|quarterly|alltime).
+                           ob_start();
+                           foreach ( $hunts as $hunt ) {
+                                           echo '<div class="bhg-leaderboard-wrap">';
+                                           echo '<h3>' . esc_html( $hunt->title ) . '</h3>';
+                                           $html = $this->leaderboard_shortcode( array( 'hunt_id' => (int) $hunt->id ) );
+                                           if ( ! $show_aff ) {
+                                                           $html = preg_replace( '/<span class="bhg-aff-dot[^>]*><\\/span>/', '', $html );
+                                           }
+                                           echo $html;
+                                           echo '</div>';
+                           }
+                           return ob_get_clean();
+           }
+
+           /**
+               * [bhg_tournaments] List tournaments or show details.
+               *
+               * Attributes:
+               * - status    (string) Filter by tournament status (active|closed).
+               * - tournament(int)    Specific tournament ID.
+               * - website   (int)    Affiliate website ID.
+               * - timeline  (string) Limit by creation time: day|week|month|year. Also accepts
+               *   weekly|monthly|yearly|quarterly|alltime to filter by type.
 		*
 		* Details view is available via ?bhg_tournament_id=ID.
 		*
@@ -644,14 +699,24 @@ echo '<td>' . ( $row->last_win_date ? esc_html( mysql2date( get_option( 'date_fo
 					   $where[] = 'id = %d';
 					   $args[]  = $tournament;
 			   }
-			   if ( in_array( $status, array( 'active', 'closed' ), true ) ) {
-					   $where[] = 'status = %s';
-					   $args[]  = $status;
-			   }
-			   if ( in_array( $timeline, array( 'weekly', 'monthly', 'yearly', 'quarterly', 'alltime' ), true ) ) {
-					   $where[] = 'type = %s';
-					   $args[]  = $timeline;
-			   }
+                           if ( in_array( $status, array( 'active', 'closed' ), true ) ) {
+                                           $where[] = 'status = %s';
+                                           $args[]  = $status;
+                           }
+                           if ( in_array( $timeline, array( 'day', 'week', 'month', 'year' ), true ) ) {
+                                           $map = array(
+                                                           'day'   => '-1 day',
+                                                           'week'  => '-1 week',
+                                                           'month' => '-1 month',
+                                                           'year'  => '-1 year',
+                                           );
+                                           $since  = wp_date( 'Y-m-d H:i:s', strtotime( $map[ $timeline ], current_time( 'timestamp' ) ) );
+                                           $where[] = 'created_at >= %s';
+                                           $args[]  = $since;
+                           } elseif ( in_array( $timeline, array( 'weekly', 'monthly', 'yearly', 'quarterly', 'alltime' ), true ) ) {
+                                           $where[] = 'type = %s';
+                                           $args[]  = $timeline;
+                           }
 			   if ( $website > 0 ) {
 					   $where[] = 'affiliate_site_id = %d';
 					   $args[]  = $website;
