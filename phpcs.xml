@@ -8,7 +8,7 @@
     <arg name="tab-width" value="4"/>
     <arg name="extensions" value="php"/>
 
-    <!-- Explicitly scan the plugin's core files -->
+    <!-- Explicitly scan the plugin's core files; avoid overly broad excludes -->
     <file>bonus-hunt-guesser.php</file>
     <file>admin/</file>
     <file>includes/</file>
