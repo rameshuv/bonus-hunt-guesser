@@ -21,7 +21,7 @@ $rows = $wpdb->get_results(
 );
 ?>
 <div class="wrap">
-	<h1><?php echo esc_html( bhg_t( 'results_for', 'Results for ' ) ) . esc_html( $hunt->title ); ?></h1>
+        <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title ) ); ?></h1>
 	<table class="widefat striped">
 	<thead><tr>
 		<th>

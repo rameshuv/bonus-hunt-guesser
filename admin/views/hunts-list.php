@@ -86,7 +86,7 @@ $pages = max( 1, (int) ceil( $total / $per_page ) );
 			<td><strong><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-hunts-edit&id=' . (int) $r->id ) ); ?>"><?php echo esc_html( $r->title ); ?></a></strong></td>
 			<td><?php echo esc_html( number_format_i18n( (float) $r->start_balance, 2 ) ); ?></td>
 					<td><?php echo ( $r->final_balance !== null ) ? esc_html( number_format_i18n( (float) $r->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
-			<td><?php echo esc_html( $r->status ); ?></td>
+                       <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 			<td><?php echo (int) $r->winners_limit; ?></td>
 					<td><?php echo $r->closed_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->closed_at ) ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 			<td>
