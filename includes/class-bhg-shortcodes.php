@@ -439,78 +439,146 @@ echo '<a' . $class . ' href="' . esc_url( add_query_arg( array( 'page' => $p ), 
 			   return ob_get_clean();
 	   }
 
-	   /**
-		* Display leaderboards for multiple hunts.
-		*
-		* @param array $atts Shortcode attributes.
-		* @return string HTML output.
-		*/
-	   public function leaderboards_shortcode( $atts ) {
-			   $a = shortcode_atts(
-					   array(
-							   'id'       => 0,
-							   'aff'      => 'yes',
-							   'website'  => 0,
-							   'status'   => '',
-							   'timeline' => '',
-					   ),
-					   $atts,
-					   'bhg_leaderboards'
-			   );
+            /**
+                 * Display leaderboards.
+                 *
+                 * @param array $atts Shortcode attributes.
+                 * @return string HTML output.
+                 */
+           public function leaderboards_shortcode( $atts ) {
+                           $a = shortcode_atts(
+                                           array(
+                                                           'id'       => 0,
+                                                           'aff'      => 'yes',
+                                                           'website'  => 0,
+                                                           'status'   => '',
+                                                           'timeline' => '',
+                                                           'ranking'  => 10,
+                                                           'fields'   => 'pos,user,wins,affiliate',
+                                           ),
+                                           $atts,
+                                           'bhg_leaderboards'
+                           );
 
-			   global $wpdb;
-			   $h = $wpdb->prefix . 'bhg_bonus_hunts';
+                           $ranking = max( 1, min( 10, (int) $a['ranking'] ) );
+                           $allowed_fields = array( 'pos', 'user', 'wins', 'affiliate', 'site', 'hunt', 'tournament' );
+                           $fields = array_filter( array_map( 'trim', explode( ',', strtolower( (string) $a['fields'] ) ) ) );
+                           $fields = array_values( array_intersect( $allowed_fields, $fields ) );
+                           if ( empty( $fields ) ) {
+                                           $fields = array( 'pos', 'user', 'wins', 'affiliate' );
+                           }
 
-			   $where  = array();
-			   $params = array();
+                           global $wpdb;
+                           $results_table = $wpdb->prefix . 'bhg_tournament_results';
+                           $users_table   = $wpdb->users;
+                           $tours_table   = $wpdb->prefix . 'bhg_tournaments';
 
-			   $id = (int) $a['id'];
-			   if ( $id > 0 ) {
-					   $where[]  = 'id = %d';
-					   $params[] = $id;
-			   }
+                           $sql = $wpdb->prepare(
+                                   "SELECT r.user_id, u.user_login, SUM(r.wins) AS wins, GROUP_CONCAT(DISTINCT t.title ORDER BY t.title SEPARATOR ', ') AS tournaments
+                                    FROM {$results_table} r
+                                    LEFT JOIN {$users_table} u ON u.ID = r.user_id
+                                    LEFT JOIN {$tours_table} t ON t.id = r.tournament_id
+                                    GROUP BY r.user_id, u.user_login
+                                    ORDER BY wins DESC, u.user_login ASC
+                                    LIMIT %d",
+                                   $ranking
+                           );
 
-			   if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
-					   $where[]  = 'status = %s';
-					   $params[] = $a['status'];
-			   }
+                           $rows = $wpdb->get_results( $sql );
+                           if ( ! $rows ) {
+                                           return '<p>' . esc_html__( 'No leaderboard data found.', 'bonus-hunt-guesser' ) . '</p>';
+                           }
 
-			   $website = (int) $a['website'];
-			   if ( $website > 0 ) {
-					   $where[]  = 'affiliate_site_id = %d';
-					   $params[] = $website;
-			   }
+                           $show_aff = filter_var( $a['aff'], FILTER_VALIDATE_BOOLEAN );
 
-			   $sql = "SELECT id, title FROM {$h}";
-			   if ( $where ) {
-					   $sql .= ' WHERE ' . implode( ' AND ', $where );
-			   }
-			   $sql .= ' ORDER BY created_at DESC';
+                           wp_enqueue_style(
+                                           'bhg-shortcodes',
+                                           BHG_PLUGIN_URL . 'assets/css/bhg-shortcodes.css',
+                                           array(),
+                                           defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                           );
 
-			   if ( 'recent' === strtolower( $a['timeline'] ) ) {
-					   $sql .= ' LIMIT 5';
-			   }
+                           ob_start();
+                           echo '<table class="bhg-leaderboard">';
+                           echo '<thead><tr>';
+                           foreach ( $fields as $field ) {
+                                           switch ( $field ) {
+                                                   case 'pos':
+                                                           echo '<th>' . esc_html__( 'Position', 'bonus-hunt-guesser' ) . '</th>';
+                                                           break;
+                                                   case 'user':
+                                                           echo '<th>' . esc_html__( 'User', 'bonus-hunt-guesser' ) . '</th>';
+                                                           break;
+                                                   case 'wins':
+                                                           echo '<th>' . esc_html__( 'Wins', 'bonus-hunt-guesser' ) . '</th>';
+                                                           break;
+                                                   case 'affiliate':
+                                                           echo '<th>' . esc_html__( 'Affiliate', 'bonus-hunt-guesser' ) . '</th>';
+                                                           break;
+                                                   case 'site':
+                                                           echo '<th>' . esc_html__( 'Site', 'bonus-hunt-guesser' ) . '</th>';
+                                                           break;
+                                                   case 'hunt':
+                                                           echo '<th>' . esc_html__( 'Hunt', 'bonus-hunt-guesser' ) . '</th>';
+                                                           break;
+                                                   case 'tournament':
+                                                           echo '<th>' . esc_html__( 'Tournament', 'bonus-hunt-guesser' ) . '</th>';
+                                                           break;
+                                           }
+                           }
+                           echo '</tr></thead><tbody>';
 
-			   $hunts = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
-			   if ( ! $hunts ) {
-					   return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
-			   }
-
-			   $show_aff = filter_var( $a['aff'], FILTER_VALIDATE_BOOLEAN );
-
-			   ob_start();
-			   foreach ( $hunts as $hunt ) {
-					   echo '<div class="bhg-leaderboard-wrap">';
-					   echo '<h3>' . esc_html( $hunt->title ) . '</h3>';
-					   $html = $this->leaderboard_shortcode( array( 'hunt_id' => (int) $hunt->id ) );
-					   if ( ! $show_aff ) {
-							   $html = preg_replace( '/<span class="bhg-aff-dot[^>]*><\/span>/', '', $html );
-					   }
-					   echo $html;
-					   echo '</div>';
-			   }
-			   return ob_get_clean();
-	   }
+                           $pos = 1;
+                           foreach ( $rows as $row ) {
+                                           echo '<tr>';
+                                           foreach ( $fields as $field ) {
+                                                   switch ( $field ) {
+                                                           case 'pos':
+                                                                   echo '<td>' . (int) $pos++ . '</td>';
+                                                                   break;
+                                                           case 'user':
+                                                                   $label = $row->user_login ? $row->user_login : sprintf(
+                                                                           /* translators: %d: user ID. */
+                                                                           __( 'user#%d', 'bonus-hunt-guesser' ),
+                                                                           (int) $row->user_id
+                                                                   );
+                                                                   echo '<td>' . esc_html( $label ) . '</td>';
+                                                                   break;
+                                                           case 'wins':
+                                                                   echo '<td>' . (int) $row->wins . '</td>';
+                                                                   break;
+                                                           case 'affiliate':
+                                                                   echo '<td>' . ( $show_aff ? bhg_render_affiliate_dot( (int) $row->user_id ) : '' ) . '</td>';
+                                                                   break;
+                                                           case 'site':
+                                                                   $site_name = '';
+                                                                   if ( function_exists( 'bhg_get_user_affiliate_sites' ) ) {
+                                                                           $site_ids = bhg_get_user_affiliate_sites( (int) $row->user_id );
+                                                                           if ( $site_ids ) {
+                                                                                   $aff_table    = $wpdb->prefix . 'bhg_affiliates';
+                                                                                   $placeholders = implode( ',', array_fill( 0, count( $site_ids ), '%d' ) );
+                                                                                   $names        = $wpdb->get_col( $wpdb->prepare( "SELECT name FROM {$aff_table} WHERE id IN ($placeholders)", $site_ids ) );
+                                                                                   if ( $names ) {
+                                                                                           $site_name = implode( ', ', array_map( 'esc_html', $names ) );
+                                                                                   }
+                                                                           }
+                                                                   }
+                                                                   echo '<td>' . ( $site_name ? esc_html( $site_name ) : esc_html__( '—', 'bonus-hunt-guesser' ) ) . '</td>';
+                                                                   break;
+                                                           case 'hunt':
+                                                                   echo '<td>' . esc_html__( '—', 'bonus-hunt-guesser' ) . '</td>';
+                                                                   break;
+                                                           case 'tournament':
+                                                                   $t_titles = $row->tournaments ? $row->tournaments : '—';
+                                                                   echo '<td>' . esc_html( $t_titles ) . '</td>';
+                                                                   break;
+                                                   }
+                                           }
+                                           echo '</tr>';
+                           }
+                           echo '</tbody></table>';
+                           return ob_get_clean();
+           }
 
 	   /**
 		* [bhg_tournaments] List tournaments or show details.
