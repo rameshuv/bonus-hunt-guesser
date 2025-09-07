@@ -228,7 +228,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$g = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
 			$u = $this->sanitize_table( $wpdb->users );
 
-					$order       = ( strtoupper( $a['order'] ) === 'DESC' ) ? 'DESC' : 'ASC';
+					$order       = strtoupper( $a['order'] );
+					$order       = in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'ASC';
 					$map         = array(
 						'guess'    => 'g.guess',
 						'user'     => 'u.user_login',
@@ -269,7 +270,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                                                       FROM %i g
                                                                                       LEFT JOIN %i u ON u.ID = g.user_id
                                                                                       LEFT JOIN %i h ON h.id = g.hunt_id
-                                                                                      WHERE g.hunt_id = %d ORDER BY %i %s LIMIT %d OFFSET %d';
+                                                                                      WHERE g.hunt_id = %d ORDER BY %i ' . $order . ' LIMIT %d OFFSET %d';
                                                                                $allowed_orderby = array( 'g.guess', 'u.user_login', 'g.id' );
                                        if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
                                                                        $orderby = 'g.guess';
@@ -279,12 +280,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                                                                 $sql,
                                                                                                 $g,
                                                                                                 $u,
-                                                                                                $hunts_table,
-                                                                                                $hunt_id,
-                                                                                                $orderby,
-                                                                                                $order,
-                                                                                                $per,
-                                                                                                $offset
+                                                                                                  $hunts_table,
+                                                                                                  $hunt_id,
+                                                                                                  $orderby,
+                                                                                                  $per,
+                                                                                                  $offset
                                                                                         )
                                                                                );
 
@@ -437,7 +437,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[] = $since;
 			}
 
-			$order       = ( strtoupper( $a['order'] ) === 'ASC' ) ? 'ASC' : 'DESC';
+			$order       = strtoupper( $a['order'] );
+			$order       = in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'DESC';
 			$orderby_map = array(
 				'guess' => 'g.guess',
 				'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
@@ -445,13 +446,13 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$orderby_key = isset( $orderby_map[ $a['orderby'] ] ) ? $a['orderby'] : 'hunt';
 			$orderby     = $orderby_map[ $orderby_key ];
 
-                                               $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . ' ORDER BY %i %s';
+                                               $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . ' ORDER BY %i ' . $order;
                                                if ( 'recent' === strtolower( $a['timeline'] ) ) {
                                                        $sql .= ' LIMIT 10';
                                                }
 
                                                // db call ok; no-cache ok.
-                                               $params = array_merge( array( $g, $h ), $params, array( $orderby, $order ) );
+                                               $params = array_merge( array( $g, $h ), $params, array( $orderby ) );
                                                $rows   = $wpdb->get_results(
                                                        $wpdb->prepare( $sql, ...$params )
                                                );
