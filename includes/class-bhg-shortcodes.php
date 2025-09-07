@@ -251,24 +251,25 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 							$total = $ranking;
 					}
 
-					$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-					// db call ok; no-cache ok.
-											$rows = $wpdb->get_results(
-												$wpdb->prepare(
-													'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id
+                                        $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                                        // db call ok; no-cache ok.
+                                        $rows = $wpdb->get_results(
+                                                $wpdb->prepare(
+                                                        'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id
                                                                                         FROM %i g
                                                                                         LEFT JOIN %i u ON u.ID = g.user_id
                                                                                         LEFT JOIN %i h ON h.id = g.hunt_id
                                                                                         WHERE g.hunt_id = %d
-                                                                                        ORDER BY ' . $orderby . ' ' . $order . ' LIMIT %d OFFSET %d',
-													$g,
-													$u,
-													$hunts_table,
-													$hunt_id,
-													$per,
-													$offset
-												)
-											);
+                                                                                        ORDER BY %i ' . $order . ' LIMIT %d OFFSET %d',
+                                                        $g,
+                                                        $u,
+                                                        $hunts_table,
+                                                        $hunt_id,
+                                                        $orderby,
+                                                        $per,
+                                                        $offset
+                                                )
+                                        );
 
 					wp_enqueue_style(
 						'bhg-shortcodes',
@@ -409,13 +410,13 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$limit_sql = ' LIMIT 10';
 			}
 
-											$sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id
+                                                                                        $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id
                                                                                FROM %i g INNER JOIN %i h ON h.id = g.hunt_id
                                                                                WHERE ' . implode( ' AND ', $where ) . '
-                                                                               ORDER BY ' . $orderby . ' ' . $order . $limit_sql;
+                                                                               ORDER BY %i ' . $order . $limit_sql;
 
-											$prep_params = array_merge( array( $sql, $g, $h ), $params );
-											$query       = call_user_func_array( array( $wpdb, 'prepare' ), $prep_params );
+                                                                                        $prep_params = array_merge( array( $sql, $g, $h ), $params, array( $orderby ) );
+                                                                                        $query       = call_user_func_array( array( $wpdb, 'prepare' ), $prep_params );
 					// db call ok; no-cache ok.
 					$rows = $wpdb->get_results( $query );
 			if ( ! $rows ) {
@@ -729,21 +730,23 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				if ( 'asc' !== $order && 'desc' !== $order ) {
 					$order = 'desc';
 				}
-				$order_by_sql = $allowed[ $orderby ] . ' ' . strtoupper( $order );
+                                $orderby_column = $allowed[ $orderby ];
+                                $order          = strtoupper( $order );
 
-							// db call ok; no-cache ok.
-															$rows = $wpdb->get_results(
-																$wpdb->prepare(
-																	'SELECT r.user_id, r.wins, r.last_win_date, u.user_login
+                                // db call ok; no-cache ok.
+                                $rows = $wpdb->get_results(
+                                        $wpdb->prepare(
+                                                'SELECT r.user_id, r.wins, r.last_win_date, u.user_login
                                                                                                        FROM %i r
                                                                                                        INNER JOIN %i u ON u.ID = r.user_id
                                                                                                        WHERE r.tournament_id = %d
-                                                                                                       ORDER BY ' . $order_by_sql . ', r.user_id ASC',
-																	$r,
-																	$u,
-																	$tournament->id
-																)
-															);
+                                                                                                       ORDER BY %i ' . $order . ', r.user_id ASC',
+                                                $r,
+                                                $u,
+                                                $tournament->id,
+                                                $orderby_column
+                                        )
+                                );
 
 				$base   = remove_query_arg( array( 'orderby', 'order' ) );
 				$toggle = function ( $key ) use ( $orderby, $order, $base ) {

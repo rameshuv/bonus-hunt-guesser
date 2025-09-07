@@ -18,11 +18,12 @@ if ( ! $hunt ) {
 
 $aff_table = $wpdb->prefix . 'bhg_affiliates';
 if ( isset( $allowed_tables ) && ! in_array( $aff_table, $allowed_tables, true ) ) {
-		wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
+                wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 }
-$aff_table = esc_sql( $aff_table );
-$affs      = $wpdb->get_results( "SELECT id, name FROM {$aff_table} ORDER BY name ASC" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is sanitized and query uses no dynamic values.
-$sel       = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
+$affs = $wpdb->get_results(
+                $wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
+);
+$sel  = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 
 $paged    = max( 1, absint( wp_unslash( $_GET['ppaged'] ?? '' ) ) );
 $per_page = 30;
