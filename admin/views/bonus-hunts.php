@@ -278,9 +278,13 @@ if ( $view === 'add' ) :
 if ( $view === 'edit' ) :
 		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
 		// db call ok; no-cache ok.
-		$hunt = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $hunts_table, $id )
-		);
+                $hunt = $wpdb->get_row(
+                        $wpdb->prepare(
+                                'SELECT * FROM %i WHERE id = %d',
+                                $hunts_table,
+                                $id
+                        )
+                );
 	if ( ! $hunt ) {
 		echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt', 'Invalid hunt' ) ) . '</p></div>';
 		return;
