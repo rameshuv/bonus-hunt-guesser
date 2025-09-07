@@ -264,6 +264,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'button_back'                                  => 'Back',
                         'button_create_new_bonus_hunt'                 => 'Create New Bonus Hunt',
                         'button_results'                               => 'Results',
+                        'button_submit_guess'                          => 'Submit Guess',
                         'button_filter'                                => 'Filter',
                         'button_log_in'                                => 'Log in',
                         'button_view_edit'                             => 'View / Edit',
