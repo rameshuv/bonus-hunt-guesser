@@ -16,4 +16,4 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress
       - name: Run PHPCS
-        run: composer phpcs
+        run: vendor/bin/phpcs --standard=phpcs.xml
