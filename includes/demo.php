@@ -48,13 +48,35 @@ function bhg_seed_demo_on_activation() {
 				$user_ids[ $u['user_login'] ] = $uid ? intval( $uid ) : 0;
 		}
 
-		global $wpdb;
-		$hunts       = $wpdb->prefix . 'bhg_bonus_hunts';
-		$guesses     = $wpdb->prefix . 'bhg_guesses';
-		$tournaments = $wpdb->prefix . 'bhg_tournaments';
-		$aff         = $wpdb->prefix . 'bhg_affiliate_websites';
-		$ads         = $wpdb->prefix . 'bhg_ads';
-		$trans       = $wpdb->prefix . 'bhg_translations';
+                global $wpdb;
+                $hunts       = $wpdb->prefix . 'bhg_bonus_hunts';
+                $guesses     = $wpdb->prefix . 'bhg_guesses';
+                $tournaments = $wpdb->prefix . 'bhg_tournaments';
+                $aff         = $wpdb->prefix . 'bhg_affiliate_websites';
+                $ads         = $wpdb->prefix . 'bhg_ads';
+                $trans       = $wpdb->prefix . 'bhg_translations';
+
+                $allowed_tables = array(
+                        $wpdb->prefix . 'bhg_bonus_hunts',
+                        $wpdb->prefix . 'bhg_guesses',
+                        $wpdb->prefix . 'bhg_tournaments',
+                        $wpdb->prefix . 'bhg_affiliate_websites',
+                        $wpdb->prefix . 'bhg_ads',
+                        $wpdb->prefix . 'bhg_translations',
+                );
+
+                foreach ( array( $hunts, $guesses, $tournaments, $aff, $ads, $trans ) as $tbl ) {
+                        if ( ! in_array( $tbl, $allowed_tables, true ) ) {
+                                return;
+                        }
+                }
+
+                $hunts       = esc_sql( $hunts );
+                $guesses     = esc_sql( $guesses );
+                $tournaments = esc_sql( $tournaments );
+                $aff         = esc_sql( $aff );
+                $ads         = esc_sql( $ads );
+                $trans       = esc_sql( $trans );
 
 		// Insert affiliate sites.
 		$wpdb->insert(
@@ -137,14 +159,14 @@ function bhg_seed_demo_on_activation() {
 		}
 	}
 
-	// Compute winner for the closed hunt (closest).
-	$rows = $wpdb->get_results(
-		$wpdb->prepare(
-// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"SELECT * FROM {$guesses} WHERE hunt_id = %d",
-			$closed_id
-		)
-	);
+        // Compute winner for the closed hunt (closest).
+        $rows = $wpdb->get_results(
+                $wpdb->prepare(
+                        'SELECT * FROM %i WHERE hunt_id = %d',
+                        $guesses,
+                        $closed_id
+                )
+        );
 	$final       = 2420.00;
 	$winner_id   = 0;
 	$winner_diff = null;
