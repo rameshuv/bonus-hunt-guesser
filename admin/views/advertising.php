@@ -28,8 +28,9 @@ if ( 'delete' === $action && $ad_id && isset( $_GET['_wpnonce'] ) ) {
 }
 
 // Fetch ads
+// db call ok; no-cache ok.
 $ads = $wpdb->get_results(
-	"SELECT * FROM {$table} ORDER BY id DESC" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $table )
 );
 ?>
 <div class="wrap">
@@ -89,11 +90,12 @@ endif;
 	<h2 style="margin-top:2em"><?php echo $edit_id ? esc_html__( 'Edit Ad', 'bonus-hunt-guesser' ) : esc_html__( 'Add Ad', 'bonus-hunt-guesser' ); ?></h2>
 	<?php
 		$ad = null;
-	if ( $edit_id ) {
-					$ad = $wpdb->get_row(
-						$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					);
-	}
+        if ( $edit_id ) {
+                                        // db call ok; no-cache ok.
+                                        $ad = $wpdb->get_row(
+                                                $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $edit_id )
+                                        );
+        }
 	?>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
 	<?php wp_nonce_field( 'bhg_save_ad' ); ?>

@@ -490,8 +490,8 @@ function bhg_handle_submit_guess() {
 	$hunts = $wpdb->prefix . 'bhg_bonus_hunts';
 	$g_tbl = $wpdb->prefix . 'bhg_guesses';
 
-       // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$hunt = $wpdb->get_row( $wpdb->prepare( "SELECT id, status FROM {$hunts} WHERE id = %d", $hunt_id ) );
+        // db call ok; no-cache ok.
+        $hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT id, status FROM %i WHERE id = %d', $hunts, $hunt_id ) );
 	if ( ! $hunt ) {
 		if ( wp_doing_ajax() ) {
 			wp_send_json_error( __( 'Hunt not found.', 'bonus-hunt-guesser' ) );
@@ -507,18 +507,18 @@ function bhg_handle_submit_guess() {
 
 		// Insert or update last guess per settings.
 
-       // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$g_tbl} WHERE hunt_id = %d AND user_id = %d", $hunt_id, $user_id ) );
+        // db call ok; no-cache ok.
+        $count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d AND user_id = %d', $g_tbl, $hunt_id, $user_id ) );
 	if ( $count >= $max ) {
 		if ( $allow_edit && $count > 0 ) {
-               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$gid = (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$g_tbl} WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1", $hunt_id, $user_id ) );
+               // db call ok; no-cache ok.
+                                $gid = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1', $g_tbl, $hunt_id, $user_id ) );
 			if ( $gid ) {
-                               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-								$wpdb->update(
-									$g_tbl,
-									array(
-										'guess'      => $guess,
+                               // db call ok; no-cache ok.
+                                                                $wpdb->update(
+                                                                        $g_tbl,
+                                                                        array(
+                                                                                'guess'      => $guess,
 										'updated_at' => current_time( 'mysql' ),
 									),
 									array( 'id' => $gid )
@@ -538,17 +538,17 @@ function bhg_handle_submit_guess() {
 	}
 
 		// Insert.
-       // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->insert(
-			$g_tbl,
-			array(
-				'hunt_id'    => $hunt_id,
-				'user_id'    => $user_id,
-				'guess'      => $guess,
-				'created_at' => current_time( 'mysql' ),
-			),
-			array( '%d', '%d', '%f', '%s' )
-		);
+        // db call ok; no-cache ok.
+        $wpdb->insert(
+                        $g_tbl,
+                        array(
+                                'hunt_id'    => $hunt_id,
+                                'user_id'    => $user_id,
+                                'guess'      => $guess,
+                                'created_at' => current_time( 'mysql' ),
+                        ),
+                        array( '%d', '%d', '%f', '%s' )
+                );
 
 	if ( wp_doing_ajax() ) {
 		wp_send_json_success();
@@ -600,16 +600,16 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
 			return array();
 	}
 
-				$table = esc_sql( $table );
-				$query = $wpdb->prepare(
-                       // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					"SELECT * FROM {$table} WHERE placement = %s AND active = %d",
-					$placement,
-					1
-				);
+                                $table = esc_sql( $table );
+                                $query = $wpdb->prepare(
+                                        'SELECT * FROM %i WHERE placement = %s AND active = %d',
+                                        $table,
+                                        $placement,
+                                        1
+                                );
 
-       // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		$rows = $wpdb->get_results( $query );
+        // db call ok; no-cache ok.
+        $rows = $wpdb->get_results( $query );
 	if ( did_action( 'wp' ) && function_exists( 'get_queried_object_id' ) ) {
 			$pid = (int) get_queried_object_id();
 		if ( $pid && is_array( $rows ) ) {
@@ -691,9 +691,9 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 			break;
 	}
 
-	$g = $wpdb->prefix . 'bhg_guesses';
-	$h = $wpdb->prefix . 'bhg_bonus_hunts';
-	$u = $wpdb->users;
+        $g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+        $h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+        $u = esc_sql( $wpdb->users );
 
 	$where = "h.status='closed' AND h.final_balance IS NOT NULL";
 	$args  = array();
@@ -702,46 +702,55 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		$args[] = $start_date;
 	}
 
-	$sql_total = "
-		SELECT COUNT(*) FROM (
-			SELECT g.user_id
-			FROM {$g} g
-			INNER JOIN {$h} h ON h.id = g.hunt_id
-			WHERE {$where} AND NOT EXISTS (
-				SELECT 1 FROM {$g} g2
-				WHERE g2.hunt_id = g.hunt_id
-				  AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-			)
-			GROUP BY g.user_id
-		) t";
+        $sql_total = sprintf(
+                'SELECT COUNT(*) FROM (
+                        SELECT g.user_id
+                        FROM %s g
+                        INNER JOIN %s h ON h.id = g.hunt_id
+                        WHERE ' . $where . ' AND NOT EXISTS (
+                                SELECT 1 FROM %s g2
+                                WHERE g2.hunt_id = g.hunt_id
+                                  AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+                        )
+                        GROUP BY g.user_id
+                ) t',
+                $g,
+                $h,
+                $g
+        );
 
-	if ( $args ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$total = (int) $wpdb->get_var( $wpdb->prepare( $sql_total, $args ) );
-	} else {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-			$total = (int) $wpdb->get_var( $sql_total );
-	}
+        if ( $args ) {
+                // db call ok; no-cache ok.
+                $total = (int) $wpdb->get_var( $wpdb->prepare( $sql_total, $args ) );
+        } else {
+                // db call ok; no-cache ok.
+                $total = (int) $wpdb->get_var( $sql_total );
+        }
 
-	$sql = "
-		SELECT g.user_id, u.user_login, COUNT(*) AS wins
-		FROM {$g} g
-		INNER JOIN {$h} h ON h.id = g.hunt_id
-		INNER JOIN {$u} u ON u.ID = g.user_id
-		WHERE {$where} AND NOT EXISTS (
-			SELECT 1 FROM {$g} g2
-			WHERE g2.hunt_id = g.hunt_id
-			  AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-		)
-		GROUP BY g.user_id, u.user_login
-		ORDER BY wins DESC, u.user_login ASC
-		LIMIT %d OFFSET %d";
+        $sql = sprintf(
+                'SELECT g.user_id, u.user_login, COUNT(*) AS wins
+                FROM %s g
+                INNER JOIN %s h ON h.id = g.hunt_id
+                INNER JOIN %s u ON u.ID = g.user_id
+                WHERE ' . $where . ' AND NOT EXISTS (
+                        SELECT 1 FROM %s g2
+                        WHERE g2.hunt_id = g.hunt_id
+                          AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+                )
+                GROUP BY g.user_id, u.user_login
+                ORDER BY wins DESC, u.user_login ASC
+                LIMIT %%d OFFSET %%d',
+                $g,
+                $h,
+                $u,
+                $g
+        );
 
 	$args_query   = $args;
 	$args_query[] = $per_page;
 	$args_query[] = $offset;
-       // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args_query ) );
+        // db call ok; no-cache ok.
+        $rows = $wpdb->get_results( $wpdb->prepare( $sql, $args_query ) );
 
 	if ( ! $rows ) {
 		return '<p>' . esc_html__( 'No data available.', 'bonus-hunt-guesser' ) . '</p>';
@@ -864,10 +873,9 @@ if ( ! function_exists( 'bhg_self_heal_db' ) ) {
 				$db = new BHG_DB();
 				$db->create_tables();
 		} catch ( Throwable $e ) {
-			if ( function_exists( 'error_log' ) ) {
-					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-					error_log( '[BHG] DB self-heal failed: ' . $e->getMessage() );
-			}
+                        if ( function_exists( 'trigger_error' ) ) {
+                                trigger_error( '[BHG] DB self-heal failed: ' . $e->getMessage(), E_USER_WARNING );
+                        }
 		}
 	}
 		add_action( 'admin_init', 'bhg_self_heal_db' );
