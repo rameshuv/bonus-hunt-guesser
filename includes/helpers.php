@@ -159,20 +159,29 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_leaderboard'                            => 'Leaderboard',
 			'label_affiliate'                              => 'Affiliate',
 			'label_non_affiliate'                          => 'Non-affiliate',
-			'label_affiliate_status'                       => 'Affiliate Status',
-			'label_actions'                                => 'Actions',
-			'label_placements'                             => 'Placements',
-			'label_visible_to'                             => 'Visible To',
-			'label_start_date'                             => 'Start Date',
-			'label_end_date'                               => 'End Date',
-			'label_email'                                  => 'Email',
-			'label_real_name'                              => 'Real Name',
-			'label_search'                                 => 'Search',
-			'label_user'                                   => 'User',
-			'label_start'                                  => 'Start',
-			'label_end'                                    => 'End',
-			'label_status'                                 => 'Status',
-			'label_wins'                                   => 'Wins',
+                        'label_affiliate_status'                       => 'Affiliate Status',
+                        'label_actions'                                => 'Actions',
+                        'label_id'                                     => 'ID',
+                        'label_name'                                   => 'Name',
+                        'label_winners'                                => 'Winners',
+                        'label_title_content'                          => 'Title/Content',
+                        'label_placement'                              => 'Placement',
+                        'label_placements'                             => 'Placements',
+                        'label_visible_to'                             => 'Visible To',
+                        'label_target_page_slugs'                      => 'Target Page Slugs',
+                        'label_existing_ads'                           => 'Existing Ads',
+                        'label_yes'                                    => 'Yes',
+                        'label_no'                                     => 'No',
+                        'label_start_date'                             => 'Start Date',
+                        'label_end_date'                               => 'End Date',
+                        'label_email'                                  => 'Email',
+                        'label_real_name'                              => 'Real Name',
+                        'label_search'                                 => 'Search',
+                        'label_user'                                   => 'User',
+                        'label_start'                                  => 'Start',
+                        'label_end'                                    => 'End',
+                        'label_status'                                 => 'Status',
+                        'label_wins'                                   => 'Wins',
 			'label_last_win'                               => 'Last win',
 			'label_period'                                 => 'Period',
 			'label_all'                                    => 'All',
@@ -241,13 +250,14 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'button_save'                                  => 'Save',
 			'button_cancel'                                => 'Cancel',
 			'button_delete'                                => 'Delete',
-			'button_edit'                                  => 'Edit',
-			'button_view'                                  => 'View',
-			'button_back'                                  => 'Back',
-			'button_create_new_bonus_hunt'                 => 'Create New Bonus Hunt',
-			'button_results'                               => 'Results',
-			'button_filter'                                => 'Filter',
-			'button_log_in'                                => 'Log in',
+                        'button_edit'                                  => 'Edit',
+                        'button_view'                                  => 'View',
+                        'button_back'                                  => 'Back',
+                        'button_create_new_bonus_hunt'                 => 'Create New Bonus Hunt',
+                        'button_results'                               => 'Results',
+                        'button_filter'                                => 'Filter',
+                        'button_log_in'                                => 'Log in',
+                        'button_view_edit'                             => 'View / Edit',
 
 			// Notices / messages.
 			'notice_login_required'                        => 'You must be logged in to guess.',
@@ -256,11 +266,21 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'notice_hunt_closed'                           => 'This bonus hunt is closed.',
 			'notice_invalid_guess'                         => 'Please enter a valid guess.',
 			'notice_not_authorized'                        => 'You are not authorized to perform this action.',
-			'notice_translations_saved'                    => 'Translations saved.',
-			'notice_translations_reset'                    => 'Translations reset.',
-			'notice_no_active_hunt'                        => 'No active bonus hunt found.',
-			'notice_no_results'                            => 'No results available.',
-			'notice_user_removed'                          => 'User removed.',
+                        'notice_translations_saved'                    => 'Translations saved.',
+                        'notice_translations_reset'                    => 'Translations reset.',
+                        'notice_security_check_failed'                 => 'Security check failed.',
+                        'notice_invalid_hunt'                          => 'Invalid hunt.',
+                        'notice_invalid_hunt_id'                       => 'Invalid hunt id.',
+                        'notice_hunt_not_found'                        => 'Hunt not found.',
+                        'notice_invalid_guess_amount'                  => 'Invalid guess amount.',
+                        'notice_max_guesses_reached'                   => 'You have reached the maximum number of guesses.',
+                        'notice_no_data_available'                     => 'No data available.',
+                        'notice_guess_removed'                         => 'Guess removed.',
+                        'notice_hunt_closed_successfully'              => 'Hunt closed successfully.',
+                        'notice_missing_hunt_id'                       => 'Missing hunt id.',
+                        'notice_no_active_hunt'                        => 'No active bonus hunt found.',
+                        'notice_no_results'                            => 'No results available.',
+                        'notice_user_removed'                          => 'User removed.',
 			'notice_ad_saved'                              => 'Advertisement saved.',
 			'notice_ad_deleted'                            => 'Advertisement deleted.',
 			'notice_settings_saved'                        => 'Settings saved.',
@@ -301,10 +321,14 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'sc_title'                                     => 'Title',
 			'sc_start_balance'                             => 'Start Balance',
 			'sc_final_balance'                             => 'Final Balance',
-			'sc_status'                                    => 'Status',
-			'sc_affiliate'                                 => 'Affiliate',
-			'sc_position'                                  => 'Position',
-			'sc_user'                                      => 'User',
+                        'sc_status'                                    => 'Status',
+                        'sc_affiliate'                                 => 'Affiliate',
+                        'sc_position'                                  => 'Position',
+                        'sc_user'                                      => 'User',
+                        'sc_wins'                                      => 'Wins',
+                        'sc_start'                                     => 'Start',
+                        'sc_end'                                       => 'End',
+                        'sc_prizes'                                    => 'Prizes',
 
 			// Extended admin/UI strings.
 			's_participant'                                => '%s participant',
@@ -539,7 +563,9 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
 
 if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
                /**
-                * Seed default translations if the translations table is empty.
+                * Ensure default translations exist.
+                *
+                * Inserts any missing translation keys so they appear in the admin.
                 *
                 * @return void
                 */
@@ -547,11 +573,8 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
                global $wpdb;
 
                $table = $wpdb->prefix . 'bhg_translations';
-               $count = (int) $wpdb->get_var(
-                       $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table )
-               );
 
-               if ( 0 === $count ) {
+               if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
                        bhg_seed_default_translations();
                }
        }
