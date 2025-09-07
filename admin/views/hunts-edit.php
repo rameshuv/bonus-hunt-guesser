@@ -11,7 +11,8 @@ if ( ! $hunt_id ) {
 check_admin_referer( 'bhg_edit_hunt_' . $hunt_id, 'bhg_nonce' );
 
 // Handle delete guess action
-if ( isset( $_POST['bhg_remove_guess'] ) && isset( $_POST['bhg_remove_guess_nonce'] ) && wp_verify_nonce( $_POST['bhg_remove_guess_nonce'], 'bhg_remove_guess_action' ) ) {
+if ( isset( $_POST['bhg_remove_guess'] ) ) {
+	check_admin_referer( 'bhg_remove_guess_action', 'bhg_remove_guess_nonce' );
 	$guess_id = (int) ( $_POST['guess_id'] ?? 0 );
 	if ( $guess_id > 0 && function_exists( 'bhg_remove_guess' ) ) {
 		bhg_remove_guess( $guess_id );

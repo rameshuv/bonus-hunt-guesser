@@ -8,18 +8,14 @@ if ( ! current_user_can( 'manage_options' ) ) {
 
 // Handle form submissions
 if ( isset( $_POST['bhg_action'] ) ) {
-	if ( $_POST['bhg_action'] === 'db_cleanup' && isset( $_POST['bhg_db_cleanup'] ) ) {
-		if ( ! wp_verify_nonce( $_POST['bhg_nonce'], 'bhg_db_cleanup_action' ) ) {
-			wp_die( esc_html__( 'Security check failed', 'bonus-hunt-guesser' ) );
-		}
+	if ( 'db_cleanup' === $_POST['bhg_action'] && isset( $_POST['bhg_db_cleanup'] ) ) {
+		check_admin_referer( 'bhg_db_cleanup_action', 'bhg_nonce' );
 
 		// Perform database cleanup
 		bhg_database_cleanup();
 		$cleanup_completed = true;
-	} elseif ( $_POST['bhg_action'] === 'db_optimize' && isset( $_POST['bhg_db_optimize'] ) ) {
-		if ( ! wp_verify_nonce( $_POST['bhg_nonce'], 'bhg_db_optimize_action' ) ) {
-			wp_die( esc_html__( 'Security check failed', 'bonus-hunt-guesser' ) );
-		}
+	} elseif ( 'db_optimize' === $_POST['bhg_action'] && isset( $_POST['bhg_db_optimize'] ) ) {
+		check_admin_referer( 'bhg_db_optimize_action', 'bhg_nonce' );
 
 		// Perform database optimization
 		bhg_database_optimize();

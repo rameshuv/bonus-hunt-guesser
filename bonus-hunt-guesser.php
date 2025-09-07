@@ -361,8 +361,8 @@ function bhg_handle_settings_save() {
 		wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'bonus-hunt-guesser' ) );
 	}
 
-		// Verify nonce.
-	if ( ! isset( $_POST['bhg_settings_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bhg_settings_nonce'] ) ), 'bhg_save_settings_nonce' ) ) {
+	// Verify nonce.
+	if ( ! check_admin_referer( 'bhg_save_settings_nonce', 'bhg_settings_nonce' ) ) {
 		wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
 		exit;
 	}
