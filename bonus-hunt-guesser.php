@@ -705,15 +705,15 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		$total = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM (
-        SELECT g.user_id
-        FROM %i g
-        INNER JOIN %i h ON h.id = g.hunt_id
-        WHERE {$where} AND NOT EXISTS (
-                SELECT 1 FROM %i g2
-                WHERE g2.hunt_id = g.hunt_id
-                AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-        )
-        GROUP BY g.user_id
+	    SELECT g.user_id
+	    FROM %i g
+	    INNER JOIN %i h ON h.id = g.hunt_id
+	    WHERE {$where} AND NOT EXISTS (
+	            SELECT 1 FROM %i g2
+	            WHERE g2.hunt_id = g.hunt_id
+	            AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+	    )
+	    GROUP BY g.user_id
 ) t",
 				$g,
 				$h,
@@ -731,9 +731,9 @@ FROM %i g
 INNER JOIN %i h ON h.id = g.hunt_id
 INNER JOIN %i u ON u.ID = g.user_id
 WHERE {$where} AND NOT EXISTS (
-        SELECT 1 FROM %i g2
-        WHERE g2.hunt_id = g.hunt_id
-        AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+	    SELECT 1 FROM %i g2
+	    WHERE g2.hunt_id = g.hunt_id
+	    AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
 )
 GROUP BY g.user_id, u.user_login
 ORDER BY wins DESC, u.user_login ASC
