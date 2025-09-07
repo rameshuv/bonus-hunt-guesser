@@ -257,8 +257,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                                                        FROM %i g
                                                                                        LEFT JOIN %i u ON u.ID = g.user_id
                                                                                        LEFT JOIN %i h ON h.id = g.hunt_id
-                                                                                       WHERE g.hunt_id = %d
-                                                                                       ORDER BY %i %s LIMIT %d OFFSET %d';
+                                                                                       WHERE g.hunt_id = %d';
+                                       $allowed_orderby = array( 'g.guess', 'u.user_login', 'g.id' );
+                                       if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
+                                                       $orderby = 'g.guess';
+                                       }
+                                       $sql .= ' ORDER BY ' . $orderby . ' ' . $order . ' LIMIT %d OFFSET %d';
                                        $rows = $wpdb->get_results(
                                                $wpdb->prepare(
                                                        $sql,
@@ -266,8 +270,6 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                        $u,
                                                        $hunts_table,
                                                        $hunt_id,
-                                                       $orderby,
-                                                       $order,
                                                        $per,
                                                        $offset
                                                )
