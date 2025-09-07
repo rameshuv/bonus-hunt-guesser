@@ -39,35 +39,35 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 <div class="wrap bhg-dashboard">
 	<h1><?php esc_html_e( 'Dashboard', 'bonus-hunt-guesser' ); ?></h1>
 
-	<div class="bhg-dashboard-cards">
-		<div class="bhg-dashboard-card">
-			<h2 class="hndle"><span><?php esc_html_e( 'Summary', 'bonus-hunt-guesser' ); ?></span></h2>
-			<div class="inside">
-				<ul class="bhg-dashboard-meta">
-					<li><span class="dashicons dashicons-book-alt"></span> <strong><?php esc_html_e( 'Hunts:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $hunts_count ) ); ?></li>
-					<li><span class="dashicons dashicons-groups"></span> <strong><?php esc_html_e( 'Users:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $users_count ) ); ?></li>
-					<li><span class="dashicons dashicons-awards"></span> <strong><?php esc_html_e( 'Tournaments:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $tournaments_count ) ); ?></li>
-				</ul>
-			</div>
-		</div>
+        <div class="dashboard-widgets-wrap bhg-dashboard-cards">
+                <div class="card bhg-dashboard-card">
+                        <h2 class="title"><?php esc_html_e( 'Summary', 'bonus-hunt-guesser' ); ?></h2>
+                        <div class="inside">
+                                <ul class="bhg-dashboard-meta">
+                                        <li><span class="dashicons dashicons-book-alt"></span> <strong><?php esc_html_e( 'Hunts:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $hunts_count ) ); ?></li>
+                                        <li><span class="dashicons dashicons-groups"></span> <strong><?php esc_html_e( 'Users:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $users_count ) ); ?></li>
+                                        <li><span class="dashicons dashicons-awards"></span> <strong><?php esc_html_e( 'Tournaments:', 'bonus-hunt-guesser' ); ?></strong> <?php echo esc_html( number_format_i18n( $tournaments_count ) ); ?></li>
+                                </ul>
+                        </div>
+                </div>
 
-		<div class="bhg-dashboard-card">
-			<h2 class="hndle"><span><?php esc_html_e( 'Latest Hunts', 'bonus-hunt-guesser' ); ?></span></h2>
-			<div class="inside">
-				<div class="bhg-dashboard-table-wrapper">
-					<table class="wp-list-table widefat striped bhg-dashboard-table">
-						<thead>
-							<tr>
-								<th><?php esc_html_e( 'Bonushunt', 'bonus-hunt-guesser' ); ?></th>
-								<th><?php esc_html_e( 'All Winners', 'bonus-hunt-guesser' ); ?></th>
-								<th><?php esc_html_e( 'Start Balance', 'bonus-hunt-guesser' ); ?></th>
-								<th><?php esc_html_e( 'Final Balance', 'bonus-hunt-guesser' ); ?></th>
-								<th><?php esc_html_e( 'Closed At', 'bonus-hunt-guesser' ); ?></th>
-							</tr>
-						</thead>
-						<tbody>
-						<?php if ( ! empty( $hunts ) && is_array( $hunts ) ) : ?>
-							<?php foreach ( $hunts as $h ) : ?>
+                <div class="card bhg-dashboard-card">
+                        <h2 class="title"><?php esc_html_e( 'Latest Hunts', 'bonus-hunt-guesser' ); ?></h2>
+                        <div class="inside">
+                                <div class="bhg-dashboard-table-wrapper">
+                                        <table class="wp-list-table widefat striped bhg-dashboard-table">
+                                                <thead>
+                                                        <tr>
+                                                                <th><?php esc_html_e( 'Bonushunt', 'bonus-hunt-guesser' ); ?></th>
+                                                                <th><?php esc_html_e( 'All Winners', 'bonus-hunt-guesser' ); ?></th>
+                                                                <th><?php esc_html_e( 'Start Balance', 'bonus-hunt-guesser' ); ?></th>
+                                                                <th><?php esc_html_e( 'Final Balance', 'bonus-hunt-guesser' ); ?></th>
+                                                                <th><?php esc_html_e( 'Closed At', 'bonus-hunt-guesser' ); ?></th>
+                                                        </tr>
+                                                </thead>
+                                                <tbody>
+                                                <?php if ( ! empty( $hunts ) && is_array( $hunts ) ) : ?>
+                                                        <?php foreach ( $hunts as $h ) : ?>
 								<?php
 								$hunt_id       = isset( $h->id ) ? (int) $h->id : 0;
 								$winners_count = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
