@@ -162,6 +162,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'label_affiliate_status'                       => 'Affiliate Status',
                         'label_actions'                                => 'Actions',
                         'label_id'                                     => 'ID',
+                        'label_key'                                    => 'Key',
                         'label_name'                                   => 'Name',
                         'label_winners'                                => 'Winners',
                         'label_title_content'                          => 'Title/Content',
