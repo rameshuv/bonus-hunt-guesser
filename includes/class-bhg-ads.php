@@ -1,25 +1,46 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; }
+/**
+ * Ads handling for Bonus Hunt Guesser.
+ *
+ * @package BonusHuntGuesser
+ */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Ads management.
+ */
 class BHG_Ads {
 
-	/** Initialize front-end hooks for ads */
+	/**
+	 * Initialize front-end hooks for ads.
+	 *
+	 * @return void
+	 */
 	public static function init() {
 		add_action( 'wp_footer', array( 'BHG_Ads', 'render_footer' ) );
 		add_shortcode( 'bhg_ad', array( 'BHG_Ads', 'shortcode' ) );
 		add_shortcode( 'bhg_advertising', array( 'BHG_Ads', 'shortcode' ) );
 	}
 
-
-	/** Checks if front-end ads are enabled in plugin settings. */
+	/**
+	 * Checks if front-end ads are enabled in plugin settings.
+	 *
+	 * @return bool
+	 */
 	protected static function ads_enabled() {
 		$settings = get_option( 'bhg_plugin_settings', array() );
 		$enabled  = isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 0;
-		return $enabled === 1;
+		return 1 === $enabled;
 	}
 
-	/** Determine current user's affiliate status (global toggle). */
+	/**
+	 * Determine current user's affiliate status (global toggle).
+	 *
+	 * @return bool
+	 */
 	protected static function user_is_affiliate() {
 		if ( ! is_user_logged_in() ) {
 			return false;
@@ -28,7 +49,13 @@ class BHG_Ads {
 		return (bool) get_user_meta( $uid, 'bhg_is_affiliate', true );
 	}
 
-	/** Whether current visitor matches the ad's visibility setting. */
+	/**
+	 * Whether current visitor matches the ad's visibility setting.
+	 *
+	 * @param string $visibility Visibility rule.
+	 *
+	 * @return bool
+	 */
 	protected static function visibility_ok( $visibility ) {
 		$visibility = is_string( $visibility ) ? strtolower( $visibility ) : 'all';
 		switch ( $visibility ) {
@@ -46,14 +73,20 @@ class BHG_Ads {
 		}
 	}
 
-	/** Whether the current page is one of the targeted pages (by slug), if any are set. */
+	/**
+	 * Whether the current page is one of the targeted pages (by slug), if any are set.
+	 *
+	 * @param string $target_pages Comma-separated list of target page slugs.
+	 *
+	 * @return bool
+	 */
 	protected static function page_target_ok( $target_pages ) {
 		$target_pages = is_string( $target_pages ) ? trim( $target_pages ) : '';
-		if ( $target_pages === '' ) {
-			return true; // no restriction
+		if ( '' === $target_pages ) {
+			return true; // No restriction.
 		}
 
-		// Normalize list of slugs
+		// Normalize list of slugs.
 		$slugs = array_filter(
 			array_map(
 				function ( $s ) {
@@ -67,7 +100,7 @@ class BHG_Ads {
 			return true;
 		}
 
-		// On singular pages, check post_name; otherwise, do not show
+		// On singular pages, check post_name; otherwise, do not show.
 		if ( is_singular() ) {
 			$post = get_post();
 			if ( ! $post ) {
@@ -79,7 +112,13 @@ class BHG_Ads {
 		return false;
 	}
 
-	/** Render a single ad row to HTML */
+	/**
+	 * Render a single ad row to HTML.
+	 *
+	 * @param object $row Database row object.
+	 *
+	 * @return string
+	 */
 	protected static function render_ad_row( $row ) {
 		$msg  = isset( $row->content ) ? $row->content : '';
 		$msg  = wp_kses_post( $msg );
@@ -91,17 +130,32 @@ class BHG_Ads {
 		return '<div class="bhg-ad bhg-ad-' . esc_attr( $row->placement ) . '">' . $msg . '</div>';
 	}
 
-	/** Fetch active ads for a placement */
+	/**
+	 * Fetch active ads for a placement.
+	 *
+	 * @param string $placement Ad placement.
+	 *
+	 * @return array
+	 */
 	protected static function get_ads_for_placement( $placement = 'footer' ) {
 		global $wpdb;
 		$table     = $wpdb->prefix . 'bhg_ads';
 		$placement = sanitize_text_field( $placement );
-		// Active ads ordered newest first
-		$sql = "SELECT id, content, link_url, placement, visible_to, target_pages FROM {$table} WHERE active=1 AND placement=%s ORDER BY id DESC";
-		return $wpdb->get_results( $wpdb->prepare( $sql, $placement ) );
+
+		return $wpdb->get_results(
+			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is fixed.
+				"SELECT id, content, link_url, placement, visible_to, target_pages FROM {$table} WHERE active = 1 AND placement = %s ORDER BY id DESC",
+				$placement
+			)
+		);
 	}
 
-	/** Render footer-placed ads */
+	/**
+	 * Render footer-placed ads.
+	 *
+	 * @return void
+	 */
 	public static function render_footer() {
 		if ( is_admin() ) {
 			return;
@@ -128,7 +182,7 @@ class BHG_Ads {
 
 		if ( ! empty( $out ) ) {
 			echo '<div class="bhg-ads bhg-ads-footer" style="margin:16px 0;text-align:center;">';
-			echo implode( "\n", $out );
+			echo wp_kses_post( implode( "\n", $out ) );
 			echo '</div>';
 		}
 	}
@@ -165,8 +219,14 @@ class BHG_Ads {
 		$status = strtolower( trim( $a['status'] ) );
 
 		global $wpdb;
-		$table = $wpdb->prefix . 'bhg_ads';
-		$row   = $wpdb->get_row( $wpdb->prepare( "SELECT id, content, placement, visible_to, target_pages, active, link_url FROM `$table` WHERE id=%d", $id ) );
+		$table = esc_sql( $wpdb->prefix . 'bhg_ads' );
+		$row   = $wpdb->get_row(
+			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is fixed.
+				"SELECT id, content, placement, visible_to, target_pages, active, link_url FROM {$table} WHERE id = %d",
+				$id
+			)
+		);
 		if ( ! $row ) {
 			return '';
 		}
