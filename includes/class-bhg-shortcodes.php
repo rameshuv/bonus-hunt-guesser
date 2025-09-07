@@ -270,7 +270,7 @@ $total = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $g . ' 
 												if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
 														$orderby = 'g.guess';
 												}
-$sql = 'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id' // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$sql = 'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id' 
 														. ' FROM ' . $g . ' g'
 														. ' LEFT JOIN ' . $u . ' u ON u.ID = g.user_id'
 														. ' LEFT JOIN ' . $hunts_table . ' h ON h.id = g.hunt_id'
