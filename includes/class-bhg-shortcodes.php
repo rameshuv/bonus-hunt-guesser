@@ -41,7 +41,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$wpdb->prefix . 'bhg_guesses',
 				$wpdb->prefix . 'bhg_tournaments',
 				$wpdb->prefix . 'bhg_tournament_results',
-				$wpdb->prefix . 'bhg_affiliates',
+				$wpdb->prefix . 'bhg_affiliate_websites',
 				$wpdb->users,
 			);
 			return in_array( $table, $allowed, true ) ? esc_sql( $table ) : '';
@@ -266,27 +266,27 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 										$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 										// db call ok; no-cache ok.
-                                                                               $sql             = 'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id
+																				$sql             = 'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id
                                                                                       FROM %i g
                                                                                       LEFT JOIN %i u ON u.ID = g.user_id
                                                                                       LEFT JOIN %i h ON h.id = g.hunt_id
                                                                                       WHERE g.hunt_id = %d ORDER BY %i ' . $order . ' LIMIT %d OFFSET %d';
-                                                                               $allowed_orderby = array( 'g.guess', 'u.user_login', 'g.id' );
-                                       if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
-                                                                       $orderby = 'g.guess';
-                                       }
-                                                                               $rows = $wpdb->get_results(
-                                                                                        $wpdb->prepare(
-                                                                                                $sql,
-                                                                                                $g,
-                                                                                                $u,
-                                                                                                  $hunts_table,
-                                                                                                  $hunt_id,
-                                                                                                  $orderby,
-                                                                                                  $per,
-                                                                                                  $offset
-                                                                                        )
-                                                                               );
+																				$allowed_orderby = array( 'g.guess', 'u.user_login', 'g.id' );
+					if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
+													$orderby = 'g.guess';
+					}
+																				$rows = $wpdb->get_results(
+																					$wpdb->prepare(
+																						$sql,
+																						$g,
+																						$u,
+																						$hunts_table,
+																						$hunt_id,
+																						$orderby,
+																						$per,
+																						$offset
+																					)
+																				);
 
 					wp_enqueue_style(
 						'bhg-shortcodes',
@@ -446,16 +446,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$orderby_key = isset( $orderby_map[ $a['orderby'] ] ) ? $a['orderby'] : 'hunt';
 			$orderby     = $orderby_map[ $orderby_key ];
 
-                                               $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . ' ORDER BY %i ' . $order;
-                                               if ( 'recent' === strtolower( $a['timeline'] ) ) {
-                                                       $sql .= ' LIMIT 10';
-                                               }
+												$sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . ' ORDER BY %i ' . $order;
+			if ( 'recent' === strtolower( $a['timeline'] ) ) {
+					$sql .= ' LIMIT 10';
+			}
 
-                                               // db call ok; no-cache ok.
-                                               $params = array_merge( array( $g, $h ), $params, array( $orderby ) );
-                                               $rows   = $wpdb->get_results(
-                                                       $wpdb->prepare( $sql, ...$params )
-                                               );
+												// db call ok; no-cache ok.
+												$params = array_merge( array( $g, $h ), $params, array( $orderby ) );
+												$rows   = $wpdb->get_results(
+													$wpdb->prepare( $sql, ...$params )
+												);
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
 			}
@@ -525,8 +525,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			}
 
 			global $wpdb;
-			$h         = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-			$aff_table = $this->sanitize_table( $wpdb->prefix . 'bhg_affiliates' );
+			$h                     = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+						$aff_table = $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' );
 
 			$where  = array();
 			$params = array();

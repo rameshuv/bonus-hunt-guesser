@@ -106,8 +106,8 @@ if ( isset( $_POST['bhg_action'] ) ) {
 }
 
 // Get all bonus hunts
-$bonus_hunts     = $bhg_db->get_all_bonus_hunts();
-$affiliate_sites = $bhg_db->get_affiliate_websites();
+$bonus_hunts        = $bhg_db->get_all_bonus_hunts();
+$affiliate_websites = $bhg_db->get_affiliate_websites();
 
 // Display status messages
 if ( isset( $_GET['message'] ) ) {
@@ -138,39 +138,63 @@ if ( isset( $_GET['message'] ) ) {
 ?>
 
 <div class="wrap bhg-admin">
-	<h1><?php echo esc_html( bhg_t( 'bonus_hunt_guesser', 'Bonus Hunt Guesser' ) );; ?></h1>
+	<h1>
+	<?php
+	echo esc_html( bhg_t( 'bonus_hunt_guesser', 'Bonus Hunt Guesser' ) );
+	?>
+</h1>
 	<hr/>
 	
 	<div class="bhg-admin-content">
-		<h2><?php echo esc_html( bhg_t( 'button_create_new_bonus_hunt', 'Create New Bonus Hunt' ) );; ?></h2>
+		<h2>
+		<?php
+		echo esc_html( bhg_t( 'button_create_new_bonus_hunt', 'Create New Bonus Hunt' ) );
+		?>
+</h2>
 		<form method="post" action="">
 			<?php wp_nonce_field( 'bhg_create_bonus_hunt', 'bhg_nonce' ); ?>
 			<input type="hidden" name="bhg_action" value="create_bonus_hunt">
 			
 			<table class="form-table">
 				<tr>
-					<th scope="row"><label for="title"><?php echo esc_html( bhg_t( 'label_bonus_hunt_title', 'Bonus Hunt Title' ) );; ?></label></th>
+					<th scope="row"><label for="title">
+					<?php
+					echo esc_html( bhg_t( 'label_bonus_hunt_title', 'Bonus Hunt Title' ) );
+					?>
+</label></th>
 					<td>
 						<input type="text" name="title" id="title" class="regular-text" required 
 								value="<?php echo isset( $_POST['title'] ) ? esc_attr( $_POST['title'] ) : ''; ?>">
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="starting_balance"><?php echo esc_html( bhg_t( 'label_start_balance_euro', 'Starting Balance (€)' ) );; ?></label></th>
+					<th scope="row"><label for="starting_balance">
+					<?php
+					echo esc_html( bhg_t( 'label_start_balance_euro', 'Starting Balance (€)' ) );
+					?>
+</label></th>
 					<td>
 						<input type="number" name="starting_balance" id="starting_balance" step="0.01" min="0"
 								value="<?php echo esc_attr( isset( $_POST['starting_balance'] ) ? floatval( $_POST['starting_balance'] ) : '0' ); ?>" required>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="num_bonuses"><?php echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) );; ?></label></th>
+					<th scope="row"><label for="num_bonuses">
+					<?php
+					echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) );
+					?>
+</label></th>
 					<td>
 						<input type="number" name="num_bonuses" id="num_bonuses" min="1"
 								value="<?php echo esc_attr( isset( $_POST['num_bonuses'] ) ? intval( $_POST['num_bonuses'] ) : '10' ); ?>" required>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="prizes"><?php echo esc_html( bhg_t( 'label_prizes_description', 'Prizes Description' ) );; ?></label></th>
+					<th scope="row"><label for="prizes">
+					<?php
+					echo esc_html( bhg_t( 'label_prizes_description', 'Prizes Description' ) );
+					?>
+</label></th>
 					<td>
 						<textarea name="prizes" id="prizes" rows="5" class="large-text">
 						<?php
@@ -180,23 +204,47 @@ if ( isset( $_GET['message'] ) ) {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="status"><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></label></th>
+					<th scope="row"><label for="status">
+					<?php
+					echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+					?>
+</label></th>
 					<td>
 						<select name="status" id="status" required>
-							<option value="active"><?php echo esc_html( bhg_t( 'label_active', 'Active' ) );; ?></option>
-							<option value="upcoming"><?php echo esc_html( bhg_t( 'label_upcoming', 'Upcoming' ) );; ?></option>
-							<option value="completed"><?php echo esc_html( bhg_t( 'label_completed', 'Completed' ) );; ?></option>
+							<option value="active">
+							<?php
+							echo esc_html( bhg_t( 'label_active', 'Active' ) );
+							?>
+</option>
+							<option value="upcoming">
+							<?php
+							echo esc_html( bhg_t( 'label_upcoming', 'Upcoming' ) );
+							?>
+</option>
+							<option value="completed">
+							<?php
+							echo esc_html( bhg_t( 'label_completed', 'Completed' ) );
+							?>
+</option>
 						</select>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="affiliate_site_id"><?php echo esc_html( bhg_t( 'label_affiliate_website', 'Affiliate Website' ) );; ?></label></th>
+					<th scope="row"><label for="affiliate_site_id">
+					<?php
+					echo esc_html( bhg_t( 'label_affiliate_website', 'Affiliate Website' ) );
+					?>
+</label></th>
 					<td>
 						<select name="affiliate_site_id" id="affiliate_site_id">
-							<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) );; ?></option>
-							<?php foreach ( $affiliate_sites as $site ) : ?>
+							<option value="0">
+							<?php
+							echo esc_html( bhg_t( 'none', 'None' ) );
+							?>
+</option>
+													<?php foreach ( $affiliate_websites as $site ) : ?>
 								<option value="<?php echo esc_attr( $site->id ); ?>">
-									<?php echo esc_html( $site->name ); ?>
+														<?php echo esc_html( $site->name ); ?>
 								</option>
 							<?php endforeach; ?>
 						</select>
@@ -209,18 +257,54 @@ if ( isset( $_GET['message'] ) ) {
 		
 		<hr>
 		
-		<h2><?php echo esc_html( bhg_t( 'label_existing_bonus_hunts', 'Existing Bonus Hunts' ) );; ?></h2>
+		<h2>
+		<?php
+		echo esc_html( bhg_t( 'label_existing_bonus_hunts', 'Existing Bonus Hunts' ) );
+		?>
+</h2>
 		<table class="wp-list-table widefat fixed striped">
 			<thead>
 				<tr>
-					<th><?php echo esc_html( bhg_t( 'id', 'ID' ) );; ?></th>
-					<th><?php echo esc_html( bhg_t( 'sc_title', 'Title' ) );; ?></th>
-					<th><?php echo esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) );; ?></th>
-					<th><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) );; ?></th>
-					<th><?php echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) );; ?></th>
-					<th><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></th>
-					<th><?php echo esc_html( bhg_t( 'label_created', 'Created' ) );; ?></th>
-					<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) );; ?></th>
+					<th>
+					<?php
+					echo esc_html( bhg_t( 'id', 'ID' ) );
+					?>
+</th>
+					<th>
+					<?php
+					echo esc_html( bhg_t( 'sc_title', 'Title' ) );
+					?>
+</th>
+					<th>
+					<?php
+					echo esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) );
+					?>
+</th>
+					<th>
+					<?php
+					echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) );
+					?>
+</th>
+					<th>
+					<?php
+					echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) );
+					?>
+</th>
+					<th>
+					<?php
+					echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+					?>
+</th>
+					<th>
+					<?php
+					echo esc_html( bhg_t( 'label_created', 'Created' ) );
+					?>
+</th>
+					<th>
+					<?php
+					echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
+					?>
+</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -234,7 +318,11 @@ if ( isset( $_GET['message'] ) ) {
 								<?php if ( $hunt->final_balance !== null ) : ?>
 									€<?php echo esc_html( number_format( $hunt->final_balance, 2 ) ); ?>
 								<?php else : ?>
-									<em><?php echo esc_html( bhg_t( 'label_not_set', 'Not set' ) );; ?></em>
+									<em>
+									<?php
+									echo esc_html( bhg_t( 'label_not_set', 'Not set' ) );
+									?>
+</em>
 								<?php endif; ?>
 							</td>
 							<td><?php echo esc_html( $hunt->num_bonuses ); ?></td>
@@ -246,7 +334,9 @@ if ( isset( $_GET['message'] ) ) {
 							<td><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $hunt->created_at ) ) ); ?></td>
 							<td>
 								<a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg_bonus_hunts&action=edit&id=' . intval( $hunt->id ) ) ); ?>" class="button button-small">
-									<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) );; ?>
+									<?php
+									echo esc_html( bhg_t( 'button_edit', 'Edit' ) );
+									?>
 								</a>
 								<form method="post" style="display:inline;">
 									<?php wp_nonce_field( 'bhg_delete_bonus_hunt', 'bhg_nonce' ); ?>
@@ -254,7 +344,9 @@ if ( isset( $_GET['message'] ) ) {
 									<input type="hidden" name="id" value="<?php echo esc_attr( $hunt->id ); ?>">
 									<button type="submit" class="button button-small button-danger"
 											onclick="return confirm('<?php echo esc_js( bhg_t( 'confirm_delete_bonus_hunt', 'Are you sure you want to delete this bonus hunt?' ) ); ?>');">
-										<?php echo esc_html( bhg_t( 'button_delete', 'Delete' ) );; ?>
+										<?php
+										echo esc_html( bhg_t( 'button_delete', 'Delete' ) );
+										?>
 									</button>
 								</form>
 							</td>
@@ -262,7 +354,11 @@ if ( isset( $_GET['message'] ) ) {
 					<?php endforeach; ?>
 				<?php else : ?>
 					<tr>
-						<td colspan="8"><?php echo esc_html( bhg_t( 'notice_no_bonus_hunts_found', 'No bonus hunts found.' ) );; ?></td>
+						<td colspan="8">
+						<?php
+						echo esc_html( bhg_t( 'notice_no_bonus_hunts_found', 'No bonus hunts found.' ) );
+						?>
+</td>
 					</tr>
 				<?php endif; ?>
 			</tbody>
