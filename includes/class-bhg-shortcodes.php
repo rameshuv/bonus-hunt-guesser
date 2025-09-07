@@ -803,25 +803,21 @@ $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $
 				if ( 'asc' !== $order && 'desc' !== $order ) {
 					$order = 'desc';
 				}
-								$orderby_column = $allowed[ $orderby ];
-								$order          = strtoupper( $order );
+                                                                $orderby_column = $allowed[ $orderby ];
+                                                                $order          = strtoupper( $order );
 
-								// db call ok; no-cache ok.
-								$sql  = 'SELECT r.user_id, r.wins, r.last_win_date, u.user_login
-                                                                                                      FROM %i r
-                                                                                                      INNER JOIN %i u ON u.ID = r.user_id
-                                                                                                      WHERE r.tournament_id = %d
-                                                                                                      ORDER BY %i %s, r.user_id ASC';
-								$rows = $wpdb->get_results(
-									$wpdb->prepare(
-										$sql,
-										$r,
-										$u,
-										$tournament->id,
-										$orderby_column,
-										$order
-									)
-								);
+                                                                // db call ok; no-cache ok.
+                                                                $sql = $wpdb->prepare(
+                                                                        'SELECT r.user_id, r.wins, r.last_win_date, u.user_login
+                                                                                FROM %i r
+                                                                                INNER JOIN %i u ON u.ID = r.user_id
+                                                                                WHERE r.tournament_id = %d
+                                                                                ORDER BY ' . $orderby_column . ' ' . $order . ', r.user_id ASC',
+                                                                        $r,
+                                                                        $u,
+                                                                        $tournament->id
+                                                                );
+                                                                $rows = $wpdb->get_results( $sql );
 
 				$base   = remove_query_arg( array( 'orderby', 'order' ) );
 				$toggle = function ( $key ) use ( $orderby, $order, $base ) {
