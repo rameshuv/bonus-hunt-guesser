@@ -68,7 +68,11 @@ flex: 1;
 }
 
 .bhg-default-row {
-background-color: #fff8e5;
+    background-color: #fff8e5;
+}
+
+.bhg-custom-row {
+    background-color: #e5fff1;
 }
 
 /* Dashboard styles */
