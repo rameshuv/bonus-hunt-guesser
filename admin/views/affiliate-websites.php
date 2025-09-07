@@ -15,12 +15,13 @@ $table = esc_sql( $table );
 // Load for edit
 $edit_id = isset( $_GET['edit'] ) ? (int) $_GET['edit'] : 0;
 $row     = $edit_id ? $wpdb->get_row(
-	$wpdb->prepare( "SELECT * FROM {$table} WHERE id=%d", $edit_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $edit_id )
 ) : null;
 
 // List
+// db call ok; no-cache ok.
 $rows = $wpdb->get_results(
-	"SELECT * FROM {$table} ORDER BY id DESC" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $table )
 );
 ?>
 <div class="wrap">
