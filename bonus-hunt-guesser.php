@@ -153,7 +153,6 @@ spl_autoload_register(
 			'BHG_Admin'          => 'admin/class-bhg-admin.php',
 			'BHG_Shortcodes'     => 'includes/class-bhg-shortcodes.php',
 			'BHG_Logger'         => 'includes/class-bhg-logger.php',
-			'BHG_Settings'       => 'includes/class-bhg-settings.php',
 			'BHG_Utils'          => 'includes/class-bhg-utils.php',
 			'BHG_Models'         => 'includes/class-bhg-models.php',
 			'BHG_Front_Menus'    => 'includes/class-bhg-front-menus.php',
