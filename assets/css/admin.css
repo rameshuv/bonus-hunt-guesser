@@ -99,6 +99,7 @@ padding: 8px 10px;
 .bhg-translations-table .bhg-inline-form {
 display: flex;
 gap: 8px;
+align-items: center;
 }
 
 .bhg-translations-table .bhg-inline-form input[type="text"] {
@@ -107,10 +108,16 @@ flex: 1;
 
 .bhg-default-row {
     background-color: #fff8e5;
+    border-left: 4px solid #f59e0b;
 }
 
 .bhg-custom-row {
     background-color: #e5fff1;
+    border-left: 4px solid #16a34a;
+}
+
+.bhg-translation-group {
+    margin-bottom: 2em;
 }
 
 /* Dashboard styles */
