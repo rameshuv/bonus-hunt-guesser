@@ -43,9 +43,9 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect array of objects with: id, 
 		<?php if ( ! empty( $hunts ) && is_array( $hunts ) ) : ?>
 			<?php foreach ( $hunts as $h ) : ?>
 				<?php
-				$hunt_id        = isset( $h->id ) ? (int) $h->id : 0;
-				$winners_count  = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
-				$winners        = array();
+				$hunt_id       = isset( $h->id ) ? (int) $h->id : 0;
+				$winners_count = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
+				$winners       = array();
 
 				if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
 					$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_count );

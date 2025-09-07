@@ -72,11 +72,19 @@ $pages = max( 1, (int) ceil( $total / $per_page ) );
 	<div class="tablenav">
 		<div class="tablenav-pages">
 		<?php
-			$base = remove_query_arg( 'paged' );
+						$base = remove_query_arg( 'paged' );
 		for ( $i = 1; $i <= $pages; $i++ ) {
-			$url   = esc_url( add_query_arg( 'paged', $i, $base ) );
-			$class = $i === $paged ? ' class="page-numbers current"' : ' class="page-numbers"';
-			echo '<a' . $class . ' href="' . $url . '">' . $i . '</a> ';
+				$url   = add_query_arg( 'paged', $i, $base );
+				$class = 'page-numbers';
+			if ( $i === $paged ) {
+						$class .= ' current';
+			}
+				printf(
+					'<a class="%1$s" href="%2$s">%3$d</a> ',
+					esc_attr( $class ),
+					esc_url( $url ),
+					(int) $i
+				);
 		}
 		?>
 		</div>
