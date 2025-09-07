@@ -452,50 +452,52 @@ class BHG_Admin {
 		}
 	}
 
-	/**
-	 * Save or update an affiliate record.
-	 */
+		/**
+		 * Save or update an affiliate website record.
+		 */
 	public function handle_save_affiliate() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
 		check_admin_referer( 'bhg_save_affiliate' );
-		global $wpdb;
-		$table  = $wpdb->prefix . 'bhg_affiliates';
-		$id     = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
-		$name   = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
-		$url    = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
-		$status = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'active';
+			global $wpdb;
+			$table  = $wpdb->prefix . 'bhg_affiliate_websites';
+			$id     = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+			$name   = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+			$slug   = isset( $_POST['slug'] ) ? sanitize_title( wp_unslash( $_POST['slug'] ) ) : sanitize_title( $name );
+			$url    = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
+			$status = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'active';
 
-		$data   = array(
+		$data       = array(
 			'name'       => $name,
+			'slug'       => $slug,
 			'url'        => $url,
 			'status'     => $status,
 			'updated_at' => current_time( 'mysql' ),
 		);
-		$format = array( '%s', '%s', '%s', '%s' );
+			$format = array( '%s', '%s', '%s', '%s', '%s' );
 		if ( $id ) {
-			$wpdb->update( $table, $data, array( 'id' => $id ), $format, array( '%d' ) );
+				$wpdb->update( $table, $data, array( 'id' => $id ), $format, array( '%d' ) );
 		} else {
-			$data['created_at'] = current_time( 'mysql' );
-			$format[]           = '%s';
-			$wpdb->insert( $table, $data, $format );
+				$data['created_at'] = current_time( 'mysql' );
+				$format[]           = '%s';
+				$wpdb->insert( $table, $data, $format );
 		}
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-affiliates' ) );
-		exit;
+			wp_safe_redirect( admin_url( 'admin.php?page=bhg-affiliates' ) );
+			exit;
 	}
 
-	/**
-	 * Delete an affiliate.
-	 */
+		/**
+		 * Delete an affiliate website.
+		 */
 	public function handle_delete_affiliate() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
 				check_admin_referer( 'bhg_delete_affiliate' );
-		global $wpdb;
-		$table = $wpdb->prefix . 'bhg_affiliates';
-		$id    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+				global $wpdb;
+				$table = $wpdb->prefix . 'bhg_affiliate_websites';
+		$id            = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
 		if ( $id ) {
 			$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
 		}

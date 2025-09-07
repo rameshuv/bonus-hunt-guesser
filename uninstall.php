@@ -25,7 +25,7 @@ $tables = array(
 	'bhg_tournament_results',
 	'bhg_ads',
 	'bhg_translations',
-	'bhg_affiliates',
+	'bhg_affiliate_websites',
 );
 
 foreach ( $tables as $table ) {

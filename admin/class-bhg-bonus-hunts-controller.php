@@ -56,10 +56,10 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 		public function get_admin_view_vars() {
 			$db = new BHG_DB();
 
-			return array(
-				'bonus_hunts'     => $db->get_all_bonus_hunts(),
-				'affiliate_sites' => $db->get_affiliate_websites(),
-			);
+						return array(
+							'bonus_hunts'        => $db->get_all_bonus_hunts(),
+							'affiliate_websites' => $db->get_affiliate_websites(),
+						);
 		}
 
 
@@ -80,7 +80,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 			$action       = sanitize_text_field( wp_unslash( $_POST['bhg_action'] ) );
 			$nonce_action = 'bhg_' . $action;
 
-                        check_admin_referer( $nonce_action, 'bhg_nonce' );
+						check_admin_referer( $nonce_action, 'bhg_nonce' );
 
 			$db      = new BHG_DB();
 			$message = 'error';
@@ -167,7 +167,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 						wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
 			}
 
-                                check_admin_referer( 'bhg_delete_guess' );
+								check_admin_referer( 'bhg_delete_guess' );
 
 				$guess_id = isset( $_GET['guess_id'] ) ? absint( $_GET['guess_id'] ) : 0;
 

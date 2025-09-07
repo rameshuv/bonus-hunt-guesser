@@ -16,7 +16,7 @@ if ( ! $hunt ) {
 		return;
 }
 
-$aff_table = $wpdb->prefix . 'bhg_affiliates';
+$aff_table = $wpdb->prefix . 'bhg_affiliate_websites';
 if ( isset( $allowed_tables ) && ! in_array( $aff_table, $allowed_tables, true ) ) {
 				wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
@@ -44,9 +44,9 @@ $base     = remove_query_arg( 'ppaged' );
 		?>
 		<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'edit_bonus_hunt', 'Edit Bonus Hunt' ) ); ?> <?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
 
-        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
-                <?php wp_nonce_field( 'bhg_save_hunt' ); ?>
-                <input type="hidden" name="action" value="bhg_save_hunt" />
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
+				<?php wp_nonce_field( 'bhg_save_hunt' ); ?>
+				<input type="hidden" name="action" value="bhg_save_hunt" />
 		<input type="hidden" name="id" value="<?php echo (int) $hunt->id; ?>" />
 
 		<table class="form-table" role="presentation">
@@ -100,21 +100,45 @@ $base     = remove_query_arg( 'ppaged' );
 				<?php submit_button( esc_html( bhg_t( 'save_hunt', 'Save Hunt' ) ) ); ?>
 	</form>
 
-	<h2 class="bhg-margin-top-large"><?php echo esc_html( bhg_t( 'participants', 'Participants' ) );; ?></h2>
+	<h2 class="bhg-margin-top-large">
+	<?php
+	echo esc_html( bhg_t( 'participants', 'Participants' ) );
+	?>
+</h2>
 	<p><?php echo esc_html( sprintf( _n( '%s participant', '%s participants', $total, 'bonus-hunt-guesser' ), number_format_i18n( $total ) ) ); ?></p>
 
 	<table class="widefat striped">
 		<thead>
 			<tr>
-				<th><?php echo esc_html( bhg_t( 'sc_user', 'User' ) );; ?></th>
-				<th><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );; ?></th>
-				<th><?php echo esc_html( bhg_t( 'date', 'Date' ) );; ?></th>
-				<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) );; ?></th>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'sc_user', 'User' ) );
+				?>
+</th>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );
+				?>
+</th>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'date', 'Date' ) );
+				?>
+</th>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
+				?>
+</th>
 			</tr>
 		</thead>
 		<tbody>
 			<?php if ( empty( $rows ) ) : ?>
-				<tr><td colspan="4"><?php echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) );; ?></td></tr>
+				<tr><td colspan="4">
+				<?php
+				echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) );
+				?>
+</td></tr>
 				<?php
 			else :
 				foreach ( $rows as $r ) :
@@ -127,18 +151,22 @@ $base     = remove_query_arg( 'ppaged' );
 										<td><?php echo $r->created_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->created_at ) ) ) : esc_html( bhg_t( 'label_dash', '-' ) ); ?></td>
 										<td>
 												<?php
-                                                                                                $delete_url = wp_nonce_url(
-                                                                                                        add_query_arg(
-                                                                                                                array(
-                                                                                                                        'action'   => 'bhg_delete_guess',
-                                                                                                                        'guess_id' => (int) $r->id,
-                                                                                                                ),
-                                                                                                                admin_url( 'admin-post.php' )
-                                                                                                        ),
-                                                                                                        'bhg_delete_guess'
-                                                                                                );
+																								$delete_url = wp_nonce_url(
+																									add_query_arg(
+																										array(
+																											'action'   => 'bhg_delete_guess',
+																											'guess_id' => (int) $r->id,
+																										),
+																										admin_url( 'admin-post.php' )
+																									),
+																									'bhg_delete_guess'
+																								);
 												?>
-												<a href="<?php echo esc_url( $delete_url ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) );; ?></a>
+												<a href="<?php echo esc_url( $delete_url ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');">
+												<?php
+												echo esc_html( bhg_t( 'remove', 'Remove' ) );
+												?>
+</a>
 										</td>
 								</tr>
 							<?php

@@ -29,15 +29,14 @@ class BHG_DB {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-               $hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
-               $guesses_table     = $wpdb->prefix . 'bhg_guesses';
-               $tours_table       = $wpdb->prefix . 'bhg_tournaments';
-               $tres_table        = $wpdb->prefix . 'bhg_tournament_results';
-               $ads_table         = $wpdb->prefix . 'bhg_ads';
-               $trans_table       = $wpdb->prefix . 'bhg_translations';
-               $aff_table         = $wpdb->prefix . 'bhg_affiliates';
-               $aff_sites_table   = $wpdb->prefix . 'bhg_affiliate_websites';
-               $winners_table     = $wpdb->prefix . 'bhg_hunt_winners';
+				$hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts';
+				$guesses_table      = $wpdb->prefix . 'bhg_guesses';
+				$tours_table        = $wpdb->prefix . 'bhg_tournaments';
+				$tres_table         = $wpdb->prefix . 'bhg_tournament_results';
+				$ads_table          = $wpdb->prefix . 'bhg_ads';
+				$trans_table        = $wpdb->prefix . 'bhg_translations';
+				$aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
+				$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
 
 		$sql = array();
 
@@ -128,20 +127,8 @@ class BHG_DB {
 			UNIQUE KEY tkey_locale (tkey, locale)
 		) {$charset_collate};";
 
-               // Affiliates
-               $sql[] = "CREATE TABLE {$aff_table} (
-                       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-                       name VARCHAR(190) NOT NULL,
-                       url VARCHAR(255) NULL,
-                       status VARCHAR(20) NOT NULL DEFAULT 'active',
-                       created_at DATETIME NULL,
-                       updated_at DATETIME NULL,
-                       PRIMARY KEY  (id),
-                       UNIQUE KEY name_unique (name)
-               ) {$charset_collate};";
-
-               // Affiliate Websites
-               $sql[] = "CREATE TABLE {$aff_sites_table} (
+				// Affiliate Websites
+				$sql[] = "CREATE TABLE {$aff_websites_table} (
                        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                        name VARCHAR(190) NOT NULL,
                        slug VARCHAR(190) NOT NULL,
@@ -153,8 +140,8 @@ class BHG_DB {
                        UNIQUE KEY slug_unique (slug)
                ) {$charset_collate};";
 
-               // Hunt Winners
-               $sql[] = "CREATE TABLE {$winners_table} (
+				// Hunt Winners
+				$sql[] = "CREATE TABLE {$winners_table} (
                        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                        hunt_id BIGINT UNSIGNED NOT NULL,
                        user_id BIGINT UNSIGNED NOT NULL,
@@ -256,75 +243,77 @@ class BHG_DB {
 							$wpdb->query( "ALTER TABLE `{$trans_table}` ADD UNIQUE KEY tkey_locale (tkey, locale)" );
 						}
 
-						// Affiliates columns / unique index
-						$afneed = array(
-							'name'       => "ALTER TABLE `{$aff_table}` ADD COLUMN name VARCHAR(190) NOT NULL",
-							'url'        => "ALTER TABLE `{$aff_table}` ADD COLUMN url VARCHAR(255) NULL",
-							'status'     => "ALTER TABLE `{$aff_table}` ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active'",
-							'created_at' => "ALTER TABLE `{$aff_table}` ADD COLUMN created_at DATETIME NULL",
-							'updated_at' => "ALTER TABLE `{$aff_table}` ADD COLUMN updated_at DATETIME NULL",
-						);
-						foreach ( $afneed as $c => $alter ) {
-							if ( ! $this->column_exists( $aff_table, $c ) ) {
-								$wpdb->query( $alter );
-							}
-						}
-                                               if ( ! $this->index_exists( $aff_table, 'name_unique' ) ) {
-                                                       $wpdb->query( "ALTER TABLE `{$aff_table}` ADD UNIQUE KEY name_unique (name)" );
-                                               }
+												// Affiliate websites columns / unique index
+												$afw_need = array(
+													'name' => "ALTER TABLE `{$aff_websites_table}` ADD COLUMN name VARCHAR(190) NOT NULL",
+													'slug' => "ALTER TABLE `{$aff_websites_table}` ADD COLUMN slug VARCHAR(190) NOT NULL",
+													'url'  => "ALTER TABLE `{$aff_websites_table}` ADD COLUMN url VARCHAR(255) NULL",
+													'status' => "ALTER TABLE `{$aff_websites_table}` ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active'",
+													'created_at' => "ALTER TABLE `{$aff_websites_table}` ADD COLUMN created_at DATETIME NULL",
+													'updated_at' => "ALTER TABLE `{$aff_websites_table}` ADD COLUMN updated_at DATETIME NULL",
+												);
+												foreach ( $afw_need as $c => $alter ) {
+													if ( ! $this->column_exists( $aff_websites_table, $c ) ) {
+															$wpdb->query( $alter );
+													}
+												}
+												if ( ! $this->index_exists( $aff_websites_table, 'slug_unique' ) ) {
+														$wpdb->query( "ALTER TABLE `{$aff_websites_table}` ADD UNIQUE KEY slug_unique (slug)" );
+												}
 
-                                               // Affiliate websites columns / unique index
-                                               $afsitesneed = array(
-                                                       'name'       => "ALTER TABLE `{$aff_sites_table}` ADD COLUMN name VARCHAR(190) NOT NULL",
-                                                       'slug'       => "ALTER TABLE `{$aff_sites_table}` ADD COLUMN slug VARCHAR(190) NOT NULL",
-                                                       'url'        => "ALTER TABLE `{$aff_sites_table}` ADD COLUMN url VARCHAR(255) NULL",
-                                                       'status'     => "ALTER TABLE `{$aff_sites_table}` ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active'",
-                                                       'created_at' => "ALTER TABLE `{$aff_sites_table}` ADD COLUMN created_at DATETIME NULL",
-                                                       'updated_at' => "ALTER TABLE `{$aff_sites_table}` ADD COLUMN updated_at DATETIME NULL",
-                                               );
-                                               foreach ( $afsitesneed as $c => $alter ) {
-                                                       if ( ! $this->column_exists( $aff_sites_table, $c ) ) {
-                                                               $wpdb->query( $alter );
-                                                       }
-                                               }
-                                               if ( ! $this->index_exists( $aff_sites_table, 'slug_unique' ) ) {
-                                                       $wpdb->query( "ALTER TABLE `{$aff_sites_table}` ADD UNIQUE KEY slug_unique (slug)" );
-                                               }
-
-                                               // Hunt winners columns / indexes
-                                               $hwneed = array(
-                                                       'hunt_id'   => "ALTER TABLE `{$winners_table}` ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL",
-                                                       'user_id'   => "ALTER TABLE `{$winners_table}` ADD COLUMN user_id BIGINT UNSIGNED NOT NULL",
-                                                       'position'  => "ALTER TABLE `{$winners_table}` ADD COLUMN position INT UNSIGNED NOT NULL",
-                                                       'guess'     => "ALTER TABLE `{$winners_table}` ADD COLUMN guess DECIMAL(12,2) NOT NULL",
-                                                       'diff'      => "ALTER TABLE `{$winners_table}` ADD COLUMN diff DECIMAL(12,2) NOT NULL",
-                                                       'created_at'=> "ALTER TABLE `{$winners_table}` ADD COLUMN created_at DATETIME NULL",
-                                               );
-                                               foreach ( $hwneed as $c => $alter ) {
-                                                       if ( ! $this->column_exists( $winners_table, $c ) ) {
-                                                               $wpdb->query( $alter );
-                                                       }
-                                               }
-                                               if ( ! $this->index_exists( $winners_table, 'hunt_id' ) ) {
-                                                       $wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY hunt_id (hunt_id)" );
-                                               }
-                                               if ( ! $this->index_exists( $winners_table, 'user_id' ) ) {
-                                                       $wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY user_id (user_id)" );
-                                               }
+												// Hunt winners columns / indexes
+												$hwneed = array(
+													'hunt_id' => "ALTER TABLE `{$winners_table}` ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL",
+													'user_id' => "ALTER TABLE `{$winners_table}` ADD COLUMN user_id BIGINT UNSIGNED NOT NULL",
+													'position' => "ALTER TABLE `{$winners_table}` ADD COLUMN position INT UNSIGNED NOT NULL",
+													'guess' => "ALTER TABLE `{$winners_table}` ADD COLUMN guess DECIMAL(12,2) NOT NULL",
+													'diff' => "ALTER TABLE `{$winners_table}` ADD COLUMN diff DECIMAL(12,2) NOT NULL",
+													'created_at' => "ALTER TABLE `{$winners_table}` ADD COLUMN created_at DATETIME NULL",
+												);
+												foreach ( $hwneed as $c => $alter ) {
+													if ( ! $this->column_exists( $winners_table, $c ) ) {
+															$wpdb->query( $alter );
+													}
+												}
+												if ( ! $this->index_exists( $winners_table, 'hunt_id' ) ) {
+														$wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY hunt_id (hunt_id)" );
+												}
+												if ( ! $this->index_exists( $winners_table, 'user_id' ) ) {
+														$wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY user_id (user_id)" );
+												}
 		} catch ( Throwable $e ) {
 			if ( function_exists( 'error_log' ) ) {
-				error_log( '[BHG] Schema ensure error: ' . $e->getMessage() );
+						error_log( '[BHG] Schema ensure error: ' . $e->getMessage() );
 			}
 		}
 	}
 
-	/**
-	 * Check if a column exists, falling back when information_schema is not accessible.
-	 *
-	 * @param string $table  Table name.
-	 * @param string $column Column to check.
-	 * @return bool
-	 */
+		/**
+		 * Retrieve all affiliate websites.
+		 *
+		 * @return array List of affiliate website objects.
+		 */
+	public function get_affiliate_websites() {
+			global $wpdb;
+
+			$table = $wpdb->prefix . 'bhg_affiliate_websites';
+
+			// db call ok; no-cache ok.
+			return $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT id, name, slug, url, status FROM %i ORDER BY name ASC',
+					$table
+				)
+			);
+	}
+
+		/**
+		 * Check if a column exists, falling back when information_schema is not accessible.
+		 *
+		 * @param string $table  Table name.
+		 * @param string $column Column to check.
+		 * @return bool
+		 */
 	private function column_exists( $table, $column ) {
 		global $wpdb;
 
