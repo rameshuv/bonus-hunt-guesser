@@ -32,6 +32,7 @@ class BHG_Admin {
 		add_action( 'admin_post_bhg_save_affiliate', array( $this, 'handle_save_affiliate' ) );
 		add_action( 'admin_post_bhg_delete_affiliate', array( $this, 'handle_delete_affiliate' ) );
 		add_action( 'admin_post_bhg_save_user_meta', array( $this, 'handle_save_user_meta' ) );
+		add_action( 'admin_post_bhg_tools_action', array( $this, 'handle_tools_action' ) );
 	}
 
 	/**
@@ -522,6 +523,18 @@ class BHG_Admin {
 	}
 
 	/**
+	 * Handle BHG tools form submissions.
+	 */
+	public function handle_tools_action() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
+		}
+		check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
+		wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
+		exit;
+	}
+
+	/**
 	 * Display admin notices for tournament actions.
 	 */
 	public function admin_notices() {
@@ -538,6 +551,7 @@ class BHG_Admin {
 			'nonce'                 => __( 'Security check failed. Please retry.', 'bonus-hunt-guesser' ),
 			'noaccess'              => __( 'You do not have permission to do that.', 'bonus-hunt-guesser' ),
 			'invalid_final_balance' => __( 'Invalid final balance. Please enter a non-negative number.', 'bonus-hunt-guesser' ),
+			'tools_success'		=> __( 'Tools action completed.', 'bonus-hunt-guesser' ),
 		);
 		$class = ( strpos( $msg, 'error' ) !== false || 'nonce' === $msg || 'noaccess' === $msg ) ? 'notice notice-error' : 'notice notice-success';
 		$text  = isset( $map[ $msg ] ) ? $map[ $msg ] : esc_html( $msg );
