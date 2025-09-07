@@ -292,7 +292,7 @@ if ( $view === 'edit' ) :
                // db call ok; no-cache ok.
                                $guesses = $wpdb->get_results(
                                        $wpdb->prepare(
-                                               'SELECT g.*, u.display_name FROM %i g LEFT JOIN %i u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC',
+                                               "SELECT g.*, u.display_name FROM %i g LEFT JOIN %i u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC",
                                                $guesses_table,
                                                $users_table_local,
                                                $id
