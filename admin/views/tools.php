@@ -13,8 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<h1><?php echo esc_html( bhg_t( 'bhg_tools', 'BHG Tools' ) ); ?></h1>
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="bhg_tools_action" />
-				<?php wp_nonce_field( 'bhg_tools_action', 'bhg_tools_nonce' ); ?>
+                               <input type="hidden" name="action" value="bhg_tools_action">
+                               <?php wp_nonce_field( 'bhg_tools_action', 'bhg_tools_nonce' ); ?>
 				<p>
 				<?php
 				echo esc_html( bhg_t( 'this_will_delete_all_demo_data_and_pages_then_recreate_fresh_demo_content', 'This will delete all demo data and pages, then recreate fresh demo content.' ) );
