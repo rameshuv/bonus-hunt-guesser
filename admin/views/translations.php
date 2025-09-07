@@ -22,6 +22,11 @@ if ( function_exists( 'bhg_seed_default_translations' ) ) {
 $default_translations = function_exists( 'bhg_get_default_translations' ) ? bhg_get_default_translations() : array();
 $default_keys         = array_keys( $default_translations );
 
+// Pagination variables.
+$items_per_page = 20;
+$current_page   = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
+$offset         = ( $current_page - 1 ) * $items_per_page;
+
 // Current search term.
 $search_term = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 
@@ -50,22 +55,39 @@ if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'
 	}
 }
 
-// Fetch rows.
+// Fetch rows with pagination.
 if ( $search_term ) {
-       $like = '%' . $wpdb->esc_like( $search_term ) . '%';
-       $rows = $wpdb->get_results(
-               $wpdb->prepare(
-                       'SELECT tkey, tvalue FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC',
-                       $table,
-                       $like,
-                       $like
-               )
-       );
+		$like  = '%' . $wpdb->esc_like( $search_term ) . '%';
+		$total = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s',
+				$table,
+				$like,
+				$like
+			)
+		);
+		$rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT tkey, tvalue FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC LIMIT %d OFFSET %d',
+				$table,
+				$like,
+				$like,
+				$items_per_page,
+				$offset
+			)
+		);
 } else {
-       $rows = $wpdb->get_results(
-               $wpdb->prepare( 'SELECT tkey, tvalue FROM %i ORDER BY tkey ASC', $table )
-       );
+		$total = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) );
+		$rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT tkey, tvalue FROM %i ORDER BY tkey ASC LIMIT %d OFFSET %d',
+				$table,
+				$items_per_page,
+				$offset
+			)
+		);
 }
+$total_pages = max( 1, ceil( $total / $items_per_page ) );
 ?>
 <div class="wrap">
 <h1><?php esc_html_e( 'Translations', 'bonus-hunt-guesser' ); ?></h1>
@@ -104,27 +126,65 @@ if ( $search_term ) {
 </form>
 
 <h2><?php esc_html_e( 'Existing keys', 'bonus-hunt-guesser' ); ?></h2>
-<table class="widefat striped bhg-translations-table">
-<thead><tr><th><?php esc_html_e( 'Key', 'bonus-hunt-guesser' ); ?></th><th><?php esc_html_e( 'Value', 'bonus-hunt-guesser' ); ?></th></tr></thead>
-<tbody>
 <?php
-if ( $rows ) :
-	foreach ( $rows as $r ) :
+$grouped = array();
+if ( $rows ) {
+	foreach ( $rows as $r ) {
+			$context = 'misc';
+		if ( false !== strpos( $r->tkey, '_' ) ) {
+				$context = substr( $r->tkey, 0, strpos( $r->tkey, '_' ) );
+		}
+			$grouped[ $context ][] = $r;
+	}
+}
+
+if ( ! empty( $grouped ) ) :
+	foreach ( $grouped as $context => $items ) :
 		?>
-<tr<?php echo in_array( $r->tkey, $default_keys, true ) ? ' class="bhg-default-row"' : ''; ?>>
+<h3><?php echo esc_html( ucwords( str_replace( '_', ' ', $context ) ) ); ?></h3>
+<table class="widefat striped bhg-translations-table">
+<thead><tr><th><?php esc_html_e( 'Key', 'bonus-hunt-guesser' ); ?></th><th><?php esc_html_e( 'Default', 'bonus-hunt-guesser' ); ?></th><th><?php esc_html_e( 'Custom', 'bonus-hunt-guesser' ); ?></th></tr></thead>
+<tbody>
+		<?php
+		foreach ( $items as $r ) :
+				$default_val = $default_translations[ $r->tkey ] ?? '';
+				$row_class   = $r->tvalue === $default_val ? 'bhg-default-row' : 'bhg-custom-row';
+			?>
+<tr class="<?php echo esc_attr( $row_class ); ?>">
 <td><code><?php echo esc_html( $r->tkey ); ?></code></td>
+<td><?php echo esc_html( $default_val ); ?></td>
 <td>
 <form method="post" class="bhg-inline-form">
-		<?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
+				<?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
 <input type="hidden" name="tkey" value="<?php echo esc_attr( $r->tkey ); ?>" />
 <input type="text" name="tvalue" value="<?php echo esc_attr( $r->tvalue ); ?>" class="regular-text" />
-<button type="submit" name="bhg_save_translation" class="button"><?php esc_html_e( 'Update', 'bonus-hunt-guesser' ); ?></button>
+<button type="submit" name="bhg_save_translation" class="button button-primary"><?php esc_html_e( 'Update', 'bonus-hunt-guesser' ); ?></button>
 </form>
 </td>
 </tr>
-<?php endforeach; else : ?>
-<tr><td colspan="2"><?php esc_html_e( 'No translations yet.', 'bonus-hunt-guesser' ); ?></td></tr>
-<?php endif; ?>
+			<?php
+			endforeach;
+		?>
 </tbody>
 </table>
+		<?php
+		endforeach;
+else :
+	?>
+<p><?php esc_html_e( 'No translations yet.', 'bonus-hunt-guesser' ); ?></p>
+<?php endif; ?>
+
+<?php
+$pagination = paginate_links(
+	array(
+		'base'    => add_query_arg( 'paged', '%#%' ),
+		'format'  => '',
+		'current' => $current_page,
+		'total'   => $total_pages,
+	)
+);
+if ( $pagination ) :
+	?>
+<div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
+<?php endif; ?>
 </div>
