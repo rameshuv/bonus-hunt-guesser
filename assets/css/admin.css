@@ -97,3 +97,27 @@
 .bhg-dashboard-winners li {
     margin-bottom: 4px;
 }
+
+/* Enhanced dashboard layout */
+.bhg-dashboard .dashboard-widgets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+    gap: var(--bhg-spacing);
+}
+
+.bhg-dashboard-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.bhg-dashboard-meta li + li {
+    margin-top: 4px;
+}
+
+.bhg-dashboard-meta strong {
+    color: var(--bhg-accent-color);
+}
+
