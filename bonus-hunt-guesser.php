@@ -690,61 +690,49 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 			break;
 	}
 
-		$g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-		$h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-		$u = esc_sql( $wpdb->users );
+				$g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+				$h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+				$u = esc_sql( $wpdb->users );
 
-	$where = "h.status='closed' AND h.final_balance IS NOT NULL";
-	$args  = array();
+		$where = "h.status='closed' AND h.final_balance IS NOT NULL";
 	if ( $start_date ) {
-		$where .= ' AND h.updated_at >= %s';
-		$args[] = $start_date;
+			$where .= $wpdb->prepare( ' AND h.updated_at >= %s', $start_date );
 	}
 
-		// db call ok; no-cache ok.
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM (
-	    SELECT g.user_id
-	    FROM %i g
-	    INNER JOIN %i h ON h.id = g.hunt_id
-	    WHERE {$where} AND NOT EXISTS (
-	            SELECT 1 FROM %i g2
-	            WHERE g2.hunt_id = g.hunt_id
-	            AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-	    )
-	    GROUP BY g.user_id
-) t",
-				$g,
-				$h,
-				$g,
-				...$args
-			)
-		);
+				$total_sql = "SELECT COUNT(*) FROM (
+            SELECT g.user_id
+            FROM {$g} g
+            INNER JOIN {$h} h ON h.id = g.hunt_id
+            WHERE {$where} AND NOT EXISTS (
+                    SELECT 1 FROM {$g} g2
+                    WHERE g2.hunt_id = g.hunt_id
+                    AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+            )
+            GROUP BY g.user_id
+) t";
 
-		$args_query = array_merge( $args, array( $per_page, $offset ) );
-		// db call ok; no-cache ok.
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT g.user_id, u.user_login, COUNT(*) AS wins
-FROM %i g
-INNER JOIN %i h ON h.id = g.hunt_id
-INNER JOIN %i u ON u.ID = g.user_id
+				// db call ok; no-cache ok.
+               // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$total = (int) $wpdb->get_var( $total_sql );
+
+				$rows_sql = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
+FROM {$g} g
+INNER JOIN {$h} h ON h.id = g.hunt_id
+INNER JOIN {$u} u ON u.ID = g.user_id
 WHERE {$where} AND NOT EXISTS (
-	    SELECT 1 FROM %i g2
-	    WHERE g2.hunt_id = g.hunt_id
-	    AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+            SELECT 1 FROM {$g} g2
+            WHERE g2.hunt_id = g.hunt_id
+            AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
 )
 GROUP BY g.user_id, u.user_login
 ORDER BY wins DESC, u.user_login ASC
-LIMIT %d OFFSET %d",
-				$g,
-				$h,
-				$u,
-				$g,
-				...$args_query
-			)
-		);
+LIMIT %d OFFSET %d";
+
+				$args_query = array( $per_page, $offset );
+
+				// db call ok; no-cache ok.
+               // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$rows = $wpdb->get_results( $wpdb->prepare( $rows_sql, ...$args_query ) );
 
 	if ( ! $rows ) {
 		return '<p>' . esc_html__( 'No data available.', 'bonus-hunt-guesser' ) . '</p>';
