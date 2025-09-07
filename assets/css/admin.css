@@ -146,7 +146,7 @@ flex: 1;
     border-radius: 4px;
 }
 
-.bhg-dashboard-card {
+.postbox.bhg-dashboard-card {
     font-family: var(--bhg-font-family);
     background: var(--bhg-card-bg);
     border: 1px solid var(--bhg-border-color);
@@ -157,7 +157,7 @@ flex: 1;
     width: 100%;
 }
 
-.bhg-dashboard-card-title {
+.postbox.bhg-dashboard-card .hndle {
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
@@ -165,7 +165,7 @@ flex: 1;
     margin: 0;
 }
 
-.bhg-dashboard-card-content {
+.postbox.bhg-dashboard-card .inside {
     padding: var(--bhg-spacing);
 }
 
@@ -251,6 +251,14 @@ flex: 1;
 .bhg-dashboard-table-wrapper th,
 .bhg-dashboard-table-wrapper td {
     padding: 8px 10px;
+}
+
+.bhg-dashboard-table-wrapper th {
+    text-align: left;
+}
+
+.bhg-dashboard-table-wrapper td {
+    vertical-align: top;
 }
 
 /* Table visual accents */
