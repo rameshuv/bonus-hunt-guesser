@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		exit; }
 
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 
 global $wpdb;
@@ -45,7 +45,7 @@ if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'
 
 		// Validate input.
 	if ( '' === $tkey ) {
-			$form_error = __( 'Key field is required.', 'bonus-hunt-guesser' );
+			$form_error = bhg_t( 'key_field_is_required', 'Key field is required.' );
 	} else {
 			$wpdb->replace(
 				$table,
@@ -55,7 +55,7 @@ if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'
 				),
 				array( '%s', '%s' )
 			);
-			$notice = __( 'Translation saved.', 'bonus-hunt-guesser' );
+			$notice = bhg_t( 'translation_saved', 'Translation saved.' );
 	}
 }
 
@@ -121,16 +121,16 @@ $pagination  = paginate_links(
 <table class="form-table" role="presentation">
 <tbody>
 <tr>
-<th scope="row"><label for="tkey"><?php esc_html_e( 'Key', 'bonus-hunt-guesser' ); ?></label></th>
+<th scope="row"><label for="tkey"><?php echo esc_html( bhg_t( 'key', 'Key' ) );; ?></label></th>
 <td><input name="tkey" id="tkey" type="text" class="regular-text" required></td>
 </tr>
 <tr>
-<th scope="row"><label for="tvalue"><?php esc_html_e( 'Value', 'bonus-hunt-guesser' ); ?></label></th>
+<th scope="row"><label for="tvalue"><?php echo esc_html( bhg_t( 'value', 'Value' ) );; ?></label></th>
 <td><textarea name="tvalue" id="tvalue" class="large-text" rows="4"></textarea></td>
 </tr>
 </tbody>
 </table>
-<p class="submit"><button type="submit" name="bhg_save_translation" class="button button-primary"><?php esc_html_e( 'Save', 'bonus-hunt-guesser' ); ?></button></p>
+<p class="submit"><button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) );; ?></button></p>
 </form>
 
 <form method="get" class="bhg-translations-search">

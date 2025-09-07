@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 
 // Handle form submissions
@@ -90,18 +90,18 @@ function bhg_insert_demo_data() {
 }
 ?>
 <div class="wrap bhg-wrap">
-	<h1><?php esc_html_e( 'Database Tools', 'bonus-hunt-guesser' ); ?></h1>
-	<p><?php esc_html_e( 'Tables are automatically created on activation. If you need to reinstall them, deactivate and activate the plugin again.', 'bonus-hunt-guesser' ); ?></p>
+	<h1><?php echo esc_html( bhg_t( 'database_tools', 'Database Tools' ) );; ?></h1>
+	<p><?php echo esc_html( bhg_t( 'tables_are_automatically_created_on_activation_if_you_need_to_reinstall_them_deactivate_and_activate_the_plugin_again', 'Tables are automatically created on activation. If you need to reinstall them, deactivate and activate the plugin again.' ) );; ?></p>
 	
 	<?php if ( isset( $cleanup_completed ) && $cleanup_completed ) : ?>
 		<div class="notice notice-success">
-			<p><?php esc_html_e( 'Database cleanup completed successfully.', 'bonus-hunt-guesser' ); ?></p>
+			<p><?php echo esc_html( bhg_t( 'database_cleanup_completed_successfully', 'Database cleanup completed successfully.' ) );; ?></p>
 		</div>
 	<?php endif; ?>
 	
 	<?php if ( isset( $optimize_completed ) && $optimize_completed ) : ?>
 		<div class="notice notice-success">
-			<p><?php esc_html_e( 'Database optimization completed successfully.', 'bonus-hunt-guesser' ); ?></p>
+			<p><?php echo esc_html( bhg_t( 'database_optimization_completed_successfully', 'Database optimization completed successfully.' ) );; ?></p>
 		</div>
 	<?php endif; ?>
 	
@@ -109,21 +109,21 @@ function bhg_insert_demo_data() {
 		<?php wp_nonce_field( 'bhg_db_cleanup_action', 'bhg_nonce' ); ?>
 		<input type="hidden" name="bhg_action" value="db_cleanup">
 		<p>
-			<input type="submit" name="bhg_db_cleanup" class="button button-secondary" value="<?php esc_attr_e( 'Run Database Cleanup', 'bonus-hunt-guesser' ); ?>"
-					onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to run database cleanup? This action cannot be undone.', 'bonus-hunt-guesser' ) ); ?>')">
+			<input type="submit" name="bhg_db_cleanup" class="button button-secondary" value="<?php echo esc_attr( bhg_t( 'run_database_cleanup', 'Run Database Cleanup' ) );; ?>"
+					onclick="return confirm('<?php echo esc_js( bhg_t( 'are_you_sure_you_want_to_run_database_cleanup_this_action_cannot_be_undone', 'Are you sure you want to run database cleanup? This action cannot be undone.' ) ); ?>')">
 		</p>
 		<p class="description">
-			<?php esc_html_e( 'Note: This will remove any demo data and reset tables to their initial state.', 'bonus-hunt-guesser' ); ?>
+			<?php echo esc_html( bhg_t( 'note_this_will_remove_any_demo_data_and_reset_tables_to_their_initial_state', 'Note: This will remove any demo data and reset tables to their initial state.' ) );; ?>
 		</p>
 	</form>
 	
-	<h2><?php esc_html_e( 'Current Database Status', 'bonus-hunt-guesser' ); ?></h2>
+	<h2><?php echo esc_html( bhg_t( 'current_database_status', 'Current Database Status' ) );; ?></h2>
 	<table class="wp-list-table widefat fixed striped">
 		<thead>
 			<tr>
-				<th><?php esc_html_e( 'Table Name', 'bonus-hunt-guesser' ); ?></th>
-				<th><?php esc_html_e( 'Status', 'bonus-hunt-guesser' ); ?></th>
-				<th><?php esc_html_e( 'Rows', 'bonus-hunt-guesser' ); ?></th>
+				<th><?php echo esc_html( bhg_t( 'table_name', 'Table Name' ) );; ?></th>
+				<th><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></th>
+				<th><?php echo esc_html( bhg_t( 'rows', 'Rows' ) );; ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -147,7 +147,7 @@ function bhg_insert_demo_data() {
 
 				echo '<tr>';
 				echo '<td>' . esc_html( $table_name ) . '</td>';
-				echo '<td><span class="' . ( $exists ? 'dashicons dashicons-yes-alt" style="color: #46b450"' : 'dashicons dashicons-no" style="color: #dc3232"' ) . '"></span> ' . ( $exists ? esc_html__( 'Exists', 'bonus-hunt-guesser' ) : esc_html__( 'Missing', 'bonus-hunt-guesser' ) ) . '</td>';
+				echo '<td><span class="' . ( $exists ? 'dashicons dashicons-yes-alt" style="color: #46b450"' : 'dashicons dashicons-no" style="color: #dc3232"' ) . '"></span> ' . ( $exists ? esc_html( bhg_t( 'exists', 'Exists' ) ) : esc_html( bhg_t( 'missing', 'Missing' ) ) ) . '</td>';
 				echo '<td>' . esc_html( number_format_i18n( $row_count ) ) . '</td>';
 				echo '</tr>';
 			}
@@ -155,12 +155,12 @@ function bhg_insert_demo_data() {
 		</tbody>
 	</table>
 	
-	<h2><?php esc_html_e( 'Database Maintenance', 'bonus-hunt-guesser' ); ?></h2>
+	<h2><?php echo esc_html( bhg_t( 'database_maintenance', 'Database Maintenance' ) );; ?></h2>
 	<form method="post" action="">
 		<?php wp_nonce_field( 'bhg_db_optimize_action', 'bhg_nonce' ); ?>
 		<input type="hidden" name="bhg_action" value="db_optimize">
 		<p>
-			<input type="submit" name="bhg_db_optimize" class="button button-primary" value="<?php esc_attr_e( 'Optimize Database Tables', 'bonus-hunt-guesser' ); ?>">
+			<input type="submit" name="bhg_db_optimize" class="button button-primary" value="<?php echo esc_attr( bhg_t( 'optimize_database_tables', 'Optimize Database Tables' ) );; ?>">
 		</p>
 	</form>
 </div>
