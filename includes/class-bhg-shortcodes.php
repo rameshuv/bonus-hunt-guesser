@@ -619,24 +619,17 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'bhg_leaderboards'
 			);
 
-			global $wpdb;
-					$h       = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-					$ranking = max( 0, min( 10, (int) $a['ranking'] ) );
+                        global $wpdb;
+                                        $h       = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                                        $ranking = min( 10, max( 0, (int) $a['ranking'] ) );
 
-					$fields_raw    = explode( ',', (string) $a['fields'] );
-					$allowed_field = array( 'position', 'user', 'guess' );
-					$fields_arr    = array_values(
-						array_unique(
-							array_intersect(
-								$allowed_field,
-								array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) )
-							)
-						)
-					);
-			if ( empty( $fields_arr ) ) {
-					$fields_arr = $allowed_field;
-			}
-					$fields_str = implode( ',', $fields_arr );
+                                        $raw_fields    = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
+                                        $allowed_field = array( 'position', 'user', 'guess' );
+                                        $fields_arr    = array_values( array_unique( array_intersect( $allowed_field, array_map( 'sanitize_key', $raw_fields ) ) ) );
+                        if ( empty( $fields_arr ) ) {
+                                        $fields_arr = $allowed_field;
+                        }
+                                        $fields_str = implode( ',', $fields_arr );
 
 			$where  = array();
 			$params = array();
