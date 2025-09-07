@@ -364,7 +364,7 @@ function bhg_handle_settings_save() {
         }
 
         // Verify nonce.
-        if ( ! check_admin_referer( 'bhg_save_settings' ) ) {
+        if ( ! check_admin_referer( 'bhg_save_settings', 'bhg_save_settings_nonce' ) ) {
                 wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
                 exit;
         }
@@ -441,7 +441,7 @@ function bhg_handle_submit_guess() {
 		if ( ! isset( $_POST['_wpnonce'] ) ) {
 				wp_die( esc_html__( 'Security check failed.', 'bonus-hunt-guesser' ) );
 		}
-			check_admin_referer( 'bhg_submit_guess' );
+                        check_admin_referer( 'bhg_submit_guess', 'bhg_submit_guess_nonce' );
 	}
 
 	$user_id = get_current_user_id();
@@ -837,7 +837,7 @@ function bhg_save_extra_user_profile_fields( $user_id ) {
 			return false;
 	}
 
-		check_admin_referer( 'update-user_' . $user_id );
+                check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
 
 		$affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
 		update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );

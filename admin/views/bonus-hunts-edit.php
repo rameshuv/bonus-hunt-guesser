@@ -45,7 +45,7 @@ $base     = remove_query_arg( 'ppaged' );
 		<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'edit_bonus_hunt', 'Edit Bonus Hunt' ) ); ?> <?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
-				<?php wp_nonce_field( 'bhg_save_hunt' ); ?>
+                                <?php wp_nonce_field( 'bhg_save_hunt', 'bhg_save_hunt_nonce' ); ?>
 				<input type="hidden" name="action" value="bhg_save_hunt" />
 		<input type="hidden" name="id" value="<?php echo (int) $hunt->id; ?>" />
 
@@ -152,15 +152,16 @@ $base     = remove_query_arg( 'ppaged' );
 										<td>
 												<?php
 																								$delete_url = wp_nonce_url(
-																									add_query_arg(
-																										array(
-																											'action'   => 'bhg_delete_guess',
-																											'guess_id' => (int) $r->id,
-																										),
-																										admin_url( 'admin-post.php' )
-																									),
-																									'bhg_delete_guess'
-																								);
+                                                                                                                               add_query_arg(
+                                                                                                                                       array(
+                                                                                                                               'action'   => 'bhg_delete_guess',
+                                                                                                                               'guess_id' => (int) $r->id,
+                                                                                                                               ),
+                                                                                                                               admin_url( 'admin-post.php' )
+                                                                                                                               ),
+                                                                                                                               'bhg_delete_guess',
+                                                                                                                               'bhg_delete_guess_nonce'
+                                                                                                                               );
 												?>
 												<a href="<?php echo esc_url( $delete_url ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');">
 												<?php

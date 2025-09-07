@@ -167,7 +167,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 						wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
 			}
 
-								check_admin_referer( 'bhg_delete_guess' );
+                                                                check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
 
 				$guess_id = isset( $_GET['guess_id'] ) ? absint( $_GET['guess_id'] ) : 0;
 
