@@ -6,11 +6,12 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$ads_table      = esc_sql( $wpdb->prefix . 'bhg_ads' );
+$ads_table      = $wpdb->prefix . 'bhg_ads';
 $allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
 if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
         wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 }
+$ads_table = esc_sql( $ads_table );
 
 $action  = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
 $ad_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
