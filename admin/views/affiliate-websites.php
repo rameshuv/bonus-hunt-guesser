@@ -2,17 +2,25 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+        wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
 }
 global $wpdb;
-$table = $wpdb->prefix . 'bhg_affiliates';
+$table          = $wpdb->prefix . 'bhg_affiliates';
+$allowed_tables = array( $wpdb->prefix . 'bhg_affiliates' );
+if ( ! in_array( $table, $allowed_tables, true ) ) {
+        wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
+}
+$table = esc_sql( $table );
 
 // Load for edit
 $edit_id = isset( $_GET['edit'] ) ? (int) $_GET['edit'] : 0;
-$row     = $edit_id ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$table` WHERE id=%d", $edit_id ) ) : null;
+$row     = $edit_id ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id=%d", $edit_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+ ) : null;
 
 // List
-$rows = $wpdb->get_results( "SELECT * FROM `$table` ORDER BY id DESC" );
+$rows = $wpdb->get_results(
+        "SELECT * FROM {$table} ORDER BY id DESC" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+);
 ?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Affiliates', 'bonus-hunt-guesser' ); ?></h1>

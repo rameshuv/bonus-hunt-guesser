@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile WordPress.DB.PreparedSQL
 /**
  * Shortcodes for Bonus Hunt Guesser
  *
@@ -11,9 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
-	class BHG_Shortcodes {
+        class BHG_Shortcodes {
 
-		public function __construct() {
+                public function __construct() {
 			// Core shortcodes
 			add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
 			add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
@@ -31,11 +32,24 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			// Legacy/aliases
 			add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
 			add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
-			add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
-		}
+                        add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
+                }
 
-		/** Minimal login hint used by some themes */
-		public function login_hint_shortcode( $atts = array() ) {
+                private function sanitize_table( $table ) {
+                        global $wpdb;
+                        $allowed = array(
+                                $wpdb->prefix . 'bhg_bonus_hunts',
+                                $wpdb->prefix . 'bhg_guesses',
+                                $wpdb->prefix . 'bhg_tournaments',
+                                $wpdb->prefix . 'bhg_tournament_results',
+                                $wpdb->prefix . 'bhg_affiliates',
+                                $wpdb->users,
+                        );
+                        return in_array( $table, $allowed, true ) ? esc_sql( $table ) : '';
+                }
+
+                /** Minimal login hint used by some themes */
+                public function login_hint_shortcode( $atts = array() ) {
 			if ( is_user_logged_in() ) {
 				return '';
 			}
@@ -49,14 +63,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 		/** [bhg_active_hunt] — list all open hunts */
 		public function active_hunt_shortcode( $atts ) {
-			global $wpdb;
-
-			$hunts = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT * FROM {$wpdb->prefix}bhg_bonus_hunts WHERE status = %s ORDER BY created_at DESC",
-					'open'
-				)
-			);
+                        global $wpdb;
+                        $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                        $hunts       = $wpdb->get_results(
+                                $wpdb->prepare(
+                                        "SELECT * FROM {$hunts_table} WHERE status = %s ORDER BY created_at DESC" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                                        ,
+                                        'open'
+                                )
+                        );
 
 			if ( ! $hunts ) {
 				return '<div class="bhg-active-hunt"><p>' . esc_html__( 'No active bonus hunts at the moment.', 'bonus-hunt-guesser' ) . '</p></div>';
@@ -101,8 +116,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html__( 'Log in', 'bonus-hunt-guesser' ) . '</a></p>';
 			}
 
-			global $wpdb;
-			$open_hunts = $wpdb->get_results( "SELECT id, title FROM {$wpdb->prefix}bhg_bonus_hunts WHERE status='open' ORDER BY created_at DESC" );
+                        global $wpdb;
+                        $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                        $open_hunts  = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} WHERE status='open' ORDER BY created_at DESC" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			if ( $hunt_id <= 0 ) {
 				if ( ! $open_hunts ) {
@@ -113,10 +129,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				}
 			}
 
-			$user_id        = get_current_user_id();
-			$table          = $wpdb->prefix . 'bhg_guesses';
-			$existing_id    = $hunt_id > 0 ? (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE user_id=%d AND hunt_id=%d", $user_id, $hunt_id ) ) : 0;
-			$existing_guess = $existing_id ? (float) $wpdb->get_var( $wpdb->prepare( "SELECT guess FROM {$table} WHERE id=%d", $existing_id ) ) : '';
+                        $user_id        = get_current_user_id();
+                        $table          = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
+                        $existing_id    = $hunt_id > 0 ? (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE user_id=%d AND hunt_id=%d", $user_id, $hunt_id ) ) : 0; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                        $existing_guess = $existing_id ? (float) $wpdb->get_var( $wpdb->prepare( "SELECT guess FROM {$table} WHERE id=%d", $existing_id ) ) : ''; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			$settings = get_option( 'bhg_plugin_settings' );
 			$min      = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
@@ -172,17 +188,18 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'bhg_leaderboard'
 			);
 
-			global $wpdb;
-			$hunt_id = (int) $a['hunt_id'];
-			if ( $hunt_id <= 0 ) {
-				$hunt_id = (int) $wpdb->get_var( "SELECT id FROM {$wpdb->prefix}bhg_bonus_hunts ORDER BY created_at DESC LIMIT 1" );
-				if ( $hunt_id <= 0 ) {
-					return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
-				}
-			}
+                        global $wpdb;
+                        $hunt_id = (int) $a['hunt_id'];
+                        if ( $hunt_id <= 0 ) {
+                                $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                                $hunt_id     = (int) $wpdb->get_var( "SELECT id FROM {$hunts_table} ORDER BY created_at DESC LIMIT 1" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                                if ( $hunt_id <= 0 ) {
+                                        return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
+                                }
+                        }
 
-			$g = $wpdb->prefix . 'bhg_guesses';
-			$u = $wpdb->users;
+                        $g = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
+                        $u = $this->sanitize_table( $wpdb->users );
 
 			$order       = ( strtoupper( $a['order'] ) === 'DESC' ) ? 'DESC' : 'ASC';
 			$map         = array(
@@ -196,24 +213,25 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$per         = max( 1, (int) $a['per_page'] );
 			$offset      = ( $page - 1 ) * $per;
 
-			$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$g} WHERE hunt_id=%d", $hunt_id ) );
+                        $total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$g} WHERE hunt_id=%d", $hunt_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			if ( $total < 1 ) {
 				return '<p>' . esc_html__( 'No guesses yet.', 'bonus-hunt-guesser' ) . '</p>';
 			}
 
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT g.*, u.user_login, h.affiliate_site_id
-					 FROM {$g} g
-					 LEFT JOIN {$u} u ON u.ID = g.user_id
-					 LEFT JOIN {$wpdb->prefix}bhg_bonus_hunts h ON h.id = g.hunt_id
-					 WHERE g.hunt_id=%d
-					 ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
-					$hunt_id,
-					$per,
-					$offset
-				)
-			);
+                        $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                        $rows        = $wpdb->get_results(
+                                $wpdb->prepare(
+                                        "SELECT g.*, u.user_login, h.affiliate_site_id
+                                         FROM {$g} g
+                                         LEFT JOIN {$u} u ON u.ID = g.user_id
+                                         LEFT JOIN {$hunts_table} h ON h.id = g.hunt_id
+                                         WHERE g.hunt_id=%d
+                                         ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
+                                        $hunt_id,
+                                        $per,
+                                        $offset
+                                )
+                        ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			wp_enqueue_style(
 				'bhg-shortcodes',
@@ -295,8 +313,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '<p>' . esc_html__( 'No user specified.', 'bonus-hunt-guesser' ) . '</p>';
 			}
 
-			$g = $wpdb->prefix . 'bhg_guesses';
-			$h = $wpdb->prefix . 'bhg_bonus_hunts';
+                        $g = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
+                        $h = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 
 			$where  = array( 'g.user_id = %d' );
 			$params = array( $user_id );
@@ -344,7 +362,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					WHERE " . implode( ' AND ', $where ) . "
 					ORDER BY {$orderby} {$order}{$limit_sql}";
 
-			$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ) );
+                        $rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			if ( ! $rows ) {
 				return '<p>' . esc_html__( 'No guesses found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
@@ -397,9 +415,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'bhg_hunts'
 			);
 
-			global $wpdb;
-			$h         = $wpdb->prefix . 'bhg_bonus_hunts';
-			$aff_table = $wpdb->prefix . 'bhg_affiliates';
+                        global $wpdb;
+                        $h         = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                        $aff_table = $this->sanitize_table( $wpdb->prefix . 'bhg_affiliates' );
 
 			$where  = array();
 			$params = array();
@@ -447,7 +465,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$sql .= ' LIMIT 10';
 			}
 
-			$rows = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
+                        $rows = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			if ( ! $rows ) {
 				return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
@@ -498,8 +516,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'bhg_leaderboards'
 			);
 
-			global $wpdb;
-			$h = $wpdb->prefix . 'bhg_bonus_hunts';
+                        global $wpdb;
+                        $h = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 
 			$where  = array();
 			$params = array();
@@ -545,7 +563,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$sql .= ' LIMIT 5';
 			}
 
-			$hunts = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
+                        $hunts = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			if ( ! $hunts ) {
 				return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
@@ -589,16 +607,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			// Details screen
 			$details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
 			if ( $details_id > 0 ) {
-				$t = $wpdb->prefix . 'bhg_tournaments';
-				$r = $wpdb->prefix . 'bhg_tournament_results';
-				$u = $wpdb->users;
+                                $t = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
+                                $r = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
+                                $u = $this->sanitize_table( $wpdb->users );
 
-				$tournament = $wpdb->get_row(
-					$wpdb->prepare(
-						"SELECT id, type, start_date, end_date, status FROM {$t} WHERE id=%d",
-						$details_id
-					)
-				);
+                                $tournament = $wpdb->get_row(
+                                        $wpdb->prepare(
+                                                "SELECT id, type, start_date, end_date, status FROM {$t} WHERE id=%d",
+                                                $details_id
+                                        )
+                                ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				if ( ! $tournament ) {
 					return '<p>' . esc_html__( 'Tournament not found.', 'bonus-hunt-guesser' ) . '</p>';
 				}
@@ -619,16 +637,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				}
 				$order_by_sql = $allowed[ $orderby ] . ' ' . strtoupper( $order );
 
-				$rows = $wpdb->get_results(
-					$wpdb->prepare(
-						"SELECT r.user_id, r.wins, r.last_win_date, u.user_login
-						 FROM {$r} r
-						 INNER JOIN {$u} u ON u.ID = r.user_id
-						 WHERE r.tournament_id=%d
-						 ORDER BY {$order_by_sql}, r.user_id ASC",
-						$tournament->id
-					)
-				);
+                                $rows = $wpdb->get_results(
+                                        $wpdb->prepare(
+                                                "SELECT r.user_id, r.wins, r.last_win_date, u.user_login
+                                                 FROM {$r} r
+                                                 INNER JOIN {$u} u ON u.ID = r.user_id
+                                                 WHERE r.tournament_id=%d
+                                                 ORDER BY {$order_by_sql}, r.user_id ASC",
+                                                $tournament->id
+                                        )
+                                ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 				$base   = remove_query_arg( array( 'orderby', 'order' ) );
 				$toggle = function ( $key ) use ( $orderby, $order, $base ) {
@@ -699,7 +717,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'bhg_tournaments'
 			);
 
-			$t          = $wpdb->prefix . 'bhg_tournaments';
+                        $t          = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
 			$where      = array();
 			$args       = array();
 
@@ -744,7 +762,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			}
 			$sql .= ' ORDER BY start_date DESC, id DESC';
 
-			$rows = $args ? $wpdb->get_results( $wpdb->prepare( $sql, $args ) ) : $wpdb->get_results( $sql );
+                        $rows = $args ? $wpdb->get_results( $wpdb->prepare( $sql, $args ) ) : $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			if ( ! $rows ) {
 				return '<p>' . esc_html__( 'No tournaments found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
@@ -834,14 +852,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'bhg_winner_notifications'
 			);
 
-			$hunts = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT id, title, final_balance, winners_count, closed_at
-					 FROM {$wpdb->prefix}bhg_bonus_hunts
-					 WHERE status='closed' ORDER BY closed_at DESC LIMIT %d",
-					(int) $a['limit']
-				)
-			);
+                        $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                        $hunts       = $wpdb->get_results(
+                                $wpdb->prepare(
+                                        "SELECT id, title, final_balance, winners_count, closed_at
+                                         FROM {$hunts_table}
+                                         WHERE status='closed' ORDER BY closed_at DESC LIMIT %d",
+                                        (int) $a['limit']
+                                )
+                        ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			if ( ! $hunts ) {
 				return '<p>' . esc_html__( 'No closed hunts yet.', 'bonus-hunt-guesser' ) . '</p>';
@@ -958,8 +977,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 							ORDER BY total_wins DESC, u.user_login ASC
 							LIMIT 50";
 					array_unshift( $params, $sql );
-					$prepared        = call_user_func_array( array( $wpdb, 'prepare' ), $params );
-					$results[ $key ] = $wpdb->get_results( $prepared );
+                                        $prepared        = call_user_func_array( array( $wpdb, 'prepare' ), $params );
+                                        $results[ $key ] = $wpdb->get_results( $prepared ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				} else {
 					$sql             = "SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins
 							FROM {$wins_tbl} r
@@ -967,12 +986,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 							GROUP BY u.ID, u.user_login
 							ORDER BY total_wins DESC, u.user_login ASC
 							LIMIT 50";
-					$results[ $key ] = $wpdb->get_results( $sql );
+                                        $results[ $key ] = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				}
 			}
 
-			$hunts_tbl = $wpdb->prefix . 'bhg_bonus_hunts';
-			$hunts     = $wpdb->get_results( "SELECT id, title FROM {$hunts_tbl} WHERE status='closed' ORDER BY created_at DESC LIMIT 50" );
+                        $hunts_tbl = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                        $hunts     = $wpdb->get_results( "SELECT id, title FROM {$hunts_tbl} WHERE status='closed' ORDER BY created_at DESC LIMIT 50" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			wp_enqueue_style(
 				'bhg-shortcodes',

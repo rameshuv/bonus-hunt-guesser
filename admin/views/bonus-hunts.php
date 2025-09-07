@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile WordPress.DB.PreparedSQL
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
@@ -33,15 +34,15 @@ if ( 'list' === $view ) :
 		$per_page     = 30;
 		$offset       = ( $current_page - 1 ) * $per_page;
 
-		$hunts = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$hunts_table} ORDER BY id DESC LIMIT %d OFFSET %d",
-				$per_page,
-				$offset
-			)
-		);
+                $hunts = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT * FROM {$hunts_table} ORDER BY id DESC LIMIT %d OFFSET %d",
+                                $per_page,
+                                $offset
+                        )
+                ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-		$total    = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$hunts_table}" );
+                $total    = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$hunts_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$base_url = remove_query_arg( array( 'paged' ) );
 	?>
 <div class="wrap">
@@ -151,9 +152,9 @@ endif;
 /** CLOSE VIEW */
 if ( 'close' === $view ) :
 		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
-	$hunt   = $wpdb->get_row(
-		$wpdb->prepare( "SELECT * FROM {$hunts_table} WHERE id = %d", $id )
-	);
+        $hunt   = $wpdb->get_row(
+                $wpdb->prepare( "SELECT * FROM {$hunts_table} WHERE id = %d", $id )
+        ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	if ( ! $hunt || 'open' !== $hunt->status ) :
 		echo '<div class="notice notice-error"><p>' . esc_html__( 'Invalid hunt.', 'bonus-hunt-guesser' ) . '</p></div>';
 	else :
@@ -217,9 +218,9 @@ if ( $view === 'add' ) :
 				wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 			}
 			$aff_table = esc_sql( $aff_table );
-			$affs      = $wpdb->get_results(
-				"SELECT id, name FROM {$aff_table} ORDER BY name ASC"
-			);
+                        $affs      = $wpdb->get_results(
+                                "SELECT id, name FROM {$aff_table} ORDER BY name ASC"
+                        ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$sel       = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 			?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
@@ -263,9 +264,9 @@ if ( $view === 'add' ) :
 /** EDIT VIEW */
 if ( $view === 'edit' ) :
 		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
-	$hunt   = $wpdb->get_row(
-		$wpdb->prepare( "SELECT * FROM {$hunts_table} WHERE id = %d", $id )
-	);
+        $hunt   = $wpdb->get_row(
+                $wpdb->prepare( "SELECT * FROM {$hunts_table} WHERE id = %d", $id )
+        ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	if ( ! $hunt ) {
 		echo '<div class="notice notice-error"><p>' . esc_html__( 'Invalid hunt', 'bonus-hunt-guesser' ) . '</p></div>';
 		return;
@@ -275,12 +276,12 @@ if ( $view === 'edit' ) :
 		wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 	}
 	$users_table = esc_sql( $users_table );
-	$guesses     = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC",
-			$id
-		)
-	);
+        $guesses     = $wpdb->get_results(
+                $wpdb->prepare(
+                        "SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,
+                        $id
+                )
+        );
 	?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Edit Bonus Hunt', 'bonus-hunt-guesser' ); ?> <?php echo esc_html__( '—', 'bonus-hunt-guesser' ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
@@ -317,9 +318,9 @@ if ( $view === 'edit' ) :
 				wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 			}
 			$aff_table = esc_sql( $aff_table );
-			$affs      = $wpdb->get_results(
-				"SELECT id, name FROM {$aff_table} ORDER BY name ASC"
-			);
+                        $affs      = $wpdb->get_results(
+                                "SELECT id, name FROM {$aff_table} ORDER BY name ASC"
+                        ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$sel       = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 			?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
