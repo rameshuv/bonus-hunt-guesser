@@ -46,13 +46,13 @@
 }
 
 .bhg-tabs a:hover {
-    background: var(--bhg-accent-color);
+    background-color: var(--bhg-accent-color);
     border-color: var(--bhg-accent-color);
     color: #fff;
 }
 
 .bhg-tabs li.active a {
-    background: var(--bhg-accent-color);
+    background-color: var(--bhg-accent-color);
     border-color: var(--bhg-accent-color);
     color: #fff;
     font-weight: 700;
@@ -83,7 +83,8 @@
 .bhg-tournament-details h3 {
     margin-top: 0;
     margin-bottom: 8px;
-    background: var(--bhg-accent-color);
+    background-color: var(--bhg-accent-color);
+    border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 8px;
     border-radius: 4px;
@@ -108,7 +109,7 @@
 
 .bhg-submit-btn {
     margin-top: 20px;
-    background: var(--bhg-accent-color);
+    background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 8px 12px;
@@ -118,7 +119,7 @@
 
 .bhg-submit-btn:hover,
 .bhg-submit-btn:focus {
-    background: var(--bhg-accent-color);
+    background-color: var(--bhg-accent-color);
     border-color: var(--bhg-accent-color);
     color: #fff;
     filter: brightness(0.9);
@@ -138,7 +139,7 @@
 
 .bhg-filter-button {
     margin-left: 8px;
-    background: var(--bhg-accent-color);
+    background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 6px 10px;
@@ -148,7 +149,7 @@
 
 .bhg-filter-button:hover,
 .bhg-filter-button:focus {
-    background: var(--bhg-accent-color);
+    background-color: var(--bhg-accent-color);
     border-color: var(--bhg-accent-color);
     color: #fff;
     filter: brightness(0.9);
@@ -167,9 +168,10 @@
 .bhg-leaderboard th,
 .bhg-tournaments th {
     text-align: left;
+    border: 1px solid var(--bhg-accent-color);
     border-bottom: 2px solid var(--bhg-accent-color);
     padding: 6px;
-    background: var(--bhg-accent-color);
+    background-color: var(--bhg-accent-color);
     color: #fff;
 }
 
