@@ -36,11 +36,11 @@ $rows = $wpdb->get_results(
 		$wcount = (int) $hunt->winners_count;
 		if ( $wcount < 1 ) {
 			$wcount = 3;
-		} $isWinner = $pos <= $wcount;
+		} $is_winner = $pos <= $wcount;
 		?>
 		<tr 
 		<?php
-		if ( $isWinner ) {
+		if ( $is_winner ) {
 			echo 'class="bhg-winner-row"';}
 		?>
 		>
