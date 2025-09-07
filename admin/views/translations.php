@@ -23,9 +23,13 @@ $default_translations = function_exists( 'bhg_get_default_translations' ) ? bhg_
 $default_keys         = array_keys( $default_translations );
 
 // Pagination variables.
-$items_per_page = 20;
-$current_page   = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
-$offset         = ( $current_page - 1 ) * $items_per_page;
+$allowed_per_page = array( 10, 20, 50 );
+$items_per_page   = isset( $_GET['per_page'] ) ? absint( $_GET['per_page'] ) : 20;
+if ( ! in_array( $items_per_page, $allowed_per_page, true ) ) {
+	$items_per_page = 20;
+}
+$current_page = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
+$offset       = ( $current_page - 1 ) * $items_per_page;
 
 // Current search term.
 $search_term = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
@@ -87,7 +91,20 @@ if ( $search_term ) {
 			)
 		);
 }
+// Pagination links.
 $total_pages = max( 1, ceil( $total / $items_per_page ) );
+$pagination  = paginate_links(
+	array(
+		'base'     => add_query_arg( 'paged', '%#%' ),
+		'format'   => '',
+		'current'  => $current_page,
+		'total'    => $total_pages,
+		'add_args' => array(
+			'per_page' => $items_per_page,
+			's'        => $search_term,
+		),
+	)
+);
 ?>
 <div class="wrap">
 <h1><?php esc_html_e( 'Translations', 'bonus-hunt-guesser' ); ?></h1>
@@ -121,11 +138,20 @@ $total_pages = max( 1, ceil( $total / $items_per_page ) );
 <p class="search-box">
 <label class="screen-reader-text" for="bhg-translation-search-input"><?php esc_html_e( 'Search translations', 'bonus-hunt-guesser' ); ?></label>
 <input type="search" id="bhg-translation-search-input" name="s" value="<?php echo esc_attr( $search_term ); ?>" />
-<button class="button"><?php esc_html_e( 'Search', 'bonus-hunt-guesser' ); ?></button>
+<label class="screen-reader-text" for="bhg-per-page"><?php esc_html_e( 'Items per page', 'bonus-hunt-guesser' ); ?></label>
+<select id="bhg-per-page" name="per_page">
+<option value="10" <?php selected( $items_per_page, 10 ); ?>>10</option>
+<option value="20" <?php selected( $items_per_page, 20 ); ?>>20</option>
+<option value="50" <?php selected( $items_per_page, 50 ); ?>>50</option>
+</select>
+<button class="button"><?php esc_html_e( 'Filter', 'bonus-hunt-guesser' ); ?></button>
 </p>
 </form>
 
 <h2><?php esc_html_e( 'Existing keys', 'bonus-hunt-guesser' ); ?></h2>
+<?php if ( $pagination ) : ?>
+<div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
+<?php endif; ?>
 <?php
 $grouped = array();
 if ( $rows ) {
@@ -141,6 +167,7 @@ if ( $rows ) {
 if ( ! empty( $grouped ) ) :
 	foreach ( $grouped as $context => $items ) :
 		?>
+<div class="bhg-translation-group">
 <h3><?php echo esc_html( ucwords( str_replace( '_', ' ', $context ) ) ); ?></h3>
 <table class="widefat striped bhg-translations-table">
 <thead><tr><th><?php esc_html_e( 'Key', 'bonus-hunt-guesser' ); ?></th><th><?php esc_html_e( 'Default', 'bonus-hunt-guesser' ); ?></th><th><?php esc_html_e( 'Custom', 'bonus-hunt-guesser' ); ?></th></tr></thead>
@@ -157,34 +184,25 @@ if ( ! empty( $grouped ) ) :
 <form method="post" class="bhg-inline-form">
 				<?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
 <input type="hidden" name="tkey" value="<?php echo esc_attr( $r->tkey ); ?>" />
-<input type="text" name="tvalue" value="<?php echo esc_attr( $r->tvalue ); ?>" class="regular-text" />
+<input type="text" name="tvalue" value="<?php echo esc_attr( $r->tvalue ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'Custom value', 'bonus-hunt-guesser' ); ?>" />
 <button type="submit" name="bhg_save_translation" class="button button-primary"><?php esc_html_e( 'Update', 'bonus-hunt-guesser' ); ?></button>
 </form>
 </td>
 </tr>
 			<?php
-			endforeach;
+					endforeach;
 		?>
 </tbody>
 </table>
-		<?php
-		endforeach;
+</div>
+			<?php
+				endforeach;
 else :
 	?>
 <p><?php esc_html_e( 'No translations yet.', 'bonus-hunt-guesser' ); ?></p>
 <?php endif; ?>
 
-<?php
-$pagination = paginate_links(
-	array(
-		'base'    => add_query_arg( 'paged', '%#%' ),
-		'format'  => '',
-		'current' => $current_page,
-		'total'   => $total_pages,
-	)
-);
-if ( $pagination ) :
-	?>
+<?php if ( $pagination ) : ?>
 <div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
 <?php endif; ?>
 </div>
