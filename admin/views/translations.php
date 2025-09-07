@@ -47,16 +47,17 @@ if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'
 	if ( '' === $tkey ) {
 			$form_error = bhg_t( 'key_field_is_required', 'Key field is required.' );
 	} else {
-			$wpdb->replace(
-				$table,
-				array(
-					'tkey'   => $tkey,
-					'tvalue' => $tvalue,
-				),
-				array( '%s', '%s' )
-			);
-			$notice = bhg_t( 'translation_saved', 'Translation saved.' );
-	}
+                        $wpdb->replace(
+                                $table,
+                                array(
+                                        'tkey'   => $tkey,
+                                        'tvalue' => $tvalue,
+                                ),
+                                array( '%s', '%s' )
+                        );
+                       wp_cache_delete( 'bhg_translation_' . $tkey );
+                        $notice = bhg_t( 'translation_saved', 'Translation saved.' );
+        }
 }
 
 // Fetch rows with pagination.
