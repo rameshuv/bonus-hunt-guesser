@@ -414,16 +414,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$limit_sql = ' LIMIT 10';
 			}
 
-                                                                               $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id
+                                                                               $sql = "SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id
                                                                               FROM %i g INNER JOIN %i h ON h.id = g.hunt_id
-                                                                              WHERE ' . implode( ' AND ', $where ) . '
-                                                                              ORDER BY %i %s';
+                                                                              WHERE " . implode( ' AND ', $where ) . "
+                                                                                ORDER BY %i {$order}";
                                        if ( 'recent' === strtolower( $a['timeline'] ) ) {
                                                $sql .= ' LIMIT 10';
                                        }
 
                                        // db call ok; no-cache ok.
-                                       $prep = array_merge( array( $sql, $g, $h ), $params, array( $orderby, $order ) );
+                                        $prep = array_merge( array( $sql, $g, $h ), $params, array( $orderby ) );
                                        $rows = $wpdb->get_results(
                                                $wpdb->prepare( ...$prep )
                                        );
