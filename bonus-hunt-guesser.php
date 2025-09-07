@@ -187,7 +187,7 @@ function bhg_activate_plugin() {
 
 	bhg_create_tables();
 
-    bhg_seed_default_translations_if_empty();
+	bhg_seed_default_translations_if_empty();
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
@@ -342,7 +342,7 @@ function bhg_init_plugin() {
 	);
 	add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
 	add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
-        add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+		add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
 }
 
 // Early table check on init.
@@ -361,10 +361,10 @@ function bhg_handle_settings_save() {
 	}
 
 	// Verify nonce.
-        if ( ! check_admin_referer( 'bhg_save_settings' ) ) {
-                wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
-                exit;
-        }
+	if ( ! check_admin_referer( 'bhg_save_settings' ) ) {
+			wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
+			exit;
+	}
 
 		// Sanitize and validate data.
 	$settings = array();
@@ -432,14 +432,14 @@ function bhg_handle_settings_save() {
  * @return void
  */
 function bhg_handle_submit_guess() {
-        if ( wp_doing_ajax() ) {
-                check_ajax_referer( 'bhg_public_nonce', 'nonce' );
-        } else {
-                if ( ! isset( $_POST['_wpnonce'] ) ) {
-                        wp_die( esc_html__( 'Security check failed.', 'bonus-hunt-guesser' ) );
-                }
-                check_admin_referer( 'bhg_submit_guess' );
-        }
+	if ( wp_doing_ajax() ) {
+			check_ajax_referer( 'bhg_public_nonce', 'nonce' );
+	} else {
+		if ( ! isset( $_POST['_wpnonce'] ) ) {
+				wp_die( esc_html__( 'Security check failed.', 'bonus-hunt-guesser' ) );
+		}
+			check_admin_referer( 'bhg_submit_guess' );
+	}
 
 	$user_id = get_current_user_id();
 	if ( ! $user_id ) {
@@ -693,15 +693,15 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 				$h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 				$u = esc_sql( $wpdb->users );
 
-               $where_parts = array( "h.status='closed' AND h.final_balance IS NOT NULL" );
-               $where_args  = array();
-       if ( $start_date ) {
-                       $where_parts[] = 'h.updated_at >= %s';
-                       $where_args[]  = $start_date;
-       }
-               $where_clause = implode( ' AND ', $where_parts );
+				$where_parts = array( "h.status='closed' AND h.final_balance IS NOT NULL" );
+				$where_args  = array();
+	if ( $start_date ) {
+					$where_parts[] = 'h.updated_at >= %s';
+					$where_args[]  = $start_date;
+	}
+				$where_clause = implode( ' AND ', $where_parts );
 
-                               $total_sql = "SELECT COUNT(*) FROM (
+								$total_sql = "SELECT COUNT(*) FROM (
             SELECT g.user_id
             FROM {$g} g
             INNER JOIN {$h} h ON h.id = g.hunt_id
@@ -713,10 +713,10 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
             GROUP BY g.user_id
 ) t";
 
-                               // db call ok; no-cache ok.
-                               $total = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, ...$where_args ) );
+								// db call ok; no-cache ok.
+								$total = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, $where_args ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-                               $rows_sql = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
+								$rows_sql = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
 FROM {$g} g
 INNER JOIN {$h} h ON h.id = g.hunt_id
 INNER JOIN {$u} u ON u.ID = g.user_id
@@ -729,10 +729,10 @@ GROUP BY g.user_id, u.user_login
 ORDER BY wins DESC, u.user_login ASC
 LIMIT %d OFFSET %d";
 
-                               $args_query = array_merge( $where_args, array( $per_page, $offset ) );
+								$args_query = array_merge( $where_args, array( $per_page, $offset ) );
 
-                               // db call ok; no-cache ok.
-                               $rows = $wpdb->get_results( $wpdb->prepare( $rows_sql, ...$args_query ) );
+								// db call ok; no-cache ok.
+								$rows = $wpdb->get_results( $wpdb->prepare( $rows_sql, $args_query ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 	if ( ! $rows ) {
 		return '<p>' . esc_html__( 'No data available.', 'bonus-hunt-guesser' ) . '</p>';
