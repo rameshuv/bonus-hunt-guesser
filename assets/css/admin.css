@@ -159,13 +159,17 @@ flex: 1;
     width: 100%;
 }
 
-.bhg-dashboard-card .bhg-card-title {
+
+.bhg-dashboard-card .bhg-card-header {
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
-    color: #fff;
-    padding: 12px 16px;
-    margin: 0;
     border-radius: 8px 8px 0 0;
+}
+
+.bhg-dashboard-card .bhg-card-title {
+    color: #fff;
+    margin: 0;
+    padding: 12px 16px;
 }
 
 .bhg-dashboard-card .bhg-card-content {
