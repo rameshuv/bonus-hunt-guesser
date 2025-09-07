@@ -440,22 +440,22 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'guess' => 'g.guess',
 				'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
 			);
-			$orderby_key = isset( $orderby_map[ $a['orderby'] ] ) ? $a['orderby'] : 'hunt';
-			$orderby     = $orderby_map[ $orderby_key ];
+                        $orderby_key = isset( $orderby_map[ $a['orderby'] ] ) ? $a['orderby'] : 'hunt';
+                        $orderby     = $orderby_map[ $orderby_key ];
 
-												$sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . ' ORDER BY %i ' . $order;
-			if ( 'recent' === strtolower( $a['timeline'] ) ) {
-					$sql .= ' LIMIT 10';
-			}
+                                                                                                $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . ' ORDER BY ' . $orderby . ' ' . $order; 
+                        if ( 'recent' === strtolower( $a['timeline'] ) ) {
+                                        $sql .= ' LIMIT 10';
+                        }
 
-												// db call ok; no-cache ok.
-												$params = array_merge( array( $g, $h ), $params, array( $orderby ) );
-												$rows   = $wpdb->get_results(
-													$wpdb->prepare( $sql, ...$params )
-												);
-			if ( ! $rows ) {
-				return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
-			}
+                                                                                                // db call ok; no-cache ok.
+                                                                                                $params = array_merge( array( $g, $h ), $params );
+                                                                                                $rows   = $wpdb->get_results(
+                                                                                                        $wpdb->prepare( $sql, ...$params )
+                                                                                                );
+                        if ( ! $rows ) {
+                                return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
+                        }
 
 			$show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
 
