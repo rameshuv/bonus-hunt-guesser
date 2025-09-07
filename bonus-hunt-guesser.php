@@ -174,6 +174,9 @@ spl_autoload_register(
 require_once BHG_PLUGIN_DIR . 'includes/helpers.php';
 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
 
+// Ensure translation keys exist early.
+bhg_seed_default_translations_if_empty();
+
 // Activation hook: create tables and set default options.
 /**
  * Activation callback for setting up the plugin.
