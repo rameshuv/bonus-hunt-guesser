@@ -13,9 +13,10 @@ List bonus hunts.
 - `timeline`: filter hunts created within the past `day`, `week`, `month`, or `year`.
 
 ### `[bhg_leaderboards]`
-Show leaderboards for multiple hunts.
+Display overall wins leaderboard.
 
-- `timeline`: restrict hunts to those created within the past `day`, `week`, `month`, or `year`.
+- `fields`: comma-separated list of columns to render. Allowed values: `pos`, `user`, `wins`, `aff`, `site`, `hunt`, `tournament`.
+- `per_page`: number of rows to display (default `50`).
 
 ### `[bhg_tournaments]`
 List tournaments or show details.
