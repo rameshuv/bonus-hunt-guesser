@@ -41,14 +41,16 @@ class BHG_Models {
 		$hunts_tbl   = $wpdb->prefix . 'bhg_bonus_hunts';
 		$guesses_tbl = $wpdb->prefix . 'bhg_guesses';
 
-		// Determine number of winners for this hunt.
-				$winners_count = (int) $wpdb->get_var(
-					$wpdb->prepare(
-								// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
-						"SELECT winners_count FROM {$hunts_tbl} WHERE id = %d",
-						$hunt_id
-					)
-				);
+               // Determine number of winners for this hunt.
+               $winners_count = (int) $wpdb->get_var(
+                       $wpdb->prepare(
+                               sprintf(
+                                       'SELECT winners_count FROM %s WHERE id = %%d',
+                                       esc_sql( $hunts_tbl )
+                               ),
+                               $hunt_id
+                       )
+               );
 		if ( $winners_count <= 0 ) {
 			$winners_count = 1;
 		}
@@ -68,16 +70,18 @@ class BHG_Models {
 			array( '%d' )
 		);
 
-		// Fetch winners based on proximity to final balance.
-				$rows = $wpdb->get_results(
-					$wpdb->prepare(
-								// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
-						"SELECT user_id FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(guess - %f) ASC, id ASC LIMIT %d",
-						$hunt_id,
-						$final_balance,
-						$winners_count
-					)
-				);
+               // Fetch winners based on proximity to final balance.
+               $rows = $wpdb->get_results(
+                       $wpdb->prepare(
+                               sprintf(
+                                       'SELECT user_id FROM %s WHERE hunt_id = %%d ORDER BY ABS(guess - %%f) ASC, id ASC LIMIT %%d',
+                                       esc_sql( $guesses_tbl )
+                               ),
+                               $hunt_id,
+                               $final_balance,
+                               $winners_count
+                       )
+               );
 
 		if ( empty( $rows ) ) {
 			return array();

@@ -261,27 +261,32 @@ class BHG_Admin {
 
 			$emails_enabled = (int) get_option( 'bhg_email_enabled', 1 );
 			if ( $emails_enabled ) {
-				$guesses_table        = $wpdb->prefix . 'bhg_guesses';
-								$rows = $wpdb->get_results(
-									$wpdb->prepare(
-												// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-										"SELECT DISTINCT user_id FROM {$guesses_table} WHERE hunt_id=%d",
-										$id
-									)
-								);
+                               $guesses_table = $wpdb->prefix . 'bhg_guesses';
+
+                               $rows = $wpdb->get_results(
+                                       $wpdb->prepare(
+                                               sprintf(
+                                                       'SELECT DISTINCT user_id FROM %s WHERE hunt_id = %%d',
+                                                       esc_sql( $guesses_table )
+                                               ),
+                                               $id
+                                       )
+                               );
 
 				$template = get_option(
 					'bhg_email_template',
 					'Hi {{username}},\nThe Bonus Hunt "{{hunt}}" is closed. Final balance: €{{final}}. Winners: {{winners}}. Thanks for playing!'
 				);
 
-								$hunt_title = (string) $wpdb->get_var(
-									$wpdb->prepare(
-												// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-										"SELECT title FROM {$hunts_table} WHERE id=%d",
-										$id
-									)
-								);
+                               $hunt_title = (string) $wpdb->get_var(
+                                       $wpdb->prepare(
+                                               sprintf(
+                                                       'SELECT title FROM %s WHERE id = %%d',
+                                                       esc_sql( $hunts_table )
+                                               ),
+                                               $id
+                                       )
+                               );
 
 				$winner_names = array();
 				foreach ( (array) $winners as $winner_id ) {
