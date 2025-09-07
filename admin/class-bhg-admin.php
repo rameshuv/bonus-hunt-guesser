@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-		exit;
+	exit;
 }
 
 /**
@@ -34,7 +34,9 @@ class BHG_Admin {
 		add_action( 'admin_post_bhg_save_user_meta', array( $this, 'handle_save_user_meta' ) );
 	}
 
-	/** Register admin menus and pages */
+	/**
+	 * Register admin menus and pages.
+	 */
 	public function menu() {
 		$cap  = 'manage_options';
 		$slug = 'bhg';
