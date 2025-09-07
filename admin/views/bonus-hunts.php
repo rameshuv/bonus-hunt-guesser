@@ -22,8 +22,6 @@ $allowed_tables = array(
 if ( ! in_array( $hunts_table, $allowed_tables, true ) || ! in_array( $guesses_table, $allowed_tables, true ) ) {
 	wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 }
-$hunts_table   = esc_sql( $hunts_table );
-$guesses_table = esc_sql( $guesses_table );
 
 $view = isset( $_GET['view'] ) ? sanitize_text_field( wp_unslash( $_GET['view'] ) ) : 'list';
 
@@ -220,11 +218,10 @@ if ( $view === 'add' ) :
 			if ( ! in_array( $aff_table, $allowed_tables, true ) ) {
 				wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 			}
-			$aff_table = esc_sql( $aff_table );
-						// db call ok; no-cache ok.
-						$affs = $wpdb->get_results(
-							$wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
-						);
+                        // db call ok; no-cache ok.
+                        $affs = $wpdb->get_results(
+                                $wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
+                        );
 			$sel              = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 			?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
@@ -280,16 +277,15 @@ if ( $view === 'edit' ) :
 	if ( ! in_array( $users_table, $allowed_tables, true ) ) {
 		wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 	}
-	$users_table = esc_sql( $users_table );
-		// db call ok; no-cache ok.
-		$guesses = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT g.*, u.display_name FROM %i g LEFT JOIN %i u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC',
-				$guesses_table,
-				$users_table,
-				$id
-			)
-		);
+        // db call ok; no-cache ok.
+                $guesses = $wpdb->get_results(
+                        $wpdb->prepare(
+                                'SELECT g.*, u.display_name FROM %i g LEFT JOIN %i u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC',
+                                $guesses_table,
+                                $users_table,
+                                $id
+                        )
+                );
 	?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Edit Bonus Hunt', 'bonus-hunt-guesser' ); ?> <?php echo esc_html__( '—', 'bonus-hunt-guesser' ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
@@ -325,11 +321,10 @@ if ( $view === 'edit' ) :
 			if ( ! in_array( $aff_table, $allowed_tables, true ) ) {
 				wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 			}
-			$aff_table = esc_sql( $aff_table );
-						// db call ok; no-cache ok.
-						$affs = $wpdb->get_results(
-							$wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
-						);
+                        // db call ok; no-cache ok.
+                        $affs = $wpdb->get_results(
+                                $wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
+                        );
 			$sel              = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 			?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
