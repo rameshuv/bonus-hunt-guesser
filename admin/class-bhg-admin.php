@@ -203,7 +203,7 @@ class BHG_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
 		}
-		check_admin_referer( 'bhg_delete_guess' );
+				check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
 		global $wpdb;
 		$guesses_table = $wpdb->prefix . 'bhg_guesses';
 		$guess_id      = isset( $_POST['guess_id'] ) ? absint( wp_unslash( $_POST['guess_id'] ) ) : 0;
@@ -222,7 +222,7 @@ class BHG_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
 		}
-		check_admin_referer( 'bhg_save_hunt' );
+				check_admin_referer( 'bhg_save_hunt', 'bhg_save_hunt_nonce' );
 		global $wpdb;
 		$hunts_table = $wpdb->prefix . 'bhg_bonus_hunts';
 
@@ -343,7 +343,7 @@ class BHG_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
 		}
-		check_admin_referer( 'bhg_close_hunt' );
+				check_admin_referer( 'bhg_close_hunt', 'bhg_close_hunt_nonce' );
 
 		$hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 		$final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
@@ -370,7 +370,7 @@ class BHG_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
 		}
-		check_admin_referer( 'bhg_save_ad' );
+				check_admin_referer( 'bhg_save_ad', 'bhg_save_ad_nonce' );
 		global $wpdb;
 		$table = $wpdb->prefix . 'bhg_ads';
 
@@ -415,7 +415,7 @@ class BHG_Admin {
 			wp_safe_redirect( add_query_arg( 'bhg_msg', 'noaccess', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 			exit;
 		}
-		if ( ! check_admin_referer( 'bhg_tournament_save_action' ) ) {
+		if ( ! check_admin_referer( 'bhg_tournament_save_action', 'bhg_tournament_save_nonce' ) ) {
 			wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 			exit;
 		}

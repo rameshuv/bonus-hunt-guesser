@@ -18,10 +18,10 @@ if ( ! $hunt ) {
 
 $aff_table = $wpdb->prefix . 'bhg_affiliates';
 if ( isset( $allowed_tables ) && ! in_array( $aff_table, $allowed_tables, true ) ) {
-                wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
+				wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 }
 $affs = $wpdb->get_results(
-                $wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
+	$wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
 );
 $sel  = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 
@@ -45,7 +45,7 @@ $base     = remove_query_arg( 'ppaged' );
 		<h1 class="wp-heading-inline"><?php echo esc_html__( 'Edit Bonus Hunt', 'bonus-hunt-guesser' ); ?> <?php echo esc_html__( '—', 'bonus-hunt-guesser' ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
 
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
-		<?php wp_nonce_field( 'bhg_save_hunt' ); ?>
+				<?php wp_nonce_field( 'bhg_save_hunt', 'bhg_save_hunt_nonce' ); ?>
 		<input type="hidden" name="action" value="bhg_save_hunt" />
 		<input type="hidden" name="id" value="<?php echo (int) $hunt->id; ?>" />
 
@@ -135,7 +135,8 @@ $base     = remove_query_arg( 'ppaged' );
 														),
 														admin_url( 'admin-post.php' )
 													),
-													'bhg_delete_guess'
+													'bhg_delete_guess',
+													'bhg_delete_guess_nonce'
 												);
 												?>
 												<a href="<?php echo esc_url( $delete_url ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( __( 'Delete this guess?', 'bonus-hunt-guesser' ) ); ?>');"><?php esc_html_e( 'Remove', 'bonus-hunt-guesser' ); ?></a>
