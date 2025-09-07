@@ -127,9 +127,11 @@ flex: 1;
 
 /* Dashboard styles */
 :root {
-    --bhg-accent-color: #2271b1;
+    --bhg-accent-color: #ec4899;
+    --bhg-border-color: #e5e7eb;
+    --bhg-card-bg: #ffffff;
     --bhg-spacing: 16px;
-    --bhg-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --bhg-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 }
 
 .bhg-dashboard h1 {
@@ -140,9 +142,16 @@ flex: 1;
 
 .bhg-dashboard-card {
     font-family: var(--bhg-font-family);
+    background: var(--bhg-card-bg);
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    line-height: 1.5;
+    font-size: 14px;
+    width: 100%;
 }
 
-.bhg-dashboard-card .hndle {
+.bhg-dashboard-card .title {
     background: var(--bhg-accent-color);
     color: #fff;
     padding: 12px 16px;
@@ -176,25 +185,9 @@ flex: 1;
 
 /* Enhanced dashboard layout */
 .bhg-dashboard-cards {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: var(--bhg-spacing);
-}
-
-@media (min-width: 600px) {
-    .bhg-dashboard-cards {
-        flex-direction: row;
-        align-items: stretch;
-    }
-}
-
-.bhg-dashboard-card {
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    line-height: 1.5;
-    font-size: 14px;
-    width: 100%;
 }
 
 .bhg-dashboard-meta li + li {
@@ -236,7 +229,7 @@ flex: 1;
 
 /* Table visual accents */
 .bhg-dashboard-table-wrapper table {
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--bhg-border-color);
     border-radius: 6px;
 }
 
@@ -245,7 +238,7 @@ flex: 1;
 }
 
 .bhg-dashboard-table-wrapper tr:hover {
-    background-color: #eef2ff;
+    background-color: #fdf2f8;
 }
 
 /* Responsive tables */
@@ -266,7 +259,7 @@ flex: 1;
     }
 
     .bhg-dashboard-table-wrapper tr {
-        border: 1px solid #e5e7eb;
+        border: 1px solid var(--bhg-border-color);
         margin-bottom: 6px;
         border-radius: 6px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.04);
@@ -274,7 +267,7 @@ flex: 1;
 
     .bhg-dashboard-table-wrapper td {
         border: none;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid var(--bhg-border-color);
         position: relative;
         padding-left: 50%;
         white-space: pre-wrap;
