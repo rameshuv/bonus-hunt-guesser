@@ -612,13 +612,13 @@ $has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s'
                         * Attributes:
                         * - fields: comma-separated list of columns to display.
                         *   Allowed: pos,user,wins,aff,site,hunt,tournament.
-                        * - per_page: number of rows to show (default 50).
+                        * - ranking: number of top positions to display (1–10).
                         */
                public function leaderboards_shortcode( $atts ) {
                        $a = shortcode_atts(
                                array(
-                                       'fields'   => 'pos,user,wins',
-                                       'per_page' => 50,
+                                       'fields'  => 'pos,user,wins',
+                                       'ranking' => 10,
                                ),
                                $atts,
                                'bhg_leaderboards'
@@ -632,7 +632,7 @@ $has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s'
                        }
 
                        global $wpdb;
-                       $per_page = max( 1, (int) $a['per_page'] );
+                       $ranking = max( 1, min( 10, (int) $a['ranking'] ) );
 
                        $r  = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
                        $u  = $this->sanitize_table( $wpdb->users );
@@ -651,7 +651,7 @@ $has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s'
                                 LIMIT %d',
                                $r,
                                $u,
-                               $per_page
+                               $ranking
                        );
                        $rows = $wpdb->get_results( $sql );
 
