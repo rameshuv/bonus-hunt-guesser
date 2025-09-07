@@ -693,16 +693,19 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 				$h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 				$u = esc_sql( $wpdb->users );
 
-		$where = "h.status='closed' AND h.final_balance IS NOT NULL";
-	if ( $start_date ) {
-			$where .= $wpdb->prepare( ' AND h.updated_at >= %s', $start_date );
-	}
+               $where_parts = array( "h.status='closed' AND h.final_balance IS NOT NULL" );
+               $where_args  = array();
+       if ( $start_date ) {
+                       $where_parts[] = 'h.updated_at >= %s';
+                       $where_args[]  = $start_date;
+       }
+               $where_clause = implode( ' AND ', $where_parts );
 
-				$total_sql = "SELECT COUNT(*) FROM (
+                               $total_sql = "SELECT COUNT(*) FROM (
             SELECT g.user_id
             FROM {$g} g
             INNER JOIN {$h} h ON h.id = g.hunt_id
-            WHERE {$where} AND NOT EXISTS (
+            WHERE {$where_clause} AND NOT EXISTS (
                     SELECT 1 FROM {$g} g2
                     WHERE g2.hunt_id = g.hunt_id
                     AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
@@ -710,15 +713,14 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
             GROUP BY g.user_id
 ) t";
 
-				// db call ok; no-cache ok.
-               // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-				$total = (int) $wpdb->get_var( $total_sql );
+                               // db call ok; no-cache ok.
+                               $total = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, ...$where_args ) );
 
-				$rows_sql = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
+                               $rows_sql = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
 FROM {$g} g
 INNER JOIN {$h} h ON h.id = g.hunt_id
 INNER JOIN {$u} u ON u.ID = g.user_id
-WHERE {$where} AND NOT EXISTS (
+WHERE {$where_clause} AND NOT EXISTS (
             SELECT 1 FROM {$g} g2
             WHERE g2.hunt_id = g.hunt_id
             AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
@@ -727,11 +729,10 @@ GROUP BY g.user_id, u.user_login
 ORDER BY wins DESC, u.user_login ASC
 LIMIT %d OFFSET %d";
 
-				$args_query = array( $per_page, $offset );
+                               $args_query = array_merge( $where_args, array( $per_page, $offset ) );
 
-				// db call ok; no-cache ok.
-               // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-				$rows = $wpdb->get_results( $wpdb->prepare( $rows_sql, ...$args_query ) );
+                               // db call ok; no-cache ok.
+                               $rows = $wpdb->get_results( $wpdb->prepare( $rows_sql, ...$args_query ) );
 
 	if ( ! $rows ) {
 		return '<p>' . esc_html__( 'No data available.', 'bonus-hunt-guesser' ) . '</p>';

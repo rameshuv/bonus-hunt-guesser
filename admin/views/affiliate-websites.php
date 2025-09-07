@@ -14,8 +14,9 @@ global $wpdb;
 $table          = $wpdb->prefix . 'bhg_affiliates';
 $allowed_tables = array( $wpdb->prefix . 'bhg_affiliates' );
 if ( ! in_array( $table, $allowed_tables, true ) ) {
-				wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
+	wp_die( esc_html__( 'Invalid table.', 'bonus-hunt-guesser' ) );
 }
+$table = esc_sql( $table );
 
 // Load for edit.
 $edit_id = isset( $_GET['edit'] ) ? (int) $_GET['edit'] : 0;
