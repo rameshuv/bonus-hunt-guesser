@@ -181,6 +181,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'label_start'                                  => 'Start',
                         'label_end'                                    => 'End',
                         'label_status'                                 => 'Status',
+                        'label_status_colon'                           => 'Status:',
                         'label_wins'                                   => 'Wins',
 			'label_last_win'                               => 'Last win',
 			'label_period'                                 => 'Period',
