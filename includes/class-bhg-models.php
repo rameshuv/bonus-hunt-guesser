@@ -1,33 +1,33 @@
 <?php
 /**
- * Data layer utilities for Bonus Hunt Guesser.
- *
- * This class previously handled guess submissions directly. Guess handling is
- * now centralized through {@see bhg_handle_submit_guess()} in
- * `bonus-hunt-guesser.php`. The methods related to form handling and request
- * routing were removed to avoid duplication and ensure a single canonical
- * implementation.
- *
- * @package BonusHuntGuesser
- */
+	* Data layer utilities for Bonus Hunt Guesser.
+	*
+	* This class previously handled guess submissions directly. Guess handling is
+	* now centralized through {@see bhg_handle_submit_guess()} in
+	* `bonus-hunt-guesser.php`. The methods related to form handling and request
+	* routing were removed to avoid duplication and ensure a single canonical
+	* implementation.
+	*
+	* @package BonusHuntGuesser
+	*/
 
 if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 }
 
 /**
- * Class providing data layer utilities for Bonus Hunt Guesser.
- */
+	* Class providing data layer utilities for Bonus Hunt Guesser.
+	*/
 class BHG_Models {
 
 	/**
-	 * Close a bonus hunt and determine winners.
-	 *
-	 * @param int   $hunt_id       Hunt identifier.
-	 * @param float $final_balance Final balance for the hunt.
-	 *
-	 * @return int[] Array of winning user IDs.
-	 */
+		* Close a bonus hunt and determine winners.
+		*
+		* @param int   $hunt_id       Hunt identifier.
+		* @param float $final_balance Final balance for the hunt.
+		*
+		* @return int[] Array of winning user IDs.
+		*/
 	public static function close_hunt( $hunt_id, $final_balance ) {
 		global $wpdb;
 
@@ -44,7 +44,7 @@ class BHG_Models {
 		// Determine number of winners for this hunt.
 				$winners_count = (int) $wpdb->get_var(
 					$wpdb->prepare(
-                                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
+								// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
 						"SELECT winners_count FROM {$hunts_tbl} WHERE id = %d",
 						$hunt_id
 					)
@@ -71,7 +71,7 @@ class BHG_Models {
 		// Fetch winners based on proximity to final balance.
 				$rows = $wpdb->get_results(
 					$wpdb->prepare(
-                                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
+								// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
 						"SELECT user_id FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(guess - %f) ASC, id ASC LIMIT %d",
 						$hunt_id,
 						$final_balance,

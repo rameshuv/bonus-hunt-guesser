@@ -251,12 +251,12 @@ class BHG_DB {
 	}
 
 	/**
-	 * Check if a column exists, falling back when information_schema is not accessible.
-	 *
-	 * @param string $table  Table name.
-	 * @param string $column Column to check.
-	 * @return bool
-	 */
+		* Check if a column exists, falling back when information_schema is not accessible.
+		*
+		* @param string $table  Table name.
+		* @param string $column Column to check.
+		* @return bool
+		*/
 	private function column_exists( $table, $column ) {
 		global $wpdb;
 
@@ -281,12 +281,12 @@ class BHG_DB {
 	}
 
 	/**
-	 * Check if an index exists, falling back when information_schema is not accessible.
-	 *
-	 * @param string $table Table name.
-	 * @param string $index Index to check.
-	 * @return bool
-	 */
+		* Check if an index exists, falling back when information_schema is not accessible.
+		*
+		* @param string $table Table name.
+		* @param string $index Index to check.
+		* @return bool
+		*/
 	private function index_exists( $table, $index ) {
 		global $wpdb;
 

@@ -1,9 +1,9 @@
 <?php
 /**
- * Tools page for Bonus Hunt Guesser.
- *
- * @package Bonus_Hunt_Guesser
- */
+	* Tools page for Bonus Hunt Guesser.
+	*
+	* @package Bonus_Hunt_Guesser
+	*/
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

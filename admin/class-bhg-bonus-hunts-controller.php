@@ -1,9 +1,9 @@
 <?php
 /**
- * Admin controller for bonus hunt forms.
- *
- * @package BonusHuntGuesser
- */
+	* Admin controller for bonus hunt forms.
+	*
+	* @package BonusHuntGuesser
+	*/
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -11,21 +11,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 	/**
-	 * Handles create, update and delete actions for bonus hunts.
-	 */
+		* Handles create, update and delete actions for bonus hunts.
+		*/
 	class BHG_Bonus_Hunts_Controller {
 		/**
-		 * Singleton instance.
-		 *
-		 * @var BHG_Bonus_Hunts_Controller|null
-		 */
+			* Singleton instance.
+			*
+			* @var BHG_Bonus_Hunts_Controller|null
+			*/
 		private static $instance = null;
 
 		/**
-		 * Get singleton instance.
-		 *
-		 * @return BHG_Bonus_Hunts_Controller
-		 */
+			* Get singleton instance.
+			*
+			* @return BHG_Bonus_Hunts_Controller
+			*/
 		public static function get_instance() {
 			if ( null === self::$instance ) {
 				self::$instance = new self();
@@ -34,25 +34,25 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 		}
 
 		/**
-		 * Constructor.
-		 */
+			* Constructor.
+			*/
 		private function __construct() {}
 
 		/**
-		 * Initialize hooks.
-		 *
-		 * @return void
-		 */
+			* Initialize hooks.
+			*
+			* @return void
+			*/
 		public function init() {
 						add_action( 'admin_init', array( $this, 'handle_form_submissions' ) );
-                                                add_action( 'admin_post_bhg_delete_guess', [ $this, 'delete_guess' ] ); // phpcs:ignore Generic.WhiteSpace.DisallowSpaceIndent,Universal.Arrays.DisallowShortArraySyntax
+												add_action( 'admin_post_bhg_delete_guess', [ $this, 'delete_guess' ] ); // phpcs:ignore Generic.WhiteSpace.DisallowSpaceIndent,Universal.Arrays.DisallowShortArraySyntax
 		}
 
 		/**
-		 * Retrieve data for bonus hunt admin views.
-		 *
-		 * @return array
-		 */
+			* Retrieve data for bonus hunt admin views.
+			*
+			* @return array
+			*/
 		public function get_admin_view_vars() {
 			$db = new BHG_DB();
 
@@ -64,10 +64,10 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 
 
 		/**
-		 * Handle bonus hunt form submissions.
-		 *
-		 * @return void
-		 */
+			* Handle bonus hunt form submissions.
+			*
+			* @return void
+			*/
 		public function handle_form_submissions() {
 			if ( empty( $_POST['bhg_action'] ) ) {
 				return;
@@ -161,10 +161,10 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 		}
 
 				/**
-				 * Delete a guess submitted for a hunt.
-				 *
-				 * @return void
-				 */
+					* Delete a guess submitted for a hunt.
+					*
+					* @return void
+					*/
 		public function delete_guess() {
 			if ( ! current_user_can( 'manage_options' ) ) {
 						wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );

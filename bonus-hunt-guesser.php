@@ -1,19 +1,19 @@
 <?php
 /**
- * Plugin Name: Bonus Hunt Guesser
- * Plugin URI: https://yourdomain.com/
- * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality
- * Version: 8.0.08
- * Author: Bonus Hunt Guesser Development Team
- * Text Domain: bonus-hunt-guesser
- * Domain Path: /languages
- * Requires at least: 6.3.5
- * Requires PHP: 7.4
- * License: GPLv2 or later
- * MySQL tested up to: 5.5.5
- *
- * @package Bonus_Hunt_Guesser
- */
+	* Plugin Name: Bonus Hunt Guesser
+	* Plugin URI: https://yourdomain.com/
+	* Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality
+	* Version: 8.0.08
+	* Author: Bonus Hunt Guesser Development Team
+	* Text Domain: bonus-hunt-guesser
+	* Domain Path: /languages
+	* Requires at least: 6.3.5
+	* Requires PHP: 7.4
+	* License: GPLv2 or later
+	* MySQL tested up to: 5.5.5
+	*
+	* @package Bonus_Hunt_Guesser
+	*/
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -22,11 +22,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Helper: parse human-entered money-like strings into float.
 if ( ! function_exists( 'bhg_parse_amount' ) ) {
 	/**
-	 * Parse a human-entered money-like string into a float.
-	 *
-	 * @param string $s Raw amount string.
-	 * @return float|null Parsed float value or null on failure.
-	 */
+		* Parse a human-entered money-like string into a float.
+		*
+		* @param string $s Raw amount string.
+		* @return float|null Parsed float value or null on failure.
+		*/
 	function bhg_parse_amount( $s ) {
 		if ( ! is_string( $s ) ) {
 			return null;
@@ -117,10 +117,10 @@ define( 'BHG_TABLE_PREFIX', 'bhg_' );
 
 // Table creation function.
 /**
- * Create plugin database tables using active DB class.
- *
- * @return void
- */
+	* Create plugin database tables using active DB class.
+	*
+	* @return void
+	*/
 function bhg_create_tables() {
 	if ( class_exists( 'BHG_DB' ) ) {
 		( new BHG_DB() )->create_tables();
@@ -131,10 +131,10 @@ function bhg_create_tables() {
 
 // Check and create tables if needed.
 /**
- * Create tables on first run if they do not exist.
- *
- * @return void
- */
+	* Create tables on first run if they do not exist.
+	*
+	* @return void
+	*/
 function bhg_check_tables() {
 	if ( ! get_option( 'bhg_tables_created' ) ) {
 		bhg_create_tables();
@@ -177,10 +177,10 @@ require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
 
 // Activation hook: create tables and set default options.
 /**
- * Activation callback for setting up the plugin.
- *
- * @return void
- */
+	* Activation callback for setting up the plugin.
+	*
+	* @return void
+	*/
 function bhg_activate_plugin() {
 	if ( ! current_user_can( 'activate_plugins' ) ) {
 		return;
@@ -233,10 +233,10 @@ register_deactivation_hook(
 add_action( 'wp_enqueue_scripts', 'bhg_enqueue_public_assets' );
 
 /**
- * Enqueue public-facing scripts and styles.
- *
- * @return void
- */
+	* Enqueue public-facing scripts and styles.
+	*
+	* @return void
+	*/
 function bhg_enqueue_public_assets() {
 		$settings  = get_option( 'bhg_plugin_settings', array() );
 		$min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
@@ -292,10 +292,10 @@ function bhg_enqueue_public_assets() {
 // Initialize plugin.
 add_action( 'plugins_loaded', 'bhg_init_plugin' );
 /**
- * Initialize plugin components.
- *
- * @return void
- */
+	* Initialize plugin components.
+	*
+	* @return void
+	*/
 function bhg_init_plugin() {
 		// Load text domain.
 	load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
@@ -353,10 +353,10 @@ add_action( 'init', 'bhg_check_tables', 0 );
 
 // Form handler for settings save.
 /**
- * Handle saving of plugin settings.
- *
- * @return void
- */
+	* Handle saving of plugin settings.
+	*
+	* @return void
+	*/
 function bhg_handle_settings_save() {
 		// Check user capabilities.
 	if ( ! current_user_can( 'manage_options' ) ) {
@@ -430,10 +430,10 @@ function bhg_handle_settings_save() {
 
 // Canonical guess submit handler.
 /**
- * Process a guess submission from admin-post or AJAX.
- *
- * @return void
- */
+	* Process a guess submission from admin-post or AJAX.
+	*
+	* @return void
+	*/
 function bhg_handle_submit_guess() {
 	if ( wp_doing_ajax() ) {
 		check_ajax_referer( 'bhg_public_nonce', 'nonce' );
@@ -490,8 +490,8 @@ function bhg_handle_submit_guess() {
 	$hunts = $wpdb->prefix . 'bhg_bonus_hunts';
 	$g_tbl = $wpdb->prefix . 'bhg_guesses';
 
-        // db call ok; no-cache ok.
-        $hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT id, status FROM %i WHERE id = %d', $hunts, $hunt_id ) );
+		// db call ok; no-cache ok.
+		$hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT id, status FROM %i WHERE id = %d', $hunts, $hunt_id ) );
 	if ( ! $hunt ) {
 		if ( wp_doing_ajax() ) {
 			wp_send_json_error( __( 'Hunt not found.', 'bonus-hunt-guesser' ) );
@@ -507,18 +507,18 @@ function bhg_handle_submit_guess() {
 
 		// Insert or update last guess per settings.
 
-        // db call ok; no-cache ok.
-        $count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d AND user_id = %d', $g_tbl, $hunt_id, $user_id ) );
+		// db call ok; no-cache ok.
+		$count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d AND user_id = %d', $g_tbl, $hunt_id, $user_id ) );
 	if ( $count >= $max ) {
 		if ( $allow_edit && $count > 0 ) {
-               // db call ok; no-cache ok.
-                                $gid = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1', $g_tbl, $hunt_id, $user_id ) );
+				// db call ok; no-cache ok.
+								$gid = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1', $g_tbl, $hunt_id, $user_id ) );
 			if ( $gid ) {
-                               // db call ok; no-cache ok.
-                                                                $wpdb->update(
-                                                                        $g_tbl,
-                                                                        array(
-                                                                                'guess'      => $guess,
+								// db call ok; no-cache ok.
+																$wpdb->update(
+																		$g_tbl,
+																		array(
+																				'guess'      => $guess,
 										'updated_at' => current_time( 'mysql' ),
 									),
 									array( 'id' => $gid )
@@ -538,17 +538,17 @@ function bhg_handle_submit_guess() {
 	}
 
 		// Insert.
-        // db call ok; no-cache ok.
-        $wpdb->insert(
-                        $g_tbl,
-                        array(
-                                'hunt_id'    => $hunt_id,
-                                'user_id'    => $user_id,
-                                'guess'      => $guess,
-                                'created_at' => current_time( 'mysql' ),
-                        ),
-                        array( '%d', '%d', '%f', '%s' )
-                );
+		// db call ok; no-cache ok.
+		$wpdb->insert(
+						$g_tbl,
+						array(
+								'hunt_id'    => $hunt_id,
+								'user_id'    => $user_id,
+								'guess'      => $guess,
+								'created_at' => current_time( 'mysql' ),
+						),
+						array( '%d', '%d', '%f', '%s' )
+				);
 
 	if ( wp_doing_ajax() ) {
 		wp_send_json_success();
@@ -561,11 +561,11 @@ function bhg_handle_submit_guess() {
 
 // Frontend ads rendering.
 /**
- * Determine if an advertisement should be displayed.
- *
- * @param string $visibility Visibility rule.
- * @return bool True if ad should be shown, false otherwise.
- */
+	* Determine if an advertisement should be displayed.
+	*
+	* @param string $visibility Visibility rule.
+	* @return bool True if ad should be shown, false otherwise.
+	*/
 function bhg_should_show_ad( $visibility ) {
 	if ( 'all' === $visibility ) {
 			return true;
@@ -586,12 +586,12 @@ function bhg_should_show_ad( $visibility ) {
 }
 
 /**
- * Safe and validated ads query builder.
- *
- * @param string $table     Table name without prefix.
- * @param string $placement Ad placement.
- * @return array List of ad rows.
- */
+	* Safe and validated ads query builder.
+	*
+	* @param string $table     Table name without prefix.
+	* @param string $placement Ad placement.
+	* @return array List of ad rows.
+	*/
 function bhg_build_ads_query( $table, $placement = 'footer' ) {
 		global $wpdb;
 
@@ -600,16 +600,16 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
 			return array();
 	}
 
-                                $table = esc_sql( $table );
-                                $query = $wpdb->prepare(
-                                        'SELECT * FROM %i WHERE placement = %s AND active = %d',
-                                        $table,
-                                        $placement,
-                                        1
-                                );
+								$table = esc_sql( $table );
+								$query = $wpdb->prepare(
+										'SELECT * FROM %i WHERE placement = %s AND active = %d',
+										$table,
+										$placement,
+										1
+								);
 
-        // db call ok; no-cache ok.
-        $rows = $wpdb->get_results( $query );
+		// db call ok; no-cache ok.
+		$rows = $wpdb->get_results( $query );
 	if ( did_action( 'wp' ) && function_exists( 'get_queried_object_id' ) ) {
 			$pid = (int) get_queried_object_id();
 		if ( $pid && is_array( $rows ) ) {
@@ -633,10 +633,10 @@ add_action( 'wp_ajax_bhg_load_leaderboard', 'bhg_load_leaderboard_ajax' );
 add_action( 'wp_ajax_nopriv_bhg_load_leaderboard', 'bhg_load_leaderboard_ajax' );
 
 /**
- * AJAX handler for loading leaderboard markup.
- *
- * @return void
- */
+	* AJAX handler for loading leaderboard markup.
+	*
+	* @return void
+	*/
 function bhg_load_leaderboard_ajax() {
 		check_ajax_referer( 'bhg_public_nonce', 'nonce' );
 
@@ -660,12 +660,12 @@ function bhg_load_leaderboard_ajax() {
 
 // Helper function to generate leaderboard HTML.
 /**
- * Generate leaderboard HTML for a timeframe.
- *
- * @param string $timeframe Timeframe key.
- * @param int    $paged     Page number.
- * @return string Generated HTML.
- */
+	* Generate leaderboard HTML for a timeframe.
+	*
+	* @param string $timeframe Timeframe key.
+	* @param int    $paged     Page number.
+	* @return string Generated HTML.
+	*/
 function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		global $wpdb;
 
@@ -691,9 +691,9 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 			break;
 	}
 
-        $g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-        $h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-        $u = esc_sql( $wpdb->users );
+		$g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+		$h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		$u = esc_sql( $wpdb->users );
 
 	$where = "h.status='closed' AND h.final_balance IS NOT NULL";
 	$args  = array();
@@ -702,55 +702,55 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		$args[] = $start_date;
 	}
 
-        $sql_total = sprintf(
-                'SELECT COUNT(*) FROM (
-                        SELECT g.user_id
-                        FROM %s g
-                        INNER JOIN %s h ON h.id = g.hunt_id
-                        WHERE ' . $where . ' AND NOT EXISTS (
-                                SELECT 1 FROM %s g2
-                                WHERE g2.hunt_id = g.hunt_id
-                                  AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-                        )
-                        GROUP BY g.user_id
-                ) t',
-                $g,
-                $h,
-                $g
-        );
+		$sql_total = sprintf(
+				'SELECT COUNT(*) FROM (
+						SELECT g.user_id
+						FROM %s g
+						INNER JOIN %s h ON h.id = g.hunt_id
+						WHERE ' . $where . ' AND NOT EXISTS (
+								SELECT 1 FROM %s g2
+								WHERE g2.hunt_id = g.hunt_id
+									AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+						)
+						GROUP BY g.user_id
+				) t',
+				$g,
+				$h,
+				$g
+		);
 
-        if ( $args ) {
-                // db call ok; no-cache ok.
-                $total = (int) $wpdb->get_var( $wpdb->prepare( $sql_total, $args ) );
-        } else {
-                // db call ok; no-cache ok.
-                $total = (int) $wpdb->get_var( $sql_total );
-        }
+		if ( $args ) {
+				// db call ok; no-cache ok.
+				$total = (int) $wpdb->get_var( $wpdb->prepare( $sql_total, $args ) );
+		} else {
+				// db call ok; no-cache ok.
+				$total = (int) $wpdb->get_var( $sql_total );
+		}
 
-        $sql = sprintf(
-                'SELECT g.user_id, u.user_login, COUNT(*) AS wins
-                FROM %s g
-                INNER JOIN %s h ON h.id = g.hunt_id
-                INNER JOIN %s u ON u.ID = g.user_id
-                WHERE ' . $where . ' AND NOT EXISTS (
-                        SELECT 1 FROM %s g2
-                        WHERE g2.hunt_id = g.hunt_id
-                          AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-                )
-                GROUP BY g.user_id, u.user_login
-                ORDER BY wins DESC, u.user_login ASC
-                LIMIT %%d OFFSET %%d',
-                $g,
-                $h,
-                $u,
-                $g
-        );
+		$sql = sprintf(
+				'SELECT g.user_id, u.user_login, COUNT(*) AS wins
+				FROM %s g
+				INNER JOIN %s h ON h.id = g.hunt_id
+				INNER JOIN %s u ON u.ID = g.user_id
+				WHERE ' . $where . ' AND NOT EXISTS (
+						SELECT 1 FROM %s g2
+						WHERE g2.hunt_id = g.hunt_id
+							AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+				)
+				GROUP BY g.user_id, u.user_login
+				ORDER BY wins DESC, u.user_login ASC
+				LIMIT %%d OFFSET %%d',
+				$g,
+				$h,
+				$u,
+				$g
+		);
 
 	$args_query   = $args;
 	$args_query[] = $per_page;
 	$args_query[] = $offset;
-        // db call ok; no-cache ok.
-        $rows = $wpdb->get_results( $wpdb->prepare( $sql, $args_query ) );
+		// db call ok; no-cache ok.
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args_query ) );
 
 	if ( ! $rows ) {
 		return '<p>' . esc_html__( 'No data available.', 'bonus-hunt-guesser' ) . '</p>';
@@ -792,11 +792,11 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 
 // Helper function to check if user is affiliate.
 /**
- * Check whether a user has affiliate status.
- *
- * @param int|null $user_id Optional. User ID to check. Defaults to current user.
- * @return bool True if user is an affiliate.
- */
+	* Check whether a user has affiliate status.
+	*
+	* @param int|null $user_id Optional. User ID to check. Defaults to current user.
+	* @return bool True if user is an affiliate.
+	*/
 function bhg_is_affiliate( $user_id = null ) {
 	if ( ! $user_id ) {
 		$user_id = get_current_user_id();
@@ -814,11 +814,11 @@ add_action( 'show_user_profile', 'bhg_extra_user_profile_fields' );
 add_action( 'edit_user_profile', 'bhg_extra_user_profile_fields' );
 
 /**
- * Display affiliate status field on user profile.
- *
- * @param WP_User $user User object.
- * @return void
- */
+	* Display affiliate status field on user profile.
+	*
+	* @param WP_User $user User object.
+	* @return void
+	*/
 function bhg_extra_user_profile_fields( $user ) {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
@@ -843,11 +843,11 @@ add_action( 'personal_options_update', 'bhg_save_extra_user_profile_fields' );
 add_action( 'edit_user_profile_update', 'bhg_save_extra_user_profile_fields' );
 
 /**
- * Save affiliate status from user profile.
- *
- * @param int $user_id User ID.
- * @return void|false Returns false if the user cannot be edited.
- */
+	* Save affiliate status from user profile.
+	*
+	* @param int $user_id User ID.
+	* @return void|false Returns false if the user cannot be edited.
+	*/
 function bhg_save_extra_user_profile_fields( $user_id ) {
 	if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			return false;
@@ -861,10 +861,10 @@ function bhg_save_extra_user_profile_fields( $user_id ) {
 
 if ( ! function_exists( 'bhg_self_heal_db' ) ) {
 	/**
-	 * Attempt to repair missing database tables.
-	 *
-	 * @return void
-	 */
+		* Attempt to repair missing database tables.
+		*
+		* @return void
+		*/
 	function bhg_self_heal_db() {
 		if ( ! class_exists( 'BHG_DB' ) ) {
 				require_once __DIR__ . '/includes/class-bhg-db.php';
@@ -873,9 +873,9 @@ if ( ! function_exists( 'bhg_self_heal_db' ) ) {
 				$db = new BHG_DB();
 				$db->create_tables();
 		} catch ( Throwable $e ) {
-                        if ( function_exists( 'trigger_error' ) ) {
-                                trigger_error( '[BHG] DB self-heal failed: ' . $e->getMessage(), E_USER_WARNING );
-                        }
+						if ( function_exists( 'trigger_error' ) ) {
+								trigger_error( '[BHG] DB self-heal failed: ' . $e->getMessage(), E_USER_WARNING );
+						}
 		}
 	}
 		add_action( 'admin_init', 'bhg_self_heal_db' );
