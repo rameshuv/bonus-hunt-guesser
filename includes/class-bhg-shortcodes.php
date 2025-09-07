@@ -266,27 +266,24 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 										$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 										// db call ok; no-cache ok.
-																				$sql             = 'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id
+                                                                                      $allowed_orderby = array( 'g.guess', 'u.user_login', 'g.id' );
+                                                                                      if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
+                                                                                                              $orderby = 'g.guess';
+                                                                                      }
+                                                                                      $sql = $wpdb->prepare(
+                                                                                      'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id
                                                                                       FROM %i g
                                                                                       LEFT JOIN %i u ON u.ID = g.user_id
                                                                                       LEFT JOIN %i h ON h.id = g.hunt_id
-                                                                                      WHERE g.hunt_id = %d ORDER BY %i ' . $order . ' LIMIT %d OFFSET %d';
-																				$allowed_orderby = array( 'g.guess', 'u.user_login', 'g.id' );
-					if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
-													$orderby = 'g.guess';
-					}
-																				$rows = $wpdb->get_results(
-																					$wpdb->prepare(
-																						$sql,
-																						$g,
-																						$u,
-																						$hunts_table,
-																						$hunt_id,
-																						$orderby,
-																						$per,
-																						$offset
-																					)
-																				);
+                                                                                      WHERE g.hunt_id = %d ORDER BY ' . $orderby . ' ' . $order . ' LIMIT %d OFFSET %d',
+                                                                                      $g,
+                                                                                      $u,
+                                                                                      $hunts_table,
+                                                                                      $hunt_id,
+                                                                                      $per,
+                                                                                      $offset
+                                                                                      );
+                                                                                      $rows = $wpdb->get_results( $sql );
 
 					wp_enqueue_style(
 						'bhg-shortcodes',
