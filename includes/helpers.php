@@ -429,11 +429,12 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'period'                                       => 'Period:',
 			'placement'                                    => 'Placement',
 			'please_enter_a_guess'                         => 'Please enter a guess.',
-			'guess_required'                               => 'Please enter a guess.',
-			'please_enter_a_valid_number'                  => 'Please enter a valid number.',
-			'guess_numeric'                                => 'Please enter a valid number.',
-			'guess_submitted'                              => 'Your guess has been submitted!',
-			'ajax_error'                                   => 'An error occurred. Please try again.',
+                        'guess_required'                               => 'Please enter a guess.',
+                        'please_enter_a_valid_number'                  => 'Please enter a valid number.',
+                        'guess_numeric'                                => 'Please enter a valid number.',
+                        'guess_range'                                  => 'Guess must be between %1$s and %2$s.',
+                        'guess_submitted'                              => 'Your guess has been submitted!',
+                        'ajax_error'                                   => 'An error occurred. Please try again.',
 			'profile'                                      => 'Profile',
 			'reminder_assign_your_bhg_menus_adminmoderator_loggedin_guest_under_appearance_menus_manage_locations_use_shortcode_bhgnav_to_display' => 'Reminder: Assign your BHG menus (Admin/Moderator, Logged-in, Guest) under Appearance → Menus → Manage Locations. Use shortcode [bhg_nav] to display.',
 			'remove'                                       => 'Remove',
@@ -493,13 +494,13 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 	}
 }
 
-if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-	/**
-		* Seed default translations, avoiding duplicate entries.
-		*
-		* @return void
-		*/
-	function bhg_seed_default_translations_if_empty() {
+if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
+       /**
+                * Seed default translations, inserting any missing keys.
+                *
+                * @return void
+                */
+       function bhg_seed_default_translations() {
 		global $wpdb;
 
 		$table = $wpdb->prefix . 'bhg_translations';
@@ -527,8 +528,8 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
 					),
 					array( '%s', '%s', '%s' )
 				);
-			}
-		}
+       }
+}
 	}
 }
 
