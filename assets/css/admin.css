@@ -148,7 +148,7 @@ flex: 1;
     border-radius: 4px;
 }
 
-.postbox.bhg-dashboard-card {
+.bhg-dashboard-card {
     font-family: var(--bhg-font-family);
     background: var(--bhg-card-bg);
     border: 1px solid var(--bhg-border-color);
@@ -159,15 +159,16 @@ flex: 1;
     width: 100%;
 }
 
-.postbox.bhg-dashboard-card .hndle {
+.bhg-dashboard-card .bhg-card-title {
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 12px 16px;
     margin: 0;
+    border-radius: 8px 8px 0 0;
 }
 
-.postbox.bhg-dashboard-card .inside {
+.bhg-dashboard-card .bhg-card-content {
     padding: var(--bhg-spacing);
 }
 
