@@ -425,24 +425,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$orderby_key = isset( $orderby_map[ $a['orderby'] ] ) ? $a['orderby'] : 'hunt';
 			$orderby     = $orderby_map[ $orderby_key ];
 
-			$limit_sql = '';
-			if ( 'recent' === strtolower( $a['timeline'] ) ) {
-				$limit_sql = ' LIMIT 10';
-			}
+                        $sql = "SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id WHERE " . implode( ' AND ', $where );
+                        $sql .= ' ORDER BY ' . $orderby . ' ' . $order;
+                        if ( 'recent' === strtolower( $a['timeline'] ) ) {
+                                $sql .= ' LIMIT 10';
+                        }
 
-                                                                               $sql = "SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id
-                                                                              FROM %i g INNER JOIN %i h ON h.id = g.hunt_id
-                                                                              WHERE " . implode( ' AND ', $where ) . "
-                                                                                ORDER BY %i {$order}";
-                                       if ( 'recent' === strtolower( $a['timeline'] ) ) {
-                                               $sql .= ' LIMIT 10';
-                                       }
-
-                                       // db call ok; no-cache ok.
-                                        $prep = array_merge( array( $sql, $g, $h ), $params, array( $orderby ) );
-                                       $rows = $wpdb->get_results(
-                                               $wpdb->prepare( ...$prep )
-                                       );
+                        // db call ok; no-cache ok.
+                        $rows = $wpdb->get_results(
+                                $wpdb->prepare( $sql, $params )
+                        );
 			if ( ! $rows ) {
 				return '<p>' . esc_html__( 'No guesses found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
