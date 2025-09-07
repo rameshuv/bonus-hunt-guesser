@@ -49,6 +49,28 @@
     text-align: center;
 }
 
+/* Translations page */
+.bhg-translations-search {
+margin-bottom: 1em;
+}
+
+.bhg-translations-table td {
+padding: 8px 10px;
+}
+
+.bhg-translations-table .bhg-inline-form {
+display: flex;
+gap: 8px;
+}
+
+.bhg-translations-table .bhg-inline-form input[type="text"] {
+flex: 1;
+}
+
+.bhg-default-row {
+background-color: #fff8e5;
+}
+
 /* Dashboard styles */
 :root {
     --bhg-accent-color: #2271b1;
