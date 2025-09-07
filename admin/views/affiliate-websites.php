@@ -93,7 +93,7 @@ $rows = $wpdb->get_results(
 				?>
 </a>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_affiliate', 'Delete this affiliate website?' ) ); ?>');">
-                                                        <?php wp_nonce_field( 'bhg_delete_affiliate', 'bhg_delete_affiliate_nonce' ); ?>
+														<?php wp_nonce_field( 'bhg_delete_affiliate', 'bhg_delete_affiliate_nonce' ); ?>
 				<input type="hidden" name="action" value="bhg_delete_affiliate">
 				<input type="hidden" name="id" value="<?php echo (int) $r->id; ?>">
 				<button class="button-link-delete" type="submit">
@@ -113,7 +113,7 @@ endif;
 
 		<h2 style="margin-top:2em"><?php echo $row ? esc_html( bhg_t( 'edit_affiliate', 'Edit Affiliate Website' ) ) : esc_html( bhg_t( 'add_affiliate', 'Add Affiliate Website' ) ); ?></h2>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
-                <?php wp_nonce_field( 'bhg_save_affiliate', 'bhg_save_affiliate_nonce' ); ?>
+				<?php wp_nonce_field( 'bhg_save_affiliate', 'bhg_save_affiliate_nonce' ); ?>
 		<input type="hidden" name="action" value="bhg_save_affiliate">
 	<?php
 	if ( $row ) :

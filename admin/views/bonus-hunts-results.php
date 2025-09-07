@@ -24,10 +24,26 @@ $rows = $wpdb->get_results(
 	<h1><?php echo esc_html( bhg_t( 'results_for', 'Results for ' ) ) . esc_html( $hunt->title ); ?></h1>
 	<table class="widefat striped">
 	<thead><tr>
-		<th><?php echo esc_html( bhg_t( 'sc_position', 'Position' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'sc_user', 'User' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'difference', 'Difference' ) );; ?></th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_position', 'Position' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_user', 'User' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_guess', 'Guess' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'difference', 'Difference' ) );
+		?>
+</th>
 	</tr></thead>
 	<tbody>
 	<?php

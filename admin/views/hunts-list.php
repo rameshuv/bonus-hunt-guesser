@@ -26,18 +26,54 @@ $pages = max( 1, (int) ceil( $total / $per_page ) );
 
 ?>
 <div class="wrap">
-	<h1><?php echo esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) );; ?></h1>
+	<h1>
+	<?php
+	echo esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) );
+	?>
+</h1>
 	<table class="widefat striped">
 	<thead>
 		<tr>
-		<th><?php echo esc_html( bhg_t( 'id', 'ID' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'sc_title', 'Title' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'winners', 'Winners' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_closed_at', 'Closed At' ) );; ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) );; ?></th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'id', 'ID' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_title', 'Title' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'winners', 'Winners' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'label_closed_at', 'Closed At' ) );
+		?>
+</th>
+		<th>
+		<?php
+		echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
+		?>
+</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -58,12 +94,24 @@ $pages = max( 1, (int) ceil( $total / $per_page ) );
 							$results_url = wp_nonce_url( admin_url( 'admin.php?page=bhg-hunt-results&id=' . (int) $r->id ), 'bhg_view_results_' . (int) $r->id, 'bhg_nonce' );
 							$edit_url    = wp_nonce_url( admin_url( 'admin.php?page=bhg-hunts-edit&id=' . (int) $r->id ), 'bhg_edit_hunt_' . (int) $r->id, 'bhg_nonce' );
 							?>
-			<a class="button" href="<?php echo esc_url( $results_url ); ?>"><?php echo esc_html( bhg_t( 'button_results', 'Results' ) );; ?></a>
-			<a class="button" href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) );; ?></a>
+			<a class="button" href="<?php echo esc_url( $results_url ); ?>">
+				<?php
+				echo esc_html( bhg_t( 'button_results', 'Results' ) );
+				?>
+</a>
+			<a class="button" href="<?php echo esc_url( $edit_url ); ?>">
+				<?php
+				echo esc_html( bhg_t( 'button_edit', 'Edit' ) );
+				?>
+</a>
 			</td>
 		</tr>
 					<?php endforeach; else : ?>
-		<tr><td colspan="8"><?php echo esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) );; ?></td></tr>
+		<tr><td colspan="8">
+						<?php
+						echo esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) );
+						?>
+</td></tr>
 		<?php endif; ?>
 	</tbody>
 	</table>

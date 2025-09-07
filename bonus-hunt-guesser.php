@@ -343,9 +343,9 @@ function bhg_init_plugin() {
 			exit;
 		}
 	);
-        add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
-        add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
-        add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+		add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
+		add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
+		add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
 }
 
 // Early table check on init.
@@ -358,74 +358,74 @@ add_action( 'init', 'bhg_check_tables', 0 );
  * @return void
  */
 function bhg_handle_settings_save() {
-        // Check user capabilities.
-        if ( ! current_user_can( 'manage_options' ) ) {
-                wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'bonus-hunt-guesser' ) );
-        }
+		// Check user capabilities.
+	if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'bonus-hunt-guesser' ) );
+	}
 
-        // Verify nonce.
-        if ( ! check_admin_referer( 'bhg_save_settings', 'bhg_save_settings_nonce' ) ) {
-                wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
-                exit;
-        }
+		// Verify nonce.
+	if ( ! check_admin_referer( 'bhg_save_settings', 'bhg_save_settings_nonce' ) ) {
+			wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
+			exit;
+	}
 
-        // Sanitize and validate data.
-        $settings = array();
+		// Sanitize and validate data.
+		$settings = array();
 
-        if ( isset( $_POST['bhg_default_tournament_period'] ) ) {
-                $period = sanitize_text_field( wp_unslash( $_POST['bhg_default_tournament_period'] ) );
-                if ( in_array( $period, array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' ), true ) ) {
-                        $settings['default_tournament_period'] = $period;
-                }
-        }
+	if ( isset( $_POST['bhg_default_tournament_period'] ) ) {
+			$period = sanitize_text_field( wp_unslash( $_POST['bhg_default_tournament_period'] ) );
+		if ( in_array( $period, array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' ), true ) ) {
+				$settings['default_tournament_period'] = $period;
+		}
+	}
 
-        if ( isset( $_POST['bhg_max_guess_amount'] ) ) {
-                $max = floatval( wp_unslash( $_POST['bhg_max_guess_amount'] ) );
-                if ( 0 <= $max ) {
-                        $settings['max_guess_amount'] = $max;
-                }
-        }
+	if ( isset( $_POST['bhg_max_guess_amount'] ) ) {
+			$max = floatval( wp_unslash( $_POST['bhg_max_guess_amount'] ) );
+		if ( 0 <= $max ) {
+				$settings['max_guess_amount'] = $max;
+		}
+	}
 
-        if ( isset( $_POST['bhg_min_guess_amount'] ) ) {
-                $min = floatval( wp_unslash( $_POST['bhg_min_guess_amount'] ) );
-                if ( 0 <= $min ) {
-                        $settings['min_guess_amount'] = $min;
-                }
-        }
+	if ( isset( $_POST['bhg_min_guess_amount'] ) ) {
+			$min = floatval( wp_unslash( $_POST['bhg_min_guess_amount'] ) );
+		if ( 0 <= $min ) {
+				$settings['min_guess_amount'] = $min;
+		}
+	}
 
-        // Validate that min is not greater than max.
-        if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
-                $settings['min_guess_amount'] > $settings['max_guess_amount'] ) {
-                wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=invalid_data' ) ) );
-                exit;
-        }
+		// Validate that min is not greater than max.
+	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
+				$settings['min_guess_amount'] > $settings['max_guess_amount'] ) {
+			wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=invalid_data' ) ) );
+			exit;
+	}
 
-        if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
-                $allow = sanitize_text_field( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
-                if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
-                        $settings['allow_guess_changes'] = $allow;
-                }
-        }
+	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
+			$allow = sanitize_text_field( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
+		if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
+				$settings['allow_guess_changes'] = $allow;
+		}
+	}
 
-        if ( isset( $_POST['bhg_ads_enabled'] ) ) {
-                $ads_enabled             = sanitize_text_field( wp_unslash( $_POST['bhg_ads_enabled'] ) );
-                $settings['ads_enabled'] = '1' === $ads_enabled ? 1 : 0;
-        }
+	if ( isset( $_POST['bhg_ads_enabled'] ) ) {
+			$ads_enabled             = sanitize_text_field( wp_unslash( $_POST['bhg_ads_enabled'] ) );
+			$settings['ads_enabled'] = '1' === $ads_enabled ? 1 : 0;
+	}
 
-        if ( isset( $_POST['bhg_email_from'] ) ) {
-                $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
-                if ( $email_from ) {
-                        $settings['email_from'] = $email_from;
-                }
-        }
+	if ( isset( $_POST['bhg_email_from'] ) ) {
+			$email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
+		if ( $email_from ) {
+				$settings['email_from'] = $email_from;
+		}
+	}
 
-        // Save settings.
-        $existing = get_option( 'bhg_plugin_settings', array() );
-        update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+		// Save settings.
+		$existing = get_option( 'bhg_plugin_settings', array() );
+		update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
-        // Redirect back to settings page.
-        wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&message=saved' ) ) );
-        exit;
+		// Redirect back to settings page.
+		wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&message=saved' ) ) );
+		exit;
 }
 
 // Canonical guess submit handler.
@@ -441,7 +441,7 @@ function bhg_handle_submit_guess() {
 		if ( ! isset( $_POST['_wpnonce'] ) ) {
 				wp_die( esc_html__( 'Security check failed.', 'bonus-hunt-guesser' ) );
 		}
-                        check_admin_referer( 'bhg_submit_guess', 'bhg_submit_guess_nonce' );
+						check_admin_referer( 'bhg_submit_guess', 'bhg_submit_guess_nonce' );
 	}
 
 	$user_id = get_current_user_id();
@@ -692,50 +692,49 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 			break;
 	}
 
-                               $g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-                               $h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-                               $u = esc_sql( $wpdb->users );
+				$g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+				$h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+				$u = esc_sql( $wpdb->users );
 
-                               $where_parts = array( "h.status='closed' AND h.final_balance IS NOT NULL" );
-       if ( $start_date ) {
-                                       $where_parts[] = $wpdb->prepare( 'h.updated_at >= %s', $start_date );
-       }
-                               $where_clause = implode( ' AND ', $where_parts );
+				$where_parts = array( "h.status='closed' AND h.final_balance IS NOT NULL" );
+	if ( $start_date ) {
+			$where_parts[] = $wpdb->prepare( 'h.updated_at >= %s', $start_date );
+	}
+				$where_clause = implode( ' AND ', $where_parts );
 
-                                                               $total_sql = "SELECT COUNT(*) FROM (
-            SELECT g.user_id
-            FROM {$g} g
-            INNER JOIN {$h} h ON h.id = g.hunt_id
-            WHERE {$where_clause} AND NOT EXISTS (
-                    SELECT 1 FROM {$g} g2
-                    WHERE g2.hunt_id = g.hunt_id
-                    AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-            )
-            GROUP BY g.user_id
-) t";
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$total_sql = "
+	SELECT COUNT(*) FROM (
+		SELECT g.user_id
+		FROM {$g} g
+		INNER JOIN {$h} h ON h.id = g.hunt_id
+		WHERE {$where_clause} AND NOT EXISTS (
+			SELECT 1 FROM {$g} g2
+			WHERE g2.hunt_id = g.hunt_id
+			AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+		)
+		GROUP BY g.user_id
+	) t
+	";
+	// db call ok; no-cache ok.
+	$total = (int) $wpdb->get_var( $total_sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-                                                               // db call ok; no-cache ok.
-                                                               $total = (int) $wpdb->get_var( $wpdb->prepare( $total_sql ) );
-
-                                                               $rows = $wpdb->get_results(
-               $wpdb->prepare(
-"SELECT g.user_id, u.user_login, COUNT(*) AS wins
-FROM {$g} g
-INNER JOIN {$h} h ON h.id = g.hunt_id
-INNER JOIN {$u} u ON u.ID = g.user_id
-WHERE {$where_clause} AND NOT EXISTS (
-            SELECT 1 FROM {$g} g2
-            WHERE g2.hunt_id = g.hunt_id
-            AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-)
-GROUP BY g.user_id, u.user_login
-ORDER BY wins DESC, u.user_login ASC
-LIMIT %d OFFSET %d",
-                       $per_page,
-                       $offset
-               )
-       );
-
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$sql  = "
+	SELECT g.user_id, u.user_login, COUNT(*) AS wins
+	FROM {$g} g
+	INNER JOIN {$h} h ON h.id = g.hunt_id
+	INNER JOIN {$u} u ON u.ID = g.user_id
+	WHERE {$where_clause} AND NOT EXISTS (
+		SELECT 1 FROM {$g} g2
+		WHERE g2.hunt_id = g.hunt_id
+		AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+	)
+	GROUP BY g.user_id, u.user_login
+	ORDER BY wins DESC, u.user_login ASC
+	LIMIT %d OFFSET %d
+	";
+	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $per_page, $offset ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	if ( ! $rows ) {
 		return '<p>' . esc_html__( 'No data available.', 'bonus-hunt-guesser' ) . '</p>';
 	}
@@ -837,7 +836,7 @@ function bhg_save_extra_user_profile_fields( $user_id ) {
 			return false;
 	}
 
-                check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
+				check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
 
 		$affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
 		update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
