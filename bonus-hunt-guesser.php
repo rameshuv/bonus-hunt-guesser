@@ -345,10 +345,88 @@ function bhg_init_plugin() {
 	);
         add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
         add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
+        add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
 }
 
 // Early table check on init.
 add_action( 'init', 'bhg_check_tables', 0 );
+
+// Form handler for settings save.
+/**
+ * Handle saving of plugin settings.
+ *
+ * @return void
+ */
+function bhg_handle_settings_save() {
+        // Check user capabilities.
+        if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'bonus-hunt-guesser' ) );
+        }
+
+        // Verify nonce.
+        if ( ! check_admin_referer( 'bhg_save_settings' ) ) {
+                wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
+                exit;
+        }
+
+        // Sanitize and validate data.
+        $settings = array();
+
+        if ( isset( $_POST['bhg_default_tournament_period'] ) ) {
+                $period = sanitize_text_field( wp_unslash( $_POST['bhg_default_tournament_period'] ) );
+                if ( in_array( $period, array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' ), true ) ) {
+                        $settings['default_tournament_period'] = $period;
+                }
+        }
+
+        if ( isset( $_POST['bhg_max_guess_amount'] ) ) {
+                $max = floatval( wp_unslash( $_POST['bhg_max_guess_amount'] ) );
+                if ( 0 <= $max ) {
+                        $settings['max_guess_amount'] = $max;
+                }
+        }
+
+        if ( isset( $_POST['bhg_min_guess_amount'] ) ) {
+                $min = floatval( wp_unslash( $_POST['bhg_min_guess_amount'] ) );
+                if ( 0 <= $min ) {
+                        $settings['min_guess_amount'] = $min;
+                }
+        }
+
+        // Validate that min is not greater than max.
+        if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
+                $settings['min_guess_amount'] > $settings['max_guess_amount'] ) {
+                wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=invalid_data' ) ) );
+                exit;
+        }
+
+        if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
+                $allow = sanitize_text_field( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
+                if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
+                        $settings['allow_guess_changes'] = $allow;
+                }
+        }
+
+        if ( isset( $_POST['bhg_ads_enabled'] ) ) {
+                $ads_enabled             = sanitize_text_field( wp_unslash( $_POST['bhg_ads_enabled'] ) );
+                $settings['ads_enabled'] = '1' === $ads_enabled ? 1 : 0;
+        }
+
+        if ( isset( $_POST['bhg_email_from'] ) ) {
+                $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
+                if ( $email_from ) {
+                        $settings['email_from'] = $email_from;
+                }
+        }
+
+        // Save settings.
+        $existing = get_option( 'bhg_plugin_settings', array() );
+        update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+
+        // Redirect back to settings page.
+        wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&message=saved' ) ) );
+        exit;
+}
 
 // Canonical guess submit handler.
 /**
