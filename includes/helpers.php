@@ -107,10 +107,10 @@ if ( ! function_exists( 'bhg_t' ) ) {
 			return $cache[ $key ];
 		}
 
-		$table = $wpdb->prefix . 'bhg_translations';
-		$row   = $wpdb->get_row(
-			$wpdb->prepare( "SELECT tvalue FROM {$table} WHERE tkey = %s", $key )
-		);
+               $table = $wpdb->prefix . 'bhg_translations';
+               $row   = $wpdb->get_row(
+                       $wpdb->prepare( 'SELECT tvalue FROM %i WHERE tkey = %s', $table, $key )
+               );
 
 		if ( $row && isset( $row->tvalue ) ) {
 			$cache[ $key ] = (string) $row->tvalue;
@@ -505,21 +505,22 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
 
 		$table = $wpdb->prefix . 'bhg_translations';
 
-		foreach ( bhg_get_default_translations() as $tkey => $tvalue ) {
-			$tkey = trim( (string) $tkey );
-			if ( '' === $tkey ) {
-				continue; // Skip invalid keys.
-			}
+               foreach ( bhg_get_default_translations() as $tkey => $tvalue ) {
+                       $tkey = trim( (string) $tkey );
+                       if ( '' === $tkey ) {
+                               continue; // Skip invalid keys.
+                       }
 
-			$exists = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*) FROM {$table} WHERE tkey = %s",
-					$tkey
-				)
-			);
+                       $exists = (int) $wpdb->get_var(
+                               $wpdb->prepare(
+                                       'SELECT COUNT(*) FROM %i WHERE tkey = %s',
+                                       $table,
+                                       $tkey
+                               )
+                       );
 
-			if ( 0 === $exists ) {
-				$wpdb->insert(
+                       if ( 0 === $exists ) {
+                               $wpdb->insert(
 					$table,
 					array(
 						'tkey'   => $tkey,
@@ -685,21 +686,26 @@ if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
  */
 function bhg_render_ads( $placement = 'footer', $hunt_id = 0 ) {
 	global $wpdb;
-	$tbl          = $wpdb->prefix . 'bhg_ads';
-	$placement    = sanitize_text_field( $placement );
-	$rows         = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT content, link_url, visible_to FROM {$tbl} WHERE active=1 AND placement=%s ORDER BY id DESC",
-			$placement
-		)
-	);
+       $tbl          = $wpdb->prefix . 'bhg_ads';
+       $placement    = sanitize_text_field( $placement );
+       $rows         = $wpdb->get_results(
+               $wpdb->prepare(
+                       'SELECT content, link_url, visible_to FROM %i WHERE active=1 AND placement=%s ORDER BY id DESC',
+                       $tbl,
+                       $placement
+               )
+       );
 	$hunt_site_id = 0;
 
 	if ( $hunt_id ) {
-		$hunt_site_id = (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT affiliate_site_id FROM {$wpdb->prefix}bhg_bonus_hunts WHERE id=%d", (int) $hunt_id )
-		);
-	}
+               $hunt_site_id = (int) $wpdb->get_var(
+                       $wpdb->prepare(
+                               'SELECT affiliate_site_id FROM %i WHERE id=%d',
+                               "{$wpdb->prefix}bhg_bonus_hunts",
+                               (int) $hunt_id
+                       )
+               );
+       }
 
 	if ( ! $rows ) {
 		return '';
@@ -775,12 +781,11 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 			if ( $exists !== $tbl ) {
 				continue;
 			}
-			if ( false !== strpos( $tbl, 'bhg_translations' ) || false !== strpos( $tbl, 'bhg_affiliate_websites' ) ) {
-				continue; // keep; upsert below.
-			}
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$wpdb->query( "DELETE FROM `{$tbl}`" );
-		}
+                       if ( false !== strpos( $tbl, 'bhg_translations' ) || false !== strpos( $tbl, 'bhg_affiliate_websites' ) ) {
+                               continue; // keep; upsert below.
+                       }
+                       $wpdb->delete( $tbl, '1=1' );
+               }
 
 		// Seed affiliate websites (idempotent upsert by slug).
 		$aff_tbl = "{$p}bhg_affiliate_websites";
@@ -797,14 +802,16 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 					'url'  => home_url( '/casino' ),
 				),
 			);
-			foreach ( $affs as $a ) {
-				$id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM `{$aff_tbl}` WHERE slug=%s", $a['slug'] ) );
-				if ( $id ) {
-					$wpdb->update( $aff_tbl, $a, array( 'id' => (int) $id ), array( '%s', '%s', '%s' ), array( '%d' ) );
-				} else {
-					$wpdb->insert( $aff_tbl, $a, array( '%s', '%s', '%s' ) );
-				}
-			}
+                       foreach ( $affs as $a ) {
+                               $id = $wpdb->get_var(
+                                       $wpdb->prepare( 'SELECT id FROM %i WHERE slug=%s', $aff_tbl, $a['slug'] )
+                               );
+                               if ( $id ) {
+                                       $wpdb->update( $aff_tbl, $a, array( 'id' => (int) $id ), array( '%s', '%s', '%s' ), array( '%d' ) );
+                               } else {
+                                       $wpdb->insert( $aff_tbl, $a, array( '%s', '%s', '%s' ) );
+                               }
+                       }
 		}
 
 		// Seed hunts.
@@ -821,7 +828,12 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 					'num_bonuses'       => 10,
 					'prizes'            => __( 'Gift card + swag', 'bonus-hunt-guesser' ),
 					'status'            => 'open',
-					'affiliate_site_id' => (int) $wpdb->get_var( "SELECT id FROM {$p}bhg_affiliate_websites ORDER BY id ASC LIMIT 1" ),
+                                       'affiliate_site_id' => (int) $wpdb->get_var(
+                                               $wpdb->prepare(
+                                                       'SELECT id FROM %i ORDER BY id ASC LIMIT 1',
+                                                       "{$p}bhg_affiliate_websites"
+                                               )
+                                       ),
 					'created_at'        => $now,
 					'updated_at'        => $now,
 				),
@@ -849,8 +861,10 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 			);
 
 			// Seed guesses for open hunt.
-			$g_tbl = "{$p}bhg_guesses";
-			$users = $wpdb->get_col( "SELECT ID FROM {$wpdb->users} ORDER BY ID ASC LIMIT 5" );
+                       $g_tbl = "{$p}bhg_guesses";
+                       $users = $wpdb->get_col(
+                               $wpdb->prepare( 'SELECT ID FROM %i ORDER BY ID ASC LIMIT 5', $wpdb->users )
+                       );
 			if ( empty( $users ) ) {
 				$users = array( 1 );
 			}
@@ -874,15 +888,20 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 		// Tournaments + results based on closed hunts.
 		$t_tbl = "{$p}bhg_tournaments";
 		$r_tbl = "{$p}bhg_tournament_results";
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $t_tbl ) ) === $t_tbl ) {
-			// Wipe results only.
-			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-				$wpdb->query( "DELETE FROM `{$r_tbl}`" );
-			}
+               if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $t_tbl ) ) === $t_tbl ) {
+                       // Wipe results only.
+                       if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
+                               $wpdb->delete( $r_tbl, '1=1' );
+                       }
 
-			$closed = $wpdb->get_results( "SELECT winner_user_id, closed_at FROM {$hunts_tbl} WHERE status='closed' AND winner_user_id IS NOT NULL" );
-			foreach ( $closed as $row ) {
+                       $closed = $wpdb->get_results(
+                               $wpdb->prepare(
+                                       'SELECT winner_user_id, closed_at FROM %i WHERE status=%s AND winner_user_id IS NOT NULL',
+                                       $hunts_tbl,
+                                       'closed'
+                               )
+                       );
+                       foreach ( $closed as $row ) {
 				$ts        = $row->closed_at ? strtotime( $row->closed_at ) : time();
 				$iso_year  = gmdate( 'o', $ts );
 				$week      = str_pad( gmdate( 'W', $ts ), 2, '0', STR_PAD_LEFT );
@@ -906,14 +925,15 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 						$end   = $period . '-12-31';
 					}
 
-					$id = $wpdb->get_var(
-						$wpdb->prepare(
-							"SELECT id FROM {$t_tbl} WHERE type=%s AND start_date=%s AND end_date=%s",
-							$type,
-							$start,
-							$end
-						)
-					);
+                                       $id = $wpdb->get_var(
+                                               $wpdb->prepare(
+                                                       'SELECT id FROM %i WHERE type=%s AND start_date=%s AND end_date=%s',
+                                                       $t_tbl,
+                                                       $type,
+                                                       $start,
+                                                       $end
+                                               )
+                                       );
 					if ( $id ) {
 						return (int) $id;
 					}
@@ -938,15 +958,16 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 					$ensure( 'monthly', $month_key ),
 					$ensure( 'yearly', $year_key ),
 				) as $tid ) {
-					if ( $tid && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
-						$wpdb->query(
-							$wpdb->prepare(
-								"INSERT INTO {$r_tbl} (tournament_id, user_id, wins) VALUES (%d, %d, 1)
-								ON DUPLICATE KEY UPDATE wins = wins + 1",
-								$tid,
-								$uid
-							)
-						);
+                                       if ( $tid && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
+                                               $wpdb->query(
+                                                       $wpdb->prepare(
+                                                               'INSERT INTO %i (tournament_id, user_id, wins) VALUES (%d, %d, 1) ON DUPLICATE KEY UPDATE wins = wins + 1',
+                                                               $r_tbl,
+                                                               $tid,
+                                                               $uid
+                                                       )
+                                               );
+                                       }
 					}
 				}
 			}
@@ -963,14 +984,16 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 				'email_congrats_body'    => 'You had the closest guess. Great job!',
 				'email_hunt'             => 'Hunt',
 			);
-			foreach ( $pairs as $k => $v ) {
-				$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$tr_tbl} WHERE tkey=%s", $k ) );
-				if ( $exists ) {
-					$wpdb->update( $tr_tbl, array( 'tvalue' => $v ), array( 'id' => (int) $exists ), array( '%s' ), array( '%d' ) );
-				} else {
-					$wpdb->insert(
-						$tr_tbl,
-						array(
+                       foreach ( $pairs as $k => $v ) {
+                               $exists = $wpdb->get_var(
+                                       $wpdb->prepare( 'SELECT id FROM %i WHERE tkey=%s', $tr_tbl, $k )
+                               );
+                               if ( $exists ) {
+                                       $wpdb->update( $tr_tbl, array( 'tvalue' => $v ), array( 'id' => (int) $exists ), array( '%s' ), array( '%d' ) );
+                               } else {
+                                       $wpdb->insert(
+                                               $tr_tbl,
+                                               array(
 							'tkey'   => $k,
 							'tvalue' => $v,
 						),

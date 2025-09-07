@@ -51,14 +51,21 @@ if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'
 }
 
 // Fetch rows.
-$query = "SELECT tkey, tvalue FROM {$table}";
 if ( $search_term ) {
-	$like   = '%' . $wpdb->esc_like( $search_term ) . '%';
-	$query .= $wpdb->prepare( ' WHERE tkey LIKE %s OR tvalue LIKE %s', $like, $like );
+       $like = '%' . $wpdb->esc_like( $search_term ) . '%';
+       $rows = $wpdb->get_results(
+               $wpdb->prepare(
+                       'SELECT tkey, tvalue FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC',
+                       $table,
+                       $like,
+                       $like
+               )
+       );
+} else {
+       $rows = $wpdb->get_results(
+               $wpdb->prepare( 'SELECT tkey, tvalue FROM %i ORDER BY tkey ASC', $table )
+       );
 }
-$query .= ' ORDER BY tkey ASC';
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
-$rows = $wpdb->get_results( $query );
 ?>
 <div class="wrap">
 <h1><?php esc_html_e( 'Translations', 'bonus-hunt-guesser' ); ?></h1>
