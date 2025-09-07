@@ -1,57 +1,70 @@
 <?php
+/**
+ * Demo data seeder.
+ *
+ * Populates the database with sample data on activation for testing purposes.
+ *
+ * @package Bonus_Hunt_Guesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; }
+		exit;
+}
 
+/**
+ * Seed demo data on plugin activation.
+ */
 function bhg_seed_demo_on_activation() {
-	// Only seed once
+		// Only seed once.
 	if ( get_option( 'bhg_demo_seeded' ) ) {
-		return;
+			return;
 	}
 
-	// Create demo users (if not exist)
-	$users    = array(
-		array(
-			'user_login' => 'alice_demo',
-			'user_email' => 'alice_demo@example.com',
-		),
-		array(
-			'user_login' => 'bob_demo',
-			'user_email' => 'bob_demo@example.com',
-		),
-		array(
-			'user_login' => 'charlie_demo',
-			'user_email' => 'charlie_demo@example.com',
-		),
-	);
-	$user_ids = array();
-	foreach ( $users as $u ) {
-		$uid = username_exists( $u['user_login'] );
-		if ( ! $uid ) {
-			$pass = wp_generate_password( 12, false );
-			$uid  = wp_create_user( $u['user_login'], $pass, $u['user_email'] );
-			if ( is_wp_error( $uid ) ) {
-				$uid = 0; }
+		// Create demo users (if not exist).
+		$users    = array(
+			array(
+				'user_login' => 'alice_demo',
+				'user_email' => 'alice_demo@example.com',
+			),
+			array(
+				'user_login' => 'bob_demo',
+				'user_email' => 'bob_demo@example.com',
+			),
+			array(
+				'user_login' => 'charlie_demo',
+				'user_email' => 'charlie_demo@example.com',
+			),
+		);
+		$user_ids = array();
+		foreach ( $users as $u ) {
+				$uid = username_exists( $u['user_login'] );
+			if ( false === $uid ) {
+					$pass = wp_generate_password( 12, false );
+					$uid  = wp_create_user( $u['user_login'], $pass, $u['user_email'] );
+				if ( is_wp_error( $uid ) ) {
+						$uid = 0;
+				}
+			}
+				$user_ids[ $u['user_login'] ] = $uid ? intval( $uid ) : 0;
 		}
-		$user_ids[ $u['user_login'] ] = $uid ? intval( $uid ) : 0;
-	}
 
-	global $wpdb;
-	$hunts       = $wpdb->prefix . 'bhg_bonus_hunts';
-	$guesses     = $wpdb->prefix . 'bhg_guesses';
-	$tournaments = $wpdb->prefix . 'bhg_tournaments';
-	$aff         = $wpdb->prefix . 'bhg_affiliate_websites';
-	$ads         = $wpdb->prefix . 'bhg_ads';
-	$trans       = $wpdb->prefix . 'bhg_translations';
+		global $wpdb;
+		$hunts       = $wpdb->prefix . 'bhg_bonus_hunts';
+		$guesses     = $wpdb->prefix . 'bhg_guesses';
+		$tournaments = $wpdb->prefix . 'bhg_tournaments';
+		$aff         = $wpdb->prefix . 'bhg_affiliate_websites';
+		$ads         = $wpdb->prefix . 'bhg_ads';
+		$trans       = $wpdb->prefix . 'bhg_translations';
 
-	// Insert affiliate sites
-	$wpdb->insert(
-		$aff,
-		array(
-			'name' => 'Demo Affiliate 1',
-			'slug' => 'demo-aff-1',
-			'url'  => 'https://demo-affiliate1.test',
-		)
-	);
+		// Insert affiliate sites.
+		$wpdb->insert(
+			$aff,
+			array(
+				'name' => 'Demo Affiliate 1',
+				'slug' => 'demo-aff-1',
+				'url'  => 'https://demo-affiliate1.test',
+			)
+		);
 	$wpdb->insert(
 		$aff,
 		array(
@@ -61,7 +74,7 @@ function bhg_seed_demo_on_activation() {
 		)
 	);
 
-	// Insert a demo hunt (open) and a demo closed hunt
+		// Insert a demo hunt (open) and a demo closed hunt.
 	$wpdb->insert(
 		$hunts,
 		array(
@@ -92,7 +105,7 @@ function bhg_seed_demo_on_activation() {
 	);
 	$closed_id = intval( $wpdb->insert_id );
 
-	// Add demo guesses for closed hunt
+		// Add demo guesses for closed hunt.
 	$grows = array(
 		array(
 			'hunt_id'      => $closed_id,
@@ -124,16 +137,22 @@ function bhg_seed_demo_on_activation() {
 		}
 	}
 
-	// Compute winner for the closed hunt (closest)
-	$rows        = $wpdb->get_results( "SELECT * FROM `{$closed_id}`" );
+	// Compute winner for the closed hunt (closest).
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT * FROM {$guesses} WHERE hunt_id = %d",
+			$closed_id
+		)
+	);
 	$final       = 2420.00;
 	$winner_id   = 0;
 	$winner_diff = null;
 	foreach ( $rows as $row ) {
 		$diff = abs( floatval( $row->guess_amount ) - $final );
-		if ( $winner_diff === null || $diff < $winner_diff ) {
-			$winner_diff = $diff;
-			$winner_id   = intval( $row->user_id );
+		if ( null === $winner_diff || $diff < $winner_diff ) {
+				$winner_diff = $diff;
+				$winner_id   = intval( $row->user_id );
 		}
 	}
 	$wpdb->update(
@@ -145,7 +164,7 @@ function bhg_seed_demo_on_activation() {
 		array( 'id' => $closed_id )
 	);
 
-	// Insert a demo tournament (monthly)
+		// Insert a demo tournament (monthly).
 	$wpdb->insert(
 		$tournaments,
 		array(
@@ -155,7 +174,7 @@ function bhg_seed_demo_on_activation() {
 		)
 	);
 
-	// Translations & Ads samples
+		// Translations & Ads samples.
 	$wpdb->insert(
 		$trans,
 		array(
@@ -190,7 +209,7 @@ function bhg_seed_demo_on_activation() {
 		)
 	);
 
-	// Create demo pages with shortcodes (with (Demo) suffix)
+		// Create demo pages with shortcodes (with (Demo) suffix).
 	$pages = array(
 		array(
 			'title'   => 'Bonus Hunt (Demo)',
@@ -206,7 +225,14 @@ function bhg_seed_demo_on_activation() {
 		),
 	);
 	foreach ( $pages as $p ) {
-		if ( ! get_page_by_title( $p['title'] ) ) {
+			$query = new WP_Query(
+				array(
+					'post_type'      => 'page',
+					'title'          => $p['title'],
+					'posts_per_page' => 1,
+				)
+			);
+		if ( 0 === $query->found_posts ) {
 			wp_insert_post(
 				array(
 					'post_title'   => $p['title'],
