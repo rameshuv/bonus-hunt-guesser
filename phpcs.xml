@@ -4,11 +4,8 @@
 <rule ref="WordPress"/>
 <arg name="tab-width" value="4"/>
 <arg name="extensions" value="php"/>
-<file>admin</file>
-<file>includes</file>
 <file>bonus-hunt-guesser.php</file>
-<exclude-pattern>vendor/*</exclude-pattern>
-<exclude-pattern>wpcs/*</exclude-pattern>
-<exclude-pattern>admin/class-bhg-demo.php</exclude-pattern>
-<exclude-pattern>includes/demo.php</exclude-pattern>
+<file>admin/</file>
+<file>includes/</file>
+<file>uninstall.php</file>
 </ruleset>
