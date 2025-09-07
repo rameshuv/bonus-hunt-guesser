@@ -340,25 +340,41 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		}
 
 			/**
-			 * [bhg_user_guesses]
-			 * id (user), aff (yes/no), website (affiliate id), status (open|closed),
-			 * timeline: '' | 'recent' (limit 10) | relative period: day|week|month|year
-			 * orderby: hunt|guess ; order: ASC|DESC
-			 */
+			* [bhg_user_guesses]
+			* id (user), aff (yes/no), website (affiliate id), status (open|closed),
+			* timeline: '' | 'recent' (limit 10) | relative period: day|week|month|year
+			* fields: comma-separated list (hunt,guess,final,user)
+			* orderby: hunt|guess ; order: ASC|DESC
+			*/
 		public function user_guesses_shortcode( $atts ) {
 			$a = shortcode_atts(
-				array(
-					'id'       => 0,
-					'aff'      => 'yes',
-					'website'  => 0,
-					'status'   => '',
-					'timeline' => '',
-					'orderby'  => 'hunt',
-					'order'    => 'DESC',
-				),
-				$atts,
-				'bhg_user_guesses'
+			        array(
+			                'id'       => 0,
+			                'aff'      => 'yes',
+			                'website'  => 0,
+			                'status'   => '',
+			                'timeline' => '',
+			                'fields'   => 'hunt,guess,final',
+			                'orderby'  => 'hunt',
+			                'order'    => 'DESC',
+			        ),
+			        $atts,
+			        'bhg_user_guesses'
 			);
+
+			$fields_raw    = explode( ',', (string) $a['fields'] );
+			$allowed_field = array( 'hunt', 'guess', 'final', 'user' );
+			$fields_arr    = array_values(
+			        array_unique(
+			                array_intersect(
+			                        $allowed_field,
+			                        array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) )
+			                )
+			        )
+			);
+			if ( empty( $fields_arr ) ) {
+			        $fields_arr = array( 'hunt', 'guess', 'final' );
+			}
 
 			global $wpdb;
 
@@ -461,23 +477,39 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		}
 
 			/**
-			 * [bhg_hunts]
-			 * id (hunt), status (open|closed), website (affiliate id),
-			 * timeline: '' | 'recent' (limit 10) | relative period: day|week|month|year
-			 * aff: yes/no to show affiliate column
-			 */
+			* [bhg_hunts]
+			* id (hunt), status (open|closed), website (affiliate id),
+			* timeline: '' | 'recent' (limit 10) | relative period: day|week|month|year
+			* fields: comma-separated list (title,start,final,status,user)
+			* aff: yes/no to show affiliate column
+			*/
 		public function hunts_shortcode( $atts ) {
 			$a = shortcode_atts(
-				array(
-					'id'       => 0,
-					'aff'      => 'no',
-					'website'  => 0,
-					'status'   => '',
-					'timeline' => '',
-				),
-				$atts,
-				'bhg_hunts'
+			        array(
+			                'id'       => 0,
+			                'aff'      => 'no',
+			                'website'  => 0,
+			                'status'   => '',
+			                'timeline' => '',
+			                'fields'   => 'title,start,final,status',
+			        ),
+			        $atts,
+			        'bhg_hunts'
 			);
+
+			$fields_raw    = explode( ',', (string) $a['fields'] );
+			$allowed_field = array( 'title', 'start', 'final', 'status', 'user' );
+			$fields_arr    = array_values(
+			        array_unique(
+			                array_intersect(
+			                        $allowed_field,
+			                        array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) )
+			                )
+			        )
+			);
+			if ( empty( $fields_arr ) ) {
+			        $fields_arr = array( 'title', 'start', 'final', 'status' );
+			}
 
 			global $wpdb;
 			$h         = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
