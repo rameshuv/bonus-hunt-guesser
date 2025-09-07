@@ -277,11 +277,11 @@ if ( $view === 'edit' ) :
 	}
 	$users_table = esc_sql( $users_table );
         $guesses     = $wpdb->get_results(
-                $wpdb->prepare(
-                        "SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,
-                        $id
-                )
-        );
+               $wpdb->prepare(
+                       "SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                       $id
+               )
+       );
 	?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Edit Bonus Hunt', 'bonus-hunt-guesser' ); ?> <?php echo esc_html__( '—', 'bonus-hunt-guesser' ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
