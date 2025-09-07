@@ -120,6 +120,11 @@ flex: 1;
     margin-bottom: 2em;
 }
 
+.bhg-translation-group h3 {
+    color: var(--bhg-accent-color);
+    margin-bottom: 0.5em;
+}
+
 /* Dashboard styles */
 :root {
     --bhg-accent-color: #2271b1;
@@ -176,6 +181,13 @@ flex: 1;
     gap: var(--bhg-spacing);
 }
 
+@media (min-width: 600px) {
+    .bhg-dashboard-cards {
+        flex-direction: row;
+        align-items: stretch;
+    }
+}
+
 .bhg-dashboard-card {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
@@ -210,6 +222,11 @@ flex: 1;
 .bhg-dashboard-table-wrapper table {
     width: 100%;
     border-collapse: collapse;
+}
+
+.bhg-dashboard-table thead th {
+    background: var(--bhg-accent-color);
+    color: #fff;
 }
 
 .bhg-dashboard-table-wrapper th,
