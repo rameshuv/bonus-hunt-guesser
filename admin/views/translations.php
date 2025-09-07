@@ -13,7 +13,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$table = $wpdb->prefix . 'bhg_translations';
+$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
 
 if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
 		bhg_seed_default_translations_if_empty();
@@ -62,35 +62,37 @@ if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'
 
 // Fetch rows with pagination.
 if ( $search_term ) {
-		$like  = '%' . $wpdb->esc_like( $search_term ) . '%';
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s',
-				$table,
-				$like,
-				$like
-			)
-		);
-		$rows  = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT tkey, tvalue FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC LIMIT %d OFFSET %d',
-				$table,
-				$like,
-				$like,
-				$items_per_page,
-				$offset
-			)
-		);
+				$like  = '%' . $wpdb->esc_like( $search_term ) . '%';
+				$total = (int) $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT COUNT(*) FROM {$table} WHERE tkey LIKE %s OR tvalue LIKE %s",
+						$like,
+						$like
+					)
+				);
+				$rows  = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT tkey, tvalue FROM {$table} WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC LIMIT %d OFFSET %d",
+						$like,
+						$like,
+						$items_per_page,
+						$offset
+					)
+				);
 } else {
-		$total = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) );
-		$rows  = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT tkey, tvalue FROM %i ORDER BY tkey ASC LIMIT %d OFFSET %d',
-				$table,
-				$items_per_page,
-				$offset
-			)
-		);
+				$total = (int) $wpdb->get_var(
+					$wpdb->prepare(
+						'SELECT COUNT(*) FROM ' . $table . ' WHERE 1 = %d',
+						1
+					)
+				);
+				$rows  = $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT tkey, tvalue FROM ' . $table . ' ORDER BY tkey ASC LIMIT %d OFFSET %d',
+						$items_per_page,
+						$offset
+					)
+				);
 }
 // Pagination links.
 $total_pages = max( 1, ceil( $total / $items_per_page ) );
