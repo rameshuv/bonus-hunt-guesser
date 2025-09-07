@@ -174,8 +174,21 @@ spl_autoload_register(
 require_once BHG_PLUGIN_DIR . 'includes/helpers.php';
 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
 
-// Ensure translation keys exist early.
-bhg_seed_default_translations_if_empty();
+add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
+/**
+ * Seed default translations on version change.
+ *
+ * Ensures new translation keys appear after plugin updates.
+ *
+ * @return void
+ */
+function bhg_maybe_seed_translations() {
+	$stored_version = get_option( 'bhg_version' );
+	if ( BHG_VERSION !== $stored_version ) {
+		bhg_seed_default_translations_if_empty();
+		update_option( 'bhg_version', BHG_VERSION );
+	}
+}
 
 // Activation hook: create tables and set default options.
 /**
