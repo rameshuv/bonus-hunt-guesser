@@ -852,15 +852,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'bhg_winner_notifications'
 			);
 
-                        $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-                        $hunts       = $wpdb->get_results(
-                                $wpdb->prepare(
-                                        "SELECT id, title, final_balance, winners_count, closed_at
-                                         FROM {$hunts_table}
-                                         WHERE status='closed' ORDER BY closed_at DESC LIMIT %d",
-                                        (int) $a['limit']
-                                )
-                        ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+$hunts       = $wpdb->get_results(
+$wpdb->prepare(
+"SELECT id, title, final_balance, winners_count, closed_at
+ FROM {$hunts_table}
+ WHERE status = %s ORDER BY closed_at DESC LIMIT %d",
+'closed',
+(int) $a['limit']
+)
+); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			if ( ! $hunts ) {
 				return '<p>' . esc_html__( 'No closed hunts yet.', 'bonus-hunt-guesser' ) . '</p>';
@@ -990,8 +991,14 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				}
 			}
 
-                        $hunts_tbl = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-                        $hunts     = $wpdb->get_results( "SELECT id, title FROM {$hunts_tbl} WHERE status='closed' ORDER BY created_at DESC LIMIT 50" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$hunts_tbl = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+$hunts     = $wpdb->get_results(
+$wpdb->prepare(
+"SELECT id, title FROM {$hunts_tbl} WHERE status = %s ORDER BY created_at DESC LIMIT %d",
+'closed',
+50
+)
+);
 
 			wp_enqueue_style(
 				'bhg-shortcodes',
