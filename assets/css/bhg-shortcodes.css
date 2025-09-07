@@ -109,7 +109,7 @@
 .bhg-submit-btn {
     margin-top: 20px;
     background: var(--bhg-accent-color);
-    border: 1px solid #1a5a8a;
+    border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 8px 12px;
     border-radius: 4px;
@@ -118,9 +118,10 @@
 
 .bhg-submit-btn:hover,
 .bhg-submit-btn:focus {
-    background: #195a8e;
-    border-color: #11426a;
+    background: var(--bhg-accent-color);
+    border-color: var(--bhg-accent-color);
     color: #fff;
+    filter: brightness(0.9);
 }
 
 .bhg-pagination .bhg-current-page {
@@ -138,7 +139,7 @@
 .bhg-filter-button {
     margin-left: 8px;
     background: var(--bhg-accent-color);
-    border: 1px solid #1a5a8a;
+    border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 6px 10px;
     border-radius: 4px;
@@ -147,9 +148,10 @@
 
 .bhg-filter-button:hover,
 .bhg-filter-button:focus {
-    background: #195a8e;
-    border-color: #11426a;
+    background: var(--bhg-accent-color);
+    border-color: var(--bhg-accent-color);
     color: #fff;
+    filter: brightness(0.9);
 }
 
 .bhg-table-wrapper {

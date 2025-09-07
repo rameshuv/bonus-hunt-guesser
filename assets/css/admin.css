@@ -169,7 +169,7 @@ flex: 1;
 .bhg-wrap .button,
 .bhg-wrap .button-primary {
     background: var(--bhg-accent-color);
-    border-color: #1a5a8a;
+    border-color: var(--bhg-accent-color);
     color: #fff;
 }
 
@@ -177,9 +177,10 @@ flex: 1;
 .bhg-wrap .button:focus,
 .bhg-wrap .button-primary:hover,
 .bhg-wrap .button-primary:focus {
-    background: #195a8e;
-    border-color: #11426a;
+    background: var(--bhg-accent-color);
+    border-color: var(--bhg-accent-color);
     color: #fff;
+    filter: brightness(0.9);
 }
 
 .bhg-dashboard-meta {
