@@ -431,7 +431,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '<p>' . esc_html__( 'No guesses found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
 
-			$show_aff = in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
+			$show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
 
 			ob_start();
 			echo '<table class="bhg-user-guesses"><thead><tr>';
@@ -539,7 +539,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
 
-			$show_aff = in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
+			$show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
 
 			ob_start();
 			echo '<table class="bhg-hunts"><thead><tr>';
@@ -605,7 +605,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			if ( empty( $fields_arr ) ) {
 					$fields_arr = $allowed_field;
 			}
-					$fields = implode( ',', $fields_arr );
+					$fields_str = implode( ',', $fields_arr );
 
 			$where  = array();
 			$params = array();
@@ -661,7 +661,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '<p>' . esc_html__( 'No hunts found.', 'bonus-hunt-guesser' ) . '</p>';
 			}
 
-			$show_aff = in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
+			$show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
 
 			ob_start();
 			foreach ( $hunts as $hunt ) {
@@ -671,11 +671,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					array(
 						'hunt_id' => (int) $hunt->id,
 						'ranking' => $ranking,
-						'fields'  => $fields,
+						'fields'  => $fields_str,
 					)
 				);
-				if ( ! $show_aff ) {
-					// Strip affiliate dot spans if requested
+				if ( in_array( 'user', $fields_arr, true ) && ! $show_aff ) {
+					// Strip affiliate dot spans if requested.
 					$html = preg_replace( '/<span class="bhg-aff-dot[^>]*><\/span>/', '', $html );
 				}
 				echo $html;
