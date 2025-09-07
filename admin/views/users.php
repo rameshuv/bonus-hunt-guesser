@@ -8,6 +8,9 @@ if ( ! current_user_can( 'manage_options' ) ) {
 $paged           = max( 1, isset( $_GET['paged'] ) ? (int) $_GET['paged'] : 1 );
 $per_page        = 30;
 $search          = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+if ( isset( $_GET['s'] ) ) {
+        check_admin_referer( 'bhg_users_search' );
+}
 $allowed_orderby = array( 'user_login', 'display_name', 'user_email' );
 $orderby         = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'user_login';
 if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
@@ -33,8 +36,9 @@ $base_url = remove_query_arg( array( 'paged' ) );
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Users', 'bonus-hunt-guesser' ); ?></h1>
 
-	<form method="get" class="bhg-margin-top-small">
-	<input type="hidden" name="page" value="bhg-users" />
+        <form method="get" class="bhg-margin-top-small">
+        <input type="hidden" name="page" value="bhg-users" />
+        <?php wp_nonce_field( 'bhg_users_search' ); ?>
 	<p class="search-box">
 		<label class="screen-reader-text" for="user-search-input"><?php echo esc_html__( 'Search Users', 'bonus-hunt-guesser' ); ?></label>
 		<input type="search" id="user-search-input" name="s" value="<?php echo esc_attr( $search ); ?>" />
