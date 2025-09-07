@@ -1,22 +1,22 @@
 <?php
 /**
-	* Front-end menu handling.
-	*
-	* @package BonusHuntGuesser
-	*/
+ * Front-end menu handling.
+ *
+ * @package BonusHuntGuesser
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
-	* Front-end menus.
-	*/
+ * Front-end menus.
+ */
 class BHG_Front_Menus {
 
 	/**
-		* Set up hooks.
-		*/
+	 * Set up hooks.
+	 */
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_locations' ) );
 		add_shortcode( 'bhg_nav', array( $this, 'nav_shortcode' ) );
@@ -24,10 +24,10 @@ class BHG_Front_Menus {
 	}
 
 	/**
-		* Register menu locations.
-		*
-		* @return void
-		*/
+	 * Register menu locations.
+	 *
+	 * @return void
+	 */
 	public function register_locations() {
 		register_nav_menus(
 			array(
@@ -39,11 +39,11 @@ class BHG_Front_Menus {
 	}
 
 	/**
-		* Render navigation based on provided attributes.
-		*
-		* @param array $atts Shortcode attributes.
-		* @return string Menu markup.
-		*/
+	 * Render navigation based on provided attributes.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Menu markup.
+	 */
 	public function nav_shortcode( $atts ) {
 		$a   = shortcode_atts( array( 'area' => 'guest' ), $atts, 'bhg_nav' );
 		$loc = 'bhg_menu_guest';
@@ -73,11 +73,11 @@ class BHG_Front_Menus {
 	}
 
 	/**
-		* Render the correct menu location based on role/login.
-		*
-		* @param array $args Menu arguments.
-		* @return string Menu markup.
-		*/
+	 * Render the correct menu location based on role/login.
+	 *
+	 * @param array $args Menu arguments.
+	 * @return string Menu markup.
+	 */
 	public static function render_role_menu( $args = array() ) {
 		if ( current_user_can( 'manage_options' ) || current_user_can( 'moderate_comments' ) ) {
 			$loc = 'bhg_menu_admin';
@@ -104,11 +104,11 @@ class BHG_Front_Menus {
 	}
 
 	/**
-		* Shortcode: [bhg_menu].
-		*
-		* @param array $atts Shortcode attributes.
-		* @return string Menu markup.
-		*/
+	 * Shortcode: [bhg_menu].
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Menu markup.
+	 */
 	public static function menu_shortcode( $atts ) {
 		unset( $atts );
 		return self::render_role_menu();

@@ -1,33 +1,33 @@
 <?php
 /**
-	* Data layer utilities for Bonus Hunt Guesser.
-	*
-	* This class previously handled guess submissions directly. Guess handling is
-	* now centralized through {@see bhg_handle_submit_guess()} in
-	* `bonus-hunt-guesser.php`. The methods related to form handling and request
-	* routing were removed to avoid duplication and ensure a single canonical
-	* implementation.
-	*
-	* @package BonusHuntGuesser
-	*/
+ * Data layer utilities for Bonus Hunt Guesser.
+ *
+ * This class previously handled guess submissions directly. Guess handling is
+ * now centralized through {@see bhg_handle_submit_guess()} in
+ * `bonus-hunt-guesser.php`. The methods related to form handling and request
+ * routing were removed to avoid duplication and ensure a single canonical
+ * implementation.
+ *
+ * @package BonusHuntGuesser
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 }
 
 /**
-	* Class providing data layer utilities for Bonus Hunt Guesser.
-	*/
+ * Class providing data layer utilities for Bonus Hunt Guesser.
+ */
 class BHG_Models {
 
 	/**
-		* Close a bonus hunt and determine winners.
-		*
-		* @param int   $hunt_id       Hunt identifier.
-		* @param float $final_balance Final balance for the hunt.
-		*
-		* @return int[] Array of winning user IDs.
-		*/
+	 * Close a bonus hunt and determine winners.
+	 *
+	 * @param int   $hunt_id       Hunt identifier.
+	 * @param float $final_balance Final balance for the hunt.
+	 *
+	 * @return int[] Array of winning user IDs.
+	 */
 	public static function close_hunt( $hunt_id, $final_balance ) {
 		global $wpdb;
 
@@ -41,16 +41,16 @@ class BHG_Models {
 		$hunts_tbl   = $wpdb->prefix . 'bhg_bonus_hunts';
 		$guesses_tbl = $wpdb->prefix . 'bhg_guesses';
 
-               // Determine number of winners for this hunt.
-               $winners_count = (int) $wpdb->get_var(
-                       $wpdb->prepare(
-                               sprintf(
-                                       'SELECT winners_count FROM %s WHERE id = %%d',
-                                       esc_sql( $hunts_tbl )
-                               ),
-                               $hunt_id
-                       )
-               );
+				// Determine number of winners for this hunt.
+				$winners_count = (int) $wpdb->get_var(
+					$wpdb->prepare(
+						sprintf(
+							'SELECT winners_count FROM %s WHERE id = %%d',
+							esc_sql( $hunts_tbl )
+						),
+						$hunt_id
+					)
+				);
 		if ( $winners_count <= 0 ) {
 			$winners_count = 1;
 		}
@@ -70,18 +70,18 @@ class BHG_Models {
 			array( '%d' )
 		);
 
-               // Fetch winners based on proximity to final balance.
-               $rows = $wpdb->get_results(
-                       $wpdb->prepare(
-                               sprintf(
-                                       'SELECT user_id FROM %s WHERE hunt_id = %%d ORDER BY ABS(guess - %%f) ASC, id ASC LIMIT %%d',
-                                       esc_sql( $guesses_tbl )
-                               ),
-                               $hunt_id,
-                               $final_balance,
-                               $winners_count
-                       )
-               );
+				// Fetch winners based on proximity to final balance.
+				$rows = $wpdb->get_results(
+					$wpdb->prepare(
+						sprintf(
+							'SELECT user_id FROM %s WHERE hunt_id = %%d ORDER BY ABS(guess - %%f) ASC, id ASC LIMIT %%d',
+							esc_sql( $guesses_tbl )
+						),
+						$hunt_id,
+						$final_balance,
+						$winners_count
+					)
+				);
 
 		if ( empty( $rows ) ) {
 			return array();

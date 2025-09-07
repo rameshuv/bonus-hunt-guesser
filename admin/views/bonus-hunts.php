@@ -35,17 +35,17 @@ if ( 'list' === $view ) :
 
 				// db call ok; no-cache ok.
 				$hunts = $wpdb->get_results(
-						$wpdb->prepare(
-								'SELECT * FROM %i ORDER BY id DESC LIMIT %d OFFSET %d',
-								$hunts_table,
-								$per_page,
-								$offset
-						)
+					$wpdb->prepare(
+						'SELECT * FROM %i ORDER BY id DESC LIMIT %d OFFSET %d',
+						$hunts_table,
+						$per_page,
+						$offset
+					)
 				);
 
 				// db call ok; no-cache ok.
-				$total    = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $hunts_table ) );
-		$base_url = remove_query_arg( array( 'paged' ) );
+				$total = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $hunts_table ) );
+		$base_url      = remove_query_arg( array( 'paged' ) );
 	?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html__( 'Bonus Hunts', 'bonus-hunt-guesser' ); ?></h1>
@@ -155,8 +155,8 @@ endif;
 if ( 'close' === $view ) :
 		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
 		// db call ok; no-cache ok.
-		$hunt   = $wpdb->get_row(
-				$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $hunts_table, $id )
+		$hunt = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $hunts_table, $id )
 		);
 	if ( ! $hunt || 'open' !== $hunt->status ) :
 		echo '<div class="notice notice-error"><p>' . esc_html__( 'Invalid hunt.', 'bonus-hunt-guesser' ) . '</p></div>';
@@ -222,10 +222,10 @@ if ( $view === 'add' ) :
 			}
 			$aff_table = esc_sql( $aff_table );
 						// db call ok; no-cache ok.
-						$affs      = $wpdb->get_results(
-								$wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
+						$affs = $wpdb->get_results(
+							$wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
 						);
-			$sel       = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
+			$sel              = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 			?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
 				<option value="0"><?php echo esc_html__( 'None', 'bonus-hunt-guesser' ); ?></option>
@@ -269,8 +269,8 @@ if ( $view === 'add' ) :
 if ( $view === 'edit' ) :
 		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
 		// db call ok; no-cache ok.
-		$hunt   = $wpdb->get_row(
-				$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $hunts_table, $id )
+		$hunt = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $hunts_table, $id )
 		);
 	if ( ! $hunt ) {
 		echo '<div class="notice notice-error"><p>' . esc_html__( 'Invalid hunt', 'bonus-hunt-guesser' ) . '</p></div>';
@@ -282,13 +282,13 @@ if ( $view === 'edit' ) :
 	}
 	$users_table = esc_sql( $users_table );
 		// db call ok; no-cache ok.
-		$guesses     = $wpdb->get_results(
-				$wpdb->prepare(
-						'SELECT g.*, u.display_name FROM %i g LEFT JOIN %i u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC',
-						$guesses_table,
-						$users_table,
-						$id
-				)
+		$guesses = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT g.*, u.display_name FROM %i g LEFT JOIN %i u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC',
+				$guesses_table,
+				$users_table,
+				$id
+			)
 		);
 	?>
 <div class="wrap">
@@ -327,10 +327,10 @@ if ( $view === 'edit' ) :
 			}
 			$aff_table = esc_sql( $aff_table );
 						// db call ok; no-cache ok.
-						$affs      = $wpdb->get_results(
-								$wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
+						$affs = $wpdb->get_results(
+							$wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
 						);
-			$sel       = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
+			$sel              = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 			?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
 				<option value="0"><?php echo esc_html__( 'None', 'bonus-hunt-guesser' ); ?></option>

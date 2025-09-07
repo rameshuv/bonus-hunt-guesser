@@ -188,7 +188,7 @@ function bhg_activate_plugin() {
 
 	bhg_create_tables();
 
-       bhg_seed_default_translations();
+		bhg_seed_default_translations();
 
 		// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
@@ -598,17 +598,17 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
 			return array();
 	}
 
-       $table = esc_sql( $table );
+		$table = esc_sql( $table );
 
-       // db call ok; no-cache ok.
-       $rows = $wpdb->get_results(
-               $wpdb->prepare(
-                       'SELECT * FROM %i WHERE placement = %s AND active = %d',
-                       $table,
-                       $placement,
-                       1
-               )
-       );
+		// db call ok; no-cache ok.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE placement = %s AND active = %d',
+				$table,
+				$placement,
+				1
+			)
+		);
 	if ( did_action( 'wp' ) && function_exists( 'get_queried_object_id' ) ) {
 			$pid = (int) get_queried_object_id();
 		if ( $pid && is_array( $rows ) ) {
@@ -701,10 +701,10 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		$args[] = $start_date;
 	}
 
-       // db call ok; no-cache ok.
-       $total = (int) $wpdb->get_var(
-               $wpdb->prepare(
-                       "SELECT COUNT(*) FROM (
+		// db call ok; no-cache ok.
+		$total = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM (
         SELECT g.user_id
         FROM %i g
         INNER JOIN %i h ON h.id = g.hunt_id
@@ -715,18 +715,18 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
         )
         GROUP BY g.user_id
 ) t",
-                       $g,
-                       $h,
-                       $g,
-                       ...$args
-               )
-       );
+				$g,
+				$h,
+				$g,
+				...$args
+			)
+		);
 
-       $args_query = array_merge( $args, array( $per_page, $offset ) );
-       // db call ok; no-cache ok.
-       $rows = $wpdb->get_results(
-               $wpdb->prepare(
-                       "SELECT g.user_id, u.user_login, COUNT(*) AS wins
+		$args_query = array_merge( $args, array( $per_page, $offset ) );
+		// db call ok; no-cache ok.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT g.user_id, u.user_login, COUNT(*) AS wins
 FROM %i g
 INNER JOIN %i h ON h.id = g.hunt_id
 INNER JOIN %i u ON u.ID = g.user_id
@@ -738,13 +738,13 @@ WHERE {$where} AND NOT EXISTS (
 GROUP BY g.user_id, u.user_login
 ORDER BY wins DESC, u.user_login ASC
 LIMIT %d OFFSET %d",
-                       $g,
-                       $h,
-                       $u,
-                       $g,
-                       ...$args_query
-               )
-       );
+				$g,
+				$h,
+				$u,
+				$g,
+				...$args_query
+			)
+		);
 
 	if ( ! $rows ) {
 		return '<p>' . esc_html__( 'No data available.', 'bonus-hunt-guesser' ) . '</p>';

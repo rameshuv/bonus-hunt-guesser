@@ -3,16 +3,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
 /**
-	* Bonus hunt data helpers.
-	*/
+ * Bonus hunt data helpers.
+ */
 class BHG_Bonus_Hunts {
 
 	/**
-		* Retrieve latest hunts with winners.
-		*
-		* @param int $limit Number of hunts to fetch. Default 3.
-		* @return array List of hunts and winners.
-		*/
+	 * Retrieve latest hunts with winners.
+	 *
+	 * @param int $limit Number of hunts to fetch. Default 3.
+	 * @return array List of hunts and winners.
+	 */
 	public static function get_latest_hunts_with_winners( $limit = 3 ) {
 		global $wpdb;
 		$hunts_table   = $wpdb->prefix . 'bhg_bonus_hunts';
@@ -60,11 +60,11 @@ class BHG_Bonus_Hunts {
 	}
 
 	/**
-		* Retrieve a hunt by ID.
-		*
-		* @param int $hunt_id Hunt ID.
-		* @return object|null Hunt data or null if not found.
-		*/
+	 * Retrieve a hunt by ID.
+	 *
+	 * @param int $hunt_id Hunt ID.
+	 * @return object|null Hunt data or null if not found.
+	 */
 	public static function get_hunt( $hunt_id ) {
 		global $wpdb;
 		$hunts_table = $wpdb->prefix . 'bhg_bonus_hunts';
@@ -73,11 +73,11 @@ class BHG_Bonus_Hunts {
 	}
 
 	/**
-		* Get ranked guesses for a hunt.
-		*
-		* @param int $hunt_id Hunt ID.
-		* @return array List of guesses.
-		*/
+	 * Get ranked guesses for a hunt.
+	 *
+	 * @param int $hunt_id Hunt ID.
+	 * @return array List of guesses.
+	 */
 	public static function get_hunt_guesses_ranked( $hunt_id ) {
 		global $wpdb;
 		$hunts_table   = $wpdb->prefix . 'bhg_bonus_hunts';
