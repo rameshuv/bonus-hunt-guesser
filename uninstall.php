@@ -1,9 +1,9 @@
 <?php
 /**
-	* Uninstall script for Bonus Hunt Guesser.
-	*
-	* @package BonusHuntGuesser
-	*/
+ * Uninstall script for Bonus Hunt Guesser.
+ *
+ * @package BonusHuntGuesser
+ */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
@@ -29,6 +29,9 @@ $tables = array(
 );
 
 foreach ( $tables as $table ) {
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-	$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}{$table}" );
+	$table_name = $wpdb->prefix . $table;
+	// db call ok; no-cache ok.
+	$wpdb->query(
+		$wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name )
+	);
 }
