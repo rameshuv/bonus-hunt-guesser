@@ -127,7 +127,7 @@ flex: 1;
 
 /* Dashboard styles */
 :root {
-    --bhg-accent-color: #ec4899;
+    --bhg-accent-color: #2271b1;
     --bhg-border-color: #e5e7eb;
     --bhg-card-bg: #ffffff;
     --bhg-spacing: 16px;
@@ -135,9 +135,12 @@ flex: 1;
 }
 
 .bhg-dashboard h1 {
-    color: var(--bhg-accent-color);
+    background: var(--bhg-accent-color);
+    color: #fff;
     font-family: var(--bhg-font-family);
     margin-bottom: var(--bhg-spacing);
+    padding: 12px 16px;
+    border-radius: 4px;
 }
 
 .bhg-dashboard-card {
@@ -160,6 +163,23 @@ flex: 1;
 
 .bhg-dashboard-card .inside {
     padding: var(--bhg-spacing);
+}
+
+/* Buttons */
+.bhg-wrap .button,
+.bhg-wrap .button-primary {
+    background: var(--bhg-accent-color);
+    border-color: #1a5a8a;
+    color: #fff;
+}
+
+.bhg-wrap .button:hover,
+.bhg-wrap .button:focus,
+.bhg-wrap .button-primary:hover,
+.bhg-wrap .button-primary:focus {
+    background: #195a8e;
+    border-color: #11426a;
+    color: #fff;
 }
 
 .bhg-dashboard-meta {
