@@ -1,22 +1,22 @@
 <?php
 /**
- * Admin functionality for Bonus Hunt Guesser.
- *
- * @package Bonus_Hunt_Guesser
- */
+	* Admin functionality for Bonus Hunt Guesser.
+	*
+	* @package Bonus_Hunt_Guesser
+	*/
 
 if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 }
 
 /**
- * Handles admin screens and actions for the plugin.
- */
+	* Handles admin screens and actions for the plugin.
+	*/
 class BHG_Admin {
 
 	/**
-	 * Initialize admin hooks and actions.
-	 */
+		* Initialize admin hooks and actions.
+		*/
 	public function __construct() {
 		// Menus.
 		add_action( 'admin_menu', array( $this, 'menu' ) );
@@ -76,10 +76,10 @@ class BHG_Admin {
 	}
 
 		/**
-		 * Enqueue admin assets on BHG screens.
-		 *
-		 * @param string $hook Current admin page hook.
-		 */
+			* Enqueue admin assets on BHG screens.
+			*
+			* @param string $hook Current admin page hook.
+			*/
 	public function assets( $hook ) {
 		if ( false !== strpos( $hook, 'bhg' ) ) {
 			wp_enqueue_style(
@@ -103,43 +103,43 @@ class BHG_Admin {
 
 	// -------------------- Views --------------------
 	/**
-	 * Render the dashboard page.
-	 */
+		* Render the dashboard page.
+		*/
 	public function dashboard() {
 		require BHG_PLUGIN_DIR . 'admin/views/dashboard.php';
 	}
 
 	/**
-	 * Render the bonus hunts page.
-	 */
+		* Render the bonus hunts page.
+		*/
 	public function bonus_hunts() {
 		require BHG_PLUGIN_DIR . 'admin/views/bonus-hunts.php';
 	}
 
 	/**
-	 * Render the bonus hunts results page.
-	 */
+		* Render the bonus hunts results page.
+		*/
 	public function bonus_hunts_results() {
 		require BHG_PLUGIN_DIR . 'admin/views/bonus-hunts-results.php';
 	}
 
 	/**
-	 * Render the tournaments page.
-	 */
+		* Render the tournaments page.
+		*/
 	public function tournaments() {
 		require BHG_PLUGIN_DIR . 'admin/views/tournaments.php';
 	}
 
 	/**
-	 * Render the users page.
-	 */
+		* Render the users page.
+		*/
 	public function users() {
 		require BHG_PLUGIN_DIR . 'admin/views/users.php';
 	}
 
 	/**
-	 * Render the affiliates management page.
-	 */
+		* Render the affiliates management page.
+		*/
 	public function affiliates() {
 		$view = BHG_PLUGIN_DIR . 'admin/views/affiliate-websites.php';
 		if ( file_exists( $view ) ) {
@@ -147,15 +147,15 @@ class BHG_Admin {
 			echo '<div class="wrap"><h1>' . esc_html__( 'Affiliates', 'bonus-hunt-guesser' ) . '</h1><p>' . esc_html__( 'Affiliate management UI not provided yet.', 'bonus-hunt-guesser' ) . '</p></div>'; }
 	}
 	/**
-	 * Render the advertising page.
-	 */
+		* Render the advertising page.
+		*/
 	public function advertising() {
 		require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
 	}
 
 	/**
-	 * Render the translations page.
-	 */
+		* Render the translations page.
+		*/
 	public function translations() {
 		$view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
 		if ( file_exists( $view ) ) {
@@ -163,8 +163,8 @@ class BHG_Admin {
 			echo '<div class="wrap"><h1>' . esc_html__( 'Translations', 'bonus-hunt-guesser' ) . '</h1><p>' . esc_html__( 'No translations UI found.', 'bonus-hunt-guesser' ) . '</p></div>'; }
 	}
 	/**
-	 * Render the database maintenance page.
-	 */
+		* Render the database maintenance page.
+		*/
 	public function database() {
 		$view = BHG_PLUGIN_DIR . 'admin/views/database.php';
 		if ( file_exists( $view ) ) {
@@ -172,8 +172,8 @@ class BHG_Admin {
 			echo '<div class="wrap"><h1>' . esc_html__( 'Database', 'bonus-hunt-guesser' ) . '</h1><p>' . esc_html__( 'No database UI found.', 'bonus-hunt-guesser' ) . '</p></div>'; }
 	}
 	/**
-	 * Render the settings page.
-	 */
+		* Render the settings page.
+		*/
 	public function settings() {
 		$view = BHG_PLUGIN_DIR . 'admin/views/settings.php';
 		if ( file_exists( $view ) ) {
@@ -181,8 +181,8 @@ class BHG_Admin {
 			echo '<div class="wrap"><h1>' . esc_html__( 'Settings', 'bonus-hunt-guesser' ) . '</h1><p>' . esc_html__( 'No settings UI found.', 'bonus-hunt-guesser' ) . '</p></div>'; }
 	}
 		/**
-		 * Render the tools page.
-		 */
+			* Render the tools page.
+			*/
 	public function bhg_tools_page() {
 			$view = BHG_PLUGIN_DIR . 'admin/views/tools.php';
 		if ( file_exists( $view ) ) {
@@ -195,8 +195,8 @@ class BHG_Admin {
 	// -------------------- Handlers --------------------
 
 	/**
-	 * Handle deletion of a guess from the admin screen.
-	 */
+		* Handle deletion of a guess from the admin screen.
+		*/
 	public function handle_delete_guess() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
@@ -214,8 +214,8 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Handle creation and updating of a bonus hunt.
-	 */
+		* Handle creation and updating of a bonus hunt.
+		*/
 	public function handle_save_hunt() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
@@ -264,7 +264,7 @@ class BHG_Admin {
 				$guesses_table        = $wpdb->prefix . 'bhg_guesses';
 								$rows = $wpdb->get_results(
 									$wpdb->prepare(
-                                               // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+												// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 										"SELECT DISTINCT user_id FROM {$guesses_table} WHERE hunt_id=%d",
 										$id
 									)
@@ -277,7 +277,7 @@ class BHG_Admin {
 
 								$hunt_title = (string) $wpdb->get_var(
 									$wpdb->prepare(
-                                               // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+												// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 										"SELECT title FROM {$hunts_table} WHERE id=%d",
 										$id
 									)
@@ -330,8 +330,8 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Close an active bonus hunt.
-	 */
+		* Close an active bonus hunt.
+		*/
 	public function handle_close_hunt() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
@@ -357,8 +357,8 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Save or update an advertising entry.
-	 */
+		* Save or update an advertising entry.
+		*/
 	public function handle_save_ad() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
@@ -401,8 +401,8 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Save a tournament record.
-	 */
+		* Save a tournament record.
+		*/
 	public function handle_save_tournament() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_safe_redirect( add_query_arg( 'bhg_msg', 'noaccess', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
@@ -445,8 +445,8 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Save or update an affiliate record.
-	 */
+		* Save or update an affiliate record.
+		*/
 	public function handle_save_affiliate() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
@@ -478,8 +478,8 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Delete an affiliate.
-	 */
+		* Delete an affiliate.
+		*/
 	public function handle_delete_affiliate() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
@@ -496,8 +496,8 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Save custom user metadata from the admin screen.
-	 */
+		* Save custom user metadata from the admin screen.
+		*/
 	public function handle_save_user_meta() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'No permission', 'bonus-hunt-guesser' ) );
@@ -515,8 +515,8 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Display admin notices for tournament actions.
-	 */
+		* Display admin notices for tournament actions.
+		*/
 	public function admin_notices() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;

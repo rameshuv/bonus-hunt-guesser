@@ -14,9 +14,9 @@ $offset   = ( $paged - 1 ) * $per_page;
 $rows  = $wpdb->get_results(
 	$wpdb->prepare(
 		"SELECT id, title, start_balance, final_balance, status, winners_limit, closed_at
-	 FROM $t
-	 ORDER BY id DESC
-	 LIMIT %d OFFSET %d",
+		FROM $t
+		ORDER BY id DESC
+		LIMIT %d OFFSET %d",
 		$per_page,
 		$offset
 	)

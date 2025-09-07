@@ -1,9 +1,9 @@
 <?php
 /**
- * Dashboard: Latest Hunts overview.
- *
- * @package Bonus_Hunt_Guesser
- */
+	* Dashboard: Latest Hunts overview.
+	*
+	* @package Bonus_Hunt_Guesser
+	*/
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

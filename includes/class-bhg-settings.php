@@ -1,24 +1,24 @@
 <?php
 /**
- * Settings handling for Bonus Hunt Guesser.
- *
- * @package BonusHuntGuesser
- */
+	* Settings handling for Bonus Hunt Guesser.
+	*
+	* @package BonusHuntGuesser
+	*/
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * Settings page logic.
- */
+	* Settings page logic.
+	*/
 class BHG_Settings {
 
 	/**
-	 * Render settings page.
-	 *
-	 * @return void
-	 */
+		* Render settings page.
+		*
+		* @return void
+		*/
 	public static function render() {
 		BHG_Utils::require_cap();
 

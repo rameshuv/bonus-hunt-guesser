@@ -1,9 +1,9 @@
 <?php
 /**
- * Uninstall script for Bonus Hunt Guesser.
- *
- * @package BonusHuntGuesser
- */
+	* Uninstall script for Bonus Hunt Guesser.
+	*
+	* @package BonusHuntGuesser
+	*/
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;

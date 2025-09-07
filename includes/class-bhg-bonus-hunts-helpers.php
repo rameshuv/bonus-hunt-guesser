@@ -3,11 +3,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 
 /**
- * Helper functions for hunts and guesses used by admin dashboard, list and results.
- * DB tables assumed:
- *  - {$wpdb->prefix}bhg_bonus_hunts (id, title, starting_balance, final_balance, winners_count, status, closed_at)
- *  - {$wpdb->prefix}bhg_guesses (id, hunt_id, user_id, guess, created_at)
- */
+	* Helper functions for hunts and guesses used by admin dashboard, list and results.
+	* DB tables assumed:
+	*  - {$wpdb->prefix}bhg_bonus_hunts (id, title, starting_balance, final_balance, winners_count, status, closed_at)
+	*  - {$wpdb->prefix}bhg_guesses (id, hunt_id, user_id, guess, created_at)
+	*/
 
 if ( ! function_exists( 'bhg_get_hunt' ) ) {
 	function bhg_get_hunt( $hunt_id ) {
@@ -23,10 +23,10 @@ if ( ! function_exists( 'bhg_get_latest_closed_hunts' ) ) {
 		$t   = $wpdb->prefix . 'bhg_bonus_hunts';
 		$sql = $wpdb->prepare(
 			"SELECT id, title, starting_balance, final_balance, winners_count, closed_at
-							   FROM $t
-							   WHERE status = %s
-							   ORDER BY closed_at DESC
-							   LIMIT %d",
+								FROM $t
+								WHERE status = %s
+								ORDER BY closed_at DESC
+								LIMIT %d",
 			'closed',
 			(int) $limit
 		);
@@ -48,10 +48,10 @@ if ( ! function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
 
 		$sql = $wpdb->prepare(
 			"SELECT g.user_id, g.guess, ABS(g.guess - %f) AS diff
-			 FROM $t_g g
-			 WHERE g.hunt_id = %d
-			 ORDER BY diff ASC
-			 LIMIT %d",
+				FROM $t_g g
+				WHERE g.hunt_id = %d
+				ORDER BY diff ASC
+				LIMIT %d",
 			(float) $hunt->final_balance,
 			(int) $hunt_id,
 			(int) $limit
@@ -72,9 +72,9 @@ if ( ! function_exists( 'bhg_get_all_ranked_guesses' ) ) {
 
 		$sql = $wpdb->prepare(
 			"SELECT g.id, g.user_id, g.guess, ABS(g.guess - %f) AS diff
-			 FROM $t_g g
-			 WHERE g.hunt_id = %d
-			 ORDER BY diff ASC",
+				FROM $t_g g
+				WHERE g.hunt_id = %d
+				ORDER BY diff ASC",
 			(float) $hunt->final_balance,
 			(int) $hunt_id
 		);
@@ -91,10 +91,10 @@ if ( ! function_exists( 'bhg_get_hunt_participants' ) ) {
 			$rows  = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT id, user_id, guess, created_at
-					 FROM $t_g
-					 WHERE hunt_id = %d
-					 ORDER BY created_at DESC
-					 LIMIT %d OFFSET %d",
+						FROM $t_g
+						WHERE hunt_id = %d
+						ORDER BY created_at DESC
+						LIMIT %d OFFSET %d",
 					(int) $hunt_id,
 					(int) $per_page,
 					(int) $offset
