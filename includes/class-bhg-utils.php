@@ -63,6 +63,23 @@ class BHG_Utils {
 		update_option( 'bhg_settings', $new );
 		return $new;
 	}
+	
+	/**
+	 * Retrieve the "From" email address for notifications.
+	 *
+	 * @return string Email address.
+	 */
+	public static function get_email_from() {
+		$settings = get_option( 'bhg_plugin_settings', array() );
+		$email    = isset( $settings['email_from'] ) ? $settings['email_from'] : get_bloginfo( 'admin_email' );
+		$email    = sanitize_email( $email );
+		
+		if ( ! is_email( $email ) ) {
+			$email = sanitize_email( get_bloginfo( 'admin_email' ) );
+		}
+		
+		return $email;
+	}
 
 	/**
 	 * Require manage options capability or abort.

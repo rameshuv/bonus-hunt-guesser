@@ -150,15 +150,16 @@ spl_autoload_register(
 		}
 
 		$class_map = array(
-			'BHG_Admin'          => 'admin/class-bhg-admin.php',
-			'BHG_Shortcodes'     => 'includes/class-bhg-shortcodes.php',
-			'BHG_Logger'         => 'includes/class-bhg-logger.php',
-			'BHG_Utils'          => 'includes/class-bhg-utils.php',
-			'BHG_Models'         => 'includes/class-bhg-models.php',
-			'BHG_Front_Menus'    => 'includes/class-bhg-front-menus.php',
-			'BHG_Ads'            => 'includes/class-bhg-ads.php',
-			'BHG_Login_Redirect' => 'includes/class-bhg-login-redirect.php',
-			'BHG_Demo'           => 'admin/class-bhg-demo.php',
+			'BHG_Admin'                  => 'admin/class-bhg-admin.php',
+			'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
+			'BHG_Logger'                 => 'includes/class-bhg-logger.php',
+			'BHG_Utils'                  => 'includes/class-bhg-utils.php',
+			'BHG_Models'                 => 'includes/class-bhg-models.php',
+			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
+			'BHG_Ads'                    => 'includes/class-bhg-ads.php',
+			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
+			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
+			'BHG_Demo'                   => 'admin/class-bhg-demo.php',
 		);
 
 		if ( isset( $class_map[ $class_name ] ) ) {
@@ -344,6 +345,10 @@ function bhg_init_plugin() {
 
 	if ( class_exists( 'BHG_Utils' ) ) {
 		BHG_Utils::init_hooks();
+	}
+
+	if ( class_exists( 'BHG_Tournaments_Controller' ) ) {
+		BHG_Tournaments_Controller::init();
 	}
 
 		// Register form handlers.

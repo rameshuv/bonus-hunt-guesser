@@ -320,14 +320,16 @@ class BHG_Admin {
 											)
 										);
 
+										$headers = array( 'From: ' . BHG_Utils::get_email_from() );
 										wp_mail(
-											$u->user_email,
-											sprintf(
-														/* translators: %s: bonus hunt title. */
-												bhg_t( 'results_for_s', 'Results for %s' ),
-												$hunt_title ? $hunt_title : bhg_t( 'bonus_hunt', 'Bonus Hunt' )
-											),
-											$body
+										$u->user_email,
+										sprintf(
+										/* translators: %s: bonus hunt title. */
+										bhg_t( 'results_for_s', 'Results for %s' ),
+										$hunt_title ? $hunt_title : bhg_t( 'bonus_hunt', 'Bonus Hunt' )
+										),
+										$body,
+										$headers
 										);
 				}
 			}
