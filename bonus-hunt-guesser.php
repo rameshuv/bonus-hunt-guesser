@@ -187,8 +187,7 @@ function bhg_activate_plugin() {
 
 	bhg_create_tables();
 
-	bhg_seed_default_translations_if_empty();
-	bhg_seed_default_translations();
+    bhg_seed_default_translations_if_empty();
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
