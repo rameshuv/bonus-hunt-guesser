@@ -342,7 +342,7 @@ function bhg_init_plugin() {
 	);
 	add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
 	add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
-	add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+        add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
 }
 
 // Early table check on init.
@@ -361,10 +361,10 @@ function bhg_handle_settings_save() {
 	}
 
 	// Verify nonce.
-	if ( ! check_admin_referer( 'bhg_save_settings_nonce', 'bhg_settings_nonce' ) ) {
-		wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
-		exit;
-	}
+        if ( ! check_admin_referer( 'bhg_save_settings' ) ) {
+                wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) ) );
+                exit;
+        }
 
 		// Sanitize and validate data.
 	$settings = array();
@@ -432,14 +432,14 @@ function bhg_handle_settings_save() {
  * @return void
  */
 function bhg_handle_submit_guess() {
-	if ( wp_doing_ajax() ) {
-		check_ajax_referer( 'bhg_public_nonce', 'nonce' );
-	} else {
-		if ( ! isset( $_POST['bhg_nonce'] ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'bonus-hunt-guesser' ) );
-		}
-		check_admin_referer( 'bhg_submit_guess', 'bhg_nonce' );
-	}
+        if ( wp_doing_ajax() ) {
+                check_ajax_referer( 'bhg_public_nonce', 'nonce' );
+        } else {
+                if ( ! isset( $_POST['_wpnonce'] ) ) {
+                        wp_die( esc_html__( 'Security check failed.', 'bonus-hunt-guesser' ) );
+                }
+                check_admin_referer( 'bhg_submit_guess' );
+        }
 
 	$user_id = get_current_user_id();
 	if ( ! $user_id ) {

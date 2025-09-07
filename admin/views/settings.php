@@ -51,9 +51,9 @@ if ( ! empty( $error ) ) {
 <div class="wrap">
 	<h1><?php esc_html_e( 'Bonus Hunt Guesser Settings', 'bonus-hunt-guesser' ); ?></h1>
 	
-	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-		<input type="hidden" name="action" value="bhg_save_settings">
-		<?php wp_nonce_field( 'bhg_save_settings_nonce', 'bhg_settings_nonce' ); ?>
+        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                <input type="hidden" name="action" value="bhg_save_settings">
+                <?php wp_nonce_field( 'bhg_save_settings' ); ?>
 
 		<table class="form-table">
 			<tr>
