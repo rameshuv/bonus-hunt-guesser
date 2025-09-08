@@ -31,7 +31,5 @@ $tables = array(
 foreach ( $tables as $table ) {
 	$table_name = $wpdb->prefix . $table;
 	// db call ok; no-cache ok.
-	$wpdb->query(
-		$wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name )
-	);
+	$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 }
