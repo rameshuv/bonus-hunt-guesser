@@ -721,54 +721,56 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 			break;
 	}
 
-		$g = $wpdb->prefix . 'bhg_guesses';
-		$h = $wpdb->prefix . 'bhg_bonus_hunts';
-		$u = $wpdb->users;
-		
-		$where_clause = "h.status='closed' AND h.final_balance IS NOT NULL";
-		$params       = array();
-		if ( $start_date ) {
-			$where_clause .= ' AND h.updated_at >= %s';
-			$params[]      = $start_date;
-		}
-		
-		$total_sql = $wpdb->prepare(
-		"SELECT COUNT(*) FROM (
-		SELECT g.user_id
-		FROM {$g} g
-		INNER JOIN {$h} h ON h.id = g.hunt_id
-		WHERE {$where_clause} AND NOT EXISTS (
-		SELECT 1 FROM {$g} g2
-		WHERE g2.hunt_id = g.hunt_id
-		AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-		)
-		GROUP BY g.user_id
-		) t",
-		$params
-		);
-		// db call ok; no-cache ok.
-		$total = (int) $wpdb->get_var( $total_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		
-		$sql_params = array_merge( $params, array( $per_page, $offset ) );
-		$sql       = $wpdb->prepare(
-		"SELECT g.user_id, u.user_login, COUNT(*) AS wins
-		FROM {$g} g
-		INNER JOIN {$h} h ON h.id = g.hunt_id
-		INNER JOIN {$u} u ON u.ID = g.user_id
-		WHERE {$where_clause} AND NOT EXISTS (
-		SELECT 1 FROM {$g} g2
-		WHERE g2.hunt_id = g.hunt_id
-		AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-		)
-		GROUP BY g.user_id, u.user_login
-		ORDER BY wins DESC, u.user_login ASC
-		LIMIT %d OFFSET %d",
-		$sql_params
-		);
-		$rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		if ( ! $rows ) {
-			return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
-		}
+				$g = $wpdb->prefix . 'bhg_guesses';
+				$h = $wpdb->prefix . 'bhg_bonus_hunts';
+				$u = $wpdb->users;
+
+				$total_query  = "SELECT COUNT(*) FROM (
+                SELECT g.user_id
+                FROM %i g
+                INNER JOIN %i h ON h.id = g.hunt_id
+                WHERE h.status='closed' AND h.final_balance IS NOT NULL";
+				$params_total = array( $g, $h );
+	if ( $start_date ) {
+			$total_query   .= ' AND h.updated_at >= %s';
+			$params_total[] = $start_date;
+	}
+				$total_query   .= ' AND NOT EXISTS (
+                SELECT 1 FROM %i g2
+                WHERE g2.hunt_id = g.hunt_id
+                AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+                )
+                GROUP BY g.user_id
+                ) t';
+				$params_total[] = $g;
+				// db call ok; no-cache ok.
+				$total = (int) $wpdb->get_var( $wpdb->prepare( $total_query, $params_total ) );
+
+				$list_query  = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
+                FROM %i g
+                INNER JOIN %i h ON h.id = g.hunt_id
+                INNER JOIN %i u ON u.ID = g.user_id
+                WHERE h.status='closed' AND h.final_balance IS NOT NULL";
+				$params_list = array( $g, $h, $u );
+	if ( $start_date ) {
+			$list_query   .= ' AND h.updated_at >= %s';
+			$params_list[] = $start_date;
+	}
+				$list_query   .= ' AND NOT EXISTS (
+                SELECT 1 FROM %i g2
+                WHERE g2.hunt_id = g.hunt_id
+                AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+                )
+                GROUP BY g.user_id, u.user_login
+                ORDER BY wins DESC, u.user_login ASC
+                LIMIT %d OFFSET %d';
+				$params_list[] = $g;
+				$params_list[] = $per_page;
+				$params_list[] = $offset;
+				$rows          = $wpdb->get_results( $wpdb->prepare( $list_query, $params_list ) );
+	if ( ! $rows ) {
+		return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+	}
 
 	ob_start();
 	echo '<table class="bhg-leaderboard bhg-table" data-timeframe="' . esc_attr( $timeframe ) . '">';
