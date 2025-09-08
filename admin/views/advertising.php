@@ -19,34 +19,7 @@ if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
 }
 $ads_table = esc_sql( $ads_table );
 
-$single_action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
-$ad_id         = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
-$edit_id       = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
-$bulk_action   = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
-$bulk_ad_ids   = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
-
-// Delete action (single).
-
-if ( 'delete' === $single_action && $ad_id ) {
-		check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
-	if ( current_user_can( 'manage_options' ) ) {
-			$wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
-			wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
-			exit;
-	}
-}
-
-// Bulk delete action.
-if ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
-		check_admin_referer( 'bhg_bulk_delete_ads', 'bhg_bulk_delete_ads_nonce' );
-	if ( current_user_can( 'manage_options' ) ) {
-		foreach ( $bulk_ad_ids as $bulk_id ) {
-				$wpdb->delete( $ads_table, array( 'id' => $bulk_id ), array( '%d' ) );
-		}
-	}
-		wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
-		exit;
-}
+$edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 
 // Fetch ads.
 // db call ok; no-cache ok.
@@ -58,8 +31,9 @@ $ads = $wpdb->get_results(
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_advertising', 'Advertising' ) ); ?></h1>
 
 		<h2 style="margin-top:1em"><?php echo esc_html( bhg_t( 'existing_ads', 'Existing Ads' ) ); ?></h2>
-		<form method="post">
-				<?php wp_nonce_field( 'bhg_bulk_delete_ads', 'bhg_bulk_delete_ads_nonce' ); ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'bhg_delete_ad', 'bhg_delete_ad_nonce' ); ?>
+				<input type="hidden" name="action" value="bhg_delete_ad">
 				<div class="tablenav top">
 						<div class="alignleft actions bulkactions">
 								<label for="bulk-action-selector-top" class="screen-reader-text"><?php echo esc_html( bhg_t( 'select_bulk_action', 'Select bulk action' ) ); ?></label>
@@ -99,22 +73,7 @@ $ads = $wpdb->get_results(
 								<td><?php echo 1 === (int) $ad->active ? esc_html( bhg_t( 'yes', 'Yes' ) ) : esc_html( bhg_t( 'no', 'No' ) ); ?></td>
 								<td>
 								<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $ad->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
-								<a class="button-link-delete" href="
-										<?php
-															echo esc_url(
-																wp_nonce_url(
-																	add_query_arg(
-																		array(
-																			'action' => 'delete',
-																			'id'     => (int) $ad->id,
-																		)
-																	),
-																	'bhg_delete_ad',
-																	'bhg_delete_ad_nonce'
-																)
-															);
-										?>
-																									" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></a>
+												<button type="submit" name="ad_id" value="<?php echo (int) $ad->id; ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
 								</td>
 						</tr>
 											<?php

@@ -27,7 +27,8 @@ class BHG_Admin {
 		add_action( 'admin_post_bhg_delete_guess', array( $this, 'handle_delete_guess' ) );
 		add_action( 'admin_post_bhg_save_hunt', array( $this, 'handle_save_hunt' ) );
 		add_action( 'admin_post_bhg_close_hunt', array( $this, 'handle_close_hunt' ) );
-		add_action( 'admin_post_bhg_save_ad', array( $this, 'handle_save_ad' ) );
+                add_action( 'admin_post_bhg_save_ad', array( $this, 'handle_save_ad' ) );
+                add_action( 'admin_post_bhg_delete_ad', array( $this, 'handle_delete_ad' ) );
 		add_action( 'admin_post_bhg_tournament_save', array( $this, 'handle_save_tournament' ) );
 		add_action( 'admin_post_bhg_save_affiliate', array( $this, 'handle_save_affiliate' ) );
 		add_action( 'admin_post_bhg_delete_affiliate', array( $this, 'handle_delete_affiliate' ) );
@@ -342,34 +343,61 @@ class BHG_Admin {
 	/**
 	 * Close an active bonus hunt.
 	 */
-	public function handle_close_hunt() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-		}
-								check_admin_referer( 'bhg_close_hunt', 'bhg_close_hunt_nonce' );
+        public function handle_close_hunt() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
+                check_admin_referer( 'bhg_close_hunt', 'bhg_close_hunt_nonce' );
 
-		$hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
-		$final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
+                $hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+                $final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
 
-		if ( '' === $final_balance_raw || ! is_numeric( $final_balance_raw ) || (float) $final_balance_raw < 0 ) {
-			wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
-			exit;
-		}
+                if ( '' === $final_balance_raw || ! is_numeric( $final_balance_raw ) || (float) $final_balance_raw < 0 ) {
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
+                        exit;
+                }
 
-		$final_balance = (float) $final_balance_raw;
+                $final_balance = (float) $final_balance_raw;
 
-		if ( $hunt_id ) {
-			BHG_Models::close_hunt( $hunt_id, $final_balance );
-		}
+                if ( $hunt_id ) {
+                        BHG_Models::close_hunt( $hunt_id, $final_balance );
+                }
 
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
-		exit;
-	}
+                wp_safe_redirect( admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
+                exit;
+        }
 
-	/**
-	 * Save or update an advertising entry.
-	 */
-	public function handle_save_ad() {
+        /**
+         * Handle deletion of advertising entries.
+         */
+        public function handle_delete_ad() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
+                check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
+                global $wpdb;
+                $ads_table   = $wpdb->prefix . 'bhg_ads';
+                $ad_id       = isset( $_POST['ad_id'] ) ? absint( wp_unslash( $_POST['ad_id'] ) ) : 0;
+                $bulk_action = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
+                $bulk_ad_ids = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
+
+                if ( $ad_id ) {
+                        $wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
+                } elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
+                        foreach ( $bulk_ad_ids as $bulk_id ) {
+                                $wpdb->delete( $ads_table, array( 'id' => $bulk_id ), array( '%d' ) );
+                        }
+                }
+
+                $referer = wp_get_referer();
+                wp_safe_redirect( $referer ? $referer : admin_url( 'admin.php?page=bhg-ads' ) );
+                exit;
+        }
+
+        /**
+         * Save or update an advertising entry.
+         */
+        public function handle_save_ad() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
