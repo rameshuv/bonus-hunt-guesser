@@ -1,4 +1,4 @@
-<?php
+			<?php
 /**
  * Uninstall script for Bonus Hunt Guesser.
  *
@@ -29,7 +29,7 @@ $tables = array(
 );
 
 foreach ( $tables as $table ) {
-	$table_name = $wpdb->prefix . $table;
-	// db call ok; no-cache ok.
-		$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$table_name   = $wpdb->prefix . $table;
+	$prepared_sql = $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name ); // db call ok; no-cache ok.
+	$wpdb->query( $prepared_sql );
 }
