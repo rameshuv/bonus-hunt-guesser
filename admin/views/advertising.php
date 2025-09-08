@@ -1,4 +1,10 @@
 <?php
+/**
+ * Advertising management view.
+ *
+ * @package BonusHuntGuesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; }
 if ( ! current_user_can( 'manage_options' ) ) {
@@ -13,21 +19,36 @@ if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
 }
 $ads_table = esc_sql( $ads_table );
 
-$action  = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
-$ad_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
-$edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
+$single_action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+$ad_id         = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
+$edit_id       = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
+$bulk_action   = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
+$bulk_ad_ids   = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
 
-// Delete action
-if ( 'delete' === $action && $ad_id ) {
-				check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
+// Delete action (single).
+
+if ( 'delete' === $single_action && $ad_id ) {
+		check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
 	if ( current_user_can( 'manage_options' ) ) {
-				$wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
-		wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
-		exit;
+			$wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
+			wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
+			exit;
 	}
 }
 
-// Fetch ads
+// Bulk delete action.
+if ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
+		check_admin_referer( 'bhg_bulk_delete_ads', 'bhg_bulk_delete_ads_nonce' );
+	if ( current_user_can( 'manage_options' ) ) {
+		foreach ( $bulk_ad_ids as $bulk_id ) {
+				$wpdb->delete( $ads_table, array( 'id' => $bulk_id ), array( '%d' ) );
+		}
+	}
+		wp_safe_redirect( remove_query_arg( array( 'action', 'id', '_wpnonce' ) ) );
+		exit;
+}
+
+// Fetch ads.
 // db call ok; no-cache ok.
 $ads = $wpdb->get_results(
 	$wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $ads_table )
@@ -36,57 +57,73 @@ $ads = $wpdb->get_results(
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_advertising', 'Advertising' ) ); ?></h1>
 
-	<h2 style="margin-top:1em"><?php echo esc_html( bhg_t( 'existing_ads', 'Existing Ads' ) ); ?></h2>
-	<table class="widefat striped">
-	<thead>
-		<tr>
-		<th><?php echo esc_html( bhg_t( 'id', 'ID' ) ); ?></th>
-		<th><?php echo esc_html( bhg_t( 'titlecontent', 'Title/Content' ) ); ?></th>
-		<th><?php echo esc_html( bhg_t( 'placement', 'Placement' ) ); ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_visible_to', 'Visible To' ) ); ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_active', 'Active' ) ); ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
-		</tr>
-	</thead>
-	<tbody>
-		<?php if ( empty( $ads ) ) : ?>
-		<tr><td colspan="6"><?php echo esc_html( bhg_t( 'notice_no_ads_yet', 'No ads yet.' ) ); ?></td></tr>
-			<?php
-		else :
-			foreach ( $ads as $ad ) :
-				?>
-		<tr>
-			<td><?php echo (int) $ad->id; ?></td>
-			<td><?php echo isset( $ad->title ) && $ad->title !== '' ? esc_html( $ad->title ) : wp_kses_post( wp_trim_words( $ad->content, 12 ) ); ?></td>
-			<td><?php echo esc_html( isset( $ad->placement ) ? $ad->placement : 'none' ); ?></td>
-			<td><?php echo esc_html( isset( $ad->visible_to ) ? $ad->visible_to : 'all' ); ?></td>
-			<td><?php echo (int) $ad->active === 1 ? esc_html( bhg_t( 'yes', 'Yes' ) ) : esc_html( bhg_t( 'no', 'No' ) ); ?></td>
-			<td>
-			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $ad->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
-			<a class="button-link-delete" href="
-				<?php
-								echo esc_url(
-									wp_nonce_url(
-										add_query_arg(
-											array(
-												'action' => 'delete',
-												'id'     => (int) $ad->id,
-											)
-										),
-										'bhg_delete_ad',
-										'bhg_delete_ad_nonce'
-									)
-								);
-				?>
-												" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></a>
-			</td>
-		</tr>
-					<?php
-		endforeach;
-endif;
-		?>
-	</tbody>
-	</table>
+		<h2 style="margin-top:1em"><?php echo esc_html( bhg_t( 'existing_ads', 'Existing Ads' ) ); ?></h2>
+		<form method="post">
+				<?php wp_nonce_field( 'bhg_bulk_delete_ads', 'bhg_bulk_delete_ads_nonce' ); ?>
+				<div class="tablenav top">
+						<div class="alignleft actions bulkactions">
+								<label for="bulk-action-selector-top" class="screen-reader-text"><?php echo esc_html( bhg_t( 'select_bulk_action', 'Select bulk action' ) ); ?></label>
+								<select name="bulk_action" id="bulk-action-selector-top">
+										<option value=""><?php echo esc_html( bhg_t( 'bulk_actions', 'Bulk actions' ) ); ?></option>
+										<option value="delete"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></option>
+								</select>
+								<input type="submit" class="button action" value="<?php echo esc_attr( bhg_t( 'apply', 'Apply' ) ); ?>">
+						</div>
+				</div>
+
+				<table class="widefat striped">
+				<thead>
+						<tr>
+						<td id="cb" class="check-column"><input type="checkbox" onclick="document.querySelectorAll('.bhg-ad-checkbox').forEach(function(cb){cb.checked=this.checked;}.bind(this));" /></td>
+						<th><?php echo esc_html( bhg_t( 'id', 'ID' ) ); ?></th>
+						<th><?php echo esc_html( bhg_t( 'titlecontent', 'Title/Content' ) ); ?></th>
+						<th><?php echo esc_html( bhg_t( 'placement', 'Placement' ) ); ?></th>
+						<th><?php echo esc_html( bhg_t( 'label_visible_to', 'Visible To' ) ); ?></th>
+						<th><?php echo esc_html( bhg_t( 'label_active', 'Active' ) ); ?></th>
+						<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+						</tr>
+				</thead>
+				<tbody>
+						<?php if ( empty( $ads ) ) : ?>
+						<tr><td colspan="7"><?php echo esc_html( bhg_t( 'notice_no_ads_yet', 'No ads yet.' ) ); ?></td></tr>
+								<?php
+						else :
+							foreach ( $ads as $ad ) :
+								?>
+						<tr>
+								<th scope="row" class="check-column"><input type="checkbox" class="bhg-ad-checkbox" name="ad_ids[]" value="<?php echo (int) $ad->id; ?>" /></th>
+								<td><?php echo (int) $ad->id; ?></td>
+								<td><?php echo isset( $ad->title ) && '' !== $ad->title ? esc_html( $ad->title ) : wp_kses_post( wp_trim_words( $ad->content, 12 ) ); ?></td>
+								<td><?php echo esc_html( isset( $ad->placement ) ? $ad->placement : 'none' ); ?></td>
+								<td><?php echo esc_html( isset( $ad->visible_to ) ? $ad->visible_to : 'all' ); ?></td>
+								<td><?php echo 1 === (int) $ad->active ? esc_html( bhg_t( 'yes', 'Yes' ) ) : esc_html( bhg_t( 'no', 'No' ) ); ?></td>
+								<td>
+								<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $ad->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
+								<a class="button-link-delete" href="
+										<?php
+															echo esc_url(
+																wp_nonce_url(
+																	add_query_arg(
+																		array(
+																			'action' => 'delete',
+																			'id'     => (int) $ad->id,
+																		)
+																	),
+																	'bhg_delete_ad',
+																	'bhg_delete_ad_nonce'
+																)
+															);
+										?>
+																									" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></a>
+								</td>
+						</tr>
+											<?php
+								endforeach;
+						endif;
+						?>
+				</tbody>
+				</table>
+		</form>
 
 	<h2 style="margin-top:2em"><?php echo $edit_id ? esc_html( bhg_t( 'edit_ad', 'Edit Ad' ) ) : esc_html( bhg_t( 'add_ad', 'Add Ad' ) ); ?></h2>
 	<?php
