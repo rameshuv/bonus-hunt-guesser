@@ -39,23 +39,48 @@ $search_term = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s']
 
 // Handle form submission.
 if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_translation_action', 'bhg_nonce' ) ) {
-	$tkey   = isset( $_POST['tkey'] ) ? sanitize_text_field( wp_unslash( $_POST['tkey'] ) ) : '';
-	$tvalue = isset( $_POST['tvalue'] ) ? sanitize_textarea_field( wp_unslash( $_POST['tvalue'] ) ) : '';
+       $slug   = isset( $_POST['slug'] ) ? sanitize_text_field( wp_unslash( $_POST['slug'] ) ) : '';
+       $locale = isset( $_POST['locale'] ) ? sanitize_text_field( wp_unslash( $_POST['locale'] ) ) : get_locale();
+       $tvalue = isset( $_POST['tvalue'] ) ? sanitize_textarea_field( wp_unslash( $_POST['tvalue'] ) ) : '';
 
-	if ( '' === $tkey ) {
-		$form_error = bhg_t( 'key_field_is_required', 'Key field is required.' );
-	} else {
-		$wpdb->replace(
-			$table,
-			array(
-				'tkey'   => $tkey,
-				'tvalue' => $tvalue,
-			),
-			array( '%s', '%s' )
-		);
-		wp_cache_delete( 'bhg_translation_' . $tkey );
-		$notice = bhg_t( 'translation_saved', 'Translation saved.' );
-	}
+       if ( '' === $slug ) {
+               $form_error = bhg_t( 'key_field_is_required', 'Key field is required.' );
+       } else {
+               $exists = (int) $wpdb->get_var(
+                       $wpdb->prepare(
+                               'SELECT COUNT(*) FROM %i WHERE tkey = %s AND locale = %s',
+                               $table,
+                               $slug,
+                               $locale
+                       )
+               );
+
+               if ( $exists ) {
+                       $wpdb->update(
+                               $table,
+                               array( 'tvalue' => $tvalue ),
+                               array(
+                                       'tkey'   => $slug,
+                                       'locale' => $locale,
+                               ),
+                               array( '%s' ),
+                               array( '%s', '%s' )
+                       );
+               } else {
+                       $wpdb->insert(
+                               $table,
+                               array(
+                                       'tkey'   => $slug,
+                                       'tvalue' => $tvalue,
+                                       'locale' => $locale,
+                               ),
+                               array( '%s', '%s', '%s' )
+                       );
+               }
+
+               wp_cache_delete( 'bhg_t_' . $slug . '_' . $locale );
+               $notice = bhg_t( 'translation_saved', 'Translation saved.' );
+       }
 }
 
 // Fetch rows with pagination and optional search.
@@ -69,16 +94,16 @@ if ( $search_term ) {
                         $like
                 )
         );
-        $rows = $wpdb->get_results(
-                $wpdb->prepare(
-                        'SELECT tkey, tvalue FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC LIMIT %d OFFSET %d',
-                        $table,
-                        $like,
-                        $like,
-                        $items_per_page,
-                        $offset
-                )
-        );
+       $rows = $wpdb->get_results(
+               $wpdb->prepare(
+                       'SELECT tkey, tvalue, locale FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC LIMIT %d OFFSET %d',
+                       $table,
+                       $like,
+                       $like,
+                       $items_per_page,
+                       $offset
+               )
+       );
 } else {
         $total = (int) $wpdb->get_var(
                 $wpdb->prepare(
@@ -86,14 +111,14 @@ if ( $search_term ) {
                         $table
                 )
         );
-        $rows  = $wpdb->get_results(
-                $wpdb->prepare(
-                        'SELECT tkey, tvalue FROM %i ORDER BY tkey ASC LIMIT %d OFFSET %d',
-                        $table,
-                        $items_per_page,
-                        $offset
-                )
-        );
+       $rows  = $wpdb->get_results(
+               $wpdb->prepare(
+                       'SELECT tkey, tvalue, locale FROM %i ORDER BY tkey ASC LIMIT %d OFFSET %d',
+                       $table,
+                       $items_per_page,
+                       $offset
+               )
+       );
 }
 
 // Pagination links.
@@ -141,22 +166,23 @@ if ( $rows ) {
 		<div class="notice notice-error"><p><?php echo esc_html( $form_error ); ?></p></div>
 	<?php endif; ?>
 
-	<form method="post">
-		<?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
-		<table class="form-table" role="presentation">
-			<tbody>
-				<tr>
-					<th scope="row"><label for="tkey"><?php echo esc_html( bhg_t( 'key', 'Key' ) ); ?></label></th>
-					<td><input name="tkey" id="tkey" type="text" class="regular-text" required></td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="tvalue"><?php echo esc_html( bhg_t( 'value', 'Value' ) ); ?></label></th>
-					<td><textarea name="tvalue" id="tvalue" class="large-text" rows="4"></textarea></td>
-				</tr>
-			</tbody>
-		</table>
-		<p class="submit"><button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button></p>
-	</form>
+       <form method="post">
+               <?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
+               <input type="hidden" name="locale" value="<?php echo esc_attr( get_locale() ); ?>" />
+               <table class="form-table" role="presentation">
+                       <tbody>
+                               <tr>
+                                       <th scope="row"><label for="slug"><?php echo esc_html( bhg_t( 'slug', 'Slug' ) ); ?></label></th>
+                                       <td><input name="slug" id="slug" type="text" class="regular-text" required></td>
+                               </tr>
+                               <tr>
+                                       <th scope="row"><label for="tvalue"><?php echo esc_html( bhg_t( 'value', 'Value' ) ); ?></label></th>
+                                       <td><textarea name="tvalue" id="tvalue" class="large-text" rows="4"></textarea></td>
+                               </tr>
+                       </tbody>
+               </table>
+               <p class="submit"><button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button></p>
+       </form>
 
 	<form method="get" class="bhg-translations-search">
 		<input type="hidden" name="page" value="bhg-translations" />
@@ -192,23 +218,24 @@ if ( $rows ) {
 					</thead>
 					<tbody>
 						<?php
-						foreach ( $items as $r ) :
-							$default_val = $default_translations[ $r->tkey ] ?? '';
-							$row_class   = $r->tvalue === $default_val ? 'bhg-default-row' : 'bhg-custom-row';
-							?>
-							<tr class="<?php echo esc_attr( $row_class ); ?>">
-								<td><code><?php echo esc_html( $r->tkey ); ?></code></td>
-								<td><?php echo esc_html( $default_val ); ?></td>
-								<td>
-									<form method="post" class="bhg-inline-form">
-										<?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
-										<input type="hidden" name="tkey" value="<?php echo esc_attr( $r->tkey ); ?>" />
-										<input type="text" name="tvalue" value="<?php echo esc_attr( $r->tvalue ); ?>" class="regular-text" data-original="<?php echo esc_attr( $r->tvalue ); ?>" placeholder="<?php echo esc_attr( bhg_t( 'placeholder_custom_value', 'Custom value' ) ); ?>" />
-										<button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_update', 'Update' ) ); ?></button>
-									</form>
-								</td>
-							</tr>
-						<?php endforeach; ?>
+                                               foreach ( $items as $r ) :
+                                                       $default_val = $default_translations[ $r->tkey ] ?? '';
+                                                       $row_class   = $r->tvalue === $default_val ? 'bhg-default-row' : 'bhg-custom-row';
+                                                       ?>
+                                                       <tr class="<?php echo esc_attr( $row_class ); ?>">
+                                                               <td><code><?php echo esc_html( $r->tkey ); ?></code></td>
+                                                               <td><?php echo esc_html( $default_val ); ?></td>
+                                                               <td>
+                                                                       <form method="post" class="bhg-inline-form">
+                                                                               <?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
+                                                                               <input type="hidden" name="slug" value="<?php echo esc_attr( $r->tkey ); ?>" />
+                                                                               <input type="hidden" name="locale" value="<?php echo esc_attr( $r->locale ); ?>" />
+                                                                               <input type="text" name="tvalue" value="<?php echo esc_attr( $r->tvalue ); ?>" class="regular-text" data-original="<?php echo esc_attr( $r->tvalue ); ?>" placeholder="<?php echo esc_attr( bhg_t( 'placeholder_custom_value', 'Custom value' ) ); ?>" />
+                                                                               <button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_update', 'Update' ) ); ?></button>
+                                                                       </form>
+                                                               </td>
+                                                       </tr>
+                                               <?php endforeach; ?>
 					</tbody>
 				</table>
 			</div>

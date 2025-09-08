@@ -26,10 +26,9 @@ if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
 				$is_aff = (bool) bhg_is_user_affiliate( $user_id );
 		}
 
-			$cls   = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
-			$label = $is_aff ? esc_attr__( 'Affiliate', 'bonus-hunt-guesser' )
-											: esc_attr__( 'Non-affiliate', 'bonus-hunt-guesser' );
+               $cls   = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
+               $label = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
 
-			return '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . $label . '"></span>';
-	}
+               return '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
+       }
 }
