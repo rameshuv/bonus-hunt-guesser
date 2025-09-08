@@ -78,7 +78,8 @@ foreach ( $periods as $key => $label ) :
 </tr>
 <tr>
 <th scope="row"><label for="bhg_ads_enabled"><?php echo esc_html( bhg_t( 'ads_enabled', 'Enable Ads' ) ); ?></label></th>
-<td><input type="checkbox" id="bhg_ads_enabled" name="bhg_ads_enabled" value="1" <?php checked( isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 0, 1 ); ?>></td>
+<td><input type="hidden" name="bhg_ads_enabled" value="0">
+<input type="checkbox" id="bhg_ads_enabled" name="bhg_ads_enabled" value="1" <?php checked( ! empty( $settings['ads_enabled'] ) ); ?>></td>
 </tr>
 <tr>
 <th scope="row"><label for="bhg_email_from"><?php echo esc_html( bhg_t( 'email_from', 'Email From Address' ) ); ?></label></th>
