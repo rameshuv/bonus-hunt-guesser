@@ -557,15 +557,16 @@ class BHG_Admin {
 	/**
 	 * Handle BHG tools form submissions.
 	 */
-	public function handle_tools_action() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-		}
-               // Verify request authenticity.
+       public function handle_tools_action() {
+               if ( ! current_user_can( 'manage_options' ) ) {
+                       wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+               }
+
                check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
-		exit;
-	}
+
+               wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
+               exit;
+       }
 
 	/**
 	 * Display admin notices for tournament actions.
