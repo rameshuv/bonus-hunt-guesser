@@ -168,9 +168,13 @@ endif;
 if ( 'close' === $view ) :
 		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
 		// db call ok; no-cache ok.
-		$hunt = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $hunts_table, $id )
-		);
+               $hunt = $wpdb->get_row(
+                       $wpdb->prepare(
+                               'SELECT * FROM %i WHERE id = %d',
+                               $hunts_table,
+                               $id
+                       )
+               );
 	if ( ! $hunt || 'open' !== $hunt->status ) :
 		echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt_2', 'Invalid hunt.' ) ) . '</p></div>';
 	else :
