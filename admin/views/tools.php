@@ -33,17 +33,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php
 	global $wpdb;
 
-	$hunts_table       = esc_sql( "{$wpdb->prefix}bhg_bonus_hunts" );
-	$guesses_table     = esc_sql( "{$wpdb->prefix}bhg_guesses" );
-	$users_table       = esc_sql( $wpdb->users );
-	$ads_table         = esc_sql( "{$wpdb->prefix}bhg_ads" );
-	$tournaments_table = esc_sql( "{$wpdb->prefix}bhg_tournaments" );
+	$hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
+	$guesses_table     = $wpdb->prefix . 'bhg_guesses';
+	$users_table       = $wpdb->users;
+	$ads_table         = $wpdb->prefix . 'bhg_ads';
+	$tournaments_table = $wpdb->prefix . 'bhg_tournaments';
 
-	$hunts       = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $hunts_table ) );
-	$guesses     = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $guesses_table ) );
-	$users       = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $users_table ) );
-	$ads         = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $ads_table ) );
-	$tournaments = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . $tournaments_table ) );
+	$hunts       = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $hunts_table ) );
+	$guesses     = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $guesses_table ) );
+	$users       = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $users_table ) );
+	$ads         = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $ads_table ) );
+	$tournaments = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $tournaments_table ) );
 	?>
 
 	<div class="card" style="max-width:900px;padding:16px;margin-top:12px;">
