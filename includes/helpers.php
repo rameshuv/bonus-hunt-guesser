@@ -524,9 +524,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'inactive'                                     => 'Inactive',
 			'optimize_database_tables'                     => 'Optimize Database Tables',
 			'participants'                                 => 'Participants',
-			'period'                                       => 'Period:',
-			'placement'                                    => 'Placement',
-			'please_enter_a_guess'                         => 'Please enter a guess.',
+                       'period'                                       => 'Period:',
+                       'placement'                                    => 'Placement',
+                       'play_responsibly'                             => 'Play responsibly.',
+                       'please_enter_a_guess'                         => 'Please enter a guess.',
 			'guess_required'                               => 'Please enter a guess.',
 			'please_enter_a_valid_number'                  => 'Please enter a valid number.',
 			'guess_numeric'                                => 'Please enter a valid number.',
@@ -553,11 +554,12 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'search_users_2'                               => 'Search users',
                         'security_check_failed'                        => 'Security check failed. Please try again.',
 			'security_check_failed_2'                      => 'Security check failed.',
-			'security_check_failed_please_retry'           => 'Security check failed. Please retry.',
-			'security_check_failed_please_try_again'       => 'Security check failed. Please try again.',
-			'settings'                                     => 'Settings',
-			'settings_saved_successfully'                  => 'Settings saved successfully.',
-			'settings_currently_unavailable'               => 'Settings management is currently unavailable.',
+                       'security_check_failed_please_retry'           => 'Security check failed. Please retry.',
+                       'security_check_failed_please_try_again'       => 'Security check failed. Please try again.',
+                       'see_promo'                                    => 'See promo',
+                       'settings'                                     => 'Settings',
+                       'settings_saved_successfully'                  => 'Settings saved successfully.',
+                       'settings_currently_unavailable'               => 'Settings management is currently unavailable.',
 			'show_ads_block_on_selected_pages'             => 'Show ads block on selected pages.',
 			'status'                                       => 'Status:',
 			'tshirt'                                       => 'T-shirt',
@@ -1158,9 +1160,15 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 	$p      = $wpdb->prefix;
 	$tr_tbl = "{$p}bhg_translations";
 	
-	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
-		bhg_seed_default_translations_if_empty();
-	}
-	
-	return true;
-	}
+        if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
+                bhg_seed_default_translations_if_empty();
+        }
+
+        return true;
+        }
+
+// Ensure default translations are seeded on load so newly added keys appear
+// in the Translations page without requiring manual intervention.
+if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
+       bhg_seed_default_translations_if_empty();
+}
