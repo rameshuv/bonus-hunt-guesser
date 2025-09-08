@@ -113,3 +113,24 @@ function bhg_insert_demo_data() {
 	);
 }
 
+?>
+<div class="wrap">
+<h1><?php echo esc_html( bhg_t( 'database', 'Database' ) ); ?></h1>
+<?php if ( ! empty( $cleanup_completed ) ) : ?>
+<div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'database_cleanup_completed', 'Database cleanup completed.' ) ); ?></p></div>
+<?php endif; ?>
+<?php if ( ! empty( $optimize_completed ) ) : ?>
+<div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'database_optimization_completed', 'Database optimization completed.' ) ); ?></p></div>
+<?php endif; ?>
+<form method="post">
+<?php wp_nonce_field( 'bhg_db_cleanup_action', 'bhg_nonce' ); ?>
+<input type="hidden" name="bhg_action" value="db_cleanup" />
+<?php submit_button( bhg_t( 'cleanup_database', 'Cleanup Database' ), 'secondary', 'bhg_db_cleanup', false ); ?>
+</form>
+<form method="post" class="bhg-margin-top-small">
+<?php wp_nonce_field( 'bhg_db_optimize_action', 'bhg_nonce' ); ?>
+<input type="hidden" name="bhg_action" value="db_optimize" />
+<?php submit_button( bhg_t( 'optimize_database', 'Optimize Database' ), 'secondary', 'bhg_db_optimize', false ); ?>
+</form>
+</div>
+
