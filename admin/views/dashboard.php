@@ -32,6 +32,7 @@ $user_counts = count_users();
 $users_count = isset( $user_counts['total_users'] ) ? (int) $user_counts['total_users'] : 0;
 
 $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balance, final_balance, winners_count, closed_at.
+// Output dashboard with full-width cards.
 ?>
 <div class="wrap bhg-admin bhg-wrap bhg-dashboard">
 				<h1 class="bhg-dashboard-heading"><?php echo esc_html( bhg_t( 'menu_dashboard', 'Dashboard' ) ); ?></h1>
