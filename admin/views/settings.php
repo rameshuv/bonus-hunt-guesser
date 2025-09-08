@@ -16,10 +16,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 // Fetch existing settings.
 $settings = get_option( 'bhg_plugin_settings', array() );
 
-// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-$message = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
-
-// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
 ?>
 <div class="wrap">
@@ -34,7 +31,7 @@ $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error']
 <?php endif; ?>
 
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-<?php wp_nonce_field( 'bhg_save_settings', 'bhg_save_settings_nonce' ); ?>
+<?php wp_nonce_field( 'bhg_settings', 'bhg_settings_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_save_settings">
 
 <table class="form-table" role="presentation">
