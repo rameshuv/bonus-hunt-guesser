@@ -1133,7 +1133,16 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 				),
 				array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
 			);
-		}
-	}
-		return true;
 }
+}
+
+	global $wpdb;
+	$p      = $wpdb->prefix;
+	$tr_tbl = "{$p}bhg_translations";
+	
+	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
+		bhg_seed_default_translations_if_empty();
+	}
+	
+	return true;
+	}
