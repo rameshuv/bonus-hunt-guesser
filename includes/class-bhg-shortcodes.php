@@ -238,14 +238,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 					$order       = strtoupper( sanitize_key( $a['order'] ) );
 					$order       = in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'ASC';
-					$map         = array(
-					'guess'    => 'g.guess',
-					'user'     => 'u.user_login',
-					'position' => 'g.id', // stable proxy
+					$allowed_orderby = array(
+						'guess'    => 'g.guess',
+						'user'     => 'u.user_login',
+						'position' => 'g.id', // stable proxy
 					);
 					$orderby_key = sanitize_key( $a['orderby'] );
-					$orderby_key = array_key_exists( $orderby_key, $map ) ? $orderby_key : 'guess';
-					$orderby     = $map[ $orderby_key ];
+					if ( ! array_key_exists( $orderby_key, $allowed_orderby ) ) {
+										$orderby_key = 'guess';
+					}
+					$orderby     = $allowed_orderby[ $orderby_key ];
 					$page        = max( 1, (int) $a['page'] );
 					$per         = max( 1, (int) $a['per_page'] );
 					$offset      = ( $page - 1 ) * $per;
@@ -274,12 +276,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					$total = $ranking;
 			}
 
-																				$hunts_table     = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-																				$allowed_orderby = array( 'g.guess', 'u.user_login', 'g.id' );
-			if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
-							$orderby = 'g.guess';
-			}
-                       $query = $wpdb->prepare(
+					$hunts_table     = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+					$query = $wpdb->prepare(
                                'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %i g LEFT JOIN %i u ON u.ID = g.user_id LEFT JOIN %i h ON h.id = g.hunt_id WHERE g.hunt_id = %d',
                                $g,
                                $u,
