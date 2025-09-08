@@ -208,19 +208,17 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			 * Supports ranking (1-10) and fields (comma-separated list).
 			 */
 		public function leaderboard_shortcode( $atts ) {
-					$a = shortcode_atts(
-						array(
-							'hunt_id'  => 0,
-							'orderby'  => 'guess', // guess|user|position
-							'order'    => 'ASC',
-							'page'     => 1,
-							'per_page' => 20,
-							'ranking'  => 0, // top N results
-							'fields'   => 'position,user,guess',
-						),
-						$atts,
-						'bhg_leaderboard'
-					);
+                                        $a = shortcode_atts(
+                                                array(
+                                                        'hunt_id' => 0,
+                                                        'orderby' => 'guess', // guess|user|position
+                                                        'order'   => 'ASC',
+                                                        'ranking' => 10, // top N results (1–10)
+                                                        'fields'  => 'position,user,guess',
+                                                ),
+                                                $atts,
+                                                'bhg_leaderboard'
+                                        );
 
 				       global $wpdb;
 				       $hunt_id = (int) $a['hunt_id'];
@@ -251,45 +249,34 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 $orderby_key = 'guess';
                         }
                         $orderby = $allowed_orderby[ $orderby_key ];
-					$page        = max( 1, (int) $a['page'] );
-					$per         = max( 1, (int) $a['per_page'] );
-					$offset      = ( $page - 1 ) * $per;
 
-					$ranking = max( 0, min( 10, (int) $a['ranking'] ) );
-					if ( $ranking > 0 ) {
-							$per    = $ranking;
-							$page   = 1;
-							$offset = 0;
-					}
+                                        $ranking = max( 1, min( 10, (int) $a['ranking'] ) );
 
-					$fields_raw    = explode( ',', (string) $a['fields'] );
-					$allowed_field = array( 'position', 'user', 'guess' );
-					$fields        = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
-					if ( empty( $fields ) ) {
-							$fields = $allowed_field;
-					}
+                                        $fields_raw    = explode( ',', (string) $a['fields'] );
+                                        $allowed_field = array( 'position', 'user', 'guess' );
+                                        $fields        = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
+                                        if ( empty( $fields ) ) {
+                                                        $fields = $allowed_field;
+                                        }
 
-				       $total = (int) $wpdb->get_var(
-					       $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d', $g, $hunt_id )
-				       ); // db call ok; no-cache ok.
-			if ( $total < 1 ) {
-					return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
-			}
-			if ( $ranking > 0 && $total > $ranking ) {
-					$total = $ranking;
-			}
+                                       $total = (int) $wpdb->get_var(
+                                               $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d', $g, $hunt_id )
+                                       ); // db call ok; no-cache ok.
+                        if ( $total < 1 ) {
+                                        return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
+                        }
 
-					$hunts_table     = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-					$query = $wpdb->prepare(
-			       'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %i g LEFT JOIN %i u ON u.ID = g.user_id LEFT JOIN %i h ON h.id = g.hunt_id WHERE g.hunt_id = %d',
-			       $g,
-			       $u,
-			       $hunts_table,
-			       $hunt_id
-		       );
-		       $query .= ' ORDER BY ' . $orderby . ' ' . $order;
-		       $query .= $wpdb->prepare( ' LIMIT %d OFFSET %d', $per, $offset );
-																				$rows   = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+                                        $hunts_table     = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                                        $query = $wpdb->prepare(
+                               'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %i g LEFT JOIN %i u ON u.ID = g.user_id LEFT JOIN %i h ON h.id = g.hunt_id WHERE g.hunt_id = %d',
+                               $g,
+                               $u,
+                               $hunts_table,
+                               $hunt_id
+                       );
+                       $query .= ' ORDER BY ' . $orderby . ' ' . $order; 
+                       $query .= $wpdb->prepare( ' LIMIT %d', $ranking );
+                                                                                                                               $rows   = $wpdb->get_results( $query ); // db call ok; no-cache ok.
 
 					wp_enqueue_style(
 						'bhg-shortcodes',
@@ -312,9 +299,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			}
 				echo '</tr></thead><tbody>';
 
-				$pos       = $offset + 1;
-				$need_user = in_array( 'user', $fields, true );
-			foreach ( $rows as $r ) {
+                                $pos       = 1;
+                                $need_user = in_array( 'user', $fields, true );
+                        foreach ( $rows as $r ) {
 				if ( $need_user ) {
 					$site_id = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
 					$is_aff  = $site_id > 0
@@ -336,24 +323,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					}
 				}
 						echo '</tr>';
-						++$pos;
-			}
-				echo '</tbody></table>';
+                                                ++$pos;
+                        }
+                                echo '</tbody></table>';
 
-				$pages = (int) ceil( $total / $per );
-			if ( $pages > 1 && 0 === $ranking ) {
-				$raw  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : home_url( '/' );
-				$base = esc_url_raw( remove_query_arg( 'page', wp_validate_redirect( $raw, home_url( '/' ) ) ) );
-				echo '<div class="bhg-pagination">';
-				for ( $p = 1; $p <= $pages; $p++ ) {
-					$class = $p === $page ? ' class="bhg-current-page"' : '';
-					echo '<a' . $class . ' href="' . esc_url( add_query_arg( array( 'page' => $p ), $base ) ) . '">' . (int) $p . '</a> ';
-				}
-				echo '</div>';
-			}
-
-				return ob_get_clean();
-		}
+                                return ob_get_clean();
+                }
 
 			/**
 			 * [bhg_user_guesses]
