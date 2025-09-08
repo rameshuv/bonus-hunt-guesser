@@ -236,7 +236,14 @@ class BHG_DB {
                                                                $wpdb->query( $alter );
                                                        }
                                                }
-                                               // Ensure unique index
+                                               // Ensure composite unique index on (slug, locale).
+                                               // Drop legacy single-column indexes if present first.
+                                               if ( $this->index_exists( $trans_table, 'slug' ) ) {
+                                                       $wpdb->query( "ALTER TABLE `{$trans_table}` DROP INDEX slug" );
+                                               }
+                                               if ( $this->index_exists( $trans_table, 'slug_unique' ) ) {
+                                                       $wpdb->query( "ALTER TABLE `{$trans_table}` DROP INDEX slug_unique" );
+                                               }
                                                if ( ! $this->index_exists( $trans_table, 'slug_locale' ) ) {
                                                        $wpdb->query( "ALTER TABLE `{$trans_table}` ADD UNIQUE KEY slug_locale (slug, locale)" );
                                                }
