@@ -23,8 +23,6 @@ if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
 	bhg_seed_default_translations_if_empty();
 }
 
-$default_translations = function_exists( 'bhg_get_default_translations' ) ? bhg_get_default_translations() : array();
-
 // Pagination variables.
 $allowed_per_page = array( 10, 20, 50 );
 $items_per_page   = isset( $_GET['per_page'] ) ? absint( wp_unslash( $_GET['per_page'] ) ) : 20;
@@ -41,14 +39,14 @@ $search_term = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s']
 if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_translation_action', 'bhg_nonce' ) ) {
        $slug   = isset( $_POST['slug'] ) ? sanitize_text_field( wp_unslash( $_POST['slug'] ) ) : '';
        $locale = isset( $_POST['locale'] ) ? sanitize_text_field( wp_unslash( $_POST['locale'] ) ) : get_locale();
-       $tvalue = isset( $_POST['tvalue'] ) ? sanitize_textarea_field( wp_unslash( $_POST['tvalue'] ) ) : '';
+       $text   = isset( $_POST['text'] ) ? sanitize_textarea_field( wp_unslash( $_POST['text'] ) ) : '';
 
        if ( '' === $slug ) {
                $form_error = bhg_t( 'key_field_is_required', 'Key field is required.' );
        } else {
                $exists = (int) $wpdb->get_var(
                        $wpdb->prepare(
-                               'SELECT COUNT(*) FROM %i WHERE tkey = %s AND locale = %s',
+                               'SELECT COUNT(*) FROM %i WHERE slug = %s AND locale = %s',
                                $table,
                                $slug,
                                $locale
@@ -58,9 +56,9 @@ if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_t
                if ( $exists ) {
                        $wpdb->update(
                                $table,
-                               array( 'tvalue' => $tvalue ),
+                               array( 'text' => $text ),
                                array(
-                                       'tkey'   => $slug,
+                                       'slug'   => $slug,
                                        'locale' => $locale,
                                ),
                                array( '%s' ),
@@ -70,8 +68,8 @@ if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_t
                        $wpdb->insert(
                                $table,
                                array(
-                                       'tkey'   => $slug,
-                                       'tvalue' => $tvalue,
+                                       'slug'   => $slug,
+                                       'text'   => $text,
                                        'locale' => $locale,
                                ),
                                array( '%s', '%s', '%s' )
@@ -89,16 +87,18 @@ if ( $search_term ) {
         $like  = '%' . $wpdb->esc_like( $search_term ) . '%';
         $total = (int) $wpdb->get_var(
                 $wpdb->prepare(
-                        'SELECT COUNT(*) FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s',
+                        'SELECT COUNT(*) FROM %i WHERE slug LIKE %s OR text LIKE %s OR default_text LIKE %s',
                         $table,
+                        $like,
                         $like,
                         $like
                 )
         );
        $rows = $wpdb->get_results(
                $wpdb->prepare(
-                       'SELECT tkey, tvalue, locale FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC LIMIT %d OFFSET %d',
+                       'SELECT slug, default_text, text, locale FROM %i WHERE slug LIKE %s OR text LIKE %s OR default_text LIKE %s ORDER BY slug ASC LIMIT %d OFFSET %d',
                        $table,
+                       $like,
                        $like,
                        $like,
                        $items_per_page,
@@ -114,7 +114,7 @@ if ( $search_term ) {
         );
        $rows  = $wpdb->get_results(
                $wpdb->prepare(
-                       'SELECT tkey, tvalue, locale FROM %i ORDER BY tkey ASC LIMIT %d OFFSET %d',
+                       'SELECT slug, default_text, text, locale FROM %i ORDER BY slug ASC LIMIT %d OFFSET %d',
                        $table,
                        $items_per_page,
                        $offset
@@ -140,16 +140,16 @@ $pagination  = paginate_links(
 // Group rows by context (prefix before the first underscore).
 $grouped = array();
 if ( $rows ) {
-	foreach ( $rows as $r ) {
-		list( $context )       = array_pad( explode( '_', $r->tkey, 2 ), 2, 'misc' );
-		$grouped[ $context ][] = $r;
-	}
+        foreach ( $rows as $r ) {
+                list( $context )       = array_pad( explode( '_', $r->slug, 2 ), 2, 'misc' );
+                $grouped[ $context ][] = $r;
+        }
 	ksort( $grouped );
 	foreach ( $grouped as &$items ) {
 		usort(
 			$items,
 			static function ( $a, $b ) {
-				return strcmp( $a->tkey, $b->tkey );
+                                return strcmp( $a->slug, $b->slug );
 			}
 		);
 	}
@@ -177,8 +177,8 @@ if ( $rows ) {
                                        <td><input name="slug" id="slug" type="text" class="regular-text" required></td>
                                </tr>
                                <tr>
-                                       <th scope="row"><label for="tvalue"><?php echo esc_html( bhg_t( 'value', 'Value' ) ); ?></label></th>
-                                       <td><textarea name="tvalue" id="tvalue" class="large-text" rows="4"></textarea></td>
+                                       <th scope="row"><label for="text"><?php echo esc_html( bhg_t( 'value', 'Value' ) ); ?></label></th>
+                                       <td><textarea name="text" id="text" class="large-text" rows="4"></textarea></td>
                                </tr>
                        </tbody>
                </table>
@@ -220,18 +220,17 @@ if ( $rows ) {
 					<tbody>
 						<?php
                                                foreach ( $items as $r ) :
-                                                       $default_val = $default_translations[ $r->tkey ] ?? '';
-                                                       $row_class   = $r->tvalue === $default_val ? 'bhg-default-row' : 'bhg-custom-row';
+                                                       $row_class = ( '' === $r->text || $r->text === $r->default_text ) ? 'bhg-default-row' : 'bhg-custom-row';
                                                        ?>
                                                        <tr class="<?php echo esc_attr( $row_class ); ?>">
-                                                               <td><code><?php echo esc_html( $r->tkey ); ?></code></td>
-                                                               <td><?php echo esc_html( $default_val ); ?></td>
+                                                               <td><code><?php echo esc_html( $r->slug ); ?></code></td>
+                                                               <td><?php echo esc_html( $r->default_text ); ?></td>
                                                                <td>
                                                                        <form method="post" class="bhg-inline-form">
                                                                                <?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
-                                                                               <input type="hidden" name="slug" value="<?php echo esc_attr( $r->tkey ); ?>" />
+                                                                               <input type="hidden" name="slug" value="<?php echo esc_attr( $r->slug ); ?>" />
                                                                                <input type="hidden" name="locale" value="<?php echo esc_attr( $r->locale ); ?>" />
-                                                                               <input type="text" name="tvalue" value="<?php echo esc_attr( $r->tvalue ); ?>" class="regular-text" data-original="<?php echo esc_attr( $r->tvalue ); ?>" placeholder="<?php echo esc_attr( bhg_t( 'placeholder_custom_value', 'Custom value' ) ); ?>" />
+                                                                               <input type="text" name="text" value="<?php echo esc_attr( $r->text ); ?>" class="regular-text" data-original="<?php echo esc_attr( $r->text ); ?>" placeholder="<?php echo esc_attr( bhg_t( 'placeholder_custom_value', 'Custom value' ) ); ?>" />
                                                                                <button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_update', 'Update' ) ); ?></button>
                                                                        </form>
                                                                </td>
