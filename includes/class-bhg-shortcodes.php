@@ -236,18 +236,21 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$g = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
 			$u = $this->sanitize_table( $wpdb->users );
 
-					$order       = strtoupper( sanitize_key( $a['order'] ) );
-					$order       = in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'ASC';
-					$allowed_orderby = array(
-						'guess'    => 'g.guess',
-						'user'     => 'u.user_login',
-						'position' => 'g.id', // stable proxy
-					);
-					$orderby_key = sanitize_key( $a['orderby'] );
-					if ( ! array_key_exists( $orderby_key, $allowed_orderby ) ) {
-										$orderby_key = 'guess';
-					}
-					$orderby     = $allowed_orderby[ $orderby_key ];
+                        $allowed_orders = array( 'ASC', 'DESC' );
+                        $order          = strtoupper( sanitize_key( $a['order'] ) );
+                        if ( ! in_array( $order, $allowed_orders, true ) ) {
+                                $order = 'ASC';
+                        }
+                        $allowed_orderby = array(
+                                'guess'    => 'g.guess',
+                                'user'     => 'u.user_login',
+                                'position' => 'g.id', // stable proxy
+                        );
+                        $orderby_key = sanitize_key( $a['orderby'] );
+                        if ( ! isset( $allowed_orderby[ $orderby_key ] ) ) {
+                                $orderby_key = 'guess';
+                        }
+                        $orderby = $allowed_orderby[ $orderby_key ];
 					$page        = max( 1, (int) $a['page'] );
 					$per         = max( 1, (int) $a['per_page'] );
 					$offset      = ( $page - 1 ) * $per;
@@ -437,15 +440,20 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[] = $since;
 			}
 					
-					$order       = strtoupper( sanitize_key( $a['order'] ) );
-					$order       = in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'DESC';
-					$orderby_map = array(
-					'guess' => 'g.guess',
-					'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
-					);
-					$orderby_key = sanitize_key( $a['orderby'] );
-					$orderby_key = isset( $orderby_map[ $orderby_key ] ) ? $orderby_key : 'hunt';
-$orderby     = $orderby_map[ $orderby_key ];
+                        $allowed_orders = array( 'ASC', 'DESC' );
+                        $order          = strtoupper( sanitize_key( $a['order'] ) );
+                        if ( ! in_array( $order, $allowed_orders, true ) ) {
+                                $order = 'DESC';
+                        }
+                        $orderby_map = array(
+                                'guess' => 'g.guess',
+                                'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
+                        );
+                        $orderby_key = sanitize_key( $a['orderby'] );
+                        if ( ! isset( $orderby_map[ $orderby_key ] ) ) {
+                                $orderby_key = 'hunt';
+                        }
+                        $orderby = $orderby_map[ $orderby_key ];
 
 						$query  = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $g . ' g INNER JOIN ' . $h . ' h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where );
 						$query  = $wpdb->prepare( $query, ...$params );
@@ -842,22 +850,23 @@ $orderby     = $orderby_map[ $orderby_key ];
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
 
-				$orderby = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
-				$order   = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
+                        $orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
+                        $allowed_orders = array( 'asc', 'desc' );
+                        $order          = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
 
-								$allowed = array(
-									'wins'        => 'r.wins',
-									'username'    => 'u.user_login',
-									'last_win_at' => 'r.last_win_date',
-								);
-								if ( ! isset( $allowed[ $orderby ] ) ) {
-										$orderby = 'wins';
-								}
-								if ( 'asc' !== $order && 'desc' !== $order ) {
-										$order = 'desc';
-								}
-								$orderby_column = $allowed[ $orderby ];
-								$order          = strtoupper( $order );
+                        $allowed = array(
+                                'wins'        => 'r.wins',
+                                'username'    => 'u.user_login',
+                                'last_win_at' => 'r.last_win_date',
+                        );
+                        if ( ! isset( $allowed[ $orderby ] ) ) {
+                                $orderby = 'wins';
+                        }
+                        if ( ! in_array( $order, $allowed_orders, true ) ) {
+                                $order = 'desc';
+                        }
+                        $orderby_column = $allowed[ $orderby ];
+                        $order          = strtoupper( $order );
 
 							       $query = $wpdb->prepare(
 								       'SELECT r.user_id, r.wins, r.last_win_date, u.user_login FROM %i r INNER JOIN %i u ON u.ID = r.user_id WHERE r.tournament_id = %d',
