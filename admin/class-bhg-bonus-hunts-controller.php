@@ -45,7 +45,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 		 */
 		public function init() {
 						add_action( 'admin_init', array( $this, 'handle_form_submissions' ) );
-												add_action( 'admin_post_bhg_delete_guess', [ $this, 'delete_guess' ] ); // phpcs:ignore Generic.WhiteSpace.DisallowSpaceIndent,Universal.Arrays.DisallowShortArraySyntax
+			add_action( 'admin_post_bhg_delete_guess', array( $this, 'delete_guess' ) );
 		}
 
 		/**
@@ -176,7 +176,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 				$deleted = false;
 
 			if ( $guess_id > 0 ) {
-							$deleted = (bool) $wpdb->delete( $table, array( 'id' => $guess_id ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name is static and deletion queries are acceptable without caching.
+				$deleted = (bool) $wpdb->delete( $table, array( 'id' => $guess_id ), array( '%d' ) );
 			}
 
 							$message = $deleted ? 'guess_deleted' : 'error';
