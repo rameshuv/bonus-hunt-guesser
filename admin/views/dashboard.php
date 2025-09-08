@@ -36,7 +36,7 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 <div class="wrap bhg-wrap bhg-dashboard">
 		<h1><?php echo esc_html( bhg_t( 'menu_dashboard', 'Dashboard' ) ); ?></h1>
 
-		<div class="bhg-dashboard-cards">
+                <main class="bhg-dashboard-cards">
 				<section class="bhg-dashboard-card" aria-labelledby="bhg-dashboard-summary-title">
 						<header class="bhg-card-header">
 								<h2 id="bhg-dashboard-summary-title" class="bhg-card-title"><?php echo esc_html( bhg_t( 'summary', 'Summary' ) ); ?></h2>
@@ -138,6 +138,6 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
                                                                <?php endif; ?>
                                                                <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts' ) ); ?>" class="button button-primary"><?php echo esc_html( bhg_t( 'view_all_hunts', 'View All Hunts' ) ); ?></a></p>
                                                </div>
-                               </section>
-               </div>
+                                </section>
+                </main>
 </div>
