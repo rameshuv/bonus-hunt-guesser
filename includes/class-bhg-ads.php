@@ -225,6 +225,10 @@ class BHG_Ads {
 	 * @return string
 	 */
 	public static function shortcode( $atts = array(), $content = '', $tag = '' ) {
+		if ( ! self::ads_enabled() ) {
+			return '';
+		}
+
 		$a = shortcode_atts(
 			array(
 				'id'     => 0,
