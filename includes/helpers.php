@@ -157,6 +157,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'advertising'                                  => 'Advertising',
                         'translations'                                 => 'Translations',
                         'tools'                                        => 'Tools',
+                        'tournament'                                   => 'Tournament',
 
                         // Form/field labels.
                         'label_start_balance'                          => 'Starting Balance',

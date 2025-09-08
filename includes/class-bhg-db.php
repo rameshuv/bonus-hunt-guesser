@@ -47,16 +47,18 @@ class BHG_DB {
 			starting_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
 			num_bonuses INT UNSIGNED NOT NULL DEFAULT 0,
 			prizes TEXT NULL,
-			affiliate_site_id BIGINT UNSIGNED NULL,
-			winners_count INT UNSIGNED NOT NULL DEFAULT 3,
-			final_balance DECIMAL(12,2) NULL,
-			status VARCHAR(20) NOT NULL DEFAULT 'open',
-			created_at DATETIME NULL,
-			updated_at DATETIME NULL,
-			closed_at DATETIME NULL,
-			PRIMARY KEY  (id),
-			KEY status (status)
-		) {$charset_collate};";
+                        affiliate_site_id BIGINT UNSIGNED NULL,
+                        tournament_id BIGINT UNSIGNED NULL,
+                        winners_count INT UNSIGNED NOT NULL DEFAULT 3,
+                        final_balance DECIMAL(12,2) NULL,
+                        status VARCHAR(20) NOT NULL DEFAULT 'open',
+                        created_at DATETIME NULL,
+                        updated_at DATETIME NULL,
+                        closed_at DATETIME NULL,
+                        PRIMARY KEY  (id),
+                        KEY status (status),
+                        KEY tournament_id (tournament_id)
+                ) {$charset_collate};";
 
 		// Guesses
 		$sql[] = "CREATE TABLE {$guesses_table} (
@@ -160,18 +162,22 @@ class BHG_DB {
 
 		// Idempotent ensure for columns/indexes
 		try {
-			// Hunts: winners_count, affiliate_site_id
-			$need = array(
-				'winners_count'     => "ALTER TABLE `{$hunts_table}` ADD COLUMN winners_count INT UNSIGNED NOT NULL DEFAULT 3",
-				'affiliate_site_id' => "ALTER TABLE `{$hunts_table}` ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL",
-				'final_balance'     => "ALTER TABLE `{$hunts_table}` ADD COLUMN final_balance DECIMAL(12,2) NULL",
-				'status'            => "ALTER TABLE `{$hunts_table}` ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'open'",
-			);
-			foreach ( $need as $c => $alter ) {
-				if ( ! $this->column_exists( $hunts_table, $c ) ) {
-					$wpdb->query( $alter );
-				}
-			}
+                        // Hunts: winners_count, affiliate_site_id, tournament_id
+                        $need = array(
+                                'winners_count'     => "ALTER TABLE `{$hunts_table}` ADD COLUMN winners_count INT UNSIGNED NOT NULL DEFAULT 3",
+                                'affiliate_site_id' => "ALTER TABLE `{$hunts_table}` ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL",
+                                'tournament_id'     => "ALTER TABLE `{$hunts_table}` ADD COLUMN tournament_id BIGINT UNSIGNED NULL",
+                                'final_balance'     => "ALTER TABLE `{$hunts_table}` ADD COLUMN final_balance DECIMAL(12,2) NULL",
+                                'status'            => "ALTER TABLE `{$hunts_table}` ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'open'",
+                        );
+                        foreach ( $need as $c => $alter ) {
+                                if ( ! $this->column_exists( $hunts_table, $c ) ) {
+                                        $wpdb->query( $alter );
+                                }
+                        }
+                        if ( ! $this->index_exists( $hunts_table, 'tournament_id' ) ) {
+                                $wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY tournament_id (tournament_id)" );
+                        }
 
 			// Tournaments: make sure common columns exist
 			$tneed = array(

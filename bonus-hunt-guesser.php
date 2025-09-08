@@ -103,6 +103,19 @@ if ( ! function_exists( 'bhg_parse_amount' ) ) {
 	}
 }
 
+if ( ! function_exists( 'bhg_sanitize_tournament_id' ) ) {
+
+	/**
+	 * Sanitize a tournament ID value.
+	 *
+	 * @param mixed $tid Raw tournament ID.
+	 * @return int Sanitized ID.
+	 */
+	function bhg_sanitize_tournament_id( $tid ) {
+		return max( 0, absint( $tid ) );
+	}
+}
+
 // Ensure canonical DB class is loaded.
 require_once __DIR__ . '/includes/class-bhg-db.php';
 
