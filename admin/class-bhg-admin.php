@@ -568,17 +568,17 @@ class BHG_Admin {
 	 * Handle submission of the Tools page.
 	 */
 	public function handle_tools_action() {
-                if ( ! current_user_can( 'manage_options' ) ) {
-                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-                }
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+		}
 
-                // Verify nonce for tools action submission.
-                check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
+		// Verify nonce for tools action submission.
+		check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
 
-                // Redirect back to the tools page with a success message.
-                wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
-                exit;
-        }
+		// Redirect back to the tools page with a success message.
+		wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
+		exit;
+	}
 
 	/**
 	 * Display admin notices for tournament actions.
