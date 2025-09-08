@@ -614,20 +614,22 @@ $orderby     = $orderby_map[ $orderby_key ];
 						/**
 						 * [bhg_leaderboards] — overall wins leaderboard.
 						 *
-						 * Attributes:
-						 * - fields: comma-separated list of columns to display.
-						 *   Allowed: pos,user,wins,avg,aff,site,hunt,tournament.
-						 * - ranking: number of top positions to display (1–10).
+                                                 * Attributes:
+                                                 * - fields: comma-separated list of columns to display.
+                                                 *   Allowed: pos,user,wins,avg,aff,site,hunt,tournament.
+                                                 * - ranking: number of top positions to display (1–10).
+                                                 * - timeline: optional window (day|week|month|year).
 						 */
 		public function leaderboards_shortcode( $atts ) {
 			$a = shortcode_atts(
-				array(
-					'fields'  => 'pos,user,wins',
-					'ranking' => 10,
-				),
-				$atts,
-				'bhg_leaderboards'
-			);
+                                array(
+                                        'fields'   => 'pos,user,wins',
+                                        'ranking'  => 10,
+                                        'timeline' => '',
+                                ),
+                                $atts,
+                                'bhg_leaderboards'
+                        );
 
 			$raw_fields                = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
 						$allowed_field = array( 'pos', 'user', 'wins', 'avg', 'aff', 'site', 'hunt', 'tournament' );
@@ -636,8 +638,24 @@ $orderby     = $orderby_map[ $orderby_key ];
 						$fields_arr = array( 'pos', 'user', 'wins' );
 			}
 
-			global $wpdb;
-			$ranking = max( 1, min( 10, (int) $a['ranking'] ) );
+                        global $wpdb;
+                        $ranking = max( 1, min( 10, (int) $a['ranking'] ) );
+
+                        // Optional timeline filter.
+                        $where      = '';
+                        $prep_where = array();
+                        $timeline   = sanitize_key( $a['timeline'] );
+                        $intervals  = array(
+                                'day'   => '-1 day',
+                                'week'  => '-1 week',
+                                'month' => '-1 month',
+                                'year'  => '-1 year',
+                        );
+                        if ( isset( $intervals[ $timeline ] ) ) {
+                                $since       = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
+                                $where       = ' WHERE r.last_win_date >= %s';
+                                $prep_where[] = $since;
+                        }
 
 			$need_avg        = in_array( 'avg', $fields_arr, true );
 			$need_site       = in_array( 'site', $fields_arr, true );
@@ -659,13 +677,18 @@ $orderby     = $orderby_map[ $orderby_key ];
                                $sql          .= ', (SELECT AVG(hw.position) FROM %i hw WHERE hw.user_id = r.user_id) AS avg_rank';
                                $prep_tables[] = $hw;
                        }
-                       $sql          .= ' FROM %i r INNER JOIN %i u ON u.ID = r.user_id GROUP BY r.user_id, u.user_login';
+                       $sql          .= ' FROM %i r INNER JOIN %i u ON u.ID = r.user_id';
                        $prep_tables[] = $r;
                        $prep_tables[] = $u;
-                       $sql           = $wpdb->prepare( $sql, ...$prep_tables );
-                       $sql          .= ' ORDER BY total_wins DESC, u.user_login ASC';
-                       $sql          .= $wpdb->prepare( ' LIMIT %d', $ranking );
-                       $rows          = $wpdb->get_results( $sql );
+                       if ( $where ) {
+                               $sql         .= $where;
+                               $prep_tables = array_merge( $prep_tables, $prep_where );
+                       }
+                       $sql  .= ' GROUP BY r.user_id, u.user_login';
+                       $sql   = $wpdb->prepare( $sql, ...$prep_tables );
+                       $sql  .= ' ORDER BY total_wins DESC, u.user_login ASC';
+                       $sql  .= $wpdb->prepare( ' LIMIT %d', $ranking );
+                       $rows  = $wpdb->get_results( $sql );
 
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
