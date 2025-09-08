@@ -7,7 +7,15 @@
     --bhg-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 }
 
+/* Base admin wrapper */
+.bhg-wrap {
+    font-family: var(--bhg-font-family);
+    line-height: 1.5;
+    font-size: 14px;
+}
+
 /* Brand-colour headings */
+.bhg-wrap h1,
 .bhg-wrap h2,
 .bhg-wrap h3,
 .bhg-wrap h4,
@@ -139,6 +147,7 @@ flex: 1;
     line-height: 1.5;
     font-size: 14px;
     width: 100%;
+    margin-bottom: var(--bhg-spacing);
 }
 
 
@@ -164,6 +173,8 @@ flex: 1;
     background-color: var(--bhg-accent-color);
     border-color: var(--bhg-accent-color);
     color: #fff;
+    font-weight: 600;
+    border-radius: 4px;
 }
 
 .bhg-wrap .button:hover,
