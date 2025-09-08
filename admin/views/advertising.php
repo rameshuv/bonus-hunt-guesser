@@ -15,9 +15,46 @@ global $wpdb;
 $ads_table      = $wpdb->prefix . 'bhg_ads';
 $allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
 if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
-		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+				wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 $ads_table = esc_sql( $ads_table );
+
+// Process ad creation or update only on valid POST requests.
+if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['bhg_save_ad_nonce'] ) ) {
+	check_admin_referer( 'bhg_save_ad', 'bhg_save_ad_nonce' );
+
+	$ad_id      = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+	$ad_title   = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+	$ad_content = isset( $_POST['content'] ) ? wp_kses_post( wp_unslash( $_POST['content'] ) ) : '';
+	$ad_link    = isset( $_POST['link_url'] ) ? esc_url_raw( wp_unslash( $_POST['link_url'] ) ) : '';
+	$ad_place   = isset( $_POST['placement'] ) ? sanitize_text_field( wp_unslash( $_POST['placement'] ) ) : 'none';
+	$ad_visible = isset( $_POST['visible_to'] ) ? sanitize_text_field( wp_unslash( $_POST['visible_to'] ) ) : 'all';
+	$ad_targets = isset( $_POST['target_pages'] ) ? sanitize_text_field( wp_unslash( $_POST['target_pages'] ) ) : '';
+	$ad_active  = isset( $_POST['active'] ) ? 1 : 0;
+
+	$ad_data   = array(
+		'title'        => $ad_title,
+		'content'      => $ad_content,
+		'link_url'     => $ad_link,
+		'placement'    => $ad_place,
+		'visible_to'   => $ad_visible,
+		'target_pages' => $ad_targets,
+		'active'       => $ad_active,
+		'updated_at'   => current_time( 'mysql' ),
+	);
+	$ad_format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' );
+
+	if ( $ad_id ) {
+		$wpdb->update( $ads_table, $ad_data, array( 'id' => $ad_id ), $ad_format, array( '%d' ) );
+	} else {
+		$ad_data['created_at'] = current_time( 'mysql' );
+		$ad_format[]           = '%s';
+		$wpdb->insert( $ads_table, $ad_data, $ad_format );
+	}
+
+	wp_redirect( admin_url( 'admin.php?page=bhg-ads' ) );
+	exit;
+}
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 
@@ -94,12 +131,11 @@ $ads = $wpdb->get_results(
 																		);
 	}
 	?>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
-				<?php wp_nonce_field( 'bhg_save_ad', 'bhg_save_ad_nonce' ); ?>
-	<input type="hidden" name="action" value="bhg_save_ad">
-	<?php if ( $ad ) : ?>
-		<input type="hidden" name="id" value="<?php echo (int) $ad->id; ?>">
-	<?php endif; ?>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=bhg-ads' ) ); ?>" style="max-width:800px">
+								<?php wp_nonce_field( 'bhg_save_ad', 'bhg_save_ad_nonce' ); ?>
+		<?php if ( $ad ) : ?>
+				<input type="hidden" name="id" value="<?php echo (int) $ad->id; ?>">
+		<?php endif; ?>
 
 	<table class="form-table" role="presentation">
 		<tbody>
