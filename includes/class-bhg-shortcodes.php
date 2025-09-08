@@ -42,6 +42,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$wpdb->prefix . 'bhg_tournaments',
 				$wpdb->prefix . 'bhg_tournament_results',
 				$wpdb->prefix . 'bhg_affiliate_websites',
+				$wpdb->prefix . 'bhg_hunt_winners',
 				$wpdb->users,
 			);
 			return in_array( $table, $allowed, true ) ? esc_sql( $table ) : '';
