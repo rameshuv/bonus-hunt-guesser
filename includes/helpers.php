@@ -362,8 +362,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'sc_affiliate'                                 => 'Affiliate',
 			'sc_position'                                  => 'Position',
 			'sc_user'                                      => 'User',
-			'sc_wins'                                      => 'Wins',
-			'sc_start'                                     => 'Start',
+                        'sc_wins'                                      => 'Wins',
+                        'sc_avg_rank'                                  => 'Avg Rank',
+                        'sc_start'                                     => 'Start',
 			'sc_end'                                       => 'End',
 			'sc_prizes'                                    => 'Prizes',
 
