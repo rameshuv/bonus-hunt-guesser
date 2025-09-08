@@ -98,8 +98,8 @@ if ( ! function_exists( 'bhg_t' ) ) {
        function bhg_t( $slug, $default = '', $locale = '' ) {
                global $wpdb;
 
-               $slug   = (string) $slug;
-               $locale = $locale ? (string) $locale : get_locale();
+               $slug      = (string) $slug;
+               $locale    = $locale ? (string) $locale : get_locale();
                $cache_key = 'bhg_t_' . $slug . '_' . $locale;
                $cached    = wp_cache_get( $cache_key );
 
@@ -109,11 +109,16 @@ if ( ! function_exists( 'bhg_t' ) ) {
 
                $table = $wpdb->prefix . 'bhg_translations';
                $row   = $wpdb->get_row(
-                       $wpdb->prepare( 'SELECT tvalue FROM %i WHERE tkey = %s AND locale = %s', $table, $slug, $locale )
+                       $wpdb->prepare(
+                               'SELECT text, default_text FROM %i WHERE slug = %s AND locale = %s',
+                               $table,
+                               $slug,
+                               $locale
+                       )
                );
 
-               if ( $row && isset( $row->tvalue ) ) {
-                       $value = (string) $row->tvalue;
+               if ( $row ) {
+                       $value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
                        wp_cache_set( $cache_key, $value );
                        return $value;
                }
@@ -599,38 +604,41 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
 		 *
 		 * @return void
 		 */
-	function bhg_seed_default_translations() {
-		global $wpdb;
+       function bhg_seed_default_translations() {
+               global $wpdb;
 
-		$table = $wpdb->prefix . 'bhg_translations';
+               $table  = $wpdb->prefix . 'bhg_translations';
+               $locale = get_locale();
 
-		foreach ( bhg_get_default_translations() as $tkey => $tvalue ) {
-				$tkey = trim( (string) $tkey );
-			if ( '' === $tkey ) {
-						continue; // Skip invalid keys.
-			}
+               foreach ( bhg_get_default_translations() as $slug => $def_text ) {
+                       $slug = trim( (string) $slug );
+                       if ( '' === $slug ) {
+                               continue; // Skip invalid keys.
+                       }
 
-				$exists = (int) $wpdb->get_var(
-					$wpdb->prepare(
-						'SELECT COUNT(*) FROM %i WHERE tkey = %s',
-						$table,
-						$tkey
-					)
-				);
+                       $exists = (int) $wpdb->get_var(
+                               $wpdb->prepare(
+                                       'SELECT COUNT(*) FROM %i WHERE slug = %s AND locale = %s',
+                                       $table,
+                                       $slug,
+                                       $locale
+                               )
+                       );
 
-			if ( 0 === $exists ) {
-				$wpdb->insert(
-					$table,
-					array(
-						'tkey'   => $tkey,
-						'tvalue' => (string) $tvalue,
-						'locale' => get_locale(),
-					),
-					array( '%s', '%s', '%s' )
-				);
-			}
-		}
-	}
+                       if ( 0 === $exists ) {
+                               $wpdb->insert(
+                                       $table,
+                                       array(
+                                               'slug'         => $slug,
+                                               'default_text' => (string) $def_text,
+                                               'text'         => '',
+                                               'locale'       => $locale,
+                                       ),
+                                       array( '%s', '%s', '%s', '%s' )
+                               );
+                       }
+               }
+       }
 }
 
 if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
