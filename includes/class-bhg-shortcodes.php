@@ -236,14 +236,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$g = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
 			$u = $this->sanitize_table( $wpdb->users );
 
-					$order       = strtoupper( $a['order'] );
+					$order       = strtoupper( sanitize_key( $a['order'] ) );
 					$order       = in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'ASC';
 					$map         = array(
-						'guess'    => 'g.guess',
-						'user'     => 'u.user_login',
-						'position' => 'g.id', // stable proxy
+					'guess'    => 'g.guess',
+					'user'     => 'u.user_login',
+					'position' => 'g.id', // stable proxy
 					);
-					$orderby_key = array_key_exists( $a['orderby'], $map ) ? $a['orderby'] : 'guess';
+					$orderby_key = sanitize_key( $a['orderby'] );
+					$orderby_key = array_key_exists( $orderby_key, $map ) ? $orderby_key : 'guess';
 					$orderby     = $map[ $orderby_key ];
 					$page        = max( 1, (int) $a['page'] );
 					$per         = max( 1, (int) $a['per_page'] );
@@ -437,15 +438,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$where[]  = 'g.created_at >= %s';
 				$params[] = $since;
 			}
-
-						$order       = strtoupper( $a['order'] );
-						$order       = in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'DESC';
-						$orderby_map = array(
-							'guess' => 'g.guess',
-							'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
-						);
-						$orderby_key = isset( $orderby_map[ $a['orderby'] ] ) ? $a['orderby'] : 'hunt';
-						$orderby     = $orderby_map[ $orderby_key ];
+					
+					$order       = strtoupper( sanitize_key( $a['order'] ) );
+					$order       = in_array( $order, array( 'ASC', 'DESC' ), true ) ? $order : 'DESC';
+					$orderby_map = array(
+					'guess' => 'g.guess',
+					'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
+					);
+					$orderby_key = sanitize_key( $a['orderby'] );
+					$orderby_key = isset( $orderby_map[ $orderby_key ] ) ? $orderby_key : 'hunt';
+$orderby     = $orderby_map[ $orderby_key ];
 
 						$query  = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $g . ' g INNER JOIN ' . $h . ' h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where );
 						$query  = $wpdb->prepare( $query, ...$params );
