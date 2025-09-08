@@ -618,26 +618,27 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
                        }
 
                        $exists = $wpdb->get_var(
+                               // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
                                $wpdb->prepare(
-                                       'SELECT id FROM %i WHERE slug = %s AND locale = %s LIMIT 1',
-                                       $table,
+                                       "SELECT COUNT(*) FROM {$table} WHERE slug = %s AND locale = %s",
                                        $slug,
                                        $locale
                                )
                        );
-
-                       if ( null === $exists ) {
-                               $wpdb->insert(
-                                       $table,
-                                       array(
-                                               'slug'         => $slug,
-                                               'default_text' => (string) $def_text,
-                                               'text'         => '',
-                                               'locale'       => $locale,
-                                       ),
-                                       array( '%s', '%s', '%s', '%s' )
-                               );
+                       if ( $exists ) {
+                               continue;
                        }
+
+                       $wpdb->insert(
+                               $table,
+                               array(
+                                       'slug'         => $slug,
+                                       'default_text' => (string) $def_text,
+                                       'text'         => '',
+                                       'locale'       => $locale,
+                               ),
+                               array( '%s', '%s', '%s', '%s' )
+                       );
                }
        }
 }
@@ -801,6 +802,22 @@ if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
                $cls   = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
                $label = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
                return '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
+       }
+}
+
+if ( ! function_exists( 'bhg_cleanup_translation_duplicates' ) ) {
+       /**
+        * Remove duplicate translation rows keeping the lowest ID.
+        *
+        * @return void
+        */
+       function bhg_cleanup_translation_duplicates() {
+               global $wpdb;
+
+               $table = $wpdb->prefix . 'bhg_translations';
+
+               // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
+               $wpdb->query( "DELETE t1 FROM {$table} t1 INNER JOIN {$table} t2 ON t1.slug = t2.slug AND t1.locale = t2.locale AND t1.id > t2.id" );
        }
 }
 
