@@ -12,9 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="wrap">
 	<h1><?php echo esc_html( bhg_t( 'bhg_tools', 'BHG Tools' ) ); ?></h1>
 
-                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-                        <input type="hidden" name="action" value="bhg_tools_action">
-                        <?php wp_nonce_field( 'bhg_tools_action', 'bhg_tools_nonce' ); ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="bhg_tools_action">
+			<?php wp_nonce_field( 'bhg_tools_action', 'bhg_tools_nonce' ); ?>
 		<p>
 		<?php
 		echo esc_html(
