@@ -29,13 +29,13 @@ class BHG_Front_Menus {
 	 * @return void
 	 */
 	public function register_locations() {
-		register_nav_menus(
-			array(
-				'bhg_menu_admin' => __( 'BHG Admin/Moderator Menu', 'bonus-hunt-guesser' ),
-				'bhg_menu_user'  => __( 'BHG Logged-in User Menu', 'bonus-hunt-guesser' ),
-				'bhg_menu_guest' => __( 'BHG Guest Menu', 'bonus-hunt-guesser' ),
-			)
-		);
+               register_nav_menus(
+                       array(
+                               'bhg_menu_admin' => bhg_t( 'bhg_menu_admin', 'BHG Menu — Admin/Moderators' ),
+                               'bhg_menu_user'  => bhg_t( 'bhg_menu_loggedin', 'BHG Menu — Logged-in Users' ),
+                               'bhg_menu_guest' => bhg_t( 'bhg_menu_guests', 'BHG Menu — Guests' ),
+                       )
+               );
 	}
 
 	/**
@@ -96,10 +96,10 @@ class BHG_Front_Menus {
 		);
 		$args     = wp_parse_args( $args, $defaults );
 		$menu     = wp_nav_menu( $args );
-		if ( ! $menu ) {
-			// Fallback message is escaped.
-			$menu = '<nav class="bhg-menu"><ul><li>' . esc_html__( 'Menu not assigned.', 'bonus-hunt-guesser' ) . '</li></ul></nav>';
-		}
+               if ( ! $menu ) {
+                       // Fallback message is escaped.
+                       $menu = '<nav class="bhg-menu"><ul><li>' . esc_html( bhg_t( 'menu_not_assigned', 'Menu not assigned.' ) ) . '</li></ul></nav>';
+               }
 		return $menu;
 	}
 

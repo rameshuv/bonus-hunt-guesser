@@ -87,38 +87,40 @@ function bhg_is_frontend() {
 }
 
 if ( ! function_exists( 'bhg_t' ) ) {
-	/**
-	 * Retrieve a translation value from the database.
-	 *
-	 * @param string $key     Translation key.
-	 * @param string $default Default text if not found.
-	 * @return string
-	 */
-	function bhg_t( $key, $default = '' ) {
-			global $wpdb;
+       /**
+        * Retrieve a translation value from the database.
+        *
+        * @param string $slug    Translation slug.
+        * @param string $default Default text if not found.
+        * @param string $locale  Locale to use. Defaults to current locale.
+        * @return string
+        */
+       function bhg_t( $slug, $default = '', $locale = '' ) {
+               global $wpdb;
 
-			$key       = (string) $key;
-			$cache_key = 'bhg_translation_' . $key;
-			$cached    = wp_cache_get( $cache_key );
+               $slug   = (string) $slug;
+               $locale = $locale ? (string) $locale : get_locale();
+               $cache_key = 'bhg_t_' . $slug . '_' . $locale;
+               $cached    = wp_cache_get( $cache_key );
 
-		if ( false !== $cached ) {
-				return (string) $cached;
-		}
+               if ( false !== $cached ) {
+                       return (string) $cached;
+               }
 
-			$table = $wpdb->prefix . 'bhg_translations';
-			$row   = $wpdb->get_row(
-				$wpdb->prepare( 'SELECT tvalue FROM %i WHERE tkey = %s', $table, $key )
-			);
+               $table = $wpdb->prefix . 'bhg_translations';
+               $row   = $wpdb->get_row(
+                       $wpdb->prepare( 'SELECT tvalue FROM %i WHERE tkey = %s AND locale = %s', $table, $slug, $locale )
+               );
 
-		if ( $row && isset( $row->tvalue ) ) {
-			$value = (string) $row->tvalue;
-			wp_cache_set( $cache_key, $value );
-			return $value;
-		}
+               if ( $row && isset( $row->tvalue ) ) {
+                       $value = (string) $row->tvalue;
+                       wp_cache_set( $cache_key, $value );
+                       return $value;
+               }
 
-			wp_cache_set( $cache_key, (string) $default );
-			return (string) $default;
-	}
+               wp_cache_set( $cache_key, (string) $default );
+               return (string) $default;
+       }
 }
 
 if ( ! function_exists( 'bhg_get_default_translations' ) ) {
@@ -678,17 +680,17 @@ function bhg_validate_guess( $guess ) {
  * @return string Display name with optional affiliate indicator.
  */
 function bhg_get_user_display_name( $user_id ) {
-	$user = get_userdata( (int) $user_id );
-	if ( ! $user ) {
-		return __( 'Unknown User', 'bonus-hunt-guesser' );
-	}
+       $user = get_userdata( (int) $user_id );
+       if ( ! $user ) {
+               return bhg_t( 'unknown_user', 'Unknown User' );
+       }
 
 	$display_name = $user->display_name ? $user->display_name : $user->user_login;
 	$is_affiliate = bhg_is_user_affiliate( (int) $user_id );
 
-	if ( $is_affiliate ) {
-		$display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr__( 'Affiliate User', 'bonus-hunt-guesser' ) . '">★</span>';
-	}
+       if ( $is_affiliate ) {
+               $display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
+       }
 
 	return $display_name;
 }
@@ -774,10 +776,10 @@ if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
 	 */
 	function bhg_render_affiliate_dot( $user_id, $hunt_affiliate_site_id = 0 ) {
 		$is_aff = bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_affiliate_site_id );
-		$cls    = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
-		$label  = $is_aff ? esc_attr__( 'Affiliate', 'bonus-hunt-guesser' ) : esc_attr__( 'Non-affiliate', 'bonus-hunt-guesser' );
-		return '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . $label . '"></span>';
-	}
+               $cls   = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
+               $label = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
+               return '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
+       }
 }
 
 /**

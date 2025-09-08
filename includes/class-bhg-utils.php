@@ -87,9 +87,16 @@ class BHG_Utils {
 	 * @return void
 	 */
 	public static function require_cap() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to access this page', 'bonus-hunt-guesser' ) );
-		}
+               if ( ! current_user_can( 'manage_options' ) ) {
+                       wp_die(
+                               esc_html(
+                                       bhg_t(
+                                               'you_do_not_have_permission_to_access_this_page',
+                                               'You do not have permission to access this page'
+                                       )
+                               )
+                       );
+               }
 	}
 
 	/**
