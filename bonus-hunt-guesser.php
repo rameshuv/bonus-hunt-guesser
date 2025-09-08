@@ -726,44 +726,44 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 				$u = $wpdb->users;
 
 				$total_query  = "SELECT COUNT(*) FROM (
-                SELECT g.user_id
-                FROM %i g
-                INNER JOIN %i h ON h.id = g.hunt_id
-                WHERE h.status='closed' AND h.final_balance IS NOT NULL";
+				SELECT g.user_id
+				FROM %i g
+				INNER JOIN %i h ON h.id = g.hunt_id
+				WHERE h.status='closed' AND h.final_balance IS NOT NULL";
 				$params_total = array( $g, $h );
 	if ( $start_date ) {
 			$total_query   .= ' AND h.updated_at >= %s';
 			$params_total[] = $start_date;
 	}
 				$total_query   .= ' AND NOT EXISTS (
-                SELECT 1 FROM %i g2
-                WHERE g2.hunt_id = g.hunt_id
-                AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-                )
-                GROUP BY g.user_id
-                ) t';
+				SELECT 1 FROM %i g2
+				WHERE g2.hunt_id = g.hunt_id
+				AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+				)
+				GROUP BY g.user_id
+				) t';
 				$params_total[] = $g;
 				// db call ok; no-cache ok.
 				$total = (int) $wpdb->get_var( $wpdb->prepare( $total_query, $params_total ) );
 
 				$list_query  = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
-                FROM %i g
-                INNER JOIN %i h ON h.id = g.hunt_id
-                INNER JOIN %i u ON u.ID = g.user_id
-                WHERE h.status='closed' AND h.final_balance IS NOT NULL";
+				FROM %i g
+				INNER JOIN %i h ON h.id = g.hunt_id
+				INNER JOIN %i u ON u.ID = g.user_id
+				WHERE h.status='closed' AND h.final_balance IS NOT NULL";
 				$params_list = array( $g, $h, $u );
 	if ( $start_date ) {
 			$list_query   .= ' AND h.updated_at >= %s';
 			$params_list[] = $start_date;
 	}
 				$list_query   .= ' AND NOT EXISTS (
-                SELECT 1 FROM %i g2
-                WHERE g2.hunt_id = g.hunt_id
-                AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-                )
-                GROUP BY g.user_id, u.user_login
-                ORDER BY wins DESC, u.user_login ASC
-                LIMIT %d OFFSET %d';
+				SELECT 1 FROM %i g2
+				WHERE g2.hunt_id = g.hunt_id
+				AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
+				)
+				GROUP BY g.user_id, u.user_login
+				ORDER BY wins DESC, u.user_login ASC
+				LIMIT %d OFFSET %d';
 				$params_list[] = $g;
 				$params_list[] = $per_page;
 				$params_list[] = $offset;
