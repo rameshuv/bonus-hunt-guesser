@@ -8,9 +8,8 @@
     <arg name="tab-width" value="4"/>
     <arg name="extensions" value="php"/>
 
-    <!-- Explicitly scan the plugin's core files; avoid overly broad excludes -->
-    <file>bonus-hunt-guesser.php</file>
-    <file>admin/</file>
-    <file>includes/</file>
-    <file>uninstall.php</file>
+    <!-- Scan all plugin PHP files -->
+    <file>.</file>
+    <exclude-pattern>vendor/</exclude-pattern>
+    <exclude-pattern>node_modules/</exclude-pattern>
 </ruleset>
