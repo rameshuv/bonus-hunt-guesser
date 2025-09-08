@@ -187,7 +187,7 @@ jQuery(document).ready(function($) {
                     $('#bhg-leaderboard-' + timeframe).html(response.data);
                     $('#bhg-leaderboard-' + timeframe).addClass('loaded');
                 } else {
-                    console.error('Error loading leaderboard:', response.data);
+                    console.error(bhg_public_ajax.i18n.error_loading_leaderboard, response.data);
                 }
             },
             complete: function() {
