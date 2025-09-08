@@ -617,27 +617,39 @@ $orderby     = $orderby_map[ $orderby_key ];
 						 * Attributes:
 						 * - fields: comma-separated list of columns to display.
 						 *   Allowed: pos,user,wins,avg,aff,site,hunt,tournament.
-						 * - ranking: number of top positions to display (1–10).
-						 */
-		public function leaderboards_shortcode( $atts ) {
-			$a = shortcode_atts(
-				array(
-					'fields'  => 'pos,user,wins',
-					'ranking' => 10,
-				),
-				$atts,
-				'bhg_leaderboards'
-			);
+                                                 * - ranking: rank range to display as "start-end" (e.g., "1-10"). Max 10 rows.
+                                                 */
+                public function leaderboards_shortcode( $atts ) {
+                        $a = shortcode_atts(
+                                array(
+                                        'fields'  => 'pos,user,wins',
+                                        'ranking' => '1-10',
+                                ),
+                                $atts,
+                                'bhg_leaderboards'
+                        );
 
-			$raw_fields                = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
-						$allowed_field = array( 'pos', 'user', 'wins', 'avg', 'aff', 'site', 'hunt', 'tournament' );
-			$fields_arr                = array_values( array_unique( array_intersect( $allowed_field, array_map( 'sanitize_key', $raw_fields ) ) ) );
-			if ( empty( $fields_arr ) ) {
-						$fields_arr = array( 'pos', 'user', 'wins' );
-			}
+                        $raw_fields   = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
+                        $allowed_field = array( 'pos', 'user', 'wins', 'avg', 'aff', 'site', 'hunt', 'tournament' );
+                        $fields_arr   = array_values( array_unique( array_intersect( $allowed_field, array_map( 'sanitize_key', $raw_fields ) ) ) );
+                        if ( empty( $fields_arr ) ) {
+                                $fields_arr = array( 'pos', 'user', 'wins' );
+                        }
 
-			global $wpdb;
-			$ranking = max( 1, min( 10, (int) $a['ranking'] ) );
+                        $ranking_raw = preg_replace( '/\s+/', '', (string) $a['ranking'] );
+                        $start       = 1;
+                        $limit       = 10;
+                        if ( preg_match( '/^(\d+)(?:-(\d+))?$/', $ranking_raw, $m ) ) {
+                                $start = max( 1, (int) $m[1] );
+                                $end   = isset( $m[2] ) ? (int) $m[2] : $start;
+                                if ( $end < $start ) {
+                                        $end = $start;
+                                }
+                                $limit = max( 1, min( 10, $end - $start + 1 ) );
+                        }
+                        $offset = $start - 1;
+
+                        global $wpdb;
 
 			$need_avg        = in_array( 'avg', $fields_arr, true );
 			$need_site       = in_array( 'site', $fields_arr, true );
@@ -664,7 +676,7 @@ $orderby     = $orderby_map[ $orderby_key ];
                        $prep_tables[] = $u;
                        $sql           = $wpdb->prepare( $sql, ...$prep_tables );
                        $sql          .= ' ORDER BY total_wins DESC, u.user_login ASC';
-                       $sql          .= $wpdb->prepare( ' LIMIT %d', $ranking );
+                       $sql          .= $wpdb->prepare( ' LIMIT %d, %d', $offset, $limit );
                        $rows          = $wpdb->get_results( $sql );
 
 			if ( ! $rows ) {
@@ -736,7 +748,7 @@ $orderby     = $orderby_map[ $orderby_key ];
 			}
 			echo '</tr></thead><tbody>';
 
-			$pos = 1;
+                        $pos = $start;
 			foreach ( $rows as $row ) {
 				if ( $need_aff ) {
 					$is_aff = (int) get_user_meta( (int) $row->user_id, 'bhg_is_affiliate', true );
