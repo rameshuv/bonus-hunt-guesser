@@ -328,15 +328,14 @@ if ( $view === 'edit' ) :
 	if ( ! in_array( $users_table_local, $allowed_tables, true ) ) {
 			wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 	}
+	$users_table_local = esc_sql( $users_table_local );
 				// db call ok; no-cache ok.
-								$guesses = $wpdb->get_results(
-									$wpdb->prepare(
-										'SELECT g.*, u.display_name FROM %i g LEFT JOIN %i u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC',
-										$guesses_table,
-										$users_table_local,
+							$guesses = $wpdb->get_results(
+								$wpdb->prepare(
+									"SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table_local} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC",
 										$id
-									)
-								);
+										)
+							);
 	?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'edit_bonus_hunt', 'Edit Bonus Hunt' ) ); ?> <?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
