@@ -240,94 +240,30 @@ flex: 1;
     color: var(--bhg-accent-color);
 }
 
-.bhg-dashboard-table-wrapper {
-    overflow-x: auto;
+/* Latest hunts list */
+.bhg-dashboard-list {
+    display: grid;
+    gap: var(--bhg-spacing);
 }
 
-.bhg-dashboard-table-wrapper table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.bhg-dashboard-table thead th {
-    background-color: var(--bhg-accent-color);
-    border: 1px solid var(--bhg-accent-color);
-    color: #fff;
-}
-
-.bhg-dashboard-table-wrapper th,
-.bhg-dashboard-table-wrapper td {
-    padding: 8px 10px;
-}
-
-.bhg-dashboard-table-wrapper th {
-    text-align: left;
-}
-
-.bhg-dashboard-table-wrapper td {
-    vertical-align: top;
-}
-
-/* Table visual accents */
-.bhg-dashboard-table-wrapper table {
+.bhg-dashboard-hunt {
+    background: var(--bhg-card-bg);
     border: 1px solid var(--bhg-border-color);
     border-radius: 6px;
+    padding: var(--bhg-spacing);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
-.bhg-dashboard-table-wrapper tr:nth-child(even) {
-    background-color: #f9fafb;
+.bhg-dashboard-hunt-meta {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
 }
 
-.bhg-dashboard-table-wrapper tr:hover {
-    background-color: #fdf2f8;
-}
-
-/* Responsive tables */
-@media screen and (max-width: 782px) {
-    .bhg-dashboard-table-wrapper table,
-    .bhg-dashboard-table-wrapper thead,
-    .bhg-dashboard-table-wrapper tbody,
-    .bhg-dashboard-table-wrapper th,
-    .bhg-dashboard-table-wrapper td,
-    .bhg-dashboard-table-wrapper tr {
-        display: block;
-    }
-
-    .bhg-dashboard-table-wrapper thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-
-    .bhg-dashboard-table-wrapper tr {
-        border: 1px solid var(--bhg-border-color);
-        margin-bottom: 6px;
-        border-radius: 6px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    }
-
-    .bhg-dashboard-table-wrapper td {
-        border: none;
-        border-bottom: 1px solid var(--bhg-border-color);
-        position: relative;
-        padding-left: 50%;
-        white-space: pre-wrap;
-    }
-
-    .bhg-dashboard-table-wrapper td::before {
-        position: absolute;
-        top: 8px;
-        left: 10px;
-        width: calc(50% - 20px);
-        white-space: nowrap;
-        font-weight: 600;
-        color: var(--bhg-accent-color);
-        content: attr(data-label);
-    }
-
-    .bhg-dashboard-table-wrapper td:last-child {
-        border-bottom: 0;
-    }
+.bhg-dashboard-hunt-meta strong {
+    color: var(--bhg-accent-color);
 }
 
 
