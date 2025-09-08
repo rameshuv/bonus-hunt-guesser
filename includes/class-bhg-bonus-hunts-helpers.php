@@ -89,22 +89,24 @@ if ( ! function_exists( 'bhg_get_hunt_participants' ) ) {
 		$offset = max( 0, ( (int) $paged - 1 ) * (int) $per_page );
 
 			$rows  = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT id, user_id, guess, created_at
-						FROM $t_g
-						WHERE hunt_id = %d
-						ORDER BY created_at DESC
-						LIMIT %d OFFSET %d",
-					(int) $hunt_id,
-					(int) $per_page,
-					(int) $offset
-				)
+			$wpdb->prepare(
+			"SELECT id, user_id, guess, created_at
+			FROM %i
+			WHERE hunt_id = %d
+			ORDER BY created_at DESC
+			LIMIT %d OFFSET %d",
+			$t_g,
+			(int) $hunt_id,
+			(int) $per_page,
+			(int) $offset
+			)
 			);
 			$total = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*) FROM $t_g WHERE hunt_id = %d",
-					(int) $hunt_id
-				)
+			$wpdb->prepare(
+			"SELECT COUNT(*) FROM %i WHERE hunt_id = %d",
+			$t_g,
+			(int) $hunt_id
+			)
 			);
 			return array(
 				'rows'  => $rows,
@@ -114,6 +116,12 @@ if ( ! function_exists( 'bhg_get_hunt_participants' ) ) {
 }
 
 if ( ! function_exists( 'bhg_remove_guess' ) ) {
+	/**
+	 * Remove a guess by ID.
+	 *
+	 * @param int $guess_id Guess ID.
+	 * @return int|false Number of rows deleted or false on failure.
+	 */
 	function bhg_remove_guess( $guess_id ) {
 		global $wpdb;
 		$t_g = $wpdb->prefix . 'bhg_guesses';
