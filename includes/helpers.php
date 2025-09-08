@@ -19,12 +19,10 @@ function bhg_log( $message ) {
 	if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
 		return;
 	}
-	if ( is_array( $message ) || is_object( $message ) ) {
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
-		$message = print_r( $message, true );
-	}
-	// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-	error_log( '[BHG] ' . $message );
+       if ( is_array( $message ) || is_object( $message ) ) {
+               $message = wp_json_encode( $message );
+       }
+       error_log( '[BHG] ' . $message );
 }
 
 /**
@@ -62,10 +60,9 @@ function bhg_admin_cap() {
 
 // Smart login redirect back to referring page.
 add_filter(
-	'login_redirect',
-	function ( $redirect_to, $requested_redirect_to, $user ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$r = isset( $_REQUEST['bhg_redirect'] ) ? wp_unslash( $_REQUEST['bhg_redirect'] ) : '';
+       'login_redirect',
+       function ( $redirect_to, $requested_redirect_to, $user ) {
+               $r = isset( $_REQUEST['bhg_redirect'] ) ? wp_unslash( $_REQUEST['bhg_redirect'] ) : '';
 		if ( ! empty( $r ) ) {
 			$safe      = esc_url_raw( $r );
 			$home_host = wp_parse_url( home_url(), PHP_URL_HOST );
@@ -793,17 +790,18 @@ function bhg_render_ads( $placement = 'footer', $hunt_id = 0 ) {
 				$placement
 			)
 		);
-	$hunt_site_id  = 0;
+       $hunt_site_id = 0;
 
-	if ( $hunt_id ) {
-				$hunt_site_id = (int) $wpdb->get_var(
-					$wpdb->prepare(
-						'SELECT affiliate_site_id FROM %i WHERE id=%d',
-						"{$wpdb->prefix}bhg_bonus_hunts",
-						(int) $hunt_id
-					)
-				);
-	}
+       if ( $hunt_id ) {
+               $hunts_tbl   = $wpdb->prefix . 'bhg_bonus_hunts';
+               $hunt_site_id = (int) $wpdb->get_var(
+                       $wpdb->prepare(
+                               'SELECT affiliate_site_id FROM %i WHERE id=%d',
+                               $hunts_tbl,
+                               (int) $hunt_id
+                       )
+               );
+       }
 
 	if ( ! $rows ) {
 		return '';
