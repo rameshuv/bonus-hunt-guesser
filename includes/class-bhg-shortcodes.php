@@ -453,11 +453,14 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         if ( ! isset( $orderby_map[ $orderby_key ] ) ) {
                                 $orderby_key = 'hunt';
                         }
-                        $orderby = $orderby_map[ $orderby_key ];
+$orderby = $orderby_map[ $orderby_key ];
 
-						$query  = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM ' . $g . ' g INNER JOIN ' . $h . ' h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where );
-						$query  = $wpdb->prepare( $query, ...$params );
-						$query .= ' ORDER BY ' . $orderby . ' ' . $order;
+$params = array_merge( array( $g, $h ), $params );
+$query  = $wpdb->prepare(
+'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ),
+...$params
+);
+$query .= ' ORDER BY ' . $orderby . ' ' . $order;
 						if ( 'recent' === strtolower( $a['timeline'] ) ) {
 								$query .= ' LIMIT 10';
 						}
