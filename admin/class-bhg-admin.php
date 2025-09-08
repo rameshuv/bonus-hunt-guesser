@@ -565,7 +565,7 @@ class BHG_Admin {
 	}
 
 	/**
-	 * Handle BHG tools form submissions.
+	 * Handle submission of the Tools page.
 	 */
 	public function handle_tools_action() {
 		if ( ! current_user_can( 'manage_options' ) ) {
