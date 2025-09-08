@@ -146,7 +146,7 @@ $ads = $wpdb->get_results(
 					'all'            => bhg_t( 'label_all', 'All' ),
 					'guests'         => bhg_t( 'label_guests', 'Guests' ),
 					'logged_in'      => bhg_t( 'label_logged_in', 'Logged In' ),
-					'affiliates'     => bhg_t( 'menu_affiliates', 'Affiliates' ),
+                                    'affiliates'     => bhg_t( 'label_affiliates', 'Affiliates' ),
 					'non_affiliates' => bhg_t( 'label_non_affiliates', 'Non Affiliates' ),
 				);
 				$sel            = $ad ? ( $ad->visible_to ?? 'all' ) : 'all';
