@@ -4,7 +4,7 @@
 .bhg-leaderboard{width:100%;border-collapse:collapse}
 .bhg-leaderboard th,.bhg-leaderboard td{border:1px solid #e2e8f0;padding:8px}
 
-.bhg-tabs{display:flex;gap:8px;margin-bottom:8px}.bhg-tab{border:1px solid #cbd5e1;border-radius:8px;padding:6px 10px;background:#fff;cursor:pointer}.bhg-ads-footer{margin-top:16px}.bhg-ad-item{border:1px dashed #cbd5e1;border-radius:8px;padding:8px;margin-top:8px}
+.bhg-tabs{display:flex;gap:8px;margin-bottom:8px}.bhg-tab{border:1px solid #cbd5e1;border-radius:8px;padding:6px 10px;background:#fff;cursor:pointer}.bhg-ads-footer{margin-top:16px}.bhg-ads-bottom{margin-top:16px}.bhg-ad-item{border:1px dashed #cbd5e1;border-radius:8px;padding:8px;margin-top:8px}
 
 /* BHG button standard */
 .bhg-btn-submit{display:inline-block;padding:10px 16px;border-radius:10px;border:1px solid #0f172a;background:#0ea5e9;color:#fff;cursor:pointer}
