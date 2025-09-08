@@ -166,16 +166,15 @@ endif;
 <?php
 /** CLOSE VIEW */
 if ( 'close' === $view ) :
-		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
-		// db call ok; no-cache ok.
+               $id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
+               // db call ok; no-cache ok.
                $hunt = $wpdb->get_row(
                        $wpdb->prepare(
-                               'SELECT * FROM %i WHERE id = %d',
-                               $hunts_table,
+                               "SELECT * FROM {$hunts_table} WHERE id = %d",
                                $id
                        )
                );
-	if ( ! $hunt || 'open' !== $hunt->status ) :
+        if ( ! $hunt || 'open' !== $hunt->status ) :
 		echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt_2', 'Invalid hunt.' ) ) . '</p></div>';
 	else :
 		?>
@@ -315,14 +314,13 @@ if ( $view === 'add' ) :
 if ( $view === 'edit' ) :
 		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
 		// db call ok; no-cache ok.
-                $hunt = $wpdb->get_row(
-                        $wpdb->prepare(
-                                'SELECT * FROM %i WHERE id = %d',
-                                $hunts_table,
-                                $id
-                        )
-                );
-	if ( ! $hunt ) {
+               $hunt = $wpdb->get_row(
+                       $wpdb->prepare(
+                               "SELECT * FROM {$hunts_table} WHERE id = %d",
+                               $id
+                       )
+               );
+        if ( ! $hunt ) {
 		echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt', 'Invalid hunt' ) ) . '</p></div>';
 		return;
 	}
