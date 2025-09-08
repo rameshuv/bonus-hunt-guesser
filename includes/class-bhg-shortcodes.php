@@ -605,10 +605,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						 *
 						 * Attributes:
 						 * - fields: comma-separated list of columns to display.
-						 *   Allowed: pos,user,wins,aff,site,hunt,tournament.
-						 * - ranking: number of top positions to display (1–10).
-						 */
-		public function leaderboards_shortcode( $atts ) {
+ *   Allowed: pos,user,wins,avg,aff,site,hunt,tournament.
+ * - ranking: number of top positions to display (1–10).
+ */
+               public function leaderboards_shortcode( $atts ) {
 				$a = shortcode_atts(
 					array(
 						'fields'  => 'pos,user,wins',
@@ -625,11 +625,17 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						$fields_arr = array( 'pos', 'user', 'wins' );
 			}
 
-				global $wpdb;
-				$ranking = max( 1, min( 10, (int) $a['ranking'] ) );
+global $wpdb;
+$ranking = max( 1, min( 10, (int) $a['ranking'] ) );
 
-				$r  = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
-				$u  = $this->sanitize_table( $wpdb->users );
+$need_avg        = in_array( 'avg', $fields_arr, true );
+$need_site       = in_array( 'site', $fields_arr, true );
+$need_tournament = in_array( 'tournament', $fields_arr, true );
+$need_hunt       = in_array( 'hunt', $fields_arr, true );
+$need_aff        = in_array( 'aff', $fields_arr, true );
+
+$r  = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
+$u  = $this->sanitize_table( $wpdb->users );
 				$t  = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
 				$w  = $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' );
 				$hw = $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' );
