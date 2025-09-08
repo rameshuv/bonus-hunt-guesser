@@ -47,10 +47,10 @@ class BHG_Ads {
 	 * @return bool
 	 */
 	protected static function ads_enabled() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
-		$enabled  = isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 0;
-		return 1 === $enabled;
-	}
+               $settings = get_option( 'bhg_plugin_settings', array() );
+               $enabled  = isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 1;
+               return 1 === $enabled;
+       }
 
 	/**
 	 * Determine current user's affiliate status (global toggle).
@@ -188,28 +188,31 @@ class BHG_Ads {
 			return;
 		}
 
-		$ads = self::get_ads_for_placement( 'footer' );
-		if ( empty( $ads ) ) {
-			return;
-		}
+               $placements = array( 'footer', 'bottom' );
+               foreach ( $placements as $place ) {
+                       $ads = self::get_ads_for_placement( $place );
+                       if ( empty( $ads ) ) {
+                               continue;
+                       }
 
-		$out = array();
-		foreach ( $ads as $row ) {
-			if ( ! self::visibility_ok( $row->visible_to ) ) {
-				continue;
-			}
-			if ( ! self::page_target_ok( $row->target_pages ) ) {
-				continue;
-			}
-			$out[] = self::render_ad_row( $row );
-		}
+                       $out = array();
+                       foreach ( $ads as $row ) {
+                               if ( ! self::visibility_ok( $row->visible_to ) ) {
+                                       continue;
+                               }
+                               if ( ! self::page_target_ok( $row->target_pages ) ) {
+                                       continue;
+                               }
+                               $out[] = self::render_ad_row( $row );
+                       }
 
-		if ( ! empty( $out ) ) {
-			echo '<div class="bhg-ads bhg-ads-footer" style="margin:16px 0;text-align:center;">';
-			echo wp_kses_post( implode( "\n", $out ) );
-			echo '</div>';
-		}
-	}
+                       if ( ! empty( $out ) ) {
+                               echo '<div class="bhg-ads bhg-ads-' . esc_attr( $place ) . '" style="margin:16px 0;text-align:center;">';
+                               echo wp_kses_post( implode( "\n", $out ) );
+                               echo '</div>';
+                       }
+               }
+       }
 
 	/**
 	 * Shortcode handler for rendering a single ad row regardless of placement.
