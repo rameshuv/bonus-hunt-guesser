@@ -7,32 +7,14 @@
     --bhg-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 }
 
-.bhg-wrap .bhg-cards {
-    display: flex;
-    gap: 16px;
-    margin-top: 12px;
-}
-
-.bhg-wrap .bhg-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 16px;
-    border-radius: 12px;
-    min-width: 140px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
-}
-
-.bhg-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-}
-
-.bhg-col {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 16px;
+/* Brand-colour headings */
+.bhg-wrap h2,
+.bhg-wrap h3,
+.bhg-wrap h4,
+.bhg-wrap h5,
+.bhg-wrap h6 {
+    color: var(--bhg-accent-color);
+    font-family: var(--bhg-font-family);
 }
 
 .bhg-table {
@@ -138,7 +120,7 @@ flex: 1;
 
 /* Dashboard styles */
 
-.bhg-dashboard h1 {
+.bhg-dashboard-heading {
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
