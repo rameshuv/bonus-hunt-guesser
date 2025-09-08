@@ -17,7 +17,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
+$table = $wpdb->prefix . 'bhg_translations';
 
 if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
 	bhg_seed_default_translations_if_empty();
@@ -60,35 +60,40 @@ if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_t
 
 // Fetch rows with pagination and optional search.
 if ( $search_term ) {
-	$like  = '%' . $wpdb->esc_like( $search_term ) . '%';
-	$total = (int) $wpdb->get_var(
-		$wpdb->prepare(
-// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
-			"SELECT COUNT(*) FROM {$table} WHERE tkey LIKE %s OR tvalue LIKE %s",
-			$like,
-			$like
-		)
-	);
-	$rows = $wpdb->get_results(
-		$wpdb->prepare(
-// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
-			"SELECT tkey, tvalue FROM {$table} WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC LIMIT %d OFFSET %d",
-			$like,
-			$like,
-			$items_per_page,
-			$offset
-		)
-	);
+        $like  = '%' . $wpdb->esc_like( $search_term ) . '%';
+        $total = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                        'SELECT COUNT(*) FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s',
+                        $table,
+                        $like,
+                        $like
+                )
+        );
+        $rows = $wpdb->get_results(
+                $wpdb->prepare(
+                        'SELECT tkey, tvalue FROM %i WHERE tkey LIKE %s OR tvalue LIKE %s ORDER BY tkey ASC LIMIT %d OFFSET %d',
+                        $table,
+                        $like,
+                        $like,
+                        $items_per_page,
+                        $offset
+                )
+        );
 } else {
-	$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-	$rows  = $wpdb->get_results(
-		$wpdb->prepare(
-// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
-			"SELECT tkey, tvalue FROM {$table} ORDER BY tkey ASC LIMIT %d OFFSET %d",
-			$items_per_page,
-			$offset
-		)
-	);
+        $total = (int) $wpdb->get_var(
+                $wpdb->prepare(
+                        'SELECT COUNT(*) FROM %i',
+                        $table
+                )
+        );
+        $rows  = $wpdb->get_results(
+                $wpdb->prepare(
+                        'SELECT tkey, tvalue FROM %i ORDER BY tkey ASC LIMIT %d OFFSET %d',
+                        $table,
+                        $items_per_page,
+                        $offset
+                )
+        );
 }
 
 // Pagination links.
