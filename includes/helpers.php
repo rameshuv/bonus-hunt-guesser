@@ -1102,23 +1102,34 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 		// Seed ads.
 		$ads_tbl = "{$p}bhg_ads";
 	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $ads_tbl ) ) === $ads_tbl ) {
-		$now = current_time( 'mysql', 1 );
-		$wpdb->insert(
-			$ads_tbl,
-			array(
-				'title'        => '',
-				'content'      => '<strong>Play responsibly.</strong> <a href="' . esc_url( home_url( '/promo' ) ) . '">See promo</a>',
-				'link_url'     => '',
-				'placement'    => 'footer',
-				'visible_to'   => 'all',
-				'target_pages' => '',
-				'active'       => 1,
-				'created_at'   => $now,
-				'updated_at'   => $now,
-			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
+		// Remove any duplicate ads, keeping the lowest ID for identical content/placement pairs.
+		$wpdb->query(
+			$wpdb->prepare(
+				'DELETE a1 FROM %i a1 INNER JOIN %i a2 ON a1.id > a2.id AND a1.content = a2.content AND a1.placement = a2.placement',
+				$ads_tbl,
+				$ads_tbl
+			)
 		);
+		// Only seed default ad if table is empty.
+		$existing = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $ads_tbl ) );
+		if ( 0 === $existing ) {
+			$now = current_time( 'mysql', 1 );
+			$wpdb->insert(
+				$ads_tbl,
+				array(
+					'title'        => '',
+					'content'      => '<strong>Play responsibly.</strong> <a href="' . esc_url( home_url( '/promo' ) ) . '">See promo</a>',
+					'link_url'     => '',
+					'placement'    => 'footer',
+					'visible_to'   => 'all',
+					'target_pages' => '',
+					'active'       => 1,
+					'created_at'   => $now,
+					'updated_at'   => $now,
+				),
+				array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
+			);
+		}
 	}
-
 		return true;
 }
