@@ -13,26 +13,30 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$hunts_table    = $wpdb->prefix . 'bhg_bonus_hunts';
-$guesses_table  = $wpdb->prefix . 'bhg_guesses';
-$users_table    = $wpdb->users;
+$hunts_table   = $wpdb->prefix . 'bhg_bonus_hunts';
+$guesses_table = $wpdb->prefix . 'bhg_guesses';
+$tours_table   = $wpdb->prefix . 'bhg_tournaments';
+$users_table   = $wpdb->users;
 $allowed_tables = array(
-	$wpdb->prefix . 'bhg_bonus_hunts',
-	$wpdb->prefix . 'bhg_guesses',
-	$wpdb->prefix . 'bhg_affiliate_websites',
-	$wpdb->users,
+        $wpdb->prefix . 'bhg_bonus_hunts',
+        $wpdb->prefix . 'bhg_guesses',
+        $wpdb->prefix . 'bhg_affiliate_websites',
+        $wpdb->prefix . 'bhg_tournaments',
+        $wpdb->users,
 );
 if (
-		! in_array( $hunts_table, $allowed_tables, true ) ||
-		! in_array( $guesses_table, $allowed_tables, true ) ||
-		! in_array( $users_table, $allowed_tables, true )
+                ! in_array( $hunts_table, $allowed_tables, true ) ||
+                ! in_array( $guesses_table, $allowed_tables, true ) ||
+                ! in_array( $users_table, $allowed_tables, true ) ||
+                ! in_array( $tours_table, $allowed_tables, true )
 ) {
-		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 
 $hunts_table   = esc_sql( $hunts_table );
 $guesses_table = esc_sql( $guesses_table );
 $users_table   = esc_sql( $users_table );
+$tours_table   = esc_sql( $tours_table );
 
 $view = isset( $_GET['view'] ) ? sanitize_text_field( wp_unslash( $_GET['view'] ) ) : 'list';
 
@@ -248,12 +252,41 @@ if ( $view === 'add' ) :
 				<?php endforeach; ?>
 			</select>
 			</td>
-		</tr>
-		<tr>
-			<th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
-			<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="3"></td>
-		</tr>
-		<tr>
+                </tr>
+                <tr>
+                        <th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
+                        <td>
+                                                <?php
+                                                $t_table = $wpdb->prefix . 'bhg_tournaments';
+                                                if ( ! in_array( $t_table, $allowed_tables, true ) ) {
+                                                                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+                                                }
+                                                $t_table = esc_sql( $t_table );
+                                                // db call ok; no-cache ok.
+                                                $tours = $wpdb->get_results(
+                                                        $wpdb->prepare( 'SELECT id, title FROM %i ORDER BY title ASC', $t_table )
+                                                );
+                                                $tsel = isset( $hunt->tournament_id ) ? (int) $hunt->tournament_id : 0;
+                                                ?>
+                        <select id="bhg_tournament" name="tournament_id">
+                                <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                <?php foreach ( $tours as $t ) : ?>
+                                <option value="<?php echo (int) $t->id; ?>"
+                                        <?php
+                                        if ( $tsel === (int) $t->id ) {
+                                                echo 'selected';
+                                        }
+                                        ?>
+                                ><?php echo esc_html( $t->title ); ?></option>
+                                <?php endforeach; ?>
+                        </select>
+                        </td>
+                </tr>
+                <tr>
+                        <th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
+                        <td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="3"></td>
+                </tr>
+                <tr>
 			<th scope="row"><label for="bhg_status"><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) ); ?></label></th>
 			<td>
 			<select id="bhg_status" name="status">
@@ -355,13 +388,42 @@ if ( $view === 'edit' ) :
 				><?php echo esc_html( $a->name ); ?></option>
 				<?php endforeach; ?>
 			</select>
-			</td>
-		</tr>
-		<tr>
-			<th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
-			<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ?: 3 ); ?>"></td>
-		</tr>
-		<tr>
+                        </td>
+                </tr>
+                <tr>
+                        <th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
+                        <td>
+                                                <?php
+                                                $t_table = $wpdb->prefix . 'bhg_tournaments';
+                                                if ( ! in_array( $t_table, $allowed_tables, true ) ) {
+                                                                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+                                                }
+                                                $t_table = esc_sql( $t_table );
+                                                // db call ok; no-cache ok.
+                                                $tours = $wpdb->get_results(
+                                                        $wpdb->prepare( 'SELECT id, title FROM %i ORDER BY title ASC', $t_table )
+                                                );
+                                                $tsel = isset( $hunt->tournament_id ) ? (int) $hunt->tournament_id : 0;
+                                                ?>
+                        <select id="bhg_tournament" name="tournament_id">
+                                <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                <?php foreach ( $tours as $t ) : ?>
+                                <option value="<?php echo (int) $t->id; ?>"
+                                        <?php
+                                        if ( $tsel === (int) $t->id ) {
+                                                echo 'selected';
+                                        }
+                                        ?>
+                                ><?php echo esc_html( $t->title ); ?></option>
+                                <?php endforeach; ?>
+                        </select>
+                        </td>
+                </tr>
+                <tr>
+                        <th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
+                        <td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ?: 3 ); ?>"></td>
+                </tr>
+                <tr>
 			<th scope="row"><label for="bhg_final"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></label></th>
 					<td><input type="number" step="0.01" min="0" id="bhg_final" name="final_balance" value="<?php echo esc_attr( $hunt->final_balance ); ?>" placeholder="<?php echo esc_attr( esc_html( bhg_t( 'label_emdash', '—' ) ) ); ?>"></td>
 		</tr>
