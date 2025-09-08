@@ -442,10 +442,19 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'edit_hunt_s'                                  => 'Edit Hunt — %s',
 			'edit_tournament'                              => 'Edit Tournament',
                         'email_from'                                   => 'Email From Address',
-			'enable_ads'                                   => 'Enable Ads',
-			'existing_ads'                                 => 'Existing Ads',
-			'existing_keys'                                => 'Existing keys',
-			'exists'                                       => 'Exists',
+
+                        // Email notifications.
+                        'email_results_title'                          => 'The Bonus Hunt has been closed!',
+                        'email_final_balance'                          => 'Final Balance',
+                        'email_winner'                                 => 'Winner',
+                        'email_congrats_subject'                       => 'Congratulations! You won the Bonus Hunt',
+                        'email_congrats_body'                          => 'You had the closest guess. Great job!',
+                        'email_hunt'                                   => 'Hunt',
+
+                        'enable_ads'                                   => 'Enable Ads',
+                        'existing_ads'                                 => 'Existing Ads',
+                        'existing_keys'                                => 'Existing keys',
+                        'exists'                                       => 'Exists',
 			'final_balance_optional'                       => 'Final Balance (optional)',
 			'gift_card_swag'                               => 'Gift card + swag',
 			'guess_must_be_between_0_and_100000'           => 'Guess must be between €0 and €100,000.',
@@ -1079,40 +1088,11 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 		}
 	}
 
-				// Seed translations (upsert).
-				global $wpdb;
-				$p      = $wpdb->prefix;
-				$tr_tbl = "{$p}bhg_translations";
-	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
-		$pairs = array(
-			'email_results_title'    => 'The Bonus Hunt has been closed!',
-			'email_final_balance'    => 'Final Balance',
-			'email_winner'           => 'Winner',
-			'email_congrats_subject' => 'Congratulations! You won the Bonus Hunt',
-			'email_congrats_body'    => 'You had the closest guess. Great job!',
-			'email_hunt'             => 'Hunt',
-		);
-		foreach ( $pairs as $k => $v ) {
-							$exists = $wpdb->get_var(
-								$wpdb->prepare( 'SELECT id FROM %i WHERE tkey=%s', $tr_tbl, $k )
-							);
-			if ( $exists ) {
-				$wpdb->update( $tr_tbl, array( 'tvalue' => $v ), array( 'id' => (int) $exists ), array( '%s' ), array( '%d' ) );
-			} else {
-				$wpdb->insert(
-					$tr_tbl,
-					array(
-						'tkey'   => $k,
-						'tvalue' => $v,
-					),
-					array( '%s', '%s' )
-				);
-			}
-		}
-	}
+                global $wpdb;
+                $p      = $wpdb->prefix;
 
-		// Seed ads.
-		$ads_tbl = "{$p}bhg_ads";
+                // Seed ads.
+                $ads_tbl = "{$p}bhg_ads";
 	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $ads_tbl ) ) === $ads_tbl ) {
 		// Remove any duplicate ads, keeping the lowest ID for identical content/placement pairs.
 		$wpdb->query(
