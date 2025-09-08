@@ -119,7 +119,7 @@ $ads = $wpdb->get_results(
 			<td>
 			<select id="bhg_ad_place" name="placement">
 				<?php
-				$placement_opts   = array( 'none', 'footer', 'bottom', 'sidebar', 'shortcode' );
+				$placement_opts   = BHG_Ads::get_allowed_placements();
 				$placement_labels = array(
 					'none'      => bhg_t( 'none', 'None' ),
 					'footer'    => bhg_t( 'label_footer', 'Footer' ),

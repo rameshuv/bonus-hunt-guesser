@@ -15,6 +15,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class BHG_Ads {
 
 	/**
+	 * Allowed ad placement values.
+	 *
+	 * @var string[]
+	 */
+	private static $allowed_placements = array( 'none', 'footer', 'bottom', 'sidebar', 'shortcode' );
+
+	/**
+	 * Retrieve allowed ad placements.
+	 *
+	 * @return string[]
+	 */
+	public static function get_allowed_placements() {
+		return self::$allowed_placements;
+	}
+
+	/**
 	 * Initialize front-end hooks for ads.
 	 *
 	 * @return void
@@ -138,22 +154,25 @@ class BHG_Ads {
 	 * @return array
 	 */
 	protected static function get_ads_for_placement( $placement = 'footer' ) {
-				global $wpdb;
-				$table          = $wpdb->prefix . 'bhg_ads';
-				$allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
+		global $wpdb;
+		$table          = $wpdb->prefix . 'bhg_ads';
+		$allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
 		if ( ! in_array( $table, $allowed_tables, true ) ) {
-				return array();
+			return array();
 		}
 
-				$placement = sanitize_text_field( $placement );
+		$placement = sanitize_key( $placement );
+		if ( ! in_array( $placement, self::$allowed_placements, true ) ) {
+			return array();
+		}
 
-				return $wpdb->get_results(
-					$wpdb->prepare(
-						'SELECT id, content, link_url, placement, visible_to, target_pages FROM %i WHERE active = 1 AND placement = %s ORDER BY id DESC',
-						$table,
-						$placement
-					)
-				);
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT id, content, link_url, placement, visible_to, target_pages FROM %i WHERE active = 1 AND placement = %s ORDER BY id DESC',
+				$table,
+				$placement
+			)
+		);
 	}
 
 	/**
@@ -238,6 +257,9 @@ class BHG_Ads {
 					)
 				);
 		if ( ! $row ) {
+			return '';
+		}
+		if ( ! in_array( $row->placement, self::$allowed_placements, true ) ) {
 			return '';
 		}
 
