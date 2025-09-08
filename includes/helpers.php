@@ -616,16 +616,16 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
                                continue; // Skip invalid keys.
                        }
 
-                       $exists = (int) $wpdb->get_var(
+                       $exists = $wpdb->get_var(
                                $wpdb->prepare(
-                                       'SELECT COUNT(*) FROM %i WHERE slug = %s AND locale = %s',
+                                       'SELECT id FROM %i WHERE slug = %s AND locale = %s LIMIT 1',
                                        $table,
                                        $slug,
                                        $locale
                                )
                        );
 
-                       if ( 0 === $exists ) {
+                       if ( null === $exists ) {
                                $wpdb->insert(
                                        $table,
                                        array(
