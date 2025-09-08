@@ -27,8 +27,8 @@ class BHG_Admin {
 		add_action( 'admin_post_bhg_delete_guess', array( $this, 'handle_delete_guess' ) );
 		add_action( 'admin_post_bhg_save_hunt', array( $this, 'handle_save_hunt' ) );
 		add_action( 'admin_post_bhg_close_hunt', array( $this, 'handle_close_hunt' ) );
-                add_action( 'admin_post_bhg_save_ad', array( $this, 'handle_save_ad' ) );
-                add_action( 'admin_post_bhg_delete_ad', array( $this, 'handle_delete_ad' ) );
+				add_action( 'admin_post_bhg_save_ad', array( $this, 'handle_save_ad' ) );
+				add_action( 'admin_post_bhg_delete_ad', array( $this, 'handle_delete_ad' ) );
 		add_action( 'admin_post_bhg_tournament_save', array( $this, 'handle_save_tournament' ) );
 		add_action( 'admin_post_bhg_save_affiliate', array( $this, 'handle_save_affiliate' ) );
 		add_action( 'admin_post_bhg_delete_affiliate', array( $this, 'handle_delete_affiliate' ) );
@@ -265,28 +265,28 @@ class BHG_Admin {
 
 			$emails_enabled = (int) get_option( 'bhg_email_enabled', 1 );
 			if ( $emails_enabled ) {
-                                                                $guesses_table = $wpdb->prefix . 'bhg_guesses';
+																$guesses_table = $wpdb->prefix . 'bhg_guesses';
 
-                                                                $rows = $wpdb->get_results(
-                                                                        $wpdb->prepare(
-                                                                                'SELECT DISTINCT user_id FROM %i WHERE hunt_id = %d',
-                                                                                $guesses_table,
-                                                                                $id
-                                                                        )
-                                                                );
+																$rows = $wpdb->get_results(
+																	$wpdb->prepare(
+																		'SELECT DISTINCT user_id FROM %i WHERE hunt_id = %d',
+																		$guesses_table,
+																		$id
+																	)
+																);
 
 				$template = get_option(
 					'bhg_email_template',
 					'Hi {{username}},\nThe Bonus Hunt "{{hunt}}" is closed. Final balance: €{{final}}. Winners: {{winners}}. Thanks for playing!'
 				);
 
-                                                                $hunt_title = (string) $wpdb->get_var(
-                                                                        $wpdb->prepare(
-                                                                                'SELECT title FROM %i WHERE id = %d',
-                                                                                $hunts_table,
-                                                                                $id
-                                                                        )
-                                                                );
+																$hunt_title = (string) $wpdb->get_var(
+																	$wpdb->prepare(
+																		'SELECT title FROM %i WHERE id = %d',
+																		$hunts_table,
+																		$id
+																	)
+																);
 
 				$winner_names = array();
 				foreach ( (array) $winners as $winner_id ) {
@@ -319,14 +319,14 @@ class BHG_Admin {
 
 										$headers = array( 'From: ' . BHG_Utils::get_email_from() );
 										wp_mail(
-										$u->user_email,
-										sprintf(
-										/* translators: %s: bonus hunt title. */
-										bhg_t( 'results_for_s', 'Results for %s' ),
-										$hunt_title ? $hunt_title : bhg_t( 'bonus_hunt', 'Bonus Hunt' )
-										),
-										$body,
-										$headers
+											$u->user_email,
+											sprintf(
+											/* translators: %s: bonus hunt title. */
+												bhg_t( 'results_for_s', 'Results for %s' ),
+												$hunt_title ? $hunt_title : bhg_t( 'bonus_hunt', 'Bonus Hunt' )
+											),
+											$body,
+											$headers
 										);
 				}
 			}
@@ -339,77 +339,77 @@ class BHG_Admin {
 	/**
 	 * Close an active bonus hunt.
 	 */
-        public function handle_close_hunt() {
-                if ( ! current_user_can( 'manage_options' ) ) {
-                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-                }
-                check_admin_referer( 'bhg_close_hunt', 'bhg_close_hunt_nonce' );
+	public function handle_close_hunt() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+		}
+			check_admin_referer( 'bhg_close_hunt', 'bhg_close_hunt_nonce' );
 
-                $hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
-                $final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
+			$hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+			$final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
 
-                if ( '' === $final_balance_raw || ! is_numeric( $final_balance_raw ) || (float) $final_balance_raw < 0 ) {
-                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
-                        exit;
-                }
+		if ( '' === $final_balance_raw || ! is_numeric( $final_balance_raw ) || (float) $final_balance_raw < 0 ) {
+				wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
+				exit;
+		}
 
-                $final_balance = (float) $final_balance_raw;
+			$final_balance = (float) $final_balance_raw;
 
-                if ( $hunt_id ) {
-                        BHG_Models::close_hunt( $hunt_id, $final_balance );
-                }
+		if ( $hunt_id ) {
+				BHG_Models::close_hunt( $hunt_id, $final_balance );
+		}
 
-                wp_safe_redirect( admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
-                exit;
-        }
+			wp_safe_redirect( admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
+			exit;
+	}
 
-        /**
-         * Handle deletion of advertising entries.
-         */
-        public function handle_delete_ad() {
-                if ( ! current_user_can( 'manage_options' ) ) {
-                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-                }
-                check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
-                global $wpdb;
-                $ads_table   = $wpdb->prefix . 'bhg_ads';
-                $ad_id       = isset( $_POST['ad_id'] ) ? absint( wp_unslash( $_POST['ad_id'] ) ) : 0;
-                $bulk_action = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
-                $bulk_ad_ids = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
+		/**
+		 * Handle deletion of advertising entries.
+		 */
+	public function handle_delete_ad() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+		}
+			check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
+			global $wpdb;
+			$ads_table   = $wpdb->prefix . 'bhg_ads';
+			$ad_id       = isset( $_POST['ad_id'] ) ? absint( wp_unslash( $_POST['ad_id'] ) ) : 0;
+			$bulk_action = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
+			$bulk_ad_ids = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
 
-                if ( $ad_id ) {
-                        $wpdb->query(
-                                $wpdb->prepare(
-                                        'DELETE FROM %i WHERE id = %d',
-                                        $ads_table,
-                                        $ad_id
-                                )
-                        );
-                } elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
-                        $placeholders = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
-                        $sql          = sprintf( 'DELETE FROM %%i WHERE id IN (%s)', $placeholders );
+		if ( $ad_id ) {
+				$wpdb->query(
+					$wpdb->prepare(
+						'DELETE FROM %i WHERE id = %d',
+						$ads_table,
+						$ad_id
+					)
+				);
+		} elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
+				$placeholders          = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
+								$query = $wpdb->prepare(
+                                       // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+									"DELETE FROM %i WHERE id IN ($placeholders)",
+									array_merge( array( $ads_table ), $bulk_ad_ids )
+								);
 
-                        $wpdb->query(
-                                $wpdb->prepare(
-                                        $sql,
-                                        array_merge( array( $ads_table ), $bulk_ad_ids )
-                                )
-                        );
-                }
+                               // phpcs:ignore WordPress.DB.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( $query );
+		}
 
-                $referer = wp_get_referer();
-                wp_safe_redirect( $referer ? $referer : admin_url( 'admin.php?page=bhg-ads' ) );
-                exit;
-        }
+			$referer = wp_get_referer();
+			wp_safe_redirect( $referer ? $referer : admin_url( 'admin.php?page=bhg-ads' ) );
+			exit;
+	}
 
-        /**
-         * Save or update an advertising entry.
-         */
-        public function handle_save_ad() {
+		/**
+		 * Save or update an advertising entry.
+		 */
+	public function handle_save_ad() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
-								check_admin_referer( 'bhg_save_ad', 'bhg_save_ad_nonce' );
+							check_admin_referer( 'bhg_save_ad', 'bhg_save_ad_nonce' );
 		global $wpdb;
 		$table = $wpdb->prefix . 'bhg_ads';
 
@@ -565,17 +565,17 @@ class BHG_Admin {
 	/**
 	 * Handle BHG tools form submissions.
 	 */
-       public function handle_tools_action() {
-               if ( ! current_user_can( 'manage_options' ) ) {
-                       wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-               }
+	public function handle_tools_action() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+		}
 
-		// Verify nonce for tools action submission.
-		check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
+			// Verify nonce for tools action submission.
+			check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
 
-               wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
-               exit;
-       }
+			wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
+			exit;
+	}
 
 	/**
 	 * Display admin notices for tournament actions.
