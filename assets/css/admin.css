@@ -260,10 +260,17 @@ flex: 1;
     padding: 0;
     display: grid;
     gap: 4px;
+    grid-template-columns: 1fr;
 }
 
 .bhg-dashboard-hunt-meta strong {
     color: var(--bhg-accent-color);
+}
+
+@media (min-width: 600px) {
+    .bhg-dashboard-hunt-meta {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 
