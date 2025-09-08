@@ -265,32 +265,28 @@ class BHG_Admin {
 
 			$emails_enabled = (int) get_option( 'bhg_email_enabled', 1 );
 			if ( $emails_enabled ) {
-								$guesses_table = $wpdb->prefix . 'bhg_guesses';
+                                                                $guesses_table = $wpdb->prefix . 'bhg_guesses';
 
-								$rows = $wpdb->get_results(
-									$wpdb->prepare(
-										sprintf(
-											'SELECT DISTINCT user_id FROM %s WHERE hunt_id = %%d',
-											esc_sql( $guesses_table )
-										),
-										$id
-									)
-								);
+                                                                $rows = $wpdb->get_results(
+                                                                        $wpdb->prepare(
+                                                                                'SELECT DISTINCT user_id FROM %i WHERE hunt_id = %d',
+                                                                                $guesses_table,
+                                                                                $id
+                                                                        )
+                                                                );
 
 				$template = get_option(
 					'bhg_email_template',
 					'Hi {{username}},\nThe Bonus Hunt "{{hunt}}" is closed. Final balance: €{{final}}. Winners: {{winners}}. Thanks for playing!'
 				);
 
-								$hunt_title = (string) $wpdb->get_var(
-									$wpdb->prepare(
-										sprintf(
-											'SELECT title FROM %s WHERE id = %%d',
-											esc_sql( $hunts_table )
-										),
-										$id
-									)
-								);
+                                                                $hunt_title = (string) $wpdb->get_var(
+                                                                        $wpdb->prepare(
+                                                                                'SELECT title FROM %i WHERE id = %d',
+                                                                                $hunts_table,
+                                                                                $id
+                                                                        )
+                                                                );
 
 				$winner_names = array();
 				foreach ( (array) $winners as $winner_id ) {
@@ -382,11 +378,23 @@ class BHG_Admin {
                 $bulk_ad_ids = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
 
                 if ( $ad_id ) {
-                        $wpdb->delete( $ads_table, array( 'id' => $ad_id ), array( '%d' ) );
+                        $wpdb->query(
+                                $wpdb->prepare(
+                                        'DELETE FROM %i WHERE id = %d',
+                                        $ads_table,
+                                        $ad_id
+                                )
+                        );
                 } elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
-                        foreach ( $bulk_ad_ids as $bulk_id ) {
-                                $wpdb->delete( $ads_table, array( 'id' => $bulk_id ), array( '%d' ) );
-                        }
+                        $placeholders = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
+                        $sql          = sprintf( 'DELETE FROM %%i WHERE id IN (%s)', $placeholders );
+
+                        $wpdb->query(
+                                $wpdb->prepare(
+                                        $sql,
+                                        array_merge( array( $ads_table ), $bulk_ad_ids )
+                                )
+                        );
                 }
 
                 $referer = wp_get_referer();
