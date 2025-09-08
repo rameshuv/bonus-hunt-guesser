@@ -15,9 +15,8 @@ global $wpdb;
 $ads_table      = $wpdb->prefix . 'bhg_ads';
 $allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
 if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
-				wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+	wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
-$ads_table = esc_sql( $ads_table );
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 
