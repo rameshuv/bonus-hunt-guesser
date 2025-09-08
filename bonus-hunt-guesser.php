@@ -184,11 +184,11 @@ add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
  * @return void
  */
 function bhg_maybe_seed_translations() {
-	$stored_version = get_option( 'bhg_version' );
-	if ( BHG_VERSION !== $stored_version ) {
-		bhg_seed_default_translations_if_empty();
-		update_option( 'bhg_version', BHG_VERSION );
-	}
+        bhg_seed_default_translations_if_empty();
+        $stored_version = get_option( 'bhg_version' );
+        if ( BHG_VERSION !== $stored_version ) {
+                update_option( 'bhg_version', BHG_VERSION );
+        }
 }
 
 // Activation hook: create tables and set default options.
@@ -271,12 +271,12 @@ function bhg_enqueue_public_assets() {
 			true
 		);
 
-				$guess_range = sprintf(
-						/* translators: 1: minimum guess, 2: maximum guess. */
-					__( 'Guess must be between %1$s and %2$s.', 'bonus-hunt-guesser' ),
-					bhg_format_currency( $min_guess ),
-					bhg_format_currency( $max_guess )
-				);
+                $guess_range = sprintf(
+                                                /* translators: 1: minimum guess, 2: maximum guess. */
+                                        bhg_t( 'guess_must_be_between', 'Guess must be between %1$s and %2$s.' ),
+                                        bhg_format_currency( $min_guess ),
+                                        bhg_format_currency( $max_guess )
+                                );
 
 		wp_localize_script(
 			'bhg-public',
@@ -287,17 +287,18 @@ function bhg_enqueue_public_assets() {
 				'is_logged_in'     => is_user_logged_in(),
 				'min_guess_amount' => $min_guess,
 				'max_guess_amount' => $max_guess,
-				'i18n'             => array(
-					'guess_required'     => __( 'Please enter a guess.', 'bonus-hunt-guesser' ),
-					'guess_numeric'      => __( 'Please enter a valid number.', 'bonus-hunt-guesser' ),
-					'guess_range'        => $guess_range,
-					'guess_submitted'    => __( 'Your guess has been submitted!', 'bonus-hunt-guesser' ),
-					'ajax_error'         => __( 'An error occurred. Please try again.', 'bonus-hunt-guesser' ),
-					'affiliate_user'     => __( 'Affiliate', 'bonus-hunt-guesser' ),
-					'non_affiliate_user' => __( 'Non-affiliate', 'bonus-hunt-guesser' ),
-				),
-			)
-		);
+                                'i18n'             => array(
+                                        'guess_required'          => bhg_t( 'guess_required', 'Please enter a guess.' ),
+                                        'guess_numeric'           => bhg_t( 'guess_numeric', 'Please enter a valid number.' ),
+                                        'guess_range'             => $guess_range,
+                                        'guess_submitted'         => bhg_t( 'guess_submitted', 'Your guess has been submitted!' ),
+                                        'ajax_error'              => bhg_t( 'ajax_error', 'An error occurred. Please try again.' ),
+                                        'affiliate_user'          => bhg_t( 'affiliate_user', 'Affiliate' ),
+                                        'non_affiliate_user'      => bhg_t( 'non_affiliate_user', 'Non-affiliate' ),
+                                        'error_loading_leaderboard' => bhg_t( 'error_loading_leaderboard', 'Error loading leaderboard.' ),
+                                ),
+                        )
+                );
 
 	wp_enqueue_style( 'bhg-public' );
 	wp_enqueue_script( 'bhg-public' );
@@ -377,9 +378,9 @@ add_action( 'init', 'bhg_check_tables', 0 );
  */
 function bhg_handle_settings_save() {
 		// Check user capabilities.
-	if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to perform this action.', 'bonus-hunt-guesser' ) );
-	}
+        if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_perform_this_action', 'You do not have sufficient permissions to perform this action.' ) ) );
+        }
 
 				// Verify nonce.
 	if ( ! check_admin_referer( 'bhg_save_settings', 'bhg_save_settings_nonce' ) ) {
@@ -456,26 +457,26 @@ function bhg_handle_submit_guess() {
 	if ( wp_doing_ajax() ) {
 			check_ajax_referer( 'bhg_public_nonce', 'nonce' );
 	} else {
-		if ( ! isset( $_POST['_wpnonce'] ) ) {
-				wp_die( esc_html__( 'Security check failed.', 'bonus-hunt-guesser' ) );
-		}
+                if ( ! isset( $_POST['_wpnonce'] ) ) {
+                                wp_die( esc_html( bhg_t( 'notice_security_check_failed', 'Security check failed.' ) ) );
+                }
 						check_admin_referer( 'bhg_submit_guess', 'bhg_submit_guess_nonce' );
 	}
 
 	$user_id = get_current_user_id();
 	if ( ! $user_id ) {
-		if ( wp_doing_ajax() ) {
-			wp_send_json_error( __( 'You must be logged in to submit a guess.', 'bonus-hunt-guesser' ) );
-		}
-		wp_die( esc_html__( 'You must be logged in to submit a guess.', 'bonus-hunt-guesser' ) );
+                if ( wp_doing_ajax() ) {
+                        wp_send_json_error( bhg_t( 'you_must_be_logged_in_to_submit_a_guess', 'You must be logged in to submit a guess.' ) );
+                }
+                wp_die( esc_html( bhg_t( 'you_must_be_logged_in_to_submit_a_guess', 'You must be logged in to submit a guess.' ) ) );
 	}
 
 		$hunt_id = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 	if ( 0 >= $hunt_id ) {
-		if ( wp_doing_ajax() ) {
-			wp_send_json_error( __( 'Invalid hunt.', 'bonus-hunt-guesser' ) );
-		}
-		wp_die( esc_html__( 'Invalid hunt.', 'bonus-hunt-guesser' ) );
+                if ( wp_doing_ajax() ) {
+                        wp_send_json_error( bhg_t( 'notice_invalid_hunt', 'Invalid hunt.' ) );
+                }
+                wp_die( esc_html( bhg_t( 'notice_invalid_hunt', 'Invalid hunt.' ) ) );
 	}
 
 		// Parse guess robustly.
@@ -498,10 +499,10 @@ function bhg_handle_submit_guess() {
 		$allow_edit = isset( $settings['allow_guess_changes'] ) && 'yes' === $settings['allow_guess_changes'];
 
 	if ( $guess < $min_guess || $guess > $max_guess ) {
-		if ( wp_doing_ajax() ) {
-			wp_send_json_error( __( 'Invalid guess amount.', 'bonus-hunt-guesser' ) );
-		}
-		wp_die( esc_html__( 'Invalid guess amount.', 'bonus-hunt-guesser' ) );
+                if ( wp_doing_ajax() ) {
+                        wp_send_json_error( bhg_t( 'notice_invalid_guess_amount', 'Invalid guess amount.' ) );
+                }
+                wp_die( esc_html( bhg_t( 'notice_invalid_guess_amount', 'Invalid guess amount.' ) ) );
 	}
 
 	global $wpdb;
@@ -510,18 +511,18 @@ function bhg_handle_submit_guess() {
 
 		// db call ok; no-cache ok.
 				$hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT id, status FROM %i WHERE id = %d', $hunts, $hunt_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-	if ( ! $hunt ) {
-		if ( wp_doing_ajax() ) {
-			wp_send_json_error( __( 'Hunt not found.', 'bonus-hunt-guesser' ) );
-		}
-		wp_die( esc_html__( 'Hunt not found.', 'bonus-hunt-guesser' ) );
-	}
-	if ( 'open' !== $hunt->status ) {
-		if ( wp_doing_ajax() ) {
-			wp_send_json_error( __( 'This hunt is closed. You cannot submit or change a guess.', 'bonus-hunt-guesser' ) );
-		}
-		wp_die( esc_html__( 'This hunt is closed. You cannot submit or change a guess.', 'bonus-hunt-guesser' ) );
-	}
+        if ( ! $hunt ) {
+                if ( wp_doing_ajax() ) {
+                        wp_send_json_error( bhg_t( 'notice_hunt_not_found', 'Hunt not found.' ) );
+                }
+                wp_die( esc_html( bhg_t( 'notice_hunt_not_found', 'Hunt not found.' ) ) );
+        }
+        if ( 'open' !== $hunt->status ) {
+                if ( wp_doing_ajax() ) {
+                        wp_send_json_error( bhg_t( 'this_hunt_is_closed_you_cannot_submit_or_change_a_guess', 'This hunt is closed. You cannot submit or change a guess.' ) );
+                }
+                wp_die( esc_html( bhg_t( 'this_hunt_is_closed_you_cannot_submit_or_change_a_guess', 'This hunt is closed. You cannot submit or change a guess.' ) ) );
+        }
 
 		// Insert or update last guess per settings.
 
@@ -549,10 +550,10 @@ function bhg_handle_submit_guess() {
 				exit;
 			}
 		}
-		if ( wp_doing_ajax() ) {
-			wp_send_json_error( __( 'You have reached the maximum number of guesses.', 'bonus-hunt-guesser' ) );
-		}
-		wp_die( esc_html__( 'You have reached the maximum number of guesses.', 'bonus-hunt-guesser' ) );
+                if ( wp_doing_ajax() ) {
+                        wp_send_json_error( bhg_t( 'you_have_reached_the_maximum_number_of_guesses', 'You have reached the maximum number of guesses.' ) );
+                }
+                wp_die( esc_html( bhg_t( 'you_have_reached_the_maximum_number_of_guesses', 'You have reached the maximum number of guesses.' ) ) );
 	}
 
 		// Insert.
@@ -659,15 +660,15 @@ add_action( 'wp_ajax_nopriv_bhg_load_leaderboard', 'bhg_load_leaderboard_ajax' )
 function bhg_load_leaderboard_ajax() {
 		check_ajax_referer( 'bhg_public_nonce', 'nonce' );
 
-	if ( ! isset( $_POST['timeframe'] ) ) {
-		wp_send_json_error( __( 'Invalid timeframe', 'bonus-hunt-guesser' ) );
-	}
+        if ( ! isset( $_POST['timeframe'] ) ) {
+                wp_send_json_error( bhg_t( 'invalid_timeframe', 'Invalid timeframe' ) );
+        }
 
 		$timeframe          = sanitize_text_field( wp_unslash( $_POST['timeframe'] ) );
 		$allowed_timeframes = array( 'overall', 'monthly', 'yearly', 'alltime' );
-	if ( ! in_array( $timeframe, $allowed_timeframes, true ) ) {
-			wp_send_json_error( __( 'Invalid timeframe', 'bonus-hunt-guesser' ) );
-	}
+        if ( ! in_array( $timeframe, $allowed_timeframes, true ) ) {
+                        wp_send_json_error( bhg_t( 'invalid_timeframe', 'Invalid timeframe' ) );
+        }
 
 		$paged = isset( $_POST['paged'] ) ? max( 1, absint( $_POST['paged'] ) ) : 1;
 
@@ -753,22 +754,22 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 	LIMIT %d OFFSET %d
 	";
 		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $per_page, $offset ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
-	if ( ! $rows ) {
-		return '<p>' . esc_html__( 'No data available.', 'bonus-hunt-guesser' ) . '</p>';
-	}
+        if ( ! $rows ) {
+                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+        }
 
 	ob_start();
 	echo '<table class="bhg-leaderboard bhg-table" data-timeframe="' . esc_attr( $timeframe ) . '">';
-	echo '<thead><tr>';
-	echo '<th class="sortable" data-sort="position">' . esc_html__( 'Position', 'bonus-hunt-guesser' ) . '</th>';
-	echo '<th class="sortable" data-sort="username">' . esc_html__( 'User', 'bonus-hunt-guesser' ) . '</th>';
-	echo '<th class="sortable" data-sort="wins">' . esc_html__( 'Wins', 'bonus-hunt-guesser' ) . '</th>';
-	echo '</tr></thead><tbody>';
+        echo '<thead><tr>';
+        echo '<th class="sortable" data-sort="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
+        echo '<th class="sortable" data-sort="username">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
+        echo '<th class="sortable" data-sort="wins">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
+        echo '</tr></thead><tbody>';
 
 	$pos = $offset + 1;
 	foreach ( $rows as $row ) {
-				/* translators: %d: user ID. */
-				$user_label = $row->user_login ? $row->user_login : sprintf( __( 'user#%d', 'bonus-hunt-guesser' ), (int) $row->user_id );
+                                /* translators: %d: user ID. */
+                                $user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
 				echo '<tr>';
 				echo '<td>' . (int) $pos . '</td>';
 				echo '<td>' . esc_html( $user_label ) . '</td>';
