@@ -36,8 +36,8 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 <div class="wrap bhg-admin bhg-wrap bhg-dashboard">
                 <h1 class="bhg-dashboard-heading"><?php echo esc_html( bhg_t( 'menu_dashboard', 'Dashboard' ) ); ?></h1>
 
-                <main class="bhg-dashboard-cards">
-				<section class="bhg-dashboard-card" aria-labelledby="bhg-dashboard-summary-title">
+               <main class="bhg-dashboard-cards">
+                               <section class="bhg-dashboard-card" aria-labelledby="bhg-dashboard-summary-title" role="region">
 						<header class="bhg-card-header">
 								<h2 id="bhg-dashboard-summary-title" class="bhg-card-title"><?php echo esc_html( bhg_t( 'summary', 'Summary' ) ); ?></h2>
 						</header>
@@ -50,7 +50,7 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 						</div>
 				</section>
 
-				<section class="bhg-dashboard-card" aria-labelledby="bhg-dashboard-latest-title">
+                               <section class="bhg-dashboard-card" aria-labelledby="bhg-dashboard-latest-title" role="region">
 						<header class="bhg-card-header">
 								<h2 id="bhg-dashboard-latest-title" class="bhg-card-title"><?php echo esc_html( bhg_t( 'label_latest_hunts', 'Latest Hunts' ) ); ?></h2>
 						</header>
@@ -136,8 +136,8 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
                                                                <?php else : ?>
                                                                <p><?php echo esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ); ?></p>
                                                                <?php endif; ?>
-                                                               <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts' ) ); ?>" class="button button-primary"><?php echo esc_html( bhg_t( 'view_all_hunts', 'View All Hunts' ) ); ?></a></p>
+                                                               <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts' ) ); ?>" class="button button-primary bhg-dashboard-button"><?php echo esc_html( bhg_t( 'view_all_hunts', 'View All Hunts' ) ); ?></a></p>
                                                </div>
-                                </section>
-                </main>
+                               </section>
+               </main>
 </div>

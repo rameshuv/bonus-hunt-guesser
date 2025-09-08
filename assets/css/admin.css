@@ -147,6 +147,7 @@ flex: 1;
     line-height: 1.5;
     font-size: 14px;
     width: 100%;
+    box-sizing: border-box;
     margin-bottom: var(--bhg-spacing);
 }
 
@@ -168,6 +169,7 @@ flex: 1;
 }
 
 /* Buttons */
+.bhg-wrap .bhg-dashboard-button,
 .bhg-wrap .button,
 .bhg-wrap .button-primary {
     background-color: var(--bhg-accent-color);
@@ -177,6 +179,8 @@ flex: 1;
     border-radius: 4px;
 }
 
+.bhg-wrap .bhg-dashboard-button:hover,
+.bhg-wrap .bhg-dashboard-button:focus,
 .bhg-wrap .button:hover,
 .bhg-wrap .button:focus,
 .bhg-wrap .button-primary:hover,
