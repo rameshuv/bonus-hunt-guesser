@@ -619,7 +619,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				);
 
 				$raw_fields    = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
-				$allowed_field = array( 'pos', 'user', 'wins', 'aff', 'site', 'hunt', 'tournament' );
+                               $allowed_field = array( 'pos', 'user', 'wins', 'avg', 'aff', 'site', 'hunt', 'tournament' );
 				$fields_arr    = array_values( array_unique( array_intersect( $allowed_field, array_map( 'sanitize_key', $raw_fields ) ) ) );
 			if ( empty( $fields_arr ) ) {
 						$fields_arr = array( 'pos', 'user', 'wins' );
@@ -636,8 +636,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$h  = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 
 				// db call ok; no-cache ok.
-                                $sql  = "SELECT r.user_id, u.user_login, SUM(r.wins) AS total_wins
-                                 FROM {$r} r
+                               $sql  = "SELECT r.user_id, u.user_login, SUM(r.wins) AS total_wins,
+                                (SELECT AVG(hw.position) FROM {$hw} hw WHERE hw.user_id = r.user_id) AS avg_rank
+                                FROM {$r} r
                                  INNER JOIN {$u} u ON u.ID = r.user_id
                                  GROUP BY r.user_id, u.user_login";
                                 $sql .= ' ORDER BY total_wins DESC, u.user_login ASC';
@@ -691,9 +692,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					echo '<th>' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
 				} elseif ( 'user' === $field ) {
 						echo '<th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
-				} elseif ( 'wins' === $field ) {
-							echo '<th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
-				} elseif ( 'aff' === $field ) {
+                               } elseif ( 'wins' === $field ) {
+                                                       echo '<th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
+                               } elseif ( 'avg' === $field ) {
+                                       echo '<th>' . esc_html( bhg_t( 'sc_avg_rank', 'Avg Rank' ) ) . '</th>';
+                               } elseif ( 'aff' === $field ) {
 							echo '<th>' . esc_html( bhg_t( 'label_affiliate', 'Affiliate' ) ) . '</th>';
 				} elseif ( 'site' === $field ) {
 						echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
@@ -717,9 +720,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						echo '<td>' . (int) $pos . '</td>';
 					} elseif ( 'user' === $field ) {
 									echo '<td>' . esc_html( $user_label ) . '</td>';
-					} elseif ( 'wins' === $field ) {
-						echo '<td>' . (int) $row->total_wins . '</td>';
-					} elseif ( 'aff' === $field ) {
+                                       } elseif ( 'wins' === $field ) {
+                                               echo '<td>' . (int) $row->total_wins . '</td>';
+                                       } elseif ( 'avg' === $field ) {
+                                               echo '<td>' . ( isset( $row->avg_rank ) ? esc_html( number_format_i18n( (float) $row->avg_rank, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                       } elseif ( 'aff' === $field ) {
 						echo '<td>' . $aff . '</td>';
 					} elseif ( 'site' === $field ) {
 						echo '<td>' . esc_html( $row->site_name ?: bhg_t( 'label_emdash', '—' ) ) . '</td>';
