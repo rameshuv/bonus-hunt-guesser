@@ -570,7 +570,8 @@ class BHG_Admin {
                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
                }
 
-               check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
+		// Verify nonce for tools action submission.
+		check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
 
                wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
                exit;
