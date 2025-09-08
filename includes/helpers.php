@@ -19,10 +19,10 @@ function bhg_log( $message ) {
 	if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
 		return;
 	}
-       if ( is_array( $message ) || is_object( $message ) ) {
-               $message = wp_json_encode( $message );
-       }
-       error_log( '[BHG] ' . $message );
+	   if ( is_array( $message ) || is_object( $message ) ) {
+			   $message = wp_json_encode( $message );
+	   }
+	   error_log( '[BHG] ' . $message );
 }
 
 /**
@@ -60,9 +60,9 @@ function bhg_admin_cap() {
 
 // Smart login redirect back to referring page.
 add_filter(
-       'login_redirect',
-       function ( $redirect_to, $requested_redirect_to, $user ) {
-               $r = isset( $_REQUEST['bhg_redirect'] ) ? wp_unslash( $_REQUEST['bhg_redirect'] ) : '';
+	   'login_redirect',
+	   function ( $redirect_to, $requested_redirect_to, $user ) {
+			   $r = isset( $_REQUEST['bhg_redirect'] ) ? wp_unslash( $_REQUEST['bhg_redirect'] ) : '';
 		if ( ! empty( $r ) ) {
 			$safe      = esc_url_raw( $r );
 			$home_host = wp_parse_url( home_url(), PHP_URL_HOST );
@@ -87,45 +87,45 @@ function bhg_is_frontend() {
 }
 
 if ( ! function_exists( 'bhg_t' ) ) {
-       /**
-        * Retrieve a translation value from the database.
-        *
-        * @param string $slug    Translation slug.
-        * @param string $default Default text if not found.
-        * @param string $locale  Locale to use. Defaults to current locale.
-        * @return string
-        */
-       function bhg_t( $slug, $default = '', $locale = '' ) {
-               global $wpdb;
+	   /**
+		* Retrieve a translation value from the database.
+		*
+		* @param string $slug    Translation slug.
+		* @param string $default Default text if not found.
+		* @param string $locale  Locale to use. Defaults to current locale.
+		* @return string
+		*/
+	   function bhg_t( $slug, $default = '', $locale = '' ) {
+			   global $wpdb;
 
-               $slug      = (string) $slug;
-               $locale    = $locale ? (string) $locale : get_locale();
-               $cache_key = 'bhg_t_' . $slug . '_' . $locale;
-               $cached    = wp_cache_get( $cache_key );
+			   $slug      = (string) $slug;
+			   $locale    = $locale ? (string) $locale : get_locale();
+			   $cache_key = 'bhg_t_' . $slug . '_' . $locale;
+			   $cached    = wp_cache_get( $cache_key );
 
-               if ( false !== $cached ) {
-                       return (string) $cached;
-               }
+			   if ( false !== $cached ) {
+					   return (string) $cached;
+			   }
 
-               $table = $wpdb->prefix . 'bhg_translations';
-               $row   = $wpdb->get_row(
-                       $wpdb->prepare(
-                               'SELECT text, default_text FROM %i WHERE slug = %s AND locale = %s',
-                               $table,
-                               $slug,
-                               $locale
-                       )
-               );
+			   $table = $wpdb->prefix . 'bhg_translations';
+			   $row   = $wpdb->get_row(
+					   $wpdb->prepare(
+							   'SELECT text, default_text FROM %i WHERE slug = %s AND locale = %s',
+							   $table,
+							   $slug,
+							   $locale
+					   )
+			   );
 
-               if ( $row ) {
-                       $value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
-                       wp_cache_set( $cache_key, $value );
-                       return $value;
-               }
+			   if ( $row ) {
+					   $value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
+					   wp_cache_set( $cache_key, $value );
+					   return $value;
+			   }
 
-               wp_cache_set( $cache_key, (string) $default );
-               return (string) $default;
-       }
+			   wp_cache_set( $cache_key, (string) $default );
+			   return (string) $default;
+	   }
 }
 
 if ( ! function_exists( 'bhg_get_default_translations' ) ) {
@@ -146,27 +146,27 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'menu_users'                                   => 'Users',
 			'menu_affiliates'                              => 'Affiliate Websites',
 			'menu_advertising'                             => 'Advertising',
-                        'menu_translations'                            => 'Translations',
-                        'menu_settings'                               => 'Settings',
-                        'menu_database'                               => 'Database',
-                        'menu_tools'                                   => 'Tools',
-                        'menu_ads'                                     => 'Ads',
-                        'bhg_menu_admin'                               => 'BHG Menu — Admin/Moderators',
-                        'bhg_menu_loggedin'                            => 'BHG Menu — Logged-in Users',
-                        'bhg_menu_guests'                              => 'BHG Menu — Guests',
+						'menu_translations'                            => 'Translations',
+						'menu_settings'                               => 'Settings',
+						'menu_database'                               => 'Database',
+						'menu_tools'                                   => 'Tools',
+						'menu_ads'                                     => 'Ads',
+						'bhg_menu_admin'                               => 'BHG Menu — Admin/Moderators',
+						'bhg_menu_loggedin'                            => 'BHG Menu — Logged-in Users',
+						'bhg_menu_guests'                              => 'BHG Menu — Guests',
 
-                        // Standalone labels.
-                        'dashboard'                                    => 'Dashboard',
-                        'bonus_hunts'                                  => 'Bonus Hunts',
-                        'results'                                      => 'Results',
-                        'affiliate_websites'                           => 'Affiliate Websites',
-                        'advertising'                                  => 'Advertising',
-                        'translations'                                 => 'Translations',
-                        'tools'                                        => 'Tools',
-                        'tournament'                                   => 'Tournament',
+						// Standalone labels.
+						'dashboard'                                    => 'Dashboard',
+						'bonus_hunts'                                  => 'Bonus Hunts',
+						'results'                                      => 'Results',
+						'affiliate_websites'                           => 'Affiliate Websites',
+						'advertising'                                  => 'Advertising',
+						'translations'                                 => 'Translations',
+						'tools'                                        => 'Tools',
+						'tournament'                                   => 'Tournament',
 
-                        // Form/field labels.
-                        'label_start_balance'                          => 'Starting Balance',
+						// Form/field labels.
+						'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
 			'label_prizes'                                 => 'Prizes',
 			'label_submit_guess'                           => 'Submit Guess',
@@ -174,12 +174,12 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_username'                               => 'Username',
 			'label_position'                               => 'Position',
 			'label_final_balance'                          => 'Final Balance',
-                        'label_difference'                             => 'Difference',
-                        'label_leaderboard'                            => 'Leaderboard',
-                        'label_best_guessers'                          => 'Best Guessers',
-                        'label_leaderboard_history'                    => 'Leaderboard History',
-                        'label_affiliate'                              => 'Affiliate',
-                        'label_non_affiliate'                          => 'Non-affiliate',
+						'label_difference'                             => 'Difference',
+						'label_leaderboard'                            => 'Leaderboard',
+						'label_best_guessers'                          => 'Best Guessers',
+						'label_leaderboard_history'                    => 'Leaderboard History',
+						'label_affiliate'                              => 'Affiliate',
+						'label_non_affiliate'                          => 'Non-affiliate',
 			'label_affiliate_status'                       => 'Affiliate Status',
 			'label_site'                                   => 'Site',
 			'label_tournament'                             => 'Tournament',
@@ -208,13 +208,13 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_end_date'                               => 'End Date',
 			'label_email'                                  => 'Email',
 			'label_real_name'                              => 'Real Name',
-                        'label_search'                                 => 'Search',
-                        'label_user'                                   => 'User',
-                        'label_users'                                  => 'Users',
-                        'label_role'                                   => 'Role',
-                        'label_guesses'                                => 'Guesses',
-                        'label_profile'                                => 'Profile',
-                        'label_start'                                  => 'Start',
+						'label_search'                                 => 'Search',
+						'label_user'                                   => 'User',
+						'label_users'                                  => 'Users',
+						'label_role'                                   => 'Role',
+						'label_guesses'                                => 'Guesses',
+						'label_profile'                                => 'Profile',
+						'label_start'                                  => 'Start',
 			'label_end'                                    => 'End',
 			'label_status'                                 => 'Status',
 			'label_status_colon'                           => 'Status:',
@@ -272,15 +272,15 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'monthly'                                      => 'Monthly',
 			'quarterly'                                    => 'Quarterly',
 			'yearly'                                       => 'Yearly',
-                        'alltime'                                      => 'All-time',
-                        'label_guests'                                 => 'Guests',
-                        'label_logged_in'                              => 'Logged In',
-                        'label_affiliates'                             => 'Affiliates',
-                        'label_log_in'                                 => 'Log in',
-                        'label_log_out'                                => 'Log out',
-                        'label_non_affiliates'                         => 'Non Affiliates',
-                        'label_affiliate_website'                      => 'Affiliate Website',
-                        'label_affiliate_websites'                     => 'Affiliate Websites',
+						'alltime'                                      => 'All-time',
+						'label_guests'                                 => 'Guests',
+						'label_logged_in'                              => 'Logged In',
+						'label_affiliates'                             => 'Affiliates',
+						'label_log_in'                                 => 'Log in',
+						'label_log_out'                                => 'Log out',
+						'label_non_affiliates'                         => 'Non Affiliates',
+						'label_affiliate_website'                      => 'Affiliate Website',
+						'label_affiliate_websites'                     => 'Affiliate Websites',
 			'label_affiliate_user_title'                   => 'Affiliate User',
 			'label_footer'                                 => 'Footer',
 			'label_bottom'                                 => 'Bottom',
@@ -312,10 +312,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'notice_guess_saved'                           => 'Your guess has been saved.',
 			'notice_guess_updated'                         => 'Your guess has been updated.',
 			'notice_hunt_closed'                           => 'This bonus hunt is closed.',
-                        'notice_invalid_guess'                         => 'Please enter a valid guess.',
-                        'notice_ajax_error'                            => 'An error occurred. Please try again.',
-                        'error_loading_leaderboard'                    => 'Error loading leaderboard.',
-                        'notice_not_authorized'                        => 'You are not authorized to perform this action.',
+						'notice_invalid_guess'                         => 'Please enter a valid guess.',
+						'notice_ajax_error'                            => 'An error occurred. Please try again.',
+						'error_loading_leaderboard'                    => 'Error loading leaderboard.',
+						'notice_not_authorized'                        => 'You are not authorized to perform this action.',
 			'notice_translations_saved'                    => 'Translations saved.',
 			'notice_translations_reset'                    => 'Translations reset.',
 			'notice_security_check_failed'                 => 'Security check failed.',
@@ -376,9 +376,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'sc_affiliate'                                 => 'Affiliate',
 			'sc_position'                                  => 'Position',
 			'sc_user'                                      => 'User',
-                        'sc_wins'                                      => 'Wins',
-                        'sc_avg_rank'                                  => 'Avg Rank',
-                        'sc_start'                                     => 'Start',
+						'sc_wins'                                      => 'Wins',
+						'sc_avg_rank'                                  => 'Avg Rank',
+						'sc_start'                                     => 'Start',
 			'sc_end'                                       => 'End',
 			'sc_prizes'                                    => 'Prizes',
 
@@ -391,7 +391,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'add_tournament'                               => 'Add Tournament',
 			'ads'                                          => 'Ads:',
 			'ads_enabled'                                  => 'Enable Ads',
-                        'affiliate_site'                               => 'Affiliate Site',
+						'affiliate_site'                               => 'Affiliate Site',
 			'affiliate_user'                               => 'Affiliate',
 			'non_affiliate_user'                           => 'Non-affiliate',
 			'affiliate_management_ui_not_provided_yet'     => 'Affiliate management UI not provided yet.',
@@ -450,21 +450,21 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'edit_bonus_hunt'                              => 'Edit Bonus Hunt',
 			'edit_hunt_s'                                  => 'Edit Hunt — %s',
 			'edit_tournament'                              => 'Edit Tournament',
-                        'email_from'                                   => 'Email From Address',
+						'email_from'                                   => 'Email From Address',
 
-                        // Email notifications.
-                        'email_results_title'                          => 'The Bonus Hunt has been closed!',
-                        'email_final_balance'                          => 'Final Balance',
-                        'email_winner'                                 => 'Winner',
-                        'email_congrats_subject'                       => 'Congratulations! You won the Bonus Hunt',
-                        'email_congrats_body'                          => 'You had the closest guess. Great job!',
-                        'email_hunt'                                   => 'Hunt',
+						// Email notifications.
+						'email_results_title'                          => 'The Bonus Hunt has been closed!',
+						'email_final_balance'                          => 'Final Balance',
+						'email_winner'                                 => 'Winner',
+						'email_congrats_subject'                       => 'Congratulations! You won the Bonus Hunt',
+						'email_congrats_body'                          => 'You had the closest guess. Great job!',
+						'email_hunt'                                   => 'Hunt',
 
-                        'enable_ads'                                   => 'Enable Ads',
-                        'existing_ads'                                 => 'Existing Ads',
-                        'existing_keys'                                => 'Existing keys',
-                        'custom_translations_highlighted'              => 'Custom translations are highlighted.',
-                        'exists'                                       => 'Exists',
+						'enable_ads'                                   => 'Enable Ads',
+						'existing_ads'                                 => 'Existing Ads',
+						'existing_keys'                                => 'Existing keys',
+						'custom_translations_highlighted'              => 'Custom translations are highlighted.',
+						'exists'                                       => 'Exists',
 			'final_balance_optional'                       => 'Final Balance (optional)',
 			'gift_card_swag'                               => 'Gift card + swag',
 			'guess_must_be_between_0_and_100000'           => 'Guess must be between €0 and €100,000.',
@@ -524,10 +524,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'inactive'                                     => 'Inactive',
 			'optimize_database_tables'                     => 'Optimize Database Tables',
 			'participants'                                 => 'Participants',
-                       'period'                                       => 'Period:',
-                       'placement'                                    => 'Placement',
-                       'play_responsibly'                             => 'Play responsibly.',
-                       'please_enter_a_guess'                         => 'Please enter a guess.',
+					   'period'                                       => 'Period:',
+					   'placement'                                    => 'Placement',
+					   'play_responsibly'                             => 'Play responsibly.',
+					   'please_enter_a_guess'                         => 'Please enter a guess.',
 			'guess_required'                               => 'Please enter a guess.',
 			'please_enter_a_valid_number'                  => 'Please enter a valid number.',
 			'guess_numeric'                                => 'Please enter a valid number.',
@@ -552,14 +552,14 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'save_settings'                                => 'Save Settings',
 			'search_users'                                 => 'Search Users',
 			'search_users_2'                               => 'Search users',
-                        'security_check_failed'                        => 'Security check failed. Please try again.',
+						'security_check_failed'                        => 'Security check failed. Please try again.',
 			'security_check_failed_2'                      => 'Security check failed.',
-                       'security_check_failed_please_retry'           => 'Security check failed. Please retry.',
-                       'security_check_failed_please_try_again'       => 'Security check failed. Please try again.',
-                       'see_promo'                                    => 'See promo',
-                       'settings'                                     => 'Settings',
-                       'settings_saved_successfully'                  => 'Settings saved successfully.',
-                       'settings_currently_unavailable'               => 'Settings management is currently unavailable.',
+					   'security_check_failed_please_retry'           => 'Security check failed. Please retry.',
+					   'security_check_failed_please_try_again'       => 'Security check failed. Please try again.',
+					   'see_promo'                                    => 'See promo',
+					   'settings'                                     => 'Settings',
+					   'settings_saved_successfully'                  => 'Settings saved successfully.',
+					   'settings_currently_unavailable'               => 'Settings management is currently unavailable.',
 			'show_ads_block_on_selected_pages'             => 'Show ads block on selected pages.',
 			'status'                                       => 'Status:',
 			'tshirt'                                       => 'T-shirt',
@@ -607,42 +607,42 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
 		 *
 		 * @return void
 		 */
-       function bhg_seed_default_translations() {
-               global $wpdb;
+	   function bhg_seed_default_translations() {
+			   global $wpdb;
 
-               $table  = $wpdb->prefix . 'bhg_translations';
-               $locale = get_locale();
+			   $table  = $wpdb->prefix . 'bhg_translations';
+			   $locale = get_locale();
 
-               foreach ( bhg_get_default_translations() as $slug => $def_text ) {
-                       $slug = trim( (string) $slug );
-                       if ( '' === $slug ) {
-                               continue; // Skip invalid keys.
-                       }
+			   foreach ( bhg_get_default_translations() as $slug => $def_text ) {
+					   $slug = trim( (string) $slug );
+					   if ( '' === $slug ) {
+							   continue; // Skip invalid keys.
+					   }
 
-                       $exists = $wpdb->get_var(
-                               // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
-                               $wpdb->prepare(
-                                       "SELECT COUNT(*) FROM {$table} WHERE slug = %s AND locale = %s",
-                                       $slug,
-                                       $locale
-                               )
-                       );
-                       if ( $exists ) {
-                               continue;
-                       }
+					   $exists = $wpdb->get_var(
+							   // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
+							   $wpdb->prepare(
+									   "SELECT COUNT(*) FROM {$table} WHERE slug = %s AND locale = %s",
+									   $slug,
+									   $locale
+							   )
+					   );
+					   if ( $exists ) {
+							   continue;
+					   }
 
-                       $wpdb->insert(
-                               $table,
-                               array(
-                                       'slug'         => $slug,
-                                       'default_text' => (string) $def_text,
-                                       'text'         => '',
-                                       'locale'       => $locale,
-                               ),
-                               array( '%s', '%s', '%s', '%s' )
-                       );
-               }
-       }
+					   $wpdb->insert(
+							   $table,
+							   array(
+									   'slug'         => $slug,
+									   'default_text' => (string) $def_text,
+									   'text'         => '',
+									   'locale'       => $locale,
+							   ),
+							   array( '%s', '%s', '%s', '%s' )
+					   );
+			   }
+	   }
 }
 
 if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
@@ -705,17 +705,17 @@ function bhg_validate_guess( $guess ) {
  * @return string Display name with optional affiliate indicator.
  */
 function bhg_get_user_display_name( $user_id ) {
-       $user = get_userdata( (int) $user_id );
-       if ( ! $user ) {
-               return bhg_t( 'unknown_user', 'Unknown User' );
-       }
+	   $user = get_userdata( (int) $user_id );
+	   if ( ! $user ) {
+			   return bhg_t( 'unknown_user', 'Unknown User' );
+	   }
 
 	$display_name = $user->display_name ? $user->display_name : $user->user_login;
 	$is_affiliate = bhg_is_user_affiliate( (int) $user_id );
 
-       if ( $is_affiliate ) {
-               $display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
-       }
+	   if ( $is_affiliate ) {
+			   $display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
+	   }
 
 	return $display_name;
 }
@@ -801,26 +801,26 @@ if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
 	 */
 	function bhg_render_affiliate_dot( $user_id, $hunt_affiliate_site_id = 0 ) {
 		$is_aff = bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_affiliate_site_id );
-               $cls   = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
-               $label = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
-               return '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
-       }
+			   $cls   = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
+			   $label = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
+			   return '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
+	   }
 }
 
 if ( ! function_exists( 'bhg_cleanup_translation_duplicates' ) ) {
-       /**
-        * Remove duplicate translation rows keeping the lowest ID.
-        *
-        * @return void
-        */
-       function bhg_cleanup_translation_duplicates() {
-               global $wpdb;
+	   /**
+		* Remove duplicate translation rows keeping the lowest ID.
+		*
+		* @return void
+		*/
+	   function bhg_cleanup_translation_duplicates() {
+			   global $wpdb;
 
-               $table = $wpdb->prefix . 'bhg_translations';
+			   $table = $wpdb->prefix . 'bhg_translations';
 
-               // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
-               $wpdb->query( "DELETE t1 FROM {$table} t1 INNER JOIN {$table} t2 ON t1.slug = t2.slug AND t1.locale = t2.locale AND t1.id > t2.id" );
-       }
+			   // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe.
+			   $wpdb->query( "DELETE t1 FROM {$table} t1 INNER JOIN {$table} t2 ON t1.slug = t2.slug AND t1.locale = t2.locale AND t1.id > t2.id" );
+	   }
 }
 
 /**
@@ -841,18 +841,18 @@ function bhg_render_ads( $placement = 'footer', $hunt_id = 0 ) {
 				$placement
 			)
 		);
-       $hunt_site_id = 0;
+	   $hunt_site_id = 0;
 
-       if ( $hunt_id ) {
-               $hunts_tbl   = $wpdb->prefix . 'bhg_bonus_hunts';
-               $hunt_site_id = (int) $wpdb->get_var(
-                       $wpdb->prepare(
-                               'SELECT affiliate_site_id FROM %i WHERE id=%d',
-                               $hunts_tbl,
-                               (int) $hunt_id
-                       )
-               );
-       }
+	   if ( $hunt_id ) {
+			   $hunts_tbl   = $wpdb->prefix . 'bhg_bonus_hunts';
+			   $hunt_site_id = (int) $wpdb->get_var(
+					   $wpdb->prepare(
+							   'SELECT affiliate_site_id FROM %i WHERE id=%d',
+							   $hunts_tbl,
+							   (int) $hunt_id
+					   )
+			   );
+	   }
 
 	if ( ! $rows ) {
 		return '';
@@ -1120,11 +1120,11 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 		}
 	}
 
-                global $wpdb;
-                $p      = $wpdb->prefix;
+				global $wpdb;
+				$p      = $wpdb->prefix;
 
-                // Seed ads.
-                $ads_tbl = "{$p}bhg_ads";
+				// Seed ads.
+				$ads_tbl = "{$p}bhg_ads";
 	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $ads_tbl ) ) === $ads_tbl ) {
 		// Remove any duplicate ads, keeping the lowest ID for identical content/placement pairs.
 		$wpdb->query(
@@ -1160,15 +1160,15 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 	$p      = $wpdb->prefix;
 	$tr_tbl = "{$p}bhg_translations";
 	
-        if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
-                bhg_seed_default_translations_if_empty();
-        }
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
+				bhg_seed_default_translations_if_empty();
+		}
 
-        return true;
-        }
+		return true;
+		}
 
 // Ensure default translations are seeded on load so newly added keys appear
 // in the Translations page without requiring manual intervention.
 if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-       bhg_seed_default_translations_if_empty();
+	   bhg_seed_default_translations_if_empty();
 }

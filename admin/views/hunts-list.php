@@ -6,11 +6,11 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-        exit;
+		exit;
 }
 
 if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
+		wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 
 global $wpdb;
@@ -21,15 +21,15 @@ $per_page = 20;
 $offset   = ( $paged - 1 ) * $per_page;
 
 $rows  = $wpdb->get_results(
-        $wpdb->prepare(
-                'SELECT id, title, start_balance, final_balance, status, winners_count, closed_at FROM %i ORDER BY id DESC LIMIT %d OFFSET %d',
-                $t,
-                $per_page,
-                $offset
-        )
+		$wpdb->prepare(
+				'SELECT id, title, start_balance, final_balance, status, winners_count, closed_at FROM %i ORDER BY id DESC LIMIT %d OFFSET %d',
+				$t,
+				$per_page,
+				$offset
+		)
 );
 $total = (int) $wpdb->get_var(
-        $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $t )
+		$wpdb->prepare( 'SELECT COUNT(*) FROM %i', $t )
 );
 $pages = max( 1, (int) ceil( $total / $per_page ) );
 
@@ -95,8 +95,8 @@ $pages = max( 1, (int) ceil( $total / $per_page ) );
 			<td><strong><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-hunts-edit&id=' . (int) $r->id ) ); ?>"><?php echo esc_html( $r->title ); ?></a></strong></td>
 			<td><?php echo esc_html( number_format_i18n( (float) $r->start_balance, 2 ) ); ?></td>
 					<td><?php echo ( $r->final_balance !== null ) ? esc_html( number_format_i18n( (float) $r->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
-                       <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
-                        <td><?php echo (int) $r->winners_count; ?></td>
+					   <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
+						<td><?php echo (int) $r->winners_count; ?></td>
 					<td><?php echo $r->closed_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->closed_at ) ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 			<td>
 							<?php
