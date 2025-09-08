@@ -1,4 +1,10 @@
 <?php
+/**
+ * Admin view template for editing an existing bonus hunt.
+ *
+ * @package Bonus_Hunt_Guesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

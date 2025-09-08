@@ -1,4 +1,10 @@
 <?php
+/**
+ * Admin view template for the plugin's main dashboard header.
+ *
+ * @package Bonus_Hunt_Guesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

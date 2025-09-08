@@ -1,6 +1,13 @@
 <?php
+/**
+ * Admin view template for displaying results of a bonus hunt.
+ *
+ * @package Bonus_Hunt_Guesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; }
+	exit;
+}
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( esc_html( bhg_t( 'insufficient_permissions', 'Insufficient permissions' ) ) );
 }
@@ -11,7 +18,8 @@ $guesses = $wpdb->prefix . 'bhg_guesses';
 $hunt    = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$hunts` WHERE id=%d", $hunt_id ) );
 if ( ! $hunt ) {
 	echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
-	return; }
+	return;
+}
 $rows = $wpdb->get_results(
 	$wpdb->prepare(
 		"SELECT g.*, u.display_name, ABS(g.guess - %f) as diff FROM `$guesses` g JOIN `$wpdb->users` u ON u.ID=g.user_id WHERE g.hunt_id=%d ORDER BY diff ASC, g.id ASC",
@@ -21,7 +29,7 @@ $rows = $wpdb->get_results(
 );
 ?>
 <div class="wrap">
-        <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title ) ); ?></h1>
+	<h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title ) ); ?></h1>
 	<table class="widefat striped">
 	<thead><tr>
 		<th>

@@ -1,6 +1,13 @@
 <?php
+/**
+ * Admin view template for database tools and maintenance.
+ *
+ * @package Bonus_Hunt_Guesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; }
+	exit;
+}
 
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
