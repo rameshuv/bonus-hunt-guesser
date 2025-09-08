@@ -145,12 +145,21 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'menu_translations'                            => 'Translations',
 			'menu_tools'                                   => 'Tools',
 			'menu_ads'                                     => 'Ads',
-			'bhg_menu_admin'                               => 'BHG Menu — Admin/Moderators',
-			'bhg_menu_loggedin'                            => 'BHG Menu — Logged-in Users',
-			'bhg_menu_guests'                              => 'BHG Menu — Guests',
+                        'bhg_menu_admin'                               => 'BHG Menu — Admin/Moderators',
+                        'bhg_menu_loggedin'                            => 'BHG Menu — Logged-in Users',
+                        'bhg_menu_guests'                              => 'BHG Menu — Guests',
 
-			// Form/field labels.
-			'label_start_balance'                          => 'Starting Balance',
+                        // Standalone labels.
+                        'dashboard'                                    => 'Dashboard',
+                        'bonus_hunts'                                  => 'Bonus Hunts',
+                        'results'                                      => 'Results',
+                        'affiliate_websites'                           => 'Affiliate Websites',
+                        'advertising'                                  => 'Advertising',
+                        'translations'                                 => 'Translations',
+                        'tools'                                        => 'Tools',
+
+                        // Form/field labels.
+                        'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
 			'label_prizes'                                 => 'Prizes',
 			'label_submit_guess'                           => 'Submit Guess',
