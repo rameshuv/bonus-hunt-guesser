@@ -117,18 +117,6 @@ class BHG_DB {
 			KEY visible_to (visible_to)
 		) {$charset_collate};";
 
-		// Translations
-		$sql[] = "CREATE TABLE {$trans_table} (
-			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			tkey VARCHAR(190) NOT NULL,
-			tvalue LONGTEXT NULL,
-			locale VARCHAR(20) NOT NULL DEFAULT 'en_US',
-			created_at DATETIME NULL,
-			updated_at DATETIME NULL,
-			PRIMARY KEY  (id),
-			UNIQUE KEY tkey_locale (tkey, locale)
-		) {$charset_collate};";
-
 				// Affiliate Websites
 				$sql[] = "CREATE TABLE {$aff_websites_table} (
                        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -156,9 +144,12 @@ class BHG_DB {
                        KEY user_id (user_id)
                ) {$charset_collate};";
 
-		foreach ( $sql as $statement ) {
-			dbDelta( $statement );
-		}
+               foreach ( $sql as $statement ) {
+                       dbDelta( $statement );
+               }
+
+               // Translations table handled separately.
+               $this->create_table_translations();
 
 		// Idempotent ensure for columns/indexes
 		try {
@@ -231,23 +222,24 @@ class BHG_DB {
 							}
 						}
 
-						// Translations columns
-						$trneed = array(
-							'tkey'       => "ALTER TABLE `{$trans_table}` ADD COLUMN tkey VARCHAR(190) NOT NULL",
-							'tvalue'     => "ALTER TABLE `{$trans_table}` ADD COLUMN tvalue LONGTEXT NULL",
-							'locale'     => "ALTER TABLE `{$trans_table}` ADD COLUMN locale VARCHAR(20) NOT NULL DEFAULT 'en_US'",
-							'created_at' => "ALTER TABLE `{$trans_table}` ADD COLUMN created_at DATETIME NULL",
-							'updated_at' => "ALTER TABLE `{$trans_table}` ADD COLUMN updated_at DATETIME NULL",
-						);
-						foreach ( $trneed as $c => $alter ) {
-							if ( ! $this->column_exists( $trans_table, $c ) ) {
-								$wpdb->query( $alter );
-							}
-						}
-						// Ensure unique index
-						if ( ! $this->index_exists( $trans_table, 'tkey_locale' ) ) {
-							$wpdb->query( "ALTER TABLE `{$trans_table}` ADD UNIQUE KEY tkey_locale (tkey, locale)" );
-						}
+                                               // Translations columns
+                                               $trneed = array(
+                                                       'slug'         => "ALTER TABLE `{$trans_table}` ADD COLUMN slug VARCHAR(191) NOT NULL",
+                                                       'default_text' => "ALTER TABLE `{$trans_table}` ADD COLUMN default_text LONGTEXT NOT NULL",
+                                                       'text'         => "ALTER TABLE `{$trans_table}` ADD COLUMN `text` LONGTEXT NULL",
+                                                       'locale'       => "ALTER TABLE `{$trans_table}` ADD COLUMN locale VARCHAR(20) NOT NULL",
+                                                       'created_at'   => "ALTER TABLE `{$trans_table}` ADD COLUMN created_at DATETIME NULL",
+                                                       'updated_at'   => "ALTER TABLE `{$trans_table}` ADD COLUMN updated_at DATETIME NULL",
+                                               );
+                                               foreach ( $trneed as $c => $alter ) {
+                                                       if ( ! $this->column_exists( $trans_table, $c ) ) {
+                                                               $wpdb->query( $alter );
+                                                       }
+                                               }
+                                               // Ensure unique index
+                                               if ( ! $this->index_exists( $trans_table, 'slug_locale' ) ) {
+                                                       $wpdb->query( "ALTER TABLE `{$trans_table}` ADD UNIQUE KEY slug_locale (slug, locale)" );
+                                               }
 
 												// Affiliate websites columns / unique index
 												$afw_need = array(
@@ -287,12 +279,38 @@ class BHG_DB {
 												if ( ! $this->index_exists( $winners_table, 'user_id' ) ) {
 														$wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY user_id (user_id)" );
 												}
-		} catch ( Throwable $e ) {
-			if ( function_exists( 'error_log' ) ) {
-						error_log( '[BHG] Schema ensure error: ' . $e->getMessage() );
-			}
-		}
-	}
+               } catch ( Throwable $e ) {
+                       if ( function_exists( 'error_log' ) ) {
+                                               error_log( '[BHG] Schema ensure error: ' . $e->getMessage() );
+                       }
+               }
+       }
+
+       /**
+        * Create or update the translations table.
+        *
+        * @return void
+        */
+       private function create_table_translations() {
+               global $wpdb;
+
+               $table           = $wpdb->prefix . 'bhg_translations';
+               $charset_collate = $wpdb->get_charset_collate();
+
+               $sql = "CREATE TABLE {$table} (
+                       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                       slug VARCHAR(191) NOT NULL,
+                       default_text LONGTEXT NOT NULL,
+                       text LONGTEXT NULL,
+                       locale VARCHAR(20) NOT NULL,
+                       created_at DATETIME NULL,
+                       updated_at DATETIME NULL,
+                       PRIMARY KEY  (id),
+                       UNIQUE KEY slug_locale (slug, locale)
+               ) {$charset_collate};";
+
+               dbDelta( $sql );
+       }
 
 		/**
 		 * Retrieve all affiliate websites.
