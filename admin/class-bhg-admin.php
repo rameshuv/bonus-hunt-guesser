@@ -232,27 +232,27 @@ class BHG_Admin {
 		$title                 = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
 		$starting              = isset( $_POST['starting_balance'] ) ? floatval( wp_unslash( $_POST['starting_balance'] ) ) : 0;
 		$num_bonuses           = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
-                $prizes                = isset( $_POST['prizes'] ) ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
-                $affiliate_site        = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
-                $tournament_id         = isset( $_POST['tournament_id'] ) ? bhg_sanitize_tournament_id( wp_unslash( $_POST['tournament_id'] ) ) : 0;
-                $winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
-                                $final_balance = ( isset( $_POST['final_balance'] ) && '' !== $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
-                $status                = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'open';
+				$prizes                = isset( $_POST['prizes'] ) ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
+				$affiliate_site        = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+				$tournament_id         = isset( $_POST['tournament_id'] ) ? bhg_sanitize_tournament_id( wp_unslash( $_POST['tournament_id'] ) ) : 0;
+				$winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
+								$final_balance = ( isset( $_POST['final_balance'] ) && '' !== $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
+				$status                = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'open';
 
 		$data = array(
 			'title'             => $title,
 			'starting_balance'  => $starting,
 			'num_bonuses'       => $num_bonuses,
 			'prizes'            => $prizes,
-                        'affiliate_site_id' => $affiliate_site,
-                        'tournament_id'     => $tournament_id,
-                        'winners_count'     => $winners_count,
-                        'final_balance'     => $final_balance,
-                        'status'            => $status,
-                        'updated_at'        => current_time( 'mysql' ),
-                );
+						'affiliate_site_id' => $affiliate_site,
+						'tournament_id'     => $tournament_id,
+						'winners_count'     => $winners_count,
+						'final_balance'     => $final_balance,
+						'status'            => $status,
+						'updated_at'        => current_time( 'mysql' ),
+				);
 
-                $format = array( '%s', '%f', '%d', '%s', '%d', '%d', '%d', '%f', '%s', '%s' );
+				$format = array( '%s', '%f', '%d', '%s', '%d', '%d', '%d', '%f', '%s', '%s' );
 		if ( $id ) {
 			$wpdb->update( $hunts_table, $data, array( 'id' => $id ), $format, array( '%d' ) );
 		} else {
@@ -390,12 +390,12 @@ class BHG_Admin {
 		} elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
 				$placeholders          = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
 								$query = $wpdb->prepare(
-                                       // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+									   // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 									"DELETE FROM %i WHERE id IN ($placeholders)",
 									array_merge( array( $ads_table ), $bulk_ad_ids )
 								);
 
-                               // phpcs:ignore WordPress.DB.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared
+							   // phpcs:ignore WordPress.DB.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared
 								$wpdb->query( $query );
 		}
 

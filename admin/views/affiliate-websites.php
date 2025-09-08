@@ -85,7 +85,7 @@ $rows = $wpdb->get_results(
 						<td><?php echo esc_html( $r->name ); ?></td>
 						<td><?php echo esc_html( $r->slug ); ?></td>
 						<td><?php echo esc_html( $r->url ); ?></td>
-                                                <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
+												<td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 			<td>
 			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
 				<?php
