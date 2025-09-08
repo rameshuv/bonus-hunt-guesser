@@ -201,6 +201,7 @@ if ( $rows ) {
 	</form>
 
 	<h2><?php echo esc_html( bhg_t( 'existing_keys', 'Existing keys' ) ); ?></h2>
+        <p class="description"><?php echo esc_html( bhg_t( 'custom_translations_highlighted', 'Custom translations are highlighted.' ) ); ?></p>
 	<?php if ( $pagination ) : ?>
 		<div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
 	<?php endif; ?>
@@ -267,8 +268,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <style>
 .bhg-modified-row {
-	background-color: #fff3cd;
-	border-left: 4px solid #d97706;
+        background-color: #fff3cd;
+        border-left: 4px solid #d97706;
+}
+.bhg-custom-row {
+        background-color: #e6ffed;
+        border-left: 4px solid #2f855a;
 }
 </style>
 

@@ -463,6 +463,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'enable_ads'                                   => 'Enable Ads',
                         'existing_ads'                                 => 'Existing Ads',
                         'existing_keys'                                => 'Existing keys',
+                        'custom_translations_highlighted'              => 'Custom translations are highlighted.',
                         'exists'                                       => 'Exists',
 			'final_balance_optional'                       => 'Final Balance (optional)',
 			'gift_card_swag'                               => 'Gift card + swag',
