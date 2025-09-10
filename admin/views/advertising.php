@@ -64,15 +64,15 @@ $ads = $wpdb->get_results(
 							foreach ( $ads as $ad ) :
 								?>
 		<tr>
-								<th scope="row" class="check-column"><input type="checkbox" class="bhg-ad-checkbox" name="ad_ids[]" value="<?php echo (int) $ad->id; ?>" /></th>
-								<td><?php echo (int) $ad->id; ?></td>
+<th scope="row" class="check-column"><input type="checkbox" class="bhg-ad-checkbox" name="ad_ids[]" value="<?php echo esc_attr( (int) $ad->id ); ?>" /></th>
+<td><?php echo esc_html( (int) $ad->id ); ?></td>
 								<td><?php echo isset( $ad->title ) && '' !== $ad->title ? esc_html( $ad->title ) : wp_kses_post( wp_trim_words( $ad->content, 12 ) ); ?></td>
 								<td><?php echo esc_html( isset( $ad->placement ) ? $ad->placement : 'none' ); ?></td>
 								<td><?php echo esc_html( isset( $ad->visible_to ) ? $ad->visible_to : 'all' ); ?></td>
 								<td><?php echo 1 === (int) $ad->active ? esc_html( bhg_t( 'yes', 'Yes' ) ) : esc_html( bhg_t( 'no', 'No' ) ); ?></td>
 								<td>
 								<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $ad->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
-												<button type="submit" name="ad_id" value="<?php echo (int) $ad->id; ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
+								<button type="submit" name="ad_id" value="<?php echo esc_attr( (int) $ad->id ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
 								</td>
 		</tr>
 											<?php
@@ -97,7 +97,7 @@ $ads = $wpdb->get_results(
 				<?php wp_nonce_field( 'bhg_save_ad', 'bhg_save_ad_nonce' ); ?>
 				<input type="hidden" name="action" value="bhg_save_ad">
 	<?php if ( $ad ) : ?>
-				<input type="hidden" name="id" value="<?php echo (int) $ad->id; ?>">
+				<input type="hidden" name="id" value="<?php echo esc_attr( (int) $ad->id ); ?>">
 	<?php endif; ?>
 
 	<table class="form-table" role="presentation">
@@ -146,7 +146,7 @@ $ads = $wpdb->get_results(
 					'all'            => bhg_t( 'label_all', 'All' ),
 					'guests'         => bhg_t( 'label_guests', 'Guests' ),
 					'logged_in'      => bhg_t( 'label_logged_in', 'Logged In' ),
-									'affiliates'     => bhg_t( 'label_affiliates', 'Affiliates' ),
+					'affiliates'     => bhg_t( 'label_affiliates', 'Affiliates' ),
 					'non_affiliates' => bhg_t( 'label_non_affiliates', 'Non Affiliates' ),
 				);
 				$sel            = $ad ? ( $ad->visible_to ?? 'all' ) : 'all';
