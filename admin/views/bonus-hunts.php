@@ -34,11 +34,6 @@ if (
 				wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 
-$hunts_table   = esc_sql( $hunts_table );
-$guesses_table = esc_sql( $guesses_table );
-$users_table   = esc_sql( $users_table );
-$tours_table   = esc_sql( $tours_table );
-$aff_table     = esc_sql( $aff_table );
 
 $view = isset( $_GET['view'] ) ? sanitize_text_field( wp_unslash( $_GET['view'] ) ) : 'list';
 
@@ -48,30 +43,37 @@ if ( 'list' === $view ) :
 	$per_page     = 30;
 	$offset       = ( $current_page - 1 ) * $per_page;
 	$search       = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-	$orderby      = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
-	$order        = ( isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) ) ? 'ASC' : 'DESC';
+		$orderby      = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
+		$order        = ( isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) ) ? 'ASC' : 'DESC';
 
-	$allowed_orderby = array(
-		'id'               => 'h.id',
-		'title'            => 'h.title',
-		'starting_balance' => 'h.starting_balance',
-		'final_balance'    => 'h.final_balance',
-		'affiliate'        => 'a.name',
-		'winners'          => 'h.winners_count',
-		'status'           => 'h.status',
+		$allowed_orderby = array(
+'id'               => 'h.id',
+'title'            => 'h.title',
+	'starting_balance' => 'h.starting_balance',
+	'final_balance'    => 'h.final_balance',
+	'affiliate'        => 'a.name',
+	'winners'          => 'h.winners_count',
+	'status'           => 'h.status',
 	);
-	$order_by_sql    = isset( $allowed_orderby[ $orderby ] ) ? $allowed_orderby[ $orderby ] : 'h.id';
+		$order_by_column = isset( $allowed_orderby[ $orderby ] ) ? $allowed_orderby[ $orderby ] : 'h.id';
+		$order_by_column = preg_replace( '/[^a-zA-Z0-9_\.]/', '', $order_by_column );
 
-	$search_like = '%' . $wpdb->esc_like( $search ) . '%';
+		$order_direction = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
+		$order_by_clause = sanitize_sql_orderby( $order_by_column . ' ' . $order_direction );
+		if ( empty( $order_by_clause ) ) {
+		$order_by_clause = 'h.id DESC';
+		}
 
-	$hunts_query = $wpdb->prepare(
-		"SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s ORDER BY {$order_by_sql} {$order} LIMIT %d OFFSET %d",
-		$hunts_table,
-		$aff_table,
-		$search_like,
-		$per_page,
-		$offset
-	);
+		$search_like = '%' . $wpdb->esc_like( $search ) . '%';
+
+		$hunts_query = $wpdb->prepare(
+"SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s ORDER BY {$order_by_clause} LIMIT %d OFFSET %d",
+			$hunts_table,
+			$aff_table,
+			$search_like,
+			$per_page,
+			$offset
+); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- ORDER BY clause sanitized.
 	$hunts       = $wpdb->get_results( $hunts_query );
 
 	$count_query = $wpdb->prepare(
