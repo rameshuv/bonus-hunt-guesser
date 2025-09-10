@@ -135,11 +135,10 @@ define( 'BHG_TABLE_PREFIX', 'bhg_' );
  * @return void
  */
 function bhg_create_tables() {
-	if ( class_exists( 'BHG_DB' ) ) {
-		( new BHG_DB() )->create_tables();
-		BHG_DB::migrate();
-		return;
-	}
+        if ( class_exists( 'BHG_DB' ) ) {
+                ( new BHG_DB() )->create_tables();
+                return;
+        }
 }
 
 // Check and create tables if needed.
@@ -149,11 +148,33 @@ function bhg_create_tables() {
  * @return void
  */
 function bhg_check_tables() {
-	if ( ! get_option( 'bhg_tables_created' ) ) {
-		bhg_create_tables();
-		update_option( 'bhg_tables_created', true );
-	}
+        if ( ! get_option( 'bhg_tables_created' ) ) {
+                bhg_create_tables();
+                update_option( 'bhg_tables_created', true );
+        }
 }
+
+/**
+ * Run database migrations when needed.
+ *
+ * Stores the last migrated version in an option to avoid
+ * repeated migrations on every request.
+ *
+ * @return void
+ */
+function bhg_maybe_run_migrations() {
+        if ( ! class_exists( 'BHG_DB' ) ) {
+                return;
+        }
+
+        $migrated = get_option( 'bhg_last_migrated_version', '' );
+        if ( version_compare( $migrated, BHG_VERSION, '<' ) ) {
+                BHG_DB::migrate();
+                update_option( 'bhg_last_migrated_version', BHG_VERSION );
+        }
+}
+
+add_action( 'plugins_loaded', 'bhg_maybe_run_migrations', 0 );
 
 // Autoloader for plugin classes.
 spl_autoload_register(
@@ -211,20 +232,20 @@ function bhg_maybe_seed_translations() {
  * @return void
  */
 function bhg_activate_plugin() {
-	if ( ! current_user_can( 'activate_plugins' ) ) {
-		return;
-	}
+        if ( ! current_user_can( 'activate_plugins' ) ) {
+                return;
+        }
 
-	bhg_create_tables();
+        bhg_maybe_run_migrations();
 
-	bhg_seed_default_translations_if_empty();
+        bhg_seed_default_translations_if_empty();
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
 	add_option(
-		'bhg_plugin_settings',
-		array(
-			'allow_guess_changes'       => 'yes',
+                'bhg_plugin_settings',
+                array(
+                        'allow_guess_changes'       => 'yes',
 			'default_tournament_period' => 'monthly',
 			'min_guess_amount'          => 0,
 			'max_guess_amount'          => 100000,
@@ -238,10 +259,10 @@ function bhg_activate_plugin() {
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
 		bhg_seed_demo_if_empty();
 	}
-	update_option( 'bhg_demo_notice', 1 );
+        update_option( 'bhg_demo_notice', 1 );
 
-		// Set tables created flag.
-	update_option( 'bhg_tables_created', true );
+                // Set tables created flag.
+        update_option( 'bhg_tables_created', true );
 
 		// Flush rewrite rules after database changes.
 	flush_rewrite_rules();
@@ -349,17 +370,13 @@ function bhg_init_plugin() {
 			new BHG_Login_Redirect();
 	}
 
-	if ( class_exists( 'BHG_Ads' ) ) {
-			BHG_Ads::init();
-	}
+        if ( class_exists( 'BHG_Ads' ) ) {
+                        BHG_Ads::init();
+        }
 
-	if ( class_exists( 'BHG_DB' ) ) {
-		BHG_DB::migrate();
-	}
-
-	if ( class_exists( 'BHG_Utils' ) ) {
-		BHG_Utils::init_hooks();
-	}
+        if ( class_exists( 'BHG_Utils' ) ) {
+                BHG_Utils::init_hooks();
+        }
 
 	if ( class_exists( 'BHG_Tournaments_Controller' ) ) {
 		BHG_Tournaments_Controller::init();
