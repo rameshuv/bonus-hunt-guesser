@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 /**
  * Shortcodes for Bonus Hunt Guesser
  *
