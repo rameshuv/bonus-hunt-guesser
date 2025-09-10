@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) ); }
 
-$hunt_id = isset( $_GET['id'] ) ? (int) $_GET['id'] : 0;
+$hunt_id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 if ( ! $hunt_id ) {
 	wp_die( esc_html( bhg_t( 'missing_hunt_id', 'Missing hunt id' ) ) ); }
 
@@ -13,7 +13,7 @@ check_admin_referer( 'bhg_edit_hunt_' . $hunt_id, 'bhg_nonce' );
 // Handle delete guess action
 if ( isset( $_POST['bhg_remove_guess'] ) ) {
 	check_admin_referer( 'bhg_remove_guess_action', 'bhg_remove_guess_nonce' );
-	$guess_id = (int) ( $_POST['guess_id'] ?? 0 );
+        $guess_id = isset( $_POST['guess_id'] ) ? absint( wp_unslash( $_POST['guess_id'] ) ) : 0;
 	if ( $guess_id > 0 && function_exists( 'bhg_remove_guess' ) ) {
 		bhg_remove_guess( $guess_id );
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( bhg_t( 'guess_removed', 'Guess removed.' ) ) . '</p></div>';
@@ -28,7 +28,7 @@ $hunt = bhg_get_hunt( $hunt_id );
 if ( ! $hunt ) {
 	wp_die( esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) ); }
 
-$paged    = max( 1, isset( $_GET['ppaged'] ) ? (int) $_GET['ppaged'] : 1 );
+$paged    = max( 1, isset( $_GET['ppaged'] ) ? absint( wp_unslash( $_GET['ppaged'] ) ) : 1 );
 $per_page = 30;
 $data     = bhg_get_hunt_participants( $hunt_id, $paged, $per_page );
 $rows     = $data['rows'];
