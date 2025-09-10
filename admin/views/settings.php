@@ -57,6 +57,23 @@ foreach ( $periods as $key => $label ) :
 </td>
 </tr>
 <tr>
+<th scope="row"><label for="bhg_currency"><?php echo esc_html( bhg_t( 'currency', 'Currency' ) ); ?></label></th>
+<td>
+<select name="bhg_currency" id="bhg_currency">
+<?php
+$currencies       = array(
+'eur' => bhg_t( 'eur', 'EUR' ),
+'usd' => bhg_t( 'usd', 'USD' ),
+);
+$current_currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
+foreach ( $currencies as $key => $label ) :
+?>
+<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $current_currency, $key ); ?>><?php echo esc_html( $label ); ?></option>
+<?php endforeach; ?>
+</select>
+</td>
+</tr>
+<tr>
 <th scope="row"><label for="bhg_min_guess_amount"><?php echo esc_html( bhg_t( 'min_guess_amount', 'Minimum Guess Amount' ) ); ?></label></th>
 <td><input type="number" class="small-text" id="bhg_min_guess_amount" name="bhg_min_guess_amount" value="<?php echo isset( $settings['min_guess_amount'] ) ? esc_attr( $settings['min_guess_amount'] ) : '0'; ?>" min="0"></td>
 </tr>

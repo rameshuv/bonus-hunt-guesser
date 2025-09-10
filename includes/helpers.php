@@ -665,16 +665,31 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
 }
 
 /**
- * Format an amount as currency.
+ * Get the configured currency symbol.
  *
- * Allows the currency symbol to be customized via the `bhg_currency_symbol` filter.
+ * Defaults to the Euro symbol.
+ *
+ * @return string
+ */
+function bhg_currency_symbol() {
+        $settings = get_option( 'bhg_plugin_settings', array() );
+        $currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
+        $map      = array(
+                'usd' => '$',
+                'eur' => '€',
+        );
+        $symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
+        return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+}
+
+/**
+ * Format an amount as currency using the selected symbol.
  *
  * @param float $amount Amount to format.
  * @return string
  */
 function bhg_format_currency( $amount ) {
-	$symbol = apply_filters( 'bhg_currency_symbol', '€' );
-	return sprintf( '%s%s', $symbol, number_format_i18n( (float) $amount, 2 ) );
+        return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
 }
 
 /**
