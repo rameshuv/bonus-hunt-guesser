@@ -169,7 +169,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 
 																check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
 
-				$guess_id = isset( $_GET['guess_id'] ) ? absint( $_GET['guess_id'] ) : 0;
+				$guess_id = isset( $_GET['guess_id'] ) ? absint( wp_unslash( $_GET['guess_id'] ) ) : 0;
 
 				global $wpdb;
 				$table   = $wpdb->prefix . 'bhg_guesses';
