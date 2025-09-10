@@ -60,28 +60,44 @@ $ads = $wpdb->get_results(
 						<?php if ( empty( $ads ) ) : ?>
 		<tr><td colspan="7"><?php echo esc_html( bhg_t( 'notice_no_ads_yet', 'No ads yet.' ) ); ?></td></tr>
 								<?php
-						else :
-							foreach ( $ads as $ad ) :
-								?>
-		<tr>
+                                                else :
+                                                        $placement_labels = array(
+                                                                'none'      => bhg_t( 'none', 'None' ),
+                                                                'footer'    => bhg_t( 'label_footer', 'Footer' ),
+                                                                'bottom'    => bhg_t( 'label_bottom', 'Bottom' ),
+                                                                'sidebar'   => bhg_t( 'label_sidebar', 'Sidebar' ),
+                                                                'shortcode' => bhg_t( 'label_shortcode', 'Shortcode' ),
+                                                        );
+                                                        $visible_labels   = array(
+                                                                'all'            => bhg_t( 'label_all', 'All' ),
+                                                                'guests'         => bhg_t( 'label_guests', 'Guests' ),
+                                                                'logged_in'      => bhg_t( 'label_logged_in', 'Logged In' ),
+                                                                'affiliates'     => bhg_t( 'label_affiliates', 'Affiliates' ),
+                                                                'non_affiliates' => bhg_t( 'label_non_affiliates', 'Non Affiliates' ),
+                                                        );
+                                                        foreach ( $ads as $ad ) :
+                                                                $placement  = isset( $ad->placement ) ? $ad->placement : 'none';
+                                                                $visible_to = isset( $ad->visible_to ) ? $ad->visible_to : 'all';
+                                                                ?>
+                <tr>
 <th scope="row" class="check-column"><input type="checkbox" class="bhg-ad-checkbox" name="ad_ids[]" value="<?php echo esc_attr( (int) $ad->id ); ?>" /></th>
 <td><?php echo esc_html( (int) $ad->id ); ?></td>
-								<td><?php echo isset( $ad->title ) && '' !== $ad->title ? esc_html( $ad->title ) : wp_kses_post( wp_trim_words( $ad->content, 12 ) ); ?></td>
-								<td><?php echo esc_html( isset( $ad->placement ) ? $ad->placement : 'none' ); ?></td>
-								<td><?php echo esc_html( isset( $ad->visible_to ) ? $ad->visible_to : 'all' ); ?></td>
-								<td><?php echo 1 === (int) $ad->active ? esc_html( bhg_t( 'yes', 'Yes' ) ) : esc_html( bhg_t( 'no', 'No' ) ); ?></td>
-								<td>
-								<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $ad->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
-								<button type="submit" name="ad_id" value="<?php echo esc_attr( (int) $ad->id ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
-								</td>
-		</tr>
-											<?php
-								endforeach;
-						endif;
-						?>
-				</tbody>
-				</table>
-		</form>
+                                                                <td><?php echo isset( $ad->title ) && '' !== $ad->title ? esc_html( $ad->title ) : wp_kses_post( wp_trim_words( $ad->content, 12 ) ); ?></td>
+                                                                <td><?php echo esc_html( $placement_labels[ $placement ] ?? $placement ); ?></td>
+                                                                <td><?php echo esc_html( $visible_labels[ $visible_to ] ?? $visible_to ); ?></td>
+                                                                <td><?php echo 1 === (int) $ad->active ? esc_html( bhg_t( 'yes', 'Yes' ) ) : esc_html( bhg_t( 'no', 'No' ) ); ?></td>
+                                                                <td>
+                                                                <a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $ad->id ) ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
+                                                                <button type="submit" name="ad_id" value="<?php echo esc_attr( (int) $ad->id ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
+                                                                </td>
+                </tr>
+                                                                                        <?php
+                                                        endforeach;
+                                                endif;
+                                                ?>
+                                </tbody>
+                                </table>
+                </form>
 
 	<h2 style="margin-top:2em"><?php echo $edit_id ? esc_html( bhg_t( 'edit_ad', 'Edit Ad' ) ) : esc_html( bhg_t( 'add_ad', 'Add Ad' ) ); ?></h2>
 	<?php
