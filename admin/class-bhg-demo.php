@@ -103,7 +103,7 @@ class BHG_Demo {
 			)
 		);
 
-		wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bhg_demo&demo_reset=1' ) ) );
+           wp_safe_redirect( esc_url_raw( BHG_Utils::admin_url( 'admin.php?page=bhg_demo&demo_reset=1' ) ) );
 		exit;
 	}
 }
