@@ -31,7 +31,8 @@ class BHG_Admin {
 		add_action( 'admin_post_bhg_toggle_guessing', array( $this, 'handle_toggle_guessing' ) );
 		add_action( 'admin_post_bhg_save_ad', array( $this, 'handle_save_ad' ) );
 		add_action( 'admin_post_bhg_delete_ad', array( $this, 'handle_delete_ad' ) );
-		add_action( 'admin_post_bhg_tournament_save', array( $this, 'handle_save_tournament' ) );
+				add_action( 'admin_post_bhg_tournament_save', array( $this, 'handle_save_tournament' ) );
+				add_action( 'admin_post_bhg_tournament_delete', array( $this, 'handle_delete_tournament' ) );
 		add_action( 'admin_post_bhg_save_affiliate', array( $this, 'handle_save_affiliate' ) );
 		add_action( 'admin_post_bhg_delete_affiliate', array( $this, 'handle_delete_affiliate' ) );
 		add_action( 'admin_post_bhg_save_user_meta', array( $this, 'handle_save_user_meta' ) );
@@ -519,35 +520,65 @@ class BHG_Admin {
 			exit;
 		}
 		global $wpdb;
-		$t    = $wpdb->prefix . 'bhg_tournaments';
-		$id   = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
-		$data = array(
-			'title'       => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
-			'description' => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
-			'type'        => isset( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : 'weekly',
-			'start_date'  => isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : null,
-			'end_date'    => isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : null,
-			'status'      => isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'active',
-			'updated_at'  => current_time( 'mysql' ),
-		);
-		try {
-			$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
-			if ( $id > 0 ) {
-				$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
-			} else {
-				$data['created_at'] = current_time( 'mysql' );
-				$format[]           = '%s';
-				$wpdb->insert( $t, $data, $format );
+		$t                     = $wpdb->prefix . 'bhg_tournaments';
+		$id                    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+			$participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
+		if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
+				$participants_mode = 'winners';
+		}
+
+			$data = array(
+				'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+				'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
+				'type'              => isset( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : 'weekly',
+				'participants_mode' => $participants_mode,
+				'start_date'        => isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : null,
+				'end_date'          => isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : null,
+				'status'            => isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'active',
+				'updated_at'        => current_time( 'mysql' ),
+			);
+			try {
+					$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+				if ( $id > 0 ) {
+						$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
+				} else {
+						$data['created_at'] = current_time( 'mysql' );
+						$format[]           = '%s';
+						$wpdb->insert( $t, $data, $format );
+				}
+					wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+					exit;
+			} catch ( Throwable $e ) {
+				if ( function_exists( 'error_log' ) ) {
+					error_log( '[BHG] tournament save error: ' . $e->getMessage() );
+				}
+				wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+				exit;
 			}
-			wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
-			exit;
-		} catch ( Throwable $e ) {
-			if ( function_exists( 'error_log' ) ) {
-				error_log( '[BHG] tournament save error: ' . $e->getMessage() );
-			}
+	}
+
+		/**
+		 * Delete a tournament.
+		 */
+	public function handle_delete_tournament() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+				wp_safe_redirect( add_query_arg( 'bhg_msg', 'noaccess', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+				exit;
+		}
+		if ( ! isset( $_POST['bhg_tournament_delete_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['bhg_tournament_delete_nonce'] ), 'bhg_tournament_delete_action' ) ) {
+				wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+				exit;
+		}
+			global $wpdb;
+			$table = $wpdb->prefix . 'bhg_tournaments';
+			$id    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+		if ( $id ) {
+				$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
+				wp_safe_redirect( add_query_arg( 'bhg_msg', 't_deleted', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+				exit;
+		}
 			wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 			exit;
-		}
 	}
 
 		/**
@@ -694,6 +725,7 @@ class BHG_Admin {
 		$map   = array(
 			't_saved'               => bhg_t( 'tournament_saved', 'Tournament saved.' ),
 			't_error'               => bhg_t( 'could_not_save_tournament_check_logs', 'Could not save tournament. Check logs.' ),
+			't_deleted'             => bhg_t( 'tournament_deleted', 'Tournament deleted.' ),
 			'nonce'                 => bhg_t( 'security_check_failed_please_retry', 'Security check failed. Please retry.' ),
 			'noaccess'              => bhg_t( 'you_do_not_have_permission_to_do_that', 'You do not have permission to do that.' ),
 			'invalid_final_balance' => bhg_t( 'invalid_final_balance_please_enter_a_nonnegative_number', 'Invalid final balance. Please enter a non-negative number.' ),

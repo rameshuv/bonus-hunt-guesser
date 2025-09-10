@@ -220,7 +220,6 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_status_colon'                           => 'Status:',
 			'label_wins'                                   => 'Wins',
 			'label_last_win'                               => 'Last win',
-			'label_period'                                 => 'Period',
 			'label_all'                                    => 'All',
 			'label_weekly'                                 => 'Weekly',
 			'label_monthly'                                => 'Monthly',
@@ -524,7 +523,6 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'inactive'                                     => 'Inactive',
 			'optimize_database_tables'                     => 'Optimize Database Tables',
 			'participants'                                 => 'Participants',
-			'period'                                       => 'Period:',
 			'placement'                                    => 'Placement',
 			'play_responsibly'                             => 'Play responsibly.',
 			'please_enter_a_guess'                         => 'Please enter a guess.',
@@ -562,6 +560,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'settings_currently_unavailable'               => 'Settings management is currently unavailable.',
 			'show_ads_block_on_selected_pages'             => 'Show ads block on selected pages.',
 			'status'                                       => 'Status:',
+			'participants_mode'                            => 'Participants Mode',
 			'tshirt'                                       => 'T-shirt',
 			'table_name'                                   => 'Table Name',
 			'tables_are_automatically_created_on_activation_if_you_need_to_reinstall_them_deactivate_and_activate_the_plugin_again' => 'Tables are automatically created on activation. If you need to reinstall them, deactivate and activate the plugin again.',
@@ -570,6 +569,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'this_will_delete_all_demo_data_and_pages_then_recreate_fresh_demo_content' => 'This will delete all demo data and pages, then recreate fresh demo content.',
 			'titlecontent'                                 => 'Title/Content',
 			'tournament_saved'                             => 'Tournament saved.',
+			'tournament_deleted'                           => 'Tournament deleted.',
 			'tournaments'                                  => 'Tournaments:',
 			'translation_saved'                            => 'Translation saved.',
 			'tools_action_completed'                       => 'Tools action completed.',
@@ -587,6 +587,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'view_not_found'                               => 'View Not Found',
 			'requested_view_not_found'                     => 'The requested view "%s" was not found.',
 			'winners'                                      => 'Winners',
+			'all'                                          => 'All',
+			'search'                                       => 'Search',
+			'search_tournaments'                           => 'Search Tournaments',
+			'are_you_sure'                                 => 'Are you sure?',
 			'yes'                                          => 'Yes',
 			'you_do_not_have_permission_to_access_this_page' => 'You do not have permission to access this page',
 			'you_do_not_have_permission_to_do_that'        => 'You do not have permission to do that.',
@@ -672,14 +676,14 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-        $settings = get_option( 'bhg_plugin_settings', array() );
-        $currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
-        $map      = array(
-                'usd' => '$',
-                'eur' => '€',
-        );
-        $symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
-        return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+		$settings = get_option( 'bhg_plugin_settings', array() );
+		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
+		$map      = array(
+			'usd' => '$',
+			'eur' => '€',
+		);
+		$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
+		return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
@@ -689,7 +693,7 @@ function bhg_currency_symbol() {
  * @return string
  */
 function bhg_format_currency( $amount ) {
-        return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
 }
 
 /**
