@@ -15,7 +15,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 	);
 }
 
-$hunt_id = isset( $_GET['id'] ) ? (int) $_GET['id'] : 0;
+$hunt_id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 if ( ! $hunt_id ) {
 	wp_die( esc_html( bhg_t( 'missing_hunt_id', 'Missing hunt id' ) ) );
 }
