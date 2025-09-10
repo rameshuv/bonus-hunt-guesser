@@ -62,22 +62,26 @@ if ( 'list' === $view ) :
 	);
 	$order_by_sql    = isset( $allowed_orderby[ $orderby ] ) ? $allowed_orderby[ $orderby ] : 'h.id';
 
-	$sql  = "SELECT h.*, a.name AS affiliate_name FROM {$hunts_table} h LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id";
-	$like = '';
-	if ( $search ) {
-		$like = '%' . $wpdb->esc_like( $search ) . '%';
-		$sql .= $wpdb->prepare( ' WHERE h.title LIKE %s', $like );
-	}
-	$sql  .= " ORDER BY {$order_by_sql} {$order}";
-	$hunts = $wpdb->get_results( $wpdb->prepare( $sql . ' LIMIT %d OFFSET %d', $per_page, $offset ) );
+	$search_like = '%' . $wpdb->esc_like( $search ) . '%';
 
-	$count_sql = "SELECT COUNT(*) FROM {$hunts_table} h";
-	if ( $search ) {
-		$count_sql .= $wpdb->prepare( ' WHERE h.title LIKE %s', $like );
-	}
-	$total     = (int) $wpdb->get_var( $count_sql );
-	$base_url  = remove_query_arg( array( 'paged' ) );
-	$sort_base = remove_query_arg( array( 'paged', 'orderby', 'order' ) );
+	$hunts_query = $wpdb->prepare(
+		"SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s ORDER BY {$order_by_sql} {$order} LIMIT %d OFFSET %d",
+		$hunts_table,
+		$aff_table,
+		$search_like,
+		$per_page,
+		$offset
+	);
+	$hunts       = $wpdb->get_results( $hunts_query );
+
+	$count_query = $wpdb->prepare(
+		'SELECT COUNT(*) FROM %i h WHERE h.title LIKE %s',
+		$hunts_table,
+		$search_like
+	);
+	$total       = (int) $wpdb->get_var( $count_query );
+	$base_url    = remove_query_arg( array( 'paged' ) );
+	$sort_base   = remove_query_arg( array( 'paged', 'orderby', 'order' ) );
 	?>
 <div class="wrap">
 <h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ); ?></h1>
