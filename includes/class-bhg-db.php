@@ -74,20 +74,21 @@ KEY tournament_id (tournament_id)
 		) {$charset_collate};";
 
 				// Tournaments
-				$sql[] = "CREATE TABLE {$tours_table} (
-						id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-						title VARCHAR(190) NOT NULL,
-						description TEXT NULL,
-						type VARCHAR(20) NOT NULL,
-						start_date DATE NULL,
-						end_date DATE NULL,
-						status VARCHAR(20) NOT NULL DEFAULT 'active',
-						created_at DATETIME NULL,
-						updated_at DATETIME NULL,
-						PRIMARY KEY  (id),
-						KEY type (type),
-						KEY status (status)
-				) {$charset_collate};";
+								$sql[] = "CREATE TABLE {$tours_table} (
+                                                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                                title VARCHAR(190) NOT NULL,
+                                                description TEXT NULL,
+                                                type VARCHAR(20) NOT NULL,
+                                                participants_mode VARCHAR(20) NOT NULL DEFAULT 'winners',
+                                                start_date DATE NULL,
+                                                end_date DATE NULL,
+                                                status VARCHAR(20) NOT NULL DEFAULT 'active',
+                                                created_at DATETIME NULL,
+                                                updated_at DATETIME NULL,
+                                                PRIMARY KEY  (id),
+                                                KEY type (type),
+                                                KEY status (status)
+                                ) {$charset_collate};";
 
 				// Tournament Results
 				$sql[] = "CREATE TABLE {$tres_table} (
@@ -173,19 +174,20 @@ KEY tournament_id (tournament_id)
 			}
 
 			// Tournaments: make sure common columns exist
-			$tneed = array(
-				'title'       => "ALTER TABLE `{$tours_table}` ADD COLUMN title VARCHAR(190) NOT NULL",
-				'description' => "ALTER TABLE `{$tours_table}` ADD COLUMN description TEXT NULL",
-				'type'        => "ALTER TABLE `{$tours_table}` ADD COLUMN type VARCHAR(20) NOT NULL",
-				'start_date'  => "ALTER TABLE `{$tours_table}` ADD COLUMN start_date DATE NULL",
-				'end_date'    => "ALTER TABLE `{$tours_table}` ADD COLUMN end_date DATE NULL",
-				'status'      => "ALTER TABLE `{$tours_table}` ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active'",
-			);
-			foreach ( $tneed as $c => $alter ) {
-				if ( ! $this->column_exists( $tours_table, $c ) ) {
+						$tneed = array(
+							'title'             => "ALTER TABLE `{$tours_table}` ADD COLUMN title VARCHAR(190) NOT NULL",
+							'description'       => "ALTER TABLE `{$tours_table}` ADD COLUMN description TEXT NULL",
+							'type'              => "ALTER TABLE `{$tours_table}` ADD COLUMN type VARCHAR(20) NOT NULL",
+							'participants_mode' => "ALTER TABLE `{$tours_table}` ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT 'winners'",
+							'start_date'        => "ALTER TABLE `{$tours_table}` ADD COLUMN start_date DATE NULL",
+							'end_date'          => "ALTER TABLE `{$tours_table}` ADD COLUMN end_date DATE NULL",
+							'status'            => "ALTER TABLE `{$tours_table}` ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active'",
+						);
+						foreach ( $tneed as $c => $alter ) {
+							if ( ! $this->column_exists( $tours_table, $c ) ) {
 								$wpdb->query( $alter );
-				}
-			}
+							}
+						}
 
 						// Tournament results columns
 						$trrneed = array(
