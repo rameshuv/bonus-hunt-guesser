@@ -33,20 +33,27 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
 			add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
 		}
+		/**
+		 * Validates a database table name against known tables.
+		 *
+		 * @param string $table Table name to validate.
+		 * @return string Sanitized table name or empty string if invalid.
+		 */
+		private function sanitize_table( $table ) {
+			global $wpdb;
 
-private function sanitize_table( $table ) {
-global $wpdb;
-$allowed = array(
-$wpdb->prefix . 'bhg_bonus_hunts',
-$wpdb->prefix . 'bhg_guesses',
-$wpdb->prefix . 'bhg_tournaments',
-$wpdb->prefix . 'bhg_tournament_results',
-$wpdb->prefix . 'bhg_affiliate_websites',
-$wpdb->prefix . 'bhg_hunt_winners',
-$wpdb->users,
-);
-return in_array( $table, $allowed, true ) ? $table : '';
-}
+			$allowed = array(
+				$wpdb->prefix . 'bhg_bonus_hunts',
+				$wpdb->prefix . 'bhg_guesses',
+				$wpdb->prefix . 'bhg_tournaments',
+				$wpdb->prefix . 'bhg_tournament_results',
+				$wpdb->prefix . 'bhg_affiliate_websites',
+				$wpdb->prefix . 'bhg_hunt_winners',
+				$wpdb->users,
+			);
+
+			return in_array( $table, $allowed, true ) ? $table : '';
+		}
 
 			/** Minimal login hint used by some themes */
 		public function login_hint_shortcode( $atts = array() ) {
