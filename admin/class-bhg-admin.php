@@ -233,7 +233,7 @@ class BHG_Admin {
 			$wpdb->delete( $guesses_table, array( 'id' => $guess_id ), array( '%d' ) );
 		}
 				$referer = wp_get_referer();
-				wp_safe_redirect( $referer ? $referer : admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
+                               wp_safe_redirect( $referer ? $referer : BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
 		exit;
 	}
 
@@ -363,7 +363,7 @@ class BHG_Admin {
 			}
 		}
 
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
+               wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
 		exit;
 	}
 
@@ -380,7 +380,7 @@ class BHG_Admin {
 			$final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
 
 		if ( '' === $final_balance_raw || ! is_numeric( $final_balance_raw ) || (float) $final_balance_raw < 0 ) {
-				wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
+                               wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
 				exit;
 		}
 
@@ -390,7 +390,7 @@ class BHG_Admin {
 				BHG_Models::close_hunt( $hunt_id, $final_balance );
 		}
 
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
+               wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
 		exit;
 	}
 
@@ -413,7 +413,7 @@ class BHG_Admin {
 			$wpdb->delete( $guesses_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
 		}
 
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
+               wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
 		exit;
 	}
 
@@ -444,7 +444,7 @@ class BHG_Admin {
 			);
 		}
 
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
+               wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
 		exit;
 	}
 
@@ -483,7 +483,7 @@ class BHG_Admin {
 		}
 
 			$referer = wp_get_referer();
-			wp_safe_redirect( $referer ? $referer : admin_url( 'admin.php?page=bhg-ads' ) );
+                       wp_safe_redirect( $referer ? $referer : BHG_Utils::admin_url( 'admin.php?page=bhg-ads' ) );
 			exit;
 	}
 
@@ -527,7 +527,7 @@ class BHG_Admin {
 			$wpdb->insert( $table, $data, $format );
 		}
 
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-ads' ) );
+               wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-ads' ) );
 		exit;
 	}
 
@@ -536,11 +536,11 @@ class BHG_Admin {
 	 */
 	public function handle_save_tournament() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_safe_redirect( add_query_arg( 'bhg_msg', 'noaccess', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                       wp_safe_redirect( add_query_arg( 'bhg_msg', 'noaccess', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 			exit;
 		}
 		if ( ! check_admin_referer( 'bhg_tournament_save_action', 'bhg_tournament_save_nonce' ) ) {
-			wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                       wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 			exit;
 		}
 		global $wpdb;
@@ -570,13 +570,13 @@ class BHG_Admin {
 						$format[]           = '%s';
 						$wpdb->insert( $t, $data, $format );
 				}
-					wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                                   wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 					exit;
 			} catch ( Throwable $e ) {
 				if ( function_exists( 'error_log' ) ) {
 					error_log( '[BHG] tournament save error: ' . $e->getMessage() );
 				}
-				wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                           wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 				exit;
 			}
 	}
@@ -586,11 +586,11 @@ class BHG_Admin {
 		 */
 	public function handle_delete_tournament() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-				wp_safe_redirect( add_query_arg( 'bhg_msg', 'noaccess', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                           wp_safe_redirect( add_query_arg( 'bhg_msg', 'noaccess', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 				exit;
 		}
 		if ( ! isset( $_POST['bhg_tournament_delete_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['bhg_tournament_delete_nonce'] ), 'bhg_tournament_delete_action' ) ) {
-				wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                           wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 				exit;
 		}
 			global $wpdb;
@@ -598,10 +598,10 @@ class BHG_Admin {
 			$id    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
 		if ( $id ) {
 				$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-				wp_safe_redirect( add_query_arg( 'bhg_msg', 't_deleted', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                           wp_safe_redirect( add_query_arg( 'bhg_msg', 't_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 				exit;
 		}
-			wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                       wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 			exit;
 	}
 
@@ -636,7 +636,7 @@ class BHG_Admin {
 				$format[]           = '%s';
 				$wpdb->insert( $table, $data, $format );
 		}
-			wp_safe_redirect( admin_url( 'admin.php?page=bhg-affiliates' ) );
+                       wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
 			exit;
 	}
 
@@ -654,7 +654,7 @@ class BHG_Admin {
 		if ( $id ) {
 			$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
 		}
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-affiliates' ) );
+               wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
 		exit;
 	}
 
@@ -673,7 +673,7 @@ class BHG_Admin {
 			update_user_meta( $user_id, 'bhg_real_name', $real_name );
 			update_user_meta( $user_id, 'bhg_is_affiliate', $is_affiliate );
 		}
-		wp_safe_redirect( admin_url( 'admin.php?page=bhg-users' ) );
+               wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-users' ) );
 		exit;
 	}
 
@@ -731,7 +731,7 @@ class BHG_Admin {
 			);
 
 			// Redirect back to the tools page with a success message.
-			wp_safe_redirect( admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
+                       wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
 			exit;
 	}
 
