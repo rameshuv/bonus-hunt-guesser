@@ -436,30 +436,36 @@ return '';
 				$params[] = $since;
 			}
 
-						$allowed_orders = array( 'ASC', 'DESC' );
-						$order          = strtoupper( sanitize_key( $a['order'] ) );
-			if ( ! in_array( $order, $allowed_orders, true ) ) {
-					$order = 'DESC';
-			}
-						$orderby_map = array(
-							'guess' => 'g.guess',
-							'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
-						);
-						$orderby_key = sanitize_key( $a['orderby'] );
-						if ( ! isset( $orderby_map[ $orderby_key ] ) ) {
-								$orderby_key = 'hunt';
-						}
-						$orderby = $orderby_map[ $orderby_key ];
+                        $allowed_orders = array( 'ASC', 'DESC' );
+                        $order          = strtoupper( sanitize_key( $a['order'] ) );
+                        if ( ! in_array( $order, $allowed_orders, true ) ) {
+                                $order = 'DESC';
+                        }
+                        $orderby_map = array(
+                                'guess' => 'g.guess',
+                                'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
+                        );
+                        $orderby_key = sanitize_key( $a['orderby'] );
+                        if ( ! isset( $orderby_map[ $orderby_key ] ) ) {
+                                $orderby_key = 'hunt';
+                        }
+                        $orderby = $orderby_map[ $orderby_key ];
 
-						$params = array_merge( array( $g, $h ), $params );
-						$query  = $wpdb->prepare(
-							'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ),
-							...$params
-						);
-			$query             .= ' ORDER BY ' . $orderby . ' ' . $order;
-			if ( 'recent' === strtolower( $a['timeline'] ) ) {
-					$query .= ' LIMIT 10';
-			}
+                        $order_sql = sprintf( ' ORDER BY %s %s', esc_sql( $orderby ), esc_sql( $order ) );
+                        $limit_sql = '';
+                        $limit_val = 0;
+                        if ( 'recent' === strtolower( $a['timeline'] ) ) {
+                                $limit_sql = ' LIMIT %d';
+                                $limit_val = 10;
+                        }
+
+                        $sql    = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . $order_sql . $limit_sql;
+                        $params = array_merge( array( $g, $h ), $params );
+                        if ( $limit_val ) {
+                                $params[] = $limit_val;
+                        }
+                        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query built with placeholders and sanitized identifiers.
+                        $query = $wpdb->prepare( $sql, ...$params );
 
 						// db call ok; no-cache ok.
 						$rows = $wpdb->get_results( $query );
