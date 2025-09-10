@@ -134,10 +134,10 @@ define( 'BHG_TABLE_PREFIX', 'bhg_' );
  * @return void
  */
 function bhg_create_tables() {
-        if ( class_exists( 'BHG_DB' ) ) {
-                ( new BHG_DB() )->create_tables();
-                return;
-        }
+	if ( class_exists( 'BHG_DB' ) ) {
+			( new BHG_DB() )->create_tables();
+			return;
+	}
 }
 
 // Check and create tables if needed.
@@ -147,10 +147,10 @@ function bhg_create_tables() {
  * @return void
  */
 function bhg_check_tables() {
-        if ( ! get_option( 'bhg_tables_created' ) ) {
-                bhg_create_tables();
-                update_option( 'bhg_tables_created', true );
-        }
+	if ( ! get_option( 'bhg_tables_created' ) ) {
+			bhg_create_tables();
+			update_option( 'bhg_tables_created', true );
+	}
 }
 
 /**
@@ -162,15 +162,15 @@ function bhg_check_tables() {
  * @return void
  */
 function bhg_maybe_run_migrations() {
-        if ( ! class_exists( 'BHG_DB' ) ) {
-                return;
-        }
+	if ( ! class_exists( 'BHG_DB' ) ) {
+			return;
+	}
 
-        $migrated = get_option( 'bhg_last_migrated_version', '' );
-        if ( version_compare( $migrated, BHG_VERSION, '<' ) ) {
-                BHG_DB::migrate();
-                update_option( 'bhg_last_migrated_version', BHG_VERSION );
-        }
+		$migrated = get_option( 'bhg_last_migrated_version', '' );
+	if ( version_compare( $migrated, BHG_VERSION, '<' ) ) {
+			BHG_DB::migrate();
+			update_option( 'bhg_last_migrated_version', BHG_VERSION );
+	}
 }
 
 add_action( 'plugins_loaded', 'bhg_maybe_run_migrations', 0 );
@@ -231,20 +231,20 @@ function bhg_maybe_seed_translations() {
  * @return void
  */
 function bhg_activate_plugin() {
-        if ( ! current_user_can( 'activate_plugins' ) ) {
-                return;
-        }
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+	}
 
-        bhg_maybe_run_migrations();
+		bhg_maybe_run_migrations();
 
-        bhg_seed_default_translations_if_empty();
+		bhg_seed_default_translations_if_empty();
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
 	add_option(
-                'bhg_plugin_settings',
-                array(
-                        'allow_guess_changes'       => 'yes',
+		'bhg_plugin_settings',
+		array(
+			'allow_guess_changes'       => 'yes',
 			'default_tournament_period' => 'monthly',
 			'min_guess_amount'          => 0,
 			'max_guess_amount'          => 100000,
@@ -258,10 +258,10 @@ function bhg_activate_plugin() {
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
 		bhg_seed_demo_if_empty();
 	}
-        update_option( 'bhg_demo_notice', 1 );
+		update_option( 'bhg_demo_notice', 1 );
 
-                // Set tables created flag.
-        update_option( 'bhg_tables_created', true );
+				// Set tables created flag.
+		update_option( 'bhg_tables_created', true );
 
 		// Flush rewrite rules after database changes.
 	flush_rewrite_rules();
@@ -369,13 +369,13 @@ function bhg_init_plugin() {
 			new BHG_Login_Redirect();
 	}
 
-        if ( class_exists( 'BHG_Ads' ) ) {
-                        BHG_Ads::init();
-        }
+	if ( class_exists( 'BHG_Ads' ) ) {
+					BHG_Ads::init();
+	}
 
-        if ( class_exists( 'BHG_Utils' ) ) {
-                BHG_Utils::init_hooks();
-        }
+	if ( class_exists( 'BHG_Utils' ) ) {
+			BHG_Utils::init_hooks();
+	}
 
 	if ( class_exists( 'BHG_Tournaments_Controller' ) ) {
 		BHG_Tournaments_Controller::init();
@@ -412,10 +412,10 @@ function bhg_handle_settings_save() {
 	}
 
 				// Verify nonce.
-       if ( ! check_admin_referer( 'bhg_settings', 'bhg_settings_nonce' ) ) {
-                                      wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) );
-                                       exit;
-       }
+	if ( ! check_admin_referer( 'bhg_settings', 'bhg_settings_nonce' ) ) {
+									wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) );
+									exit;
+	}
 
 		// Sanitize and validate data.
 		$settings = array();
@@ -449,11 +449,11 @@ function bhg_handle_settings_save() {
 	}
 
 				// Validate that min is not greater than max.
-       if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
-                                                               $settings['min_guess_amount'] > $settings['max_guess_amount'] ) {
-                                      wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&error=invalid_data' ) );
-                                       exit;
-       }
+	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
+																$settings['min_guess_amount'] > $settings['max_guess_amount'] ) {
+									wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&error=invalid_data' ) );
+									exit;
+	}
 
 	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
 			$allow = sanitize_text_field( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
@@ -476,8 +476,8 @@ function bhg_handle_settings_save() {
 		update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
 				// Redirect back to settings page.
-                              wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
-                               exit;
+								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
+								exit;
 }
 
 // Canonical guess submit handler.
@@ -546,8 +546,9 @@ function bhg_handle_submit_guess() {
 	$hunt_cache_key = 'bhg_hunt_' . $hunt_id;
 	$hunt           = wp_cache_get( $hunt_cache_key );
 	if ( false === $hunt ) {
-		$hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT id, status, guessing_enabled FROM %i WHERE id = %d', $hunts, $hunt_id ) );
-		wp_cache_set( $hunt_cache_key, $hunt );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT id, status, guessing_enabled FROM %i WHERE id = %d', $hunts, $hunt_id ) );
+			wp_cache_set( $hunt_cache_key, $hunt );
 	}
 	if ( ! $hunt ) {
 		if ( wp_doing_ajax() ) {
@@ -569,7 +570,8 @@ function bhg_handle_submit_guess() {
 	$count_cache_key = 'bhg_guess_count_' . $hunt_id . '_' . $user_id;
 	$count           = wp_cache_get( $count_cache_key );
 	if ( false === $count ) {
-		$count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d AND user_id = %d', $g_tbl, $hunt_id, $user_id ) );
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d AND user_id = %d', $g_tbl, $hunt_id, $user_id ) );
 		wp_cache_set( $count_cache_key, $count );
 	}
 	if ( $count >= $max ) {
@@ -578,21 +580,23 @@ function bhg_handle_submit_guess() {
 			$last_guess_key = 'bhg_last_guess_' . $hunt_id . '_' . $user_id;
 			$gid            = wp_cache_get( $last_guess_key );
 			if ( false === $gid ) {
-				$gid = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1', $g_tbl, $hunt_id, $user_id ) );
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+								$gid = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1', $g_tbl, $hunt_id, $user_id ) );
 				wp_cache_set( $last_guess_key, $gid );
 			}
 			if ( $gid ) {
-				// db call ok; no-cache ok.
-				$wpdb->update(
-					$g_tbl,
-					array(
-						'guess'      => $guess,
-						'updated_at' => current_time( 'mysql' ),
-					),
-					array( 'id' => $gid ),
-					array( '%f', '%s' ),
-					array( '%d' )
-				);
+								// db call ok; no-cache ok.
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+								$wpdb->update(
+									$g_tbl,
+									array(
+										'guess'      => $guess,
+										'updated_at' => current_time( 'mysql' ),
+									),
+									array( 'id' => $gid ),
+									array( '%f', '%s' ),
+									array( '%d' )
+								);
 				wp_cache_delete( $count_cache_key );
 				wp_cache_delete( $last_guess_key );
 				if ( wp_doing_ajax() ) {
@@ -609,18 +613,19 @@ function bhg_handle_submit_guess() {
 				wp_die( esc_html( bhg_t( 'you_have_reached_the_maximum_number_of_guesses', 'You have reached the maximum number of guesses.' ) ) );
 	}
 
-	// Insert.
-	// db call ok; no-cache ok.
-	$wpdb->insert(
-		$g_tbl,
-		array(
-			'hunt_id'    => $hunt_id,
-			'user_id'    => $user_id,
-			'guess'      => $guess,
-			'created_at' => current_time( 'mysql' ),
-		),
-		array( '%d', '%d', '%f', '%s' )
-	);
+		// Insert.
+		// db call ok; no-cache ok.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert(
+			$g_tbl,
+			array(
+				'hunt_id'    => $hunt_id,
+				'user_id'    => $user_id,
+				'guess'      => $guess,
+				'created_at' => current_time( 'mysql' ),
+			),
+			array( '%d', '%d', '%f', '%s' )
+		);
 	wp_cache_delete( $count_cache_key );
 	wp_cache_delete( $last_guess_key );
 
@@ -674,7 +679,7 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
 			return array();
 	}
 
-		$table = esc_sql( $table );
+		$table              = esc_sql( $table );
 		$placement          = sanitize_key( $placement );
 		$allowed_placements = array( 'footer', 'bottom', 'sidebar', 'shortcode', 'none' );
 	if ( ! in_array( $placement, $allowed_placements, true ) ) {
@@ -685,14 +690,15 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
 	$cache_key = 'bhg_ads_' . md5( $table . '_' . $placement );
 	$rows      = wp_cache_get( $cache_key );
 	if ( false === $rows ) {
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT * FROM %i WHERE placement = %s AND active = %d',
-				$table,
-				$placement,
-				1
-			)
-		);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE placement = %s AND active = %d',
+					$table,
+					$placement,
+					1
+				)
+			);
 		wp_cache_set( $cache_key, $rows );
 	}
 	if ( did_action( 'wp' ) && function_exists( 'get_queried_object_id' ) ) {
@@ -798,8 +804,9 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 				GROUP BY g.user_id
 				) t';
 				$params_total[] = $g;
-				// db call ok; no-cache ok.
-	$total = (int) $wpdb->get_var( $wpdb->prepare( $total_query, $params_total ) );
+								// db call ok; no-cache ok.
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$total = (int) $wpdb->get_var( $wpdb->prepare( $total_query, $params_total ) );
 
 				$list_query  = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
 				FROM %i g
@@ -822,7 +829,8 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 				$params_list[] = $g;
 				$params_list[] = $per_page;
 				$params_list[] = $offset;
-	$rows                      = $wpdb->get_results( $wpdb->prepare( $list_query, $params_list ) );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results( $wpdb->prepare( $list_query, $params_list ) );
 	if ( ! $rows ) {
 		return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
 	}
