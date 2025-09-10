@@ -285,16 +285,19 @@ $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 if ( ! $hunts_table ) {
 return '';
 }
-$query       = $wpdb->prepare(
-'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %i g LEFT JOIN %i u ON u.ID = g.user_id LEFT JOIN %i h ON h.id = g.hunt_id WHERE g.hunt_id = %d',
-$g,
-$u,
-$hunts_table,
-$hunt_id
+$query = $wpdb->prepare(
+        sprintf(
+                'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %%i g LEFT JOIN %%i u ON u.ID = g.user_id LEFT JOIN %%i h ON h.id = g.hunt_id WHERE g.hunt_id = %%d ORDER BY %s %s LIMIT %%d',
+                esc_sql( $orderby ),
+                esc_sql( $order )
+        ),
+        $g,
+        $u,
+        $hunts_table,
+        $hunt_id,
+        $ranking
 );
-						$query                      .= ' ORDER BY ' . $orderby . ' ' . $order;
-						$query                      .= $wpdb->prepare( ' LIMIT %d', $ranking );
-																																$rows = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+                                                $rows = $wpdb->get_results( $query ); // db call ok; no-cache ok.
 
 					wp_enqueue_style(
 						'bhg-shortcodes',
