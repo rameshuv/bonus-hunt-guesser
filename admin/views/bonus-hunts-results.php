@@ -99,7 +99,6 @@ $all_tours = $wpdb->get_results(
 	$wpdb->prepare( 'SELECT id, title FROM %i ORDER BY id DESC', $tour_table )
 );
 $current   = $view_type . '-' . $item_id;
-$base_url  = esc_url( admin_url( 'admin.php?page=bhg-hunt-results' ) );
 ?>
 <div class="wrap">
 <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $result_title ) ); ?></h1>
@@ -135,8 +134,8 @@ $base_url  = esc_url( admin_url( 'admin.php?page=bhg-hunt-results' ) );
 								<?php if ( 'tournament' === $view_type ) : ?>
 										<td><?php echo (int) $r->wins; ?></td>
 								<?php else : ?>
-                                                                        <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-                                                                        <td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+																		<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
+																		<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
 							<?php endif; ?>
 					</tr>
 					<?php
@@ -146,14 +145,4 @@ $base_url  = esc_url( admin_url( 'admin.php?page=bhg-hunt-results' ) );
 			</tbody>
 	</table>
 </div>
-<script>
-document.getElementById('bhg-results-select').addEventListener('change', function () {
-	var val = this.value.split('-');
-	if ( val.length < 2 ) {
-			return;
-	}
-	var type = val[0];
-	var id   = val[1];
-		window.location = '<?php echo esc_url_raw( $base_url ); ?>' + '&type=' + type + '&id=' + id;
-});
-</script>
+
