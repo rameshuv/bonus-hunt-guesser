@@ -8,29 +8,34 @@ global $wpdb;
 $table          = $wpdb->prefix . 'bhg_tournaments';
 $allowed_tables = array( $wpdb->prefix . 'bhg_tournaments' );
 if ( ! in_array( $table, $allowed_tables, true ) ) {
-	wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+        wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
-$table = esc_sql( $table );
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
-$row     = $edit_id
-	? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id ) )
-	: null;
+$row = $edit_id
+        ? $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $edit_id ) )
+        : null;
 
 $search          = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 $orderby         = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order           = isset( $_GET['order'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'DESC';
 $allowed_orderby = array( 'id', 'title', 'type', 'start_date', 'end_date', 'status' );
 if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
-		$orderby = 'id';
+        $orderby = 'id';
 }
-$order = ( 'ASC' === $order ) ? 'ASC' : 'DESC';
-$sql   = "SELECT * FROM {$table}";
+$order           = ( 'ASC' === $order ) ? 'ASC' : 'DESC';
+$order_by_clause = sanitize_sql_orderby( $orderby . ' ' . $order );
+if ( empty( $order_by_clause ) ) {
+        $order_by_clause = 'id DESC';
+}
+
+$sql = $wpdb->prepare( 'SELECT * FROM %i', $table );
 if ( $search ) {
-		$like = '%' . $wpdb->esc_like( $search ) . '%';
-		$sql .= $wpdb->prepare( ' WHERE title LIKE %s', $like );
+        $like = '%' . $wpdb->esc_like( $search ) . '%';
+        $sql .= $wpdb->prepare( ' WHERE title LIKE %s', $like );
 }
-$sql .= " ORDER BY {$orderby} {$order}";
+
+$sql .= " ORDER BY {$order_by_clause}";
 $rows = $wpdb->get_results( $sql );
 
 $labels = array(
