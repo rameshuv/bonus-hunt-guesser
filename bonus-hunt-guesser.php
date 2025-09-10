@@ -412,10 +412,10 @@ function bhg_handle_settings_save() {
 	}
 
 				// Verify nonce.
-	if ( ! check_admin_referer( 'bhg_settings', 'bhg_settings_nonce' ) ) {
-					wp_safe_redirect( esc_url_raw( 'admin.php?page=bhg-settings&error=nonce_failed' ) );
-					exit;
-	}
+       if ( ! check_admin_referer( 'bhg_settings', 'bhg_settings_nonce' ) ) {
+                                       wp_safe_redirect( admin_url( 'admin.php?page=bhg-settings&error=nonce_failed' ) );
+                                       exit;
+       }
 
 		// Sanitize and validate data.
 		$settings = array();
@@ -449,11 +449,11 @@ function bhg_handle_settings_save() {
 	}
 
 				// Validate that min is not greater than max.
-	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
-								$settings['min_guess_amount'] > $settings['max_guess_amount'] ) {
-					wp_safe_redirect( esc_url_raw( 'admin.php?page=bhg-settings&error=invalid_data' ) );
-					exit;
-	}
+       if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
+                                                               $settings['min_guess_amount'] > $settings['max_guess_amount'] ) {
+                                       wp_safe_redirect( admin_url( 'admin.php?page=bhg-settings&error=invalid_data' ) );
+                                       exit;
+       }
 
 	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
 			$allow = sanitize_text_field( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
@@ -476,8 +476,8 @@ function bhg_handle_settings_save() {
 		update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
 				// Redirect back to settings page.
-				wp_safe_redirect( esc_url_raw( 'admin.php?page=bhg-settings&message=saved' ) );
-				exit;
+                               wp_safe_redirect( admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
+                               exit;
 }
 
 // Canonical guess submit handler.
