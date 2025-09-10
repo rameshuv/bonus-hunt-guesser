@@ -302,21 +302,19 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 								$pos       = 1;
 								$need_user = in_array( 'user', $fields, true );
 			foreach ( $rows as $r ) {
-				if ( $need_user ) {
-					$site_id                    = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
-										$is_aff = $site_id > 0
-										? (int) get_user_meta( (int) $r->user_id, 'bhg_affiliate_website_' . $site_id, true )
-										: (int) get_user_meta( (int) $r->user_id, 'bhg_is_affiliate', true );
-					/* translators: %d: user ID. */
-					$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
-				}
+                                if ( $need_user ) {
+                                        $site_id   = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
+                                        $aff_dot   = bhg_render_affiliate_dot( (int) $r->user_id, $site_id );
+                                        /* translators: %d: user ID. */
+                                        $user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
+                                }
 
 				echo '<tr>';
 				foreach ( $fields as $field ) {
 					if ( 'position' === $field ) {
 						echo '<td data-column="position">' . (int) $pos . '</td>';
-					} elseif ( 'user' === $field ) {
-													echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . $this->render_affiliate_dot( (bool) $is_aff ) . '</td>';
+                                        } elseif ( 'user' === $field ) {
+                                                                                                        echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . $aff_dot . '</td>';
                                         } elseif ( 'guess' === $field ) {
                                                         echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
                                         }
@@ -459,13 +457,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				echo '<tr>';
 				echo '<td>' . esc_html( $row->title ) . '</td>';
                                 $guess_cell = esc_html( bhg_format_currency( (float) $row->guess ) );
-				if ( $show_aff ) {
-					$dot        = $this->render_affiliate_dot(
-						get_user_meta( (int) $current_user_id, 'bhg_affiliate_website_' . (int) $row->affiliate_site_id, true )
-						|| get_user_meta( (int) $current_user_id, 'bhg_is_affiliate', true )
-					);
-					$guess_cell = $dot . $guess_cell;
-				}
+                                if ( $show_aff ) {
+                                        $dot        = bhg_render_affiliate_dot( (int) $current_user_id, (int) $row->affiliate_site_id );
+                                        $guess_cell = $dot . $guess_cell;
+                                }
 							echo '<td>' . $guess_cell . '</td>';
                                                         echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 							echo '</tr>';
@@ -756,10 +751,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 				$pos = $start;
 			foreach ( $rows as $row ) {
-				if ( $need_aff ) {
-					$is_aff = (int) get_user_meta( (int) $row->user_id, 'bhg_is_affiliate', true );
-					$aff    = $this->render_affiliate_dot( (bool) $is_aff );
-				}
+                                if ( $need_aff ) {
+                                        $aff = bhg_render_affiliate_dot( (int) $row->user_id );
+                                }
 											/* translators: %d: user ID. */
 											$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
 											echo '<tr>';
@@ -1270,11 +1264,6 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			return ob_get_clean();
 		}
 
-						/** Private: render affiliate dot span */
-		private function render_affiliate_dot( $is_affiliate ) {
-				$c = $is_affiliate ? 'green' : 'red';
-				return '<span class="bhg-aff-dot bhg-aff-' . esc_attr( $c ) . '" aria-hidden="true"></span> ';
-		}
 	}
 }
 

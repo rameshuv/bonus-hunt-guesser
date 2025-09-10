@@ -897,7 +897,6 @@ msgstr ""
 
 #: admin/views/users.php:51
 #: bonus-hunt-guesser.php:256
-#: includes/helpers-aff-dot.php:15
 #: includes/helpers.php:285
 msgid "Affiliate"
 msgstr ""
@@ -931,7 +930,6 @@ msgid "An error occurred. Please try again."
 msgstr ""
 
 #: bonus-hunt-guesser.php:257
-#: includes/helpers-aff-dot.php:16
 #: includes/helpers.php:285
 msgid "Non-affiliate"
 msgstr ""
