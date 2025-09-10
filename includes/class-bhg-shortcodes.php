@@ -63,15 +63,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 			/** [bhg_active_hunt] — list all open hunts */
 		public function active_hunt_shortcode( $atts ) {
-			   global $wpdb;
-			   $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-			   // db call ok; no-cache ok.
-			   $sql         = $wpdb->prepare(
-				   'SELECT * FROM %i WHERE status = %s ORDER BY created_at DESC',
-				   $hunts_table,
-				   'open'
-			   );
-			   $hunts       = $wpdb->get_results( $sql );
+				global $wpdb;
+				$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+				// db call ok; no-cache ok.
+				$sql   = $wpdb->prepare(
+					'SELECT * FROM %i WHERE status = %s ORDER BY created_at DESC',
+					$hunts_table,
+					'open'
+				);
+				$hunts = $wpdb->get_results( $sql );
 
 			if ( ! $hunts ) {
 				return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
@@ -116,15 +116,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
 			}
 
-					   global $wpdb;
-					   $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-					   // db call ok; no-cache ok.
-					   $sql         = $wpdb->prepare(
-						   'SELECT id, title FROM %i WHERE status = %s ORDER BY created_at DESC',
-						   $hunts_table,
-						   'open'
-					   );
-					   $open_hunts  = $wpdb->get_results( $sql );
+						global $wpdb;
+						$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+						// db call ok; no-cache ok.
+			$sql        = $wpdb->prepare(
+				'SELECT id, title FROM %i WHERE status = %s AND guessing_enabled = 1 ORDER BY created_at DESC',
+				$hunts_table,
+				'open'
+			);
+			$open_hunts = $wpdb->get_results( $sql );
 
 			if ( $hunt_id <= 0 ) {
 				if ( ! $open_hunts ) {
@@ -135,21 +135,21 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				}
 			}
 
-					   $user_id = get_current_user_id();
-					   $table   = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
-					   // db call ok; no-cache ok.
-					   $existing_id = $hunt_id > 0 ? (int) $wpdb->get_var(
-						   $wpdb->prepare(
-							   'SELECT id FROM %i WHERE user_id = %d AND hunt_id = %d',
-							   $table,
-							   $user_id,
-							   $hunt_id
-						   )
-					   ) : 0;
-					   // db call ok; no-cache ok.
-					   $existing_guess = $existing_id ? (float) $wpdb->get_var(
-						   $wpdb->prepare( 'SELECT guess FROM %i WHERE id = %d', $table, $existing_id )
-					   ) : '';
+						$user_id = get_current_user_id();
+						$table   = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
+						// db call ok; no-cache ok.
+						$existing_id = $hunt_id > 0 ? (int) $wpdb->get_var(
+							$wpdb->prepare(
+								'SELECT id FROM %i WHERE user_id = %d AND hunt_id = %d',
+								$table,
+								$user_id,
+								$hunt_id
+							)
+						) : 0;
+						// db call ok; no-cache ok.
+						$existing_guess = $existing_id ? (float) $wpdb->get_var(
+							$wpdb->prepare( 'SELECT guess FROM %i WHERE id = %d', $table, $existing_id )
+						) : '';
 
 			$settings = get_option( 'bhg_plugin_settings' );
 			$min      = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
@@ -209,42 +209,42 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			 */
 		public function leaderboard_shortcode( $atts ) {
 										$a = shortcode_atts(
-												array(
-														'hunt_id' => 0,
-														'orderby' => 'guess', // guess|user|position
-														'order'   => 'ASC',
-														'ranking' => 10, // top N results (1–10)
-														'fields'  => 'position,user,guess',
-												),
-												$atts,
-												'bhg_leaderboard'
+											array(
+												'hunt_id' => 0,
+												'orderby' => 'guess', // guess|user|position
+												'order'   => 'ASC',
+												'ranking' => 10, // top N results (1–10)
+												'fields'  => 'position,user,guess',
+											),
+											$atts,
+											'bhg_leaderboard'
 										);
 
-					   global $wpdb;
-					   $hunt_id = (int) $a['hunt_id'];
-			   if ( $hunt_id <= 0 ) {
-					   $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-					   $sql         = $wpdb->prepare( 'SELECT id FROM %i ORDER BY created_at DESC LIMIT 1', $hunts_table );
-					   $hunt_id     = (int) $wpdb->get_var( $sql ); // db call ok; no-cache ok.
-				   if ( $hunt_id <= 0 ) {
-					   return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
-				   }
-			   }
+						global $wpdb;
+						$hunt_id = (int) $a['hunt_id'];
+			if ( $hunt_id <= 0 ) {
+					$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+					$sql         = $wpdb->prepare( 'SELECT id FROM %i ORDER BY created_at DESC LIMIT 1', $hunts_table );
+					$hunt_id     = (int) $wpdb->get_var( $sql ); // db call ok; no-cache ok.
+				if ( $hunt_id <= 0 ) {
+					return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
+				}
+			}
 
 			$g = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
 			$u = $this->sanitize_table( $wpdb->users );
 
 						$allowed_orders = array( 'ASC', 'DESC' );
 						$order          = strtoupper( sanitize_key( $a['order'] ) );
-						if ( ! in_array( $order, $allowed_orders, true ) ) {
-								$order = 'ASC';
-						}
+			if ( ! in_array( $order, $allowed_orders, true ) ) {
+					$order = 'ASC';
+			}
 						$allowed_orderby = array(
-								'guess'    => 'g.guess',
-								'user'     => 'u.user_login',
-								'position' => 'g.id', // stable proxy
+							'guess'    => 'g.guess',
+							'user'     => 'u.user_login',
+							'position' => 'g.id', // stable proxy
 						);
-						$orderby_key = sanitize_key( $a['orderby'] );
+						$orderby_key     = sanitize_key( $a['orderby'] );
 						if ( ! isset( $allowed_orderby[ $orderby_key ] ) ) {
 								$orderby_key = 'guess';
 						}
@@ -255,28 +255,28 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 										$fields_raw    = explode( ',', (string) $a['fields'] );
 										$allowed_field = array( 'position', 'user', 'guess' );
 										$fields        = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
-										if ( empty( $fields ) ) {
-														$fields = $allowed_field;
-										}
-
-									   $total = (int) $wpdb->get_var(
-											   $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d', $g, $hunt_id )
-									   ); // db call ok; no-cache ok.
-						if ( $total < 1 ) {
-										return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
+						if ( empty( $fields ) ) {
+										$fields = $allowed_field;
 						}
 
-										$hunts_table     = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-										$query = $wpdb->prepare(
-							   'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %i g LEFT JOIN %i u ON u.ID = g.user_id LEFT JOIN %i h ON h.id = g.hunt_id WHERE g.hunt_id = %d',
-							   $g,
-							   $u,
-							   $hunts_table,
-							   $hunt_id
-					   );
-					   $query .= ' ORDER BY ' . $orderby . ' ' . $order; 
-					   $query .= $wpdb->prepare( ' LIMIT %d', $ranking );
-																															   $rows   = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+										$total = (int) $wpdb->get_var(
+											$wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d', $g, $hunt_id )
+										); // db call ok; no-cache ok.
+			if ( $total < 1 ) {
+							return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
+			}
+
+										$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+										$query       = $wpdb->prepare(
+											'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %i g LEFT JOIN %i u ON u.ID = g.user_id LEFT JOIN %i h ON h.id = g.hunt_id WHERE g.hunt_id = %d',
+											$g,
+											$u,
+											$hunts_table,
+											$hunt_id
+										);
+						$query                      .= ' ORDER BY ' . $orderby . ' ' . $order;
+						$query                      .= $wpdb->prepare( ' LIMIT %d', $ranking );
+																																$rows = $wpdb->get_results( $query ); // db call ok; no-cache ok.
 
 					wp_enqueue_style(
 						'bhg-shortcodes',
@@ -301,33 +301,33 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 								$pos       = 1;
 								$need_user = in_array( 'user', $fields, true );
-						foreach ( $rows as $r ) {
+			foreach ( $rows as $r ) {
 				if ( $need_user ) {
-					$site_id = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
-									   $is_aff  = $site_id > 0
-									   ? (int) get_user_meta( (int) $r->user_id, 'bhg_affiliate_website_' . $site_id, true )
-									   : (int) get_user_meta( (int) $r->user_id, 'bhg_is_affiliate', true );
+					$site_id                    = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
+										$is_aff = $site_id > 0
+										? (int) get_user_meta( (int) $r->user_id, 'bhg_affiliate_website_' . $site_id, true )
+										: (int) get_user_meta( (int) $r->user_id, 'bhg_is_affiliate', true );
 					/* translators: %d: user ID. */
 					$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
 				}
 
-					echo '<tr>';
+				echo '<tr>';
 				foreach ( $fields as $field ) {
 					if ( 'position' === $field ) {
 						echo '<td data-column="position">' . (int) $pos . '</td>';
 					} elseif ( 'user' === $field ) {
-												   echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . $this->render_affiliate_dot( (bool) $is_aff ) . '</td>';
+													echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . $this->render_affiliate_dot( (bool) $is_aff ) . '</td>';
 					} elseif ( 'guess' === $field ) {
 							echo '<td data-column="guess">' . esc_html( number_format_i18n( (float) $r->guess, 2 ) ) . '</td>';
 					}
 				}
-						echo '</tr>';
-												++$pos;
-						}
+				echo '</tr>';
+									++$pos;
+			}
 								echo '</tbody></table>';
 
 								return ob_get_clean();
-				}
+		}
 
 			/**
 			 * [bhg_user_guesses]
@@ -379,12 +379,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						$g = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
 						$h = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 
-			   // Ensure hunts table has created_at column. If missing, attempt migration and fall back.
-			   $has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
-			   if ( empty( $has_created_at ) && class_exists( 'BHG_DB' ) ) {
-				   BHG_DB::migrate();
-				   $has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
-			   }
+				// Ensure hunts table has created_at column. If missing, attempt migration and fall back.
+				$has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
+			if ( empty( $has_created_at ) && class_exists( 'BHG_DB' ) ) {
+				BHG_DB::migrate();
+				$has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
+			}
 
 			$where  = array( 'g.user_id = %d' );
 			$params = array( $user_id );
@@ -413,37 +413,37 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$where[]  = 'g.created_at >= %s';
 				$params[] = $since;
 			}
-					
+
 						$allowed_orders = array( 'ASC', 'DESC' );
 						$order          = strtoupper( sanitize_key( $a['order'] ) );
-						if ( ! in_array( $order, $allowed_orders, true ) ) {
-								$order = 'DESC';
-						}
+			if ( ! in_array( $order, $allowed_orders, true ) ) {
+					$order = 'DESC';
+			}
 						$orderby_map = array(
-								'guess' => 'g.guess',
-								'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
+							'guess' => 'g.guess',
+							'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
 						);
 						$orderby_key = sanitize_key( $a['orderby'] );
 						if ( ! isset( $orderby_map[ $orderby_key ] ) ) {
 								$orderby_key = 'hunt';
 						}
-$orderby = $orderby_map[ $orderby_key ];
+						$orderby = $orderby_map[ $orderby_key ];
 
-$params = array_merge( array( $g, $h ), $params );
-$query  = $wpdb->prepare(
-'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ),
-...$params
-);
-$query .= ' ORDER BY ' . $orderby . ' ' . $order;
-						if ( 'recent' === strtolower( $a['timeline'] ) ) {
-								$query .= ' LIMIT 10';
-						}
+						$params = array_merge( array( $g, $h ), $params );
+						$query  = $wpdb->prepare(
+							'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ),
+							...$params
+						);
+			$query             .= ' ORDER BY ' . $orderby . ' ' . $order;
+			if ( 'recent' === strtolower( $a['timeline'] ) ) {
+					$query .= ' LIMIT 10';
+			}
 
 						// db call ok; no-cache ok.
 						$rows = $wpdb->get_results( $query );
-						if ( ! $rows ) {
-								return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
-						}
+			if ( ! $rows ) {
+					return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
+			}
 
 						$show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
 
@@ -455,21 +455,21 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 						echo '</tr></thead><tbody>';
 
 						$current_user_id = $user_id; // for aff dot.
-						foreach ( $rows as $row ) {
-							echo '<tr>';
-							echo '<td>' . esc_html( $row->title ) . '</td>';
-							$guess_cell = esc_html( number_format_i18n( (float) $row->guess, 2 ) );
-													   if ( $show_aff ) {
-																$dot        = $this->render_affiliate_dot(
-																		get_user_meta( (int) $current_user_id, 'bhg_affiliate_website_' . (int) $row->affiliate_site_id, true )
-																		|| get_user_meta( (int) $current_user_id, 'bhg_is_affiliate', true )
-																);
-																$guess_cell = $dot . $guess_cell;
-														}
+			foreach ( $rows as $row ) {
+				echo '<tr>';
+				echo '<td>' . esc_html( $row->title ) . '</td>';
+				$guess_cell = esc_html( number_format_i18n( (float) $row->guess, 2 ) );
+				if ( $show_aff ) {
+					$dot        = $this->render_affiliate_dot(
+						get_user_meta( (int) $current_user_id, 'bhg_affiliate_website_' . (int) $row->affiliate_site_id, true )
+						|| get_user_meta( (int) $current_user_id, 'bhg_is_affiliate', true )
+					);
+					$guess_cell = $dot . $guess_cell;
+				}
 							echo '<td>' . $guess_cell . '</td>';
 							echo '<td>' . ( isset( $row->final_balance ) ? esc_html( number_format_i18n( (float) $row->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 							echo '</tr>';
-						}
+			}
 						echo '</tbody></table>';
 						return ob_get_clean();
 		}
@@ -547,20 +547,20 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 				$params[] = $since;
 			}
 
-			   $sql = 'SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at, a.name AS aff_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id';
-			   if ( $where ) {
-				   $sql .= ' WHERE ' . implode( ' AND ', $where );
-			   }
-			   $order_clause = ' ORDER BY h.created_at DESC';
-			   if ( 'recent' === strtolower( $a['timeline'] ) ) {
-				   $order_clause .= ' LIMIT 10';
-			   }
+				$sql = 'SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at, a.name AS aff_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id';
+			if ( $where ) {
+				$sql .= ' WHERE ' . implode( ' AND ', $where );
+			}
+				$order_clause = ' ORDER BY h.created_at DESC';
+			if ( 'recent' === strtolower( $a['timeline'] ) ) {
+				$order_clause .= ' LIMIT 10';
+			}
 
-			   // db call ok; no-cache ok.
-			   $prep_args = array_merge( array( $h, $aff_table ), $params );
-			   $sql       = $wpdb->prepare( $sql, ...$prep_args );
-			   $sql      .= $order_clause;
-			   $rows      = $wpdb->get_results( $sql );
+				// db call ok; no-cache ok.
+				$prep_args = array_merge( array( $h, $aff_table ), $params );
+				$sql       = $wpdb->prepare( $sql, ...$prep_args );
+				$sql      .= $order_clause;
+				$rows      = $wpdb->get_results( $sql );
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
 			}
@@ -598,10 +598,10 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 						 * [bhg_leaderboards] — overall wins leaderboard.
 						 *
 						 * Attributes:
-						   * - fields: comma-separated list of columns to display.
-						   *   Allowed: pos,user,wins,avg,aff,site,hunt,tournament.
-						   * - ranking: range of positions to display (e.g. 1-10 or 5).
-						   * - timeline: optional window (day|week|month|year).
+						 * - fields: comma-separated list of columns to display.
+						 *   Allowed: pos,user,wins,avg,aff,site,hunt,tournament.
+						 * - ranking: range of positions to display (e.g. 1-10 or 5).
+						 * - timeline: optional window (day|week|month|year).
 						 */
 		public function leaderboards_shortcode( $atts ) {
 			$a = shortcode_atts(
@@ -614,24 +614,24 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 				'bhg_leaderboards'
 			);
 
-			   $raw_fields                = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
-			   $allowed_field             = array( 'pos', 'user', 'wins', 'avg', 'aff', 'site', 'hunt', 'tournament' );
-			   $fields_arr                = array_values( array_unique( array_intersect( $allowed_field, array_map( 'sanitize_key', $raw_fields ) ) ) );
-			   if ( empty( $fields_arr ) ) {
-				   $fields_arr = array( 'pos', 'user', 'wins' );
-			   }
+				$raw_fields    = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
+				$allowed_field = array( 'pos', 'user', 'wins', 'avg', 'aff', 'site', 'hunt', 'tournament' );
+				$fields_arr    = array_values( array_unique( array_intersect( $allowed_field, array_map( 'sanitize_key', $raw_fields ) ) ) );
+			if ( empty( $fields_arr ) ) {
+				$fields_arr = array( 'pos', 'user', 'wins' );
+			}
 
-			   global $wpdb;
+				global $wpdb;
 
-			   $ranking_raw = trim( (string) $a['ranking'] );
-			   if ( preg_match( '/^(\d+)-(\d+)$/', $ranking_raw, $m ) ) {
-				   $start = max( 1, min( 10, (int) $m[1] ) );
-				   $end   = max( $start, min( 10, (int) $m[2] ) );
-			   } else {
-				   $start = 1;
-				   $end   = max( 1, min( 10, (int) $ranking_raw ) );
-			   }
-			   $count = $end - $start + 1;
+				$ranking_raw = trim( (string) $a['ranking'] );
+			if ( preg_match( '/^(\d+)-(\d+)$/', $ranking_raw, $m ) ) {
+				$start = max( 1, min( 10, (int) $m[1] ) );
+				$end   = max( $start, min( 10, (int) $m[2] ) );
+			} else {
+				$start = 1;
+				$end   = max( 1, min( 10, (int) $ranking_raw ) );
+			}
+				$count = $end - $start + 1;
 
 			// Optional timeline filter.
 			$where      = '';
@@ -644,8 +644,8 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 				'year'  => '-1 year',
 			);
 			if ( isset( $intervals[ $timeline ] ) ) {
-				$since       = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
-				$where       = ' WHERE r.last_win_date >= %s';
+				$since        = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
+				$where        = ' WHERE r.last_win_date >= %s';
 				$prep_where[] = $since;
 			}
 
@@ -655,35 +655,35 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 			$need_hunt       = in_array( 'hunt', $fields_arr, true );
 			$need_aff        = in_array( 'aff', $fields_arr, true );
 
-			   $r  = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
-			   $u  = $this->sanitize_table( $wpdb->users );
-			   $t  = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
-			   $w  = $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' );
-			   $hw = $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' );
-			   $h  = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+				$r  = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
+				$u  = $this->sanitize_table( $wpdb->users );
+				$t  = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
+				$w  = $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' );
+				$hw = $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' );
+				$h  = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 
-			   // db call ok; no-cache ok.
-			   $sql         = 'SELECT r.user_id, u.user_login, SUM(r.wins) AS total_wins';
-			   $prep_tables = array();
-			   if ( $need_avg ) {
-				   $sql          .= ', (SELECT AVG(hw.position) FROM %i hw WHERE hw.user_id = r.user_id) AS avg_rank';
-				   $prep_tables[] = $hw;
-			   }
-			   $sql          .= ' FROM %i r INNER JOIN %i u ON u.ID = r.user_id';
-			   $prep_tables[] = $r;
-			   $prep_tables[] = $u;
-			   if ( $where ) {
-				   $sql         .= $where;
-				   $prep_tables = array_merge( $prep_tables, $prep_where );
-			   }
-			   $sql  .= ' GROUP BY r.user_id, u.user_login';
-			   $sql   = $wpdb->prepare( $sql, ...$prep_tables );
-			   $sql  .= ' ORDER BY total_wins DESC, u.user_login ASC';
-			   $sql  .= $wpdb->prepare( ' LIMIT %d', $end );
-			   $rows  = $wpdb->get_results( $sql );
-			   if ( $start > 1 ) {
-				   $rows = array_slice( $rows, $start - 1, $count );
-			   }
+				// db call ok; no-cache ok.
+				$sql         = 'SELECT r.user_id, u.user_login, SUM(r.wins) AS total_wins';
+				$prep_tables = array();
+			if ( $need_avg ) {
+				$sql          .= ', (SELECT AVG(hw.position) FROM %i hw WHERE hw.user_id = r.user_id) AS avg_rank';
+				$prep_tables[] = $hw;
+			}
+				$sql          .= ' FROM %i r INNER JOIN %i u ON u.ID = r.user_id';
+				$prep_tables[] = $r;
+				$prep_tables[] = $u;
+			if ( $where ) {
+				$sql        .= $where;
+				$prep_tables = array_merge( $prep_tables, $prep_where );
+			}
+				$sql .= ' GROUP BY r.user_id, u.user_login';
+				$sql  = $wpdb->prepare( $sql, ...$prep_tables );
+				$sql .= ' ORDER BY total_wins DESC, u.user_login ASC';
+				$sql .= $wpdb->prepare( ' LIMIT %d', $end );
+				$rows = $wpdb->get_results( $sql );
+			if ( $start > 1 ) {
+				$rows = array_slice( $rows, $start - 1, $count );
+			}
 
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
@@ -691,16 +691,16 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 
 			foreach ( $rows as $row ) {
 				if ( $need_site || $need_tournament ) {
-							   // Last tournament and site.
-							   $last_sql = $wpdb->prepare(
-								   'SELECT t.title AS tournament_title, w.name AS site_name FROM %i r INNER JOIN %i t ON t.id = r.tournament_id LEFT JOIN %i w ON w.id = t.affiliate_site_id WHERE r.user_id = %d',
-								   $r,
-								   $t,
-								   $w,
-								   $row->user_id
-							   );
-							   $last_sql .= ' ORDER BY r.last_win_date DESC LIMIT 1';
-							   $last      = $wpdb->get_row( $last_sql );
+								// Last tournament and site.
+								$last_sql  = $wpdb->prepare(
+									'SELECT t.title AS tournament_title, w.name AS site_name FROM %i r INNER JOIN %i t ON t.id = r.tournament_id LEFT JOIN %i w ON w.id = t.affiliate_site_id WHERE r.user_id = %d',
+									$r,
+									$t,
+									$w,
+									$row->user_id
+								);
+								$last_sql .= ' ORDER BY r.last_win_date DESC LIMIT 1';
+								$last      = $wpdb->get_row( $last_sql );
 					if ( $need_tournament ) {
 						$row->tournament_title = $last && isset( $last->tournament_title ) ? $last->tournament_title : '';
 					}
@@ -710,14 +710,14 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 				}
 
 				if ( $need_hunt ) {
-								   // Last hunt won.
-								   $hunt_sql = $wpdb->prepare(
-									   'SELECT h.title FROM %i hw INNER JOIN %i h ON h.id = hw.hunt_id WHERE hw.user_id = %d',
-									   $hw,
-									   $h,
-									   $row->user_id
-								   );
-								   $hunt_sql .= ' ORDER BY hw.created_at DESC LIMIT 1';
+									// Last hunt won.
+									$hunt_sql    = $wpdb->prepare(
+										'SELECT h.title FROM %i hw INNER JOIN %i h ON h.id = hw.hunt_id WHERE hw.user_id = %d',
+										$hw,
+										$h,
+										$row->user_id
+									);
+									$hunt_sql   .= ' ORDER BY hw.created_at DESC LIMIT 1';
 								$hunt_title      = $wpdb->get_var( $hunt_sql );
 								$row->hunt_title = $hunt_title ? $hunt_title : '';
 				}
@@ -754,24 +754,24 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 			}
 			echo '</tr></thead><tbody>';
 
-			   $pos = $start;
-			   foreach ( $rows as $row ) {
-							   if ( $need_aff ) {
-									   $is_aff = (int) get_user_meta( (int) $row->user_id, 'bhg_is_affiliate', true );
-									   $aff    = $this->render_affiliate_dot( (bool) $is_aff );
-							   }
-												/* translators: %d: user ID. */
-												$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-												echo '<tr>';
+				$pos = $start;
+			foreach ( $rows as $row ) {
+				if ( $need_aff ) {
+					$is_aff = (int) get_user_meta( (int) $row->user_id, 'bhg_is_affiliate', true );
+					$aff    = $this->render_affiliate_dot( (bool) $is_aff );
+				}
+											/* translators: %d: user ID. */
+											$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+											echo '<tr>';
 				foreach ( $fields_arr as $field ) {
 					if ( 'pos' === $field ) {
-							echo '<td>' . (int) $pos . '</td>';
+						echo '<td>' . (int) $pos . '</td>';
 					} elseif ( 'user' === $field ) {
-								echo '<td>' . esc_html( $user_label ) . '</td>';
+							echo '<td>' . esc_html( $user_label ) . '</td>';
 					} elseif ( 'wins' === $field ) {
 						echo '<td>' . (int) $row->total_wins . '</td>';
 					} elseif ( 'avg' === $field ) {
-							echo '<td>' . ( isset( $row->avg_rank ) ? esc_html( number_format_i18n( (float) $row->avg_rank, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+						echo '<td>' . ( isset( $row->avg_rank ) ? esc_html( number_format_i18n( (float) $row->avg_rank, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 					} elseif ( 'aff' === $field ) {
 						echo '<td>' . $aff . '</td>';
 					} elseif ( 'site' === $field ) {
@@ -782,8 +782,8 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 						echo '<td>' . esc_html( $row->tournament_title ?: bhg_t( 'label_emdash', '—' ) ) . '</td>';
 					}
 				}
-							echo '</tr>';
-							++$pos;
+						echo '</tr>';
+						++$pos;
 			}
 					echo '</tbody></table>';
 					return ob_get_clean();
@@ -811,18 +811,18 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 			// Details screen
 			$details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
 			if ( $details_id > 0 ) {
-					   $t = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
-					   $r = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
-					   $u = $this->sanitize_table( $wpdb->users );
+						$t = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
+						$r = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
+						$u = $this->sanitize_table( $wpdb->users );
 
-					   // db call ok; no-cache ok.
-					   $tournament = $wpdb->get_row(
-						   $wpdb->prepare(
-							   'SELECT id, type, start_date, end_date, status FROM %i WHERE id = %d',
-							   $t,
-							   $details_id
-						   )
-					   );
+						// db call ok; no-cache ok.
+						$tournament = $wpdb->get_row(
+							$wpdb->prepare(
+								'SELECT id, type, start_date, end_date, status FROM %i WHERE id = %d',
+								$t,
+								$details_id
+							)
+						);
 				if ( ! $tournament ) {
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
@@ -832,9 +832,9 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 						$order          = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
 
 						$allowed = array(
-								'wins'        => 'r.wins',
-								'username'    => 'u.user_login',
-								'last_win_at' => 'r.last_win_date',
+							'wins'        => 'r.wins',
+							'username'    => 'u.user_login',
+							'last_win_at' => 'r.last_win_date',
 						);
 						if ( ! isset( $allowed[ $orderby ] ) ) {
 								$orderby = 'wins';
@@ -845,14 +845,14 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 						$orderby_column = $allowed[ $orderby ];
 						$order          = strtoupper( $order );
 
-								   $query = $wpdb->prepare(
-									   'SELECT r.user_id, r.wins, r.last_win_date, u.user_login FROM %i r INNER JOIN %i u ON u.ID = r.user_id WHERE r.tournament_id = %d',
-									   $r,
-									   $u,
-									   $tournament->id
-								   );
-								$query                                .= ' ORDER BY ' . $orderby_column . ' ' . $order . ', r.user_id ASC';
-								$rows                                  = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+									$query = $wpdb->prepare(
+										'SELECT r.user_id, r.wins, r.last_win_date, u.user_login FROM %i r INNER JOIN %i u ON u.ID = r.user_id WHERE r.tournament_id = %d',
+										$r,
+										$u,
+										$tournament->id
+									);
+								$query    .= ' ORDER BY ' . $orderby_column . ' ' . $order . ', r.user_id ASC';
+								$rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
 
 				$base   = remove_query_arg( array( 'orderby', 'order' ) );
 				$toggle = function ( $key ) use ( $orderby, $order, $base ) {
@@ -963,15 +963,15 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 				$args[]  = $website;
 			}
 
-			   $query = 'SELECT * FROM %i';
-			   if ( $where ) {
-				   $query .= ' WHERE ' . implode( ' AND ', $where );
-			   }
-			   $query .= ' ORDER BY start_date DESC, id DESC';
+				$query = 'SELECT * FROM %i';
+			if ( $where ) {
+				$query .= ' WHERE ' . implode( ' AND ', $where );
+			}
+				$query .= ' ORDER BY start_date DESC, id DESC';
 
-			   $prep_args = array_merge( array( $t ), $args );
-			   $query     = $wpdb->prepare( $query, ...$prep_args );
-			   $rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+				$prep_args = array_merge( array( $t ), $args );
+				$query     = $wpdb->prepare( $query, ...$prep_args );
+				$rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ) ) . '</p>';
 			}
@@ -1062,15 +1062,15 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 				'bhg_winner_notifications'
 			);
 
-			   $hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-			   // db call ok; no-cache ok.
-			   $sql         = $wpdb->prepare(
-				   'SELECT id, title, final_balance, winners_count, closed_at FROM %i WHERE status = %s ORDER BY closed_at DESC LIMIT %d',
-				   $hunts_table,
-				   'closed',
-				   (int) $a['limit']
-			   );
-			   $hunts       = $wpdb->get_results( $sql );
+				$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+				// db call ok; no-cache ok.
+				$sql   = $wpdb->prepare(
+					'SELECT id, title, final_balance, winners_count, closed_at FROM %i WHERE status = %s ORDER BY closed_at DESC LIMIT %d',
+					$hunts_table,
+					'closed',
+					(int) $a['limit']
+				);
+				$hunts = $wpdb->get_results( $sql );
 
 			if ( ! $hunts ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ) . '</p>';
@@ -1133,9 +1133,9 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 		public function best_guessers_shortcode( $atts ) {
 			global $wpdb;
 
-			   $wins_tbl  = $wpdb->prefix . 'bhg_tournament_results';
-			   $tours_tbl = $wpdb->prefix . 'bhg_tournaments';
-			   $users_tbl = $wpdb->users;
+				$wins_tbl  = $wpdb->prefix . 'bhg_tournament_results';
+				$tours_tbl = $wpdb->prefix . 'bhg_tournaments';
+				$users_tbl = $wpdb->users;
 
 			$now_ts        = current_time( 'timestamp' );
 			$current_month = wp_date( 'Y-m', $now_ts );
@@ -1170,41 +1170,41 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 
 			$results = array();
 			foreach ( $periods as $key => $info ) {
-				   if ( $info['type'] ) {
-					   $where  = 't.type = %s';
-					   $params = array( $info['type'] );
-					   if ( ! empty( $info['start'] ) && ! empty( $info['end'] ) ) {
-						   $where   .= ' AND t.start_date >= %s AND t.end_date <= %s';
-						   $params[] = $info['start'];
-						   $params[] = $info['end'];
-					   }
-					   $sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
-						   . ' FROM %i r'
-						   . ' INNER JOIN %i u ON u.ID = r.user_id'
-						   . ' INNER JOIN %i t ON t.id = r.tournament_id'
-						   . ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
-					   // db call ok; no-cache ok.
-					   $sql      = $wpdb->prepare( $sql, $wins_tbl, $users_tbl, $tours_tbl, ...$params );
-					   $sql     .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
-					   $results[ $key ] = $wpdb->get_results( $sql );
-				   } else {
-					   $sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
-						   . ' FROM %i r'
-						   . ' INNER JOIN %i u ON u.ID = r.user_id'
-						   . ' GROUP BY u.ID, u.user_login';
-					   // db call ok; no-cache ok.
-					   $sql     .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
-					   $results[ $key ] = $wpdb->get_results( $wpdb->prepare( $sql, $wins_tbl, $users_tbl ) );
-				   }
+				if ( $info['type'] ) {
+					$where  = 't.type = %s';
+					$params = array( $info['type'] );
+					if ( ! empty( $info['start'] ) && ! empty( $info['end'] ) ) {
+						$where   .= ' AND t.start_date >= %s AND t.end_date <= %s';
+						$params[] = $info['start'];
+						$params[] = $info['end'];
+					}
+					$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
+						. ' FROM %i r'
+						. ' INNER JOIN %i u ON u.ID = r.user_id'
+						. ' INNER JOIN %i t ON t.id = r.tournament_id'
+						. ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
+					// db call ok; no-cache ok.
+					$sql             = $wpdb->prepare( $sql, $wins_tbl, $users_tbl, $tours_tbl, ...$params );
+					$sql            .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+					$results[ $key ] = $wpdb->get_results( $sql );
+				} else {
+					$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
+						. ' FROM %i r'
+						. ' INNER JOIN %i u ON u.ID = r.user_id'
+						. ' GROUP BY u.ID, u.user_login';
+					// db call ok; no-cache ok.
+					$sql            .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+					$results[ $key ] = $wpdb->get_results( $wpdb->prepare( $sql, $wins_tbl, $users_tbl ) );
+				}
 			}
 
-				   $hunts_tbl = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
-				   $hunts_sql = $wpdb->prepare(
-					   'SELECT id, title FROM %i WHERE status = %s ORDER BY created_at DESC LIMIT 50',
-					   $hunts_tbl,
-					   'closed'
-				   );
-				   $hunts     = $wpdb->get_results( $hunts_sql );
+					$hunts_tbl = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+					$hunts_sql = $wpdb->prepare(
+						'SELECT id, title FROM %i WHERE status = %s ORDER BY created_at DESC LIMIT 50',
+						$hunts_tbl,
+						'closed'
+					);
+					$hunts     = $wpdb->get_results( $hunts_sql );
 
 						wp_enqueue_style(
 							'bhg-shortcodes',
@@ -1270,12 +1270,12 @@ $query .= ' ORDER BY ' . $orderby . ' ' . $order;
 			return ob_get_clean();
 		}
 
-					   /** Private: render affiliate dot span */
-			   private function render_affiliate_dot( $is_affiliate ) {
-					   $c = $is_affiliate ? 'green' : 'red';
-					   return '<span class="bhg-aff-dot bhg-aff-' . esc_attr( $c ) . '" aria-hidden="true"></span> ';
-			   }
-	   }
+						/** Private: render affiliate dot span */
+		private function render_affiliate_dot( $is_affiliate ) {
+				$c = $is_affiliate ? 'green' : 'red';
+				return '<span class="bhg-aff-dot bhg-aff-' . esc_attr( $c ) . '" aria-hidden="true"></span> ';
+		}
+	}
 }
 
 // Register once on init even if no other bootstrap instantiates the class

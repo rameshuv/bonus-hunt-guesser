@@ -418,19 +418,19 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-        if ( isset( $_POST['bhg_min_guess_amount'] ) ) {
-                        $min = floatval( wp_unslash( $_POST['bhg_min_guess_amount'] ) );
-                if ( 0 <= $min ) {
-                                $settings['min_guess_amount'] = $min;
-                }
-        }
+	if ( isset( $_POST['bhg_min_guess_amount'] ) ) {
+					$min = floatval( wp_unslash( $_POST['bhg_min_guess_amount'] ) );
+		if ( 0 <= $min ) {
+						$settings['min_guess_amount'] = $min;
+		}
+	}
 
-        if ( isset( $_POST['bhg_currency'] ) ) {
-                        $currency = sanitize_text_field( wp_unslash( $_POST['bhg_currency'] ) );
-                if ( in_array( $currency, array( 'eur', 'usd' ), true ) ) {
-                                $settings['currency'] = $currency;
-                }
-        }
+	if ( isset( $_POST['bhg_currency'] ) ) {
+					$currency = sanitize_text_field( wp_unslash( $_POST['bhg_currency'] ) );
+		if ( in_array( $currency, array( 'eur', 'usd' ), true ) ) {
+						$settings['currency'] = $currency;
+		}
+	}
 
 				// Validate that min is not greater than max.
 	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
@@ -530,7 +530,7 @@ function bhg_handle_submit_guess() {
 	$hunt_cache_key = 'bhg_hunt_' . $hunt_id;
 	$hunt           = wp_cache_get( $hunt_cache_key );
 	if ( false === $hunt ) {
-		$hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT id, status FROM %i WHERE id = %d', $hunts, $hunt_id ) );
+		$hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT id, status, guessing_enabled FROM %i WHERE id = %d', $hunts, $hunt_id ) );
 		wp_cache_set( $hunt_cache_key, $hunt );
 	}
 	if ( ! $hunt ) {
@@ -539,11 +539,12 @@ function bhg_handle_submit_guess() {
 		}
 			wp_die( esc_html( bhg_t( 'notice_hunt_not_found', 'Hunt not found.' ) ) );
 	}
-	if ( 'open' !== $hunt->status ) {
+	if ( 'open' !== $hunt->status || ! $hunt->guessing_enabled ) {
+		$msg = ! $hunt->guessing_enabled ? bhg_t( 'guessing_disabled_for_this_hunt', 'Guessing is disabled for this hunt.' ) : bhg_t( 'this_hunt_is_closed_you_cannot_submit_or_change_a_guess', 'This hunt is closed. You cannot submit or change a guess.' );
 		if ( wp_doing_ajax() ) {
-				wp_send_json_error( bhg_t( 'this_hunt_is_closed_you_cannot_submit_or_change_a_guess', 'This hunt is closed. You cannot submit or change a guess.' ) );
+			wp_send_json_error( $msg );
 		}
-			wp_die( esc_html( bhg_t( 'this_hunt_is_closed_you_cannot_submit_or_change_a_guess', 'This hunt is closed. You cannot submit or change a guess.' ) ) );
+		wp_die( esc_html( $msg ) );
 	}
 
 		// Insert or update last guess per settings.
