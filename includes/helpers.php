@@ -700,7 +700,7 @@ function bhg_format_currency( $amount ) {
  * Validate a guess amount against settings.
  *
  * @param mixed $guess Guess value.
- *  void
+ * @return bool True if the guess is within the allowed range.
  */
 function bhg_validate_guess( $guess ) {
 	$settings  = get_option( 'bhg_plugin_settings', array() );
