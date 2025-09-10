@@ -15,7 +15,7 @@ global $wpdb;
 
 $view_type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : 'hunt';
 $view_type = ( 'tournament' === $view_type ) ? 'tournament' : 'hunt';
-$item_id   = isset( $_GET['id'] ) ? (int) $_GET['id'] : 0;
+$item_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 
 $hunts_table = $wpdb->prefix . 'bhg_bonus_hunts';
 $guess_table = $wpdb->prefix . 'bhg_guesses';
