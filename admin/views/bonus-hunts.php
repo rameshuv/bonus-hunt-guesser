@@ -206,7 +206,7 @@ if ( 'list' === $view ) :
 			foreach ( $hunts as $h ) :
 				?>
 		<tr>
-			<td><?php echo (int) $h->id; ?></td>
+<td><?php echo esc_html( (int) $h->id ); ?></td>
 			<td><a href="
 				<?php
 				echo esc_url(
@@ -222,7 +222,7 @@ if ( 'list' === $view ) :
 <td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
 <td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
-<td><?php echo (int) ( $h->winners_count ?? 3 ); ?></td>
+<td><?php echo esc_html( (int) ( $h->winners_count ?? 3 ) ); ?></td>
 <td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
 <td>
 <a class="button" href="
@@ -256,14 +256,14 @@ if ( 'list' === $view ) :
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_hunt', 'Delete this hunt?' ) ); ?>');" class="bhg-inline-form">
 				<?php wp_nonce_field( 'bhg_delete_hunt', 'bhg_delete_hunt_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_delete_hunt" />
-<input type="hidden" name="hunt_id" value="<?php echo (int) $h->id; ?>" />
+<input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
 <button type="submit" class="button-link-delete"><?php echo esc_html( bhg_t( 'delete', 'Delete' ) ); ?></button>
 </form>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
 				<?php wp_nonce_field( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_toggle_guessing" />
-<input type="hidden" name="hunt_id" value="<?php echo (int) $h->id; ?>" />
-<input type="hidden" name="guessing_enabled" value="<?php echo $h->guessing_enabled ? 0 : 1; ?>" />
+<input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
+<input type="hidden" name="guessing_enabled" value="<?php echo esc_attr( $h->guessing_enabled ? 0 : 1 ); ?>" />
 <button type="submit" class="button"><?php echo esc_html( $h->guessing_enabled ? bhg_t( 'disable_guessing', 'Disable Guessing' ) : bhg_t( 'enable_guessing', 'Enable Guessing' ) ); ?></button>
 </form>
 </td>
@@ -316,7 +316,7 @@ if ( 'close' === $view ) :
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-400 bhg-margin-top-small">
 								<?php wp_nonce_field( 'bhg_close_hunt', 'bhg_close_hunt_nonce' ); ?>
 		<input type="hidden" name="action" value="bhg_close_hunt" />
-	<input type="hidden" name="hunt_id" value="<?php echo (int) $hunt->id; ?>" />
+<input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $hunt->id ); ?>" />
 	<table class="form-table" role="presentation">
 		<tbody>
 		<tr>
@@ -379,7 +379,7 @@ if ( $view === 'add' ) :
 			<select id="bhg_affiliate" name="affiliate_site_id">
 				<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
 				<?php foreach ( $affs as $a ) : ?>
-				<option value="<?php echo (int) $a->id; ?>" 
+				<option value="<?php echo esc_attr( (int) $a->id ); ?>" 
 					<?php
 					if ( $sel === (int) $a->id ) {
 						echo 'selected';}
@@ -407,7 +407,7 @@ if ( $view === 'add' ) :
 						<select id="bhg_tournament" name="tournament_id">
 								<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
 								<?php foreach ( $tours as $t ) : ?>
-								<option value="<?php echo (int) $t->id; ?>"
+								<option value="<?php echo esc_attr( (int) $t->id ); ?>"
 										<?php
 										if ( $tsel === (int) $t->id ) {
 												echo 'selected';
@@ -483,7 +483,7 @@ if ( $view === 'edit' ) :
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
 								<?php wp_nonce_field( 'bhg_save_hunt', 'bhg_save_hunt_nonce' ); ?>
 		<input type="hidden" name="action" value="bhg_save_hunt" />
-	<input type="hidden" name="id" value="<?php echo (int) $hunt->id; ?>" />
+<input type="hidden" name="id" value="<?php echo esc_attr( (int) $hunt->id ); ?>" />
 
 	<table class="form-table" role="presentation">
 		<tbody>
@@ -521,7 +521,7 @@ if ( $view === 'edit' ) :
 			<select id="bhg_affiliate" name="affiliate_site_id">
 				<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
 				<?php foreach ( $affs as $a ) : ?>
-				<option value="<?php echo (int) $a->id; ?>" 
+				<option value="<?php echo esc_attr( (int) $a->id ); ?>" 
 					<?php
 					if ( $sel === (int) $a->id ) {
 						echo 'selected';}
@@ -549,7 +549,7 @@ if ( $view === 'edit' ) :
 						<select id="bhg_tournament" name="tournament_id">
 								<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
 								<?php foreach ( $tours as $t ) : ?>
-								<option value="<?php echo (int) $t->id; ?>"
+								<option value="<?php echo esc_attr( (int) $t->id ); ?>"
 										<?php
 										if ( $tsel === (int) $t->id ) {
 												echo 'selected';
@@ -611,12 +611,12 @@ if ( $view === 'edit' ) :
 							echo '<a href="' . esc_url( $url ) . '">' . esc_html( $name ) . '</a>';
 							?>
 			</td>
-                        <td><?php echo esc_html( bhg_format_currency( (float) ( $g->guess ?? 0 ) ) ); ?></td>
+						<td><?php echo esc_html( bhg_format_currency( (float) ( $g->guess ?? 0 ) ) ); ?></td>
 			<td>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');" class="bhg-inline-form">
 																<?php wp_nonce_field( 'bhg_delete_guess', 'bhg_delete_guess_nonce' ); ?>
 								<input type="hidden" name="action" value="bhg_delete_guess">
-				<input type="hidden" name="guess_id" value="<?php echo (int) $g->id; ?>">
+<input type="hidden" name="guess_id" value="<?php echo esc_attr( (int) $g->id ); ?>">
 				<button type="submit" class="button-link-delete"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
 			</form>
 			</td>

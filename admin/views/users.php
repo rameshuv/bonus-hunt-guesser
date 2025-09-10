@@ -113,7 +113,7 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			<td>
 			<form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="bhg_save_user_meta" />
-				<input type="hidden" name="user_id" value="<?php echo (int) $u->ID; ?>" />
+<input type="hidden" name="user_id" value="<?php echo esc_attr( (int) $u->ID ); ?>" />
 								<?php wp_nonce_field( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' ); ?>
 				<button type="submit" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button>
 			</form>
