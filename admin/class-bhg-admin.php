@@ -273,10 +273,11 @@ class BHG_Admin {
 
 				$format = array( '%s', '%f', '%d', '%s', '%d', '%d', '%d', '%d' );
 
-				if ( null !== $final_balance ) {
-						$data['final_balance'] = $final_balance;
-						$format[]              = '%s';
-				}
+                                if ( null !== $final_balance ) {
+                                                $data['final_balance'] = $final_balance;
+                                                // Use a float format to match the stored value.
+                                                $format[]              = '%f';
+                                }
 
 				$data['status']     = $status;
 				$data['updated_at'] = current_time( 'mysql' );
