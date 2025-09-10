@@ -161,7 +161,7 @@ $labels = array(
 			foreach ( $rows as $r ) :
 				?>
 		<tr>
-			<td><?php echo (int) $r->id; ?></td>
+<td><?php echo esc_html( (int) $r->id ); ?></td>
 			<td><?php echo esc_html( $r->title ); ?></td>
 			<td><?php echo esc_html( $labels[ $r->type ] ?? $r->type ); ?></td>
 			<td><?php echo esc_html( $r->start_date ); ?></td>
@@ -174,7 +174,7 @@ $labels = array(
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
 								<?php wp_nonce_field( 'bhg_tournament_delete_action', 'bhg_tournament_delete_nonce' ); ?>
 								<input type="hidden" name="action" value="bhg_tournament_delete" />
-								<input type="hidden" name="id" value="<?php echo (int) $r->id; ?>" />
+<input type="hidden" name="id" value="<?php echo esc_attr( (int) $r->id ); ?>" />
 								<button type="submit" class="button button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'are_you_sure', 'Are you sure?' ) ); ?>');"><?php echo esc_html( bhg_t( 'button_delete', 'Delete' ) ); ?></button>
 						</form>
 						</td>
@@ -193,7 +193,7 @@ endif;
 	<?php
 	if ( $row ) :
 		?>
-		<input type="hidden" name="id" value="<?php echo (int) $row->id; ?>" /><?php endif; ?>
+<input type="hidden" name="id" value="<?php echo esc_attr( (int) $row->id ); ?>" /><?php endif; ?>
 	<table class="form-table">
 		<tr>
 		<th><label for="bhg_t_title">
