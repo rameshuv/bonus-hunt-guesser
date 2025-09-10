@@ -135,8 +135,8 @@ $base_url  = esc_url( admin_url( 'admin.php?page=bhg-hunt-results' ) );
 								<?php if ( 'tournament' === $view_type ) : ?>
 										<td><?php echo (int) $r->wins; ?></td>
 								<?php else : ?>
-									<td><?php echo esc_html( number_format_i18n( (float) $r->guess, 2 ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (float) $r->diff, 2 ) ); ?></td>
+                                                                        <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
+                                                                        <td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
 							<?php endif; ?>
 					</tr>
 					<?php

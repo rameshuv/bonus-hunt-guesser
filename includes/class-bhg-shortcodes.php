@@ -90,7 +90,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				echo '<div class="bhg-hunt-card">';
 				echo '<h3>' . esc_html( $hunt->title ) . '</h3>';
 				echo '<ul class="bhg-hunt-meta">';
-				echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( number_format_i18n( (float) $hunt->starting_balance, 2 ) ) . '</li>';
+                                echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $hunt->starting_balance ) ) . '</li>';
 				echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $hunt->num_bonuses . '</li>';
 				if ( ! empty( $hunt->prizes ) ) {
 					echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $hunt->prizes ) . '</li>';
@@ -317,9 +317,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						echo '<td data-column="position">' . (int) $pos . '</td>';
 					} elseif ( 'user' === $field ) {
 													echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . $this->render_affiliate_dot( (bool) $is_aff ) . '</td>';
-					} elseif ( 'guess' === $field ) {
-							echo '<td data-column="guess">' . esc_html( number_format_i18n( (float) $r->guess, 2 ) ) . '</td>';
-					}
+                                        } elseif ( 'guess' === $field ) {
+                                                        echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
+                                        }
 				}
 				echo '</tr>';
 									++$pos;
@@ -458,7 +458,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			foreach ( $rows as $row ) {
 				echo '<tr>';
 				echo '<td>' . esc_html( $row->title ) . '</td>';
-				$guess_cell = esc_html( number_format_i18n( (float) $row->guess, 2 ) );
+                                $guess_cell = esc_html( bhg_format_currency( (float) $row->guess ) );
 				if ( $show_aff ) {
 					$dot        = $this->render_affiliate_dot(
 						get_user_meta( (int) $current_user_id, 'bhg_affiliate_website_' . (int) $row->affiliate_site_id, true )
@@ -467,7 +467,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					$guess_cell = $dot . $guess_cell;
 				}
 							echo '<td>' . $guess_cell . '</td>';
-							echo '<td>' . ( isset( $row->final_balance ) ? esc_html( number_format_i18n( (float) $row->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                                        echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 							echo '</tr>';
 			}
 						echo '</tbody></table>';
@@ -581,8 +581,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			foreach ( $rows as $row ) {
 				echo '<tr>';
 				echo '<td>' . esc_html( $row->title ) . '</td>';
-				echo '<td>' . esc_html( number_format_i18n( (float) $row->starting_balance, 2 ) ) . '</td>';
-				echo '<td>' . ( isset( $row->final_balance ) ? esc_html( number_format_i18n( (float) $row->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                echo '<td>' . esc_html( bhg_format_currency( (float) $row->starting_balance ) ) . '</td>';
+                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 								$status_key = strtolower( (string) $row->status );
 								echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
 				if ( $show_aff ) {
@@ -1092,16 +1092,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 				echo '<div class="bhg-winner">';
 				echo '<p><strong>' . esc_html( $hunt->title ) . '</strong></p>';
-				if ( null !== $hunt->final_balance ) {
-					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( number_format_i18n( (float) $hunt->final_balance, 2 ) ) . '</p>';
-				}
+                                if ( null !== $hunt->final_balance ) {
+                                        echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_currency( (float) $hunt->final_balance ) ) . '</p>';
+                                }
 
 				if ( $winners ) {
 					echo '<ul class="bhg-winner-list">';
 					foreach ( $winners as $w ) {
 						$u  = get_userdata( (int) $w->user_id );
 						$nm = $u ? $u->user_login : sprintf( bhg_t( 'label_user_number', 'User #%d' ), (int) $w->user_id );
-						echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( number_format_i18n( (float) $w->guess, 2 ) ) . ' (' . esc_html( number_format_i18n( (float) $w->diff, 2 ) ) . ')</li>';
+                                                echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_currency( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_currency( (float) $w->diff ) ) . ')</li>';
 					}
 					echo '</ul>';
 				}

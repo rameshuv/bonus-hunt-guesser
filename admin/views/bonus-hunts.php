@@ -219,8 +219,8 @@ if ( 'list' === $view ) :
 				);
 				?>
 							"><?php echo esc_html( $h->title ); ?></a></td>
-<td><?php echo esc_html( number_format_i18n( (float) $h->starting_balance, 2 ) ); ?></td>
-<td><?php echo null !== $h->final_balance ? esc_html( number_format_i18n( (float) $h->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+<td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
+<td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo (int) ( $h->winners_count ?? 3 ); ?></td>
 <td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
@@ -611,7 +611,7 @@ if ( $view === 'edit' ) :
 							echo '<a href="' . esc_url( $url ) . '">' . esc_html( $name ) . '</a>';
 							?>
 			</td>
-			<td><?php echo esc_html( number_format_i18n( (float) ( $g->guess ?? 0 ), 2 ) ); ?></td>
+                        <td><?php echo esc_html( bhg_format_currency( (float) ( $g->guess ?? 0 ) ) ); ?></td>
 			<td>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');" class="bhg-inline-form">
 																<?php wp_nonce_field( 'bhg_delete_guess', 'bhg_delete_guess_nonce' ); ?>

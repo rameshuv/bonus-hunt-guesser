@@ -114,9 +114,9 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																						'%1$s %2$s %3$s (%4$s %5$s)',
 																						esc_html( $nm ),
 																						esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ),
-																						esc_html( number_format_i18n( $guess, 2 ) ),
+                                                                                                                               esc_html( bhg_format_currency( $guess ) ),
 																						esc_html( bhg_t( 'label_diff', 'diff' ) ),
-																						esc_html( number_format_i18n( $diff, 2 ) )
+                                                                                                                               esc_html( bhg_format_currency( $diff ) )
 																					);
 																				}
 																				$winners_out = implode( ' • ', $out );
@@ -128,11 +128,11 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																				<tr>
 																						<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
 																						<td><?php echo esc_html( $winners_out ); ?></td>
-																						<td><?php echo esc_html( number_format_i18n( $start, 2 ) ); ?></td>
+                                                                                                                               <td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
 																						<td>
 																						<?php
 																						if ( isset( $h->final_balance ) && null !== $h->final_balance ) {
-																								echo esc_html( number_format_i18n( (float) $h->final_balance, 2 ) );
+                                                                                                                               echo esc_html( bhg_format_currency( (float) $h->final_balance ) );
 																						} else {
 																								echo esc_html( bhg_t( 'label_emdash', '—' ) );
 																						}
