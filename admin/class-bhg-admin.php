@@ -257,24 +257,31 @@ class BHG_Admin {
 		$tournament_id    = isset( $_POST['tournament_id'] ) ? bhg_sanitize_tournament_id( wp_unslash( $_POST['tournament_id'] ) ) : 0;
 		$winners_count    = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
 		$guessing_enabled = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
-		$final_balance    = ( isset( $_POST['final_balance'] ) && '' !== $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
-		$status           = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'open';
+               $final_balance    = ( isset( $_POST['final_balance'] ) && '' !== $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
+               $status           = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'open';
 
-		$data = array(
-			'title'             => $title,
-			'starting_balance'  => $starting,
-			'num_bonuses'       => $num_bonuses,
-			'prizes'            => $prizes,
-			'affiliate_site_id' => $affiliate_site,
-			'tournament_id'     => $tournament_id,
-			'winners_count'     => $winners_count,
-			'guessing_enabled'  => $guessing_enabled,
-			'final_balance'     => $final_balance,
-			'status'            => $status,
-			'updated_at'        => current_time( 'mysql' ),
-		);
+               $data = array(
+                       'title'             => $title,
+                       'starting_balance'  => $starting,
+                       'num_bonuses'       => $num_bonuses,
+                       'prizes'            => $prizes,
+                       'affiliate_site_id' => $affiliate_site,
+                       'tournament_id'     => $tournament_id,
+                       'winners_count'     => $winners_count,
+                       'guessing_enabled'  => $guessing_enabled,
+               );
 
-		$format = array( '%s', '%f', '%d', '%s', '%d', '%d', '%d', '%d', '%f', '%s', '%s' );
+               $format = array( '%s', '%f', '%d', '%s', '%d', '%d', '%d', '%d' );
+
+               if ( null !== $final_balance ) {
+                       $data['final_balance'] = $final_balance;
+                       $format[]              = '%s';
+               }
+
+               $data['status']     = $status;
+               $data['updated_at'] = current_time( 'mysql' );
+               $format[]           = '%s';
+               $format[]           = '%s';
 		if ( $id ) {
 			$wpdb->update( $hunts_table, $data, array( 'id' => $id ), $format, array( '%d' ) );
 		} else {
