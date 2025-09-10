@@ -6,7 +6,7 @@ WHAT THIS PATCH DELIVERS
 - Fixes parse error in admin/views/translations.php
 - Adds Dashboard page "Latest Hunts" (admin/views/dashboard.php)
 - Adds Hunt Results page listing all guesses with winners highlighted (admin/views/hunt-results.php)
-- Adds affiliate status dot helper (includes/helpers-aff-dot.php) and minimal CSS (assets/css/bhg.css)
+ - Adds affiliate status dot helper (in includes/helpers.php) and minimal CSS (assets/css/bhg.css)
 - Adds DB upgrade helper to ensure winners_limit column (includes/upgrade/add-winners-limit.php)
 - Provides helper functions for winners/results (includes/class-bhg-bonus-hunts-helpers.php)
 
@@ -15,14 +15,12 @@ HOW TO APPLY (SAFE)
    - admin/views/dashboard.php
    - admin/views/hunt-results.php
    - admin/views/translations.php   (replace your current file)
-   - includes/helpers-aff-dot.php   (new)
    - includes/class-bhg-bonus-hunts-helpers.php (new)
    - includes/upgrade/add-winners-limit.php     (new)
    - assets/css/bhg.css (new; enqueue it where appropriate)
 
 2) In bonus-hunt-guesser.php add (once) after constants:
    require_once __DIR__ . '/includes/class-bhg-bonus-hunts-helpers.php';
-   require_once __DIR__ . '/includes/helpers-aff-dot.php';
    require_once __DIR__ . '/includes/upgrade/add-winners-limit.php';
 
    // Run DB upgrade on admin init if version bumped
