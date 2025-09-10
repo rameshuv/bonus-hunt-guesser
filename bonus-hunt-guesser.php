@@ -127,7 +127,6 @@ define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'BHG_TABLE_PREFIX', 'bhg_' );
 
-
 // Table creation function.
 /**
  * Create plugin database tables using active DB class.
@@ -676,6 +675,11 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
 	}
 
 		$table = esc_sql( $table );
+		$placement          = sanitize_key( $placement );
+		$allowed_placements = array( 'footer', 'bottom', 'sidebar', 'shortcode', 'none' );
+	if ( ! in_array( $placement, $allowed_placements, true ) ) {
+			return array();
+	}
 
 	// db call ok; caching added.
 	$cache_key = 'bhg_ads_' . md5( $table . '_' . $placement );
@@ -946,5 +950,4 @@ if ( ! function_exists( 'bhg_self_heal_db' ) ) {
 		add_action( 'admin_init', 'bhg_self_heal_db' );
 		register_activation_hook( __FILE__, 'bhg_self_heal_db' );
 }
-
 
