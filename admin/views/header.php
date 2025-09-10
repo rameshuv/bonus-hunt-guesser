@@ -100,7 +100,7 @@ if ( isset( $_POST['bhg_action'] ) ) {
 	}
 
 	// Redirect to avoid form resubmission
-	$redirect_url = esc_url_raw( add_query_arg( 'message', $message, $_SERVER['REQUEST_URI'] ) );
+        $redirect_url = esc_url_raw( add_query_arg( 'message', $message, wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 	wp_safe_redirect( $redirect_url );
 	exit;
 }
@@ -111,7 +111,7 @@ $affiliate_websites = $bhg_db->get_affiliate_websites();
 
 // Display status messages
 if ( isset( $_GET['message'] ) ) {
-	$message_type = sanitize_text_field( $_GET['message'] );
+        $message_type = sanitize_text_field( wp_unslash( $_GET['message'] ) );
 	switch ( $message_type ) {
 		case 'success':
 			echo '<div class="notice notice-success is-dismissible"><p>' .
