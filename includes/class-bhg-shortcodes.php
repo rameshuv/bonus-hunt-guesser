@@ -1,45 +1,55 @@
 <?php
-// phpcs:ignoreFile
 /**
- * Shortcodes for Bonus Hunt Guesser
+ * Shortcodes for Bonus Hunt Guesser.
  *
  * PHP 7.4 safe, WP 6.3.5 compatible.
  * Registers all shortcodes on init (once) and avoids parse errors.
+ *
+ * @package Bonus_Hunt_Guesser
  */
+
+// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.DateTime.CurrentTimeTimestamp.Requested
+
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+		exit;
 }
 
 if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
+		/**
+		 * Handles shortcode registration and rendering.
+		 */
 	class BHG_Shortcodes {
 
+			/**
+			 * Registers all shortcodes.
+			 */
 		public function __construct() {
-			// Core shortcodes
-			add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
-			add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
-			add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
-			add_shortcode( 'bhg_tournaments', array( $this, 'tournaments_shortcode' ) );
-			add_shortcode( 'bhg_winner_notifications', array( $this, 'winner_notifications_shortcode' ) );
-			add_shortcode( 'bhg_user_profile', array( $this, 'user_profile_shortcode' ) );
+				// Core shortcodes.
+				add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
+				add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
+				add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+				add_shortcode( 'bhg_tournaments', array( $this, 'tournaments_shortcode' ) );
+				add_shortcode( 'bhg_winner_notifications', array( $this, 'winner_notifications_shortcode' ) );
+				add_shortcode( 'bhg_user_profile', array( $this, 'user_profile_shortcode' ) );
 
-			// Addons
-			add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
-			add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
-			add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
-			add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
+				// Addons.
+				add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
+				add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
+				add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
+				add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
 
-			// Legacy/aliases
-			add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
-			add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
-			add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
+				// Legacy/aliases.
+				add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+				add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
+				add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
 		}
-		/**
-		 * Validates a database table name against known tables.
-		 *
-		 * @param string $table Table name to validate.
-		 * @return string Sanitized table name or empty string if invalid.
-		 */
+			/**
+			 * Validates a database table name against known tables.
+			 *
+			 * @param string $table Table name to validate.
+			 * @return string Sanitized table name or empty string if invalid.
+			 */
 		private function sanitize_table( $table ) {
 			global $wpdb;
 
@@ -56,33 +66,43 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			return in_array( $table, $allowed, true ) ? $table : '';
 		}
 
-			/** Minimal login hint used by some themes */
+					/**
+					 * Minimal login hint used by some themes.
+					 *
+					 * @param array $atts Shortcode attributes. Unused.
+					 * @return string HTML output.
+					 */
 		public function login_hint_shortcode( $atts = array() ) {
 			if ( is_user_logged_in() ) {
-				return '';
+					return '';
 			}
-				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : home_url( '/' );
-				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+						$raw      = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : home_url( '/' );
+						$base     = wp_validate_redirect( $raw, home_url( '/' ) );
+						$redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
-				return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
-				. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+						return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
+						. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
 		}
 
-		/** [bhg_active_hunt] — list all open hunts */
+			/**
+			 * Renders list of open hunts.
+			 *
+			 * @param array $atts Shortcode attributes.
+			 * @return string HTML output.
+			 */
 		public function active_hunt_shortcode( $atts ) {
-			global $wpdb;
-			$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+				global $wpdb;
+				$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 			if ( ! $hunts_table ) {
-				return '';
+					return '';
 			}
-			// db call ok; no-cache ok.
-			$sql       = $wpdb->prepare(
-				'SELECT * FROM %i WHERE status = %s ORDER BY created_at DESC',
-				$hunts_table,
-				'open'
-			);
-				$hunts = $wpdb->get_results( $sql );
+				// db call ok; no-cache ok.
+				$sql = $wpdb->prepare(
+					'SELECT * FROM %i WHERE status = %s ORDER BY created_at DESC',
+					$hunts_table,
+					'open'
+				);
+			$hunts   = $wpdb->get_results( $sql );
 
 			if ( ! $hunts ) {
 				return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
@@ -101,7 +121,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				echo '<div class="bhg-hunt-card">';
 				echo '<h3>' . esc_html( $hunt->title ) . '</h3>';
 				echo '<ul class="bhg-hunt-meta">';
-								echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $hunt->starting_balance ) ) . '</li>';
+							echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $hunt->starting_balance ) ) . '</li>';
 				echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $hunt->num_bonuses . '</li>';
 				if ( ! empty( $hunt->prizes ) ) {
 					echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $hunt->prizes ) . '</li>';
@@ -113,10 +133,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			return ob_get_clean();
 		}
 
-			/** [bhg_guess_form hunt_id=""] */
+					/**
+					 * Renders the guess submission form.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function guess_form_shortcode( $atts ) {
-			$atts    = shortcode_atts( array( 'hunt_id' => 0 ), $atts, 'bhg_guess_form' );
-			$hunt_id = (int) $atts['hunt_id'];
+				$atts    = shortcode_atts( array( 'hunt_id' => 0 ), $atts, 'bhg_guess_form' );
+				$hunt_id = (int) $atts['hunt_id'];
 
 			if ( ! is_user_logged_in() ) {
 				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : home_url( '/' );
@@ -163,10 +188,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					$hunt_id
 				)
 			) : 0;
-						// db call ok; no-cache ok.
-						$existing_guess = $existing_id ? (float) $wpdb->get_var(
-							$wpdb->prepare( 'SELECT guess FROM %i WHERE id = %d', $table, $existing_id )
-						) : '';
+				// db call ok; no-cache ok.
+				$existing_guess = $existing_id ? (float) $wpdb->get_var(
+					$wpdb->prepare( 'SELECT guess FROM %i WHERE id = %d', $table, $existing_id )
+				) : '';
 
 			$settings = get_option( 'bhg_plugin_settings' );
 			$min      = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
@@ -182,7 +207,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			ob_start(); ?>
 						<form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 																<input type="hidden" name="action" value="bhg_submit_guess">
-																<?php wp_nonce_field( 'bhg_submit_guess', 'bhg_submit_guess_nonce' ); ?>
+														<?php wp_nonce_field( 'bhg_submit_guess', 'bhg_submit_guess_nonce' ); ?>
 
 					<?php if ( $open_hunts && count( $open_hunts ) > 1 ) : ?>
 					<label for="bhg-hunt-select">
@@ -220,24 +245,26 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return ob_get_clean();
 		}
 
-			/**
-			 * [bhg_leaderboard]
-			 * Supports ranking (1-10) and fields (comma-separated list).
-			 */
+					/**
+					 * Displays a leaderboard for a hunt.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function leaderboard_shortcode( $atts ) {
-										$a = shortcode_atts(
-											array(
-												'hunt_id' => 0,
-												'orderby' => 'guess', // guess|user|position
-												'order'   => 'ASC',
-												'ranking' => 10, // top N results (1–10)
-												'fields'  => 'position,user,guess',
-											),
-											$atts,
-											'bhg_leaderboard'
-										);
+																		$a = shortcode_atts(
+																			array(
+																				'hunt_id' => 0,
+																				'orderby' => 'guess', // guess|user|position.
+																				'order'   => 'ASC',
+																				'ranking' => 10, // top N results (1–10).
+																				'fields'  => 'position,user,guess',
+																			),
+																			$atts,
+																			'bhg_leaderboard'
+																		);
 
-						global $wpdb;
+				global $wpdb;
 			$hunt_id = (int) $a['hunt_id'];
 			if ( $hunt_id <= 0 ) {
 				$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
@@ -257,43 +284,43 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '';
 			}
 
-						$allowed_orders = array( 'ASC', 'DESC' );
-						$order          = strtoupper( sanitize_key( $a['order'] ) );
+				$allowed_orders = array( 'ASC', 'DESC' );
+				$order          = strtoupper( sanitize_key( $a['order'] ) );
 			if ( ! in_array( $order, $allowed_orders, true ) ) {
-					$order = 'ASC';
+				$order = 'ASC';
 			}
-						$allowed_orderby = array(
-							'guess'    => 'g.guess',
-							'user'     => 'u.user_login',
-							'position' => 'g.id', // stable proxy
-						);
-						$orderby_key     = sanitize_key( $a['orderby'] );
-						if ( ! isset( $allowed_orderby[ $orderby_key ] ) ) {
-								$orderby_key = 'guess';
-						}
-						$orderby = $allowed_orderby[ $orderby_key ];
+				$allowed_orderby = array(
+					'guess'    => 'g.guess',
+					'user'     => 'u.user_login',
+					'position' => 'g.id', // stable proxy.
+				);
+				$orderby_key     = sanitize_key( $a['orderby'] );
+				if ( ! isset( $allowed_orderby[ $orderby_key ] ) ) {
+						$orderby_key = 'guess';
+				}
+				$orderby = $allowed_orderby[ $orderby_key ];
 
-										$ranking = max( 1, min( 10, (int) $a['ranking'] ) );
+								$ranking = max( 1, min( 10, (int) $a['ranking'] ) );
 
-										$fields_raw    = explode( ',', (string) $a['fields'] );
-										$allowed_field = array( 'position', 'user', 'guess' );
-										$fields        = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
-						if ( empty( $fields ) ) {
-										$fields = $allowed_field;
-						}
+								$fields_raw    = explode( ',', (string) $a['fields'] );
+								$allowed_field = array( 'position', 'user', 'guess' );
+								$fields        = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
+				if ( empty( $fields ) ) {
+								$fields = $allowed_field;
+				}
 
-										$total = (int) $wpdb->get_var(
-											$wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d', $g, $hunt_id )
-										); // db call ok; no-cache ok.
+								$total = (int) $wpdb->get_var(
+									$wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d', $g, $hunt_id )
+								); // db call ok; no-cache ok.
 			if ( $total < 1 ) {
-							return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
+						return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
 			}
 
 			$hunts_table = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
 			if ( ! $hunts_table ) {
 				return '';
 			}
-			$query                                    = $wpdb->prepare(
+			$query                            = $wpdb->prepare(
 				sprintf(
 					'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %%i g LEFT JOIN %%i u ON u.ID = g.user_id LEFT JOIN %%i h ON h.id = g.hunt_id WHERE g.hunt_id = %%d ORDER BY %s %s LIMIT %%d',
 					esc_sql( $orderby ),
@@ -305,37 +332,37 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$hunt_id,
 				$ranking
 			);
-												$rows = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+										$rows = $wpdb->get_results( $query ); // db call ok; no-cache ok.
 
-					wp_enqueue_style(
-						'bhg-shortcodes',
-						( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-						array(),
-						defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-					);
+			wp_enqueue_style(
+				'bhg-shortcodes',
+				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+				array(),
+				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+			);
 
-					ob_start();
-					echo '<table class="bhg-leaderboard">';
-					echo '<thead><tr>';
+			ob_start();
+			echo '<table class="bhg-leaderboard">';
+			echo '<thead><tr>';
 			foreach ( $fields as $field ) {
 				if ( 'position' === $field ) {
-							echo '<th class="sortable" data-column="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
+						echo '<th class="sortable" data-column="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
 				} elseif ( 'user' === $field ) {
 					echo '<th class="sortable" data-column="user">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
 				} elseif ( 'guess' === $field ) {
 					echo '<th class="sortable" data-column="guess">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</th>';
 				}
 			}
-				echo '</tr></thead><tbody>';
+			echo '</tr></thead><tbody>';
 
-								$pos       = 1;
-								$need_user = in_array( 'user', $fields, true );
+						$pos       = 1;
+						$need_user = in_array( 'user', $fields, true );
 			foreach ( $rows as $r ) {
 				if ( $need_user ) {
-						$site_id = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
-						$aff_dot = bhg_render_affiliate_dot( (int) $r->user_id, $site_id );
-						/* translators: %d: user ID. */
-						$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
+					$site_id                         = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
+											$aff_dot = bhg_render_affiliate_dot( (int) $r->user_id, $site_id );
+											/* translators: %d: user ID. */
+											$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
 				}
 
 				echo '<tr>';
@@ -343,26 +370,25 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					if ( 'position' === $field ) {
 						echo '<td data-column="position">' . (int) $pos . '</td>';
 					} elseif ( 'user' === $field ) {
-																					echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . $aff_dot . '</td>';
+																											echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 					} elseif ( 'guess' === $field ) {
-									echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
+						echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
 					}
 				}
 				echo '</tr>';
-									++$pos;
+								++$pos;
 			}
-								echo '</tbody></table>';
+						echo '</tbody></table>';
 
-								return ob_get_clean();
+						return ob_get_clean();
 		}
 
-			/**
-			 * [bhg_user_guesses]
-			 * id (user), aff (yes/no), website (affiliate id), status (open|closed),
-			 * timeline: '' | 'recent' (limit 10) | relative period: day|week|month|year
-			 * fields: comma-separated list (hunt,guess,final,user)
-			 * orderby: hunt|guess ; order: ASC|DESC
-			 */
+					/**
+					 * Renders a table of guesses for a user.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function user_guesses_shortcode( $atts ) {
 			$a = shortcode_atts(
 				array(
@@ -390,7 +416,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				)
 			);
 			if ( empty( $fields_arr ) ) {
-					$fields_arr = array( 'hunt', 'guess', 'final' );
+				$fields_arr = array( 'hunt', 'guess', 'final' );
 			}
 
 			global $wpdb;
@@ -409,8 +435,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '';
 			}
 
-				// Ensure hunts table has created_at column. If missing, attempt migration and fall back.
-				$has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
+			// Ensure hunts table has created_at column. If missing, attempt migration and fall back.
+			$has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
 			if ( empty( $has_created_at ) && class_exists( 'BHG_DB' ) ) {
 				BHG_DB::migrate();
 				$has_created_at = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $h, 'created_at' ) );
@@ -430,7 +456,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[] = $website;
 			}
 
-			// Timeline handling (relative time window)
+						// Timeline handling (relative time window).
 			$timeline  = sanitize_key( $a['timeline'] );
 			$intervals = array(
 				'day'   => '-1 day',
@@ -444,76 +470,75 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[] = $since;
 			}
 
-						$allowed_orders = array( 'ASC', 'DESC' );
-						$order          = strtoupper( sanitize_key( $a['order'] ) );
+				$allowed_orders = array( 'ASC', 'DESC' );
+				$order          = strtoupper( sanitize_key( $a['order'] ) );
 			if ( ! in_array( $order, $allowed_orders, true ) ) {
-					$order = 'DESC';
+				$order = 'DESC';
 			}
-						$orderby_map = array(
-							'guess' => 'g.guess',
-							'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
-						);
-						$orderby_key = sanitize_key( $a['orderby'] );
-						if ( ! isset( $orderby_map[ $orderby_key ] ) ) {
-								$orderby_key = 'hunt';
-						}
-						$orderby = $orderby_map[ $orderby_key ];
+				$orderby_map = array(
+					'guess' => 'g.guess',
+					'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
+				);
+				$orderby_key = sanitize_key( $a['orderby'] );
+				if ( ! isset( $orderby_map[ $orderby_key ] ) ) {
+						$orderby_key = 'hunt';
+				}
+				$orderby = $orderby_map[ $orderby_key ];
 
-						$order_sql = sprintf( ' ORDER BY %s %s', esc_sql( $orderby ), esc_sql( $order ) );
-						$limit_sql = '';
-						$limit_val = 0;
-						if ( 'recent' === strtolower( $a['timeline'] ) ) {
-								$limit_sql = ' LIMIT %d';
-								$limit_val = 10;
-						}
+				$order_sql = sprintf( ' ORDER BY %s %s', esc_sql( $orderby ), esc_sql( $order ) );
+				$limit_sql = '';
+				$limit_val = 0;
+				if ( 'recent' === strtolower( $a['timeline'] ) ) {
+						$limit_sql = ' LIMIT %d';
+						$limit_val = 10;
+				}
 
-						$sql    = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . $order_sql . $limit_sql;
-						$params = array_merge( array( $g, $h ), $params );
-						if ( $limit_val ) {
-								$params[] = $limit_val;
-						}
-                        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query built with placeholders and sanitized identifiers.
-						$query = $wpdb->prepare( $sql, ...$params );
+				$sql    = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM %i g INNER JOIN %i h ON h.id = g.hunt_id WHERE ' . implode( ' AND ', $where ) . $order_sql . $limit_sql;
+				$params = array_merge( array( $g, $h ), $params );
+				if ( $limit_val ) {
+						$params[] = $limit_val;
+				}
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query built with placeholders and sanitized identifiers.
+				$query = $wpdb->prepare( $sql, ...$params );
 
-						// db call ok; no-cache ok.
-						$rows = $wpdb->get_results( $query );
-						if ( ! $rows ) {
-								return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
-						}
+				// db call ok; no-cache ok.
+				$rows = $wpdb->get_results( $query );
+				if ( ! $rows ) {
+						return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
+				}
 
-						$show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
+				$show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
 
-						ob_start();
-						echo '<table class="bhg-user-guesses"><thead><tr>';
-						echo '<th>' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</th>';
-						echo '</tr></thead><tbody>';
+				ob_start();
+				echo '<table class="bhg-user-guesses"><thead><tr>';
+				echo '<th>' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</th>';
+				echo '<th>' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</th>';
+				echo '<th>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</th>';
+				echo '</tr></thead><tbody>';
 
-						$current_user_id = $user_id; // for aff dot.
-						foreach ( $rows as $row ) {
-							echo '<tr>';
-							echo '<td>' . esc_html( $row->title ) . '</td>';
-								$guess_cell = esc_html( bhg_format_currency( (float) $row->guess ) );
-							if ( $show_aff ) {
-									$dot        = bhg_render_affiliate_dot( (int) $current_user_id, (int) $row->affiliate_site_id );
-									$guess_cell = $dot . $guess_cell;
-							}
-							echo '<td>' . $guess_cell . '</td>';
-														echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-							echo '</tr>';
-						}
-						echo '</tbody></table>';
-						return ob_get_clean();
+				$current_user_id = $user_id; // for aff dot.
+				foreach ( $rows as $row ) {
+					echo '<tr>';
+					echo '<td>' . esc_html( $row->title ) . '</td>';
+						$guess_cell = esc_html( bhg_format_currency( (float) $row->guess ) );
+					if ( $show_aff ) {
+							$dot        = bhg_render_affiliate_dot( (int) $current_user_id, (int) $row->affiliate_site_id );
+							$guess_cell = $dot . $guess_cell;
+					}
+												echo '<td>' . wp_kses_post( $guess_cell ) . '</td>';
+												echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+					echo '</tr>';
+				}
+				echo '</tbody></table>';
+				return ob_get_clean();
 		}
 
-			/**
-			 * [bhg_hunts]
-			 * id (hunt), status (open|closed), website (affiliate id),
-			 * timeline: '' | 'recent' (limit 10) | relative period: day|week|month|year
-			 * fields: comma-separated list (title,start,final,status,user)
-			 * aff: yes/no to show affiliate column
-			 */
+					/**
+					 * Displays a list of hunts.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function hunts_shortcode( $atts ) {
 			$a = shortcode_atts(
 				array(
@@ -539,7 +564,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				)
 			);
 			if ( empty( $fields_arr ) ) {
-					$fields_arr = array( 'title', 'start', 'final', 'status' );
+				$fields_arr = array( 'title', 'start', 'final', 'status' );
 			}
 
 			global $wpdb;
@@ -569,7 +594,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[] = $website;
 			}
 
-			// Timeline handling
+						// Timeline handling.
 			$timeline  = sanitize_key( $a['timeline'] );
 			$intervals = array(
 				'day'   => '-1 day',
@@ -583,20 +608,20 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[] = $since;
 			}
 
-				$sql = 'SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at, a.name AS aff_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id';
+			$sql = 'SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at, a.name AS aff_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id';
 			if ( $where ) {
 				$sql .= ' WHERE ' . implode( ' AND ', $where );
 			}
-				$order_clause = ' ORDER BY h.created_at DESC';
+			$order_clause = ' ORDER BY h.created_at DESC';
 			if ( 'recent' === strtolower( $a['timeline'] ) ) {
 				$order_clause .= ' LIMIT 10';
 			}
 
-				// db call ok; no-cache ok.
-				$prep_args = array_merge( array( $h, $aff_table ), $params );
-				$sql       = $wpdb->prepare( $sql, ...$prep_args );
-				$sql      .= $order_clause;
-				$rows      = $wpdb->get_results( $sql );
+			// db call ok; no-cache ok.
+			$prep_args = array_merge( array( $h, $aff_table ), $params );
+			$sql       = $wpdb->prepare( $sql, ...$prep_args );
+			$sql      .= $order_clause;
+			$rows      = $wpdb->get_results( $sql );
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
 			}
@@ -617,10 +642,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			foreach ( $rows as $row ) {
 				echo '<tr>';
 				echo '<td>' . esc_html( $row->title ) . '</td>';
-								echo '<td>' . esc_html( bhg_format_currency( (float) $row->starting_balance ) ) . '</td>';
-								echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-								$status_key = strtolower( (string) $row->status );
-								echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
+							echo '<td>' . esc_html( bhg_format_currency( (float) $row->starting_balance ) ) . '</td>';
+							echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+							$status_key = strtolower( (string) $row->status );
+							echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
 				if ( $show_aff ) {
 					echo '<td>' . ( $row->aff_name ? esc_html( $row->aff_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 				}
@@ -630,15 +655,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			return ob_get_clean();
 		}
 
-						/**
-						 * [bhg_leaderboards] — overall wins leaderboard.
-						 *
-						 * Attributes:
-						 * - fields: comma-separated list of columns to display.
-						 *   Allowed: pos,user,wins,avg,aff,site,hunt,tournament.
-						 * - ranking: range of positions to display (e.g. 1-10 or 5).
-						 * - timeline: optional window (day|week|month|year).
-						 */
+					/**
+					 * Displays overall wins leaderboards.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function leaderboards_shortcode( $atts ) {
 			$a = shortcode_atts(
 				array(
@@ -650,16 +672,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				'bhg_leaderboards'
 			);
 
-				$raw_fields    = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
-				$allowed_field = array( 'pos', 'user', 'wins', 'avg', 'aff', 'site', 'hunt', 'tournament' );
-				$fields_arr    = array_values( array_unique( array_intersect( $allowed_field, array_map( 'sanitize_key', $raw_fields ) ) ) );
+			$raw_fields    = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
+			$allowed_field = array( 'pos', 'user', 'wins', 'avg', 'aff', 'site', 'hunt', 'tournament' );
+			$fields_arr    = array_values( array_unique( array_intersect( $allowed_field, array_map( 'sanitize_key', $raw_fields ) ) ) );
 			if ( empty( $fields_arr ) ) {
 				$fields_arr = array( 'pos', 'user', 'wins' );
 			}
 
-				global $wpdb;
+			global $wpdb;
 
-				$ranking_raw = trim( (string) $a['ranking'] );
+			$ranking_raw = trim( (string) $a['ranking'] );
 			if ( preg_match( '/^(\d+)-(\d+)$/', $ranking_raw, $m ) ) {
 				$start = max( 1, min( 10, (int) $m[1] ) );
 				$end   = max( $start, min( 10, (int) $m[2] ) );
@@ -667,7 +689,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$start = 1;
 				$end   = max( 1, min( 10, (int) $ranking_raw ) );
 			}
-				$count = $end - $start + 1;
+			$count = $end - $start + 1;
 
 			// Optional timeline filter.
 			$where      = '';
@@ -701,25 +723,25 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '';
 			}
 
-				// db call ok; no-cache ok.
-				$sql         = 'SELECT r.user_id, u.user_login, SUM(r.wins) AS total_wins';
-				$prep_tables = array();
+			// db call ok; no-cache ok.
+			$sql         = 'SELECT r.user_id, u.user_login, SUM(r.wins) AS total_wins';
+			$prep_tables = array();
 			if ( $need_avg ) {
 				$sql          .= ', (SELECT AVG(hw.position) FROM %i hw WHERE hw.user_id = r.user_id) AS avg_rank';
 				$prep_tables[] = $hw;
 			}
-				$sql          .= ' FROM %i r INNER JOIN %i u ON u.ID = r.user_id';
-				$prep_tables[] = $r;
-				$prep_tables[] = $u;
+			$sql          .= ' FROM %i r INNER JOIN %i u ON u.ID = r.user_id';
+			$prep_tables[] = $r;
+			$prep_tables[] = $u;
 			if ( $where ) {
 				$sql        .= $where;
 				$prep_tables = array_merge( $prep_tables, $prep_where );
 			}
-				$sql .= ' GROUP BY r.user_id, u.user_login';
-				$sql  = $wpdb->prepare( $sql, ...$prep_tables );
-				$sql .= ' ORDER BY total_wins DESC, u.user_login ASC';
-				$sql .= $wpdb->prepare( ' LIMIT %d', $end );
-				$rows = $wpdb->get_results( $sql );
+			$sql .= ' GROUP BY r.user_id, u.user_login';
+			$sql  = $wpdb->prepare( $sql, ...$prep_tables );
+			$sql .= ' ORDER BY total_wins DESC, u.user_login ASC';
+			$sql .= $wpdb->prepare( ' LIMIT %d', $end );
+			$rows = $wpdb->get_results( $sql );
 			if ( $start > 1 ) {
 				$rows = array_slice( $rows, $start - 1, $count );
 			}
@@ -730,44 +752,44 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 			foreach ( $rows as $row ) {
 				if ( $need_site || $need_tournament ) {
-								// Last tournament and site.
-								$last_sql  = $wpdb->prepare(
-									'SELECT t.title AS tournament_title, w.name AS site_name FROM %i r INNER JOIN %i t ON t.id = r.tournament_id LEFT JOIN %i w ON w.id = t.affiliate_site_id WHERE r.user_id = %d',
-									$r,
-									$t,
-									$w,
-									$row->user_id
-								);
-								$last_sql .= ' ORDER BY r.last_win_date DESC LIMIT 1';
-								$last      = $wpdb->get_row( $last_sql );
+							// Last tournament and site.
+							$last_sql  = $wpdb->prepare(
+								'SELECT t.title AS tournament_title, w.name AS site_name FROM %i r INNER JOIN %i t ON t.id = r.tournament_id LEFT JOIN %i w ON w.id = t.affiliate_site_id WHERE r.user_id = %d',
+								$r,
+								$t,
+								$w,
+								$row->user_id
+							);
+							$last_sql .= ' ORDER BY r.last_win_date DESC LIMIT 1';
+							$last      = $wpdb->get_row( $last_sql );
 					if ( $need_tournament ) {
 						$row->tournament_title = $last && isset( $last->tournament_title ) ? $last->tournament_title : '';
 					}
 					if ( $need_site ) {
-											$row->site_name = $last && isset( $last->site_name ) ? $last->site_name : '';
+										$row->site_name = $last && isset( $last->site_name ) ? $last->site_name : '';
 					}
 				}
 
 				if ( $need_hunt ) {
-									// Last hunt won.
-									$hunt_sql    = $wpdb->prepare(
-										'SELECT h.title FROM %i hw INNER JOIN %i h ON h.id = hw.hunt_id WHERE hw.user_id = %d',
-										$hw,
-										$h,
-										$row->user_id
-									);
-									$hunt_sql   .= ' ORDER BY hw.created_at DESC LIMIT 1';
-								$hunt_title      = $wpdb->get_var( $hunt_sql );
-								$row->hunt_title = $hunt_title ? $hunt_title : '';
+								// Last hunt won.
+								$hunt_sql    = $wpdb->prepare(
+									'SELECT h.title FROM %i hw INNER JOIN %i h ON h.id = hw.hunt_id WHERE hw.user_id = %d',
+									$hw,
+									$h,
+									$row->user_id
+								);
+								$hunt_sql   .= ' ORDER BY hw.created_at DESC LIMIT 1';
+							$hunt_title      = $wpdb->get_var( $hunt_sql );
+							$row->hunt_title = $hunt_title ? $hunt_title : '';
 				}
 			}
 
-					wp_enqueue_style(
-						'bhg-shortcodes',
-						( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-						array(),
-						defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-					);
+			wp_enqueue_style(
+				'bhg-shortcodes',
+				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+				array(),
+				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+			);
 
 			ob_start();
 			echo '<table class="bhg-leaderboard">';
@@ -776,66 +798,63 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				if ( 'pos' === $field ) {
 					echo '<th>' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
 				} elseif ( 'user' === $field ) {
-						echo '<th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
+					echo '<th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
 				} elseif ( 'wins' === $field ) {
-										echo '<th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
+									echo '<th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
 				} elseif ( 'avg' === $field ) {
-						echo '<th>' . esc_html( bhg_t( 'sc_avg_rank', 'Avg Rank' ) ) . '</th>';
+					echo '<th>' . esc_html( bhg_t( 'sc_avg_rank', 'Avg Rank' ) ) . '</th>';
 				} elseif ( 'aff' === $field ) {
 					echo '<th>' . esc_html( bhg_t( 'label_affiliate', 'Affiliate' ) ) . '</th>';
 				} elseif ( 'site' === $field ) {
-						echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
+					echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
 				} elseif ( 'hunt' === $field ) {
-						echo '<th>' . esc_html( bhg_t( 'label_hunt', 'Hunt' ) ) . '</th>';
+					echo '<th>' . esc_html( bhg_t( 'label_hunt', 'Hunt' ) ) . '</th>';
 				} elseif ( 'tournament' === $field ) {
-						echo '<th>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
+					echo '<th>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
 				}
 			}
 			echo '</tr></thead><tbody>';
 
-				$pos = $start;
+			$pos = $start;
 			foreach ( $rows as $row ) {
 				if ( $need_aff ) {
-						$aff = bhg_render_affiliate_dot( (int) $row->user_id );
+											$aff = bhg_render_affiliate_dot( (int) $row->user_id );
 				}
-											/* translators: %d: user ID. */
-											$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-											echo '<tr>';
+										/* translators: %d: user ID. */
+										$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+										echo '<tr>';
 				foreach ( $fields_arr as $field ) {
 					if ( 'pos' === $field ) {
 						echo '<td>' . (int) $pos . '</td>';
 					} elseif ( 'user' === $field ) {
-							echo '<td>' . esc_html( $user_label ) . '</td>';
+						echo '<td>' . esc_html( $user_label ) . '</td>';
 					} elseif ( 'wins' === $field ) {
 						echo '<td>' . (int) $row->total_wins . '</td>';
 					} elseif ( 'avg' === $field ) {
 						echo '<td>' . ( isset( $row->avg_rank ) ? esc_html( number_format_i18n( (float) $row->avg_rank, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 					} elseif ( 'aff' === $field ) {
-						echo '<td>' . $aff . '</td>';
+							echo '<td>' . wp_kses_post( $aff ) . '</td>';
 					} elseif ( 'site' === $field ) {
-						echo '<td>' . esc_html( $row->site_name ?: bhg_t( 'label_emdash', '—' ) ) . '</td>';
+							echo '<td>' . esc_html( $row->site_name ? $row->site_name : bhg_t( 'label_emdash', '—' ) ) . '</td>';
 					} elseif ( 'hunt' === $field ) {
-						echo '<td>' . esc_html( $row->hunt_title ?: bhg_t( 'label_emdash', '—' ) ) . '</td>';
+							echo '<td>' . esc_html( $row->hunt_title ? $row->hunt_title : bhg_t( 'label_emdash', '—' ) ) . '</td>';
 					} elseif ( 'tournament' === $field ) {
-						echo '<td>' . esc_html( $row->tournament_title ?: bhg_t( 'label_emdash', '—' ) ) . '</td>';
+							echo '<td>' . esc_html( $row->tournament_title ? $row->tournament_title : bhg_t( 'label_emdash', '—' ) ) . '</td>';
 					}
 				}
-						echo '</tr>';
-						++$pos;
+					echo '</tr>';
+					++$pos;
 			}
-					echo '</tbody></table>';
-					return ob_get_clean();
+			echo '</tbody></table>';
+			return ob_get_clean();
 		}
 
-			/**
-			 * [bhg_tournaments]
-			 * Filters:
-			 *   status (active|closed), tournament (id), website (affiliate id),
-			 *   timeline:
-			 *     - relative date window: day|week|month|year
-			 *     - or tournament type: weekly|monthly|yearly|quarterly|alltime
-			 * Details view via ?bhg_tournament_id=ID
-			 */
+					/**
+					 * Lists tournaments or shows tournament details.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function tournaments_shortcode( $atts ) {
 			global $wpdb;
 
@@ -846,8 +865,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
 			);
 
-			// Details screen
-			$details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
+				// Details screen.
+				$details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
 			if ( $details_id > 0 ) {
 				$t = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
 				$r = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
@@ -856,44 +875,44 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					return '';
 				}
 
-						// db call ok; no-cache ok.
-						$tournament = $wpdb->get_row(
-							$wpdb->prepare(
-								'SELECT id, type, start_date, end_date, status FROM %i WHERE id = %d',
-								$t,
-								$details_id
-							)
-						);
+					// db call ok; no-cache ok.
+					$tournament = $wpdb->get_row(
+						$wpdb->prepare(
+							'SELECT id, type, start_date, end_date, status FROM %i WHERE id = %d',
+							$t,
+							$details_id
+						)
+					);
 				if ( ! $tournament ) {
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
 
-						$orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
-						$allowed_orders = array( 'asc', 'desc' );
-						$order          = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
+					$orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
+					$allowed_orders = array( 'asc', 'desc' );
+					$order          = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
 
-						$allowed = array(
-							'wins'        => 'r.wins',
-							'username'    => 'u.user_login',
-							'last_win_at' => 'r.last_win_date',
-						);
-						if ( ! isset( $allowed[ $orderby ] ) ) {
-								$orderby = 'wins';
-						}
-						if ( ! in_array( $order, $allowed_orders, true ) ) {
-								$order = 'desc';
-						}
-						$orderby_column = $allowed[ $orderby ];
-						$order          = strtoupper( $order );
+					$allowed = array(
+						'wins'        => 'r.wins',
+						'username'    => 'u.user_login',
+						'last_win_at' => 'r.last_win_date',
+					);
+					if ( ! isset( $allowed[ $orderby ] ) ) {
+							$orderby = 'wins';
+					}
+					if ( ! in_array( $order, $allowed_orders, true ) ) {
+							$order = 'desc';
+					}
+					$orderby_column = $allowed[ $orderby ];
+					$order          = strtoupper( $order );
 
-									$query = $wpdb->prepare(
-										'SELECT r.user_id, r.wins, r.last_win_date, u.user_login FROM %i r INNER JOIN %i u ON u.ID = r.user_id WHERE r.tournament_id = %d',
-										$r,
-										$u,
-										$tournament->id
-									);
-								$query    .= ' ORDER BY ' . $orderby_column . ' ' . $order . ', r.user_id ASC';
-								$rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+								$query = $wpdb->prepare(
+									'SELECT r.user_id, r.wins, r.last_win_date, u.user_login FROM %i r INNER JOIN %i u ON u.ID = r.user_id WHERE r.tournament_id = %d',
+									$r,
+									$u,
+									$tournament->id
+								);
+							$query    .= ' ORDER BY ' . $orderby_column . ' ' . $order . ', r.user_id ASC';
+							$rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
 
 				$base   = remove_query_arg( array( 'orderby', 'order' ) );
 				$toggle = function ( $key ) use ( $orderby, $order, $base ) {
@@ -915,8 +934,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
 					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
 					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
-										$status_key = strtolower( (string) $tournament->status );
-										echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+									$status_key = strtolower( (string) $tournament->status );
+									echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
 
 				if ( ! $rows ) {
 					echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
@@ -926,23 +945,24 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 					echo '<table class="bhg-leaderboard">';
 					echo '<thead><tr>';
-										echo '<th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th>';
-					echo '<th><a href="' . $toggle( 'username' ) . '">' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</a></th>';
-					echo '<th><a href="' . $toggle( 'wins' ) . '">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</a></th>';
-					echo '<th><a href="' . $toggle( 'last_win_at' ) . '">' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</a></th>';
+									echo '<th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th>';
+									echo '<th><a href="' . esc_url( $toggle( 'username' ) ) . '">' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</a></th>';
+									echo '<th><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</a></th>';
+									echo '<th><a href="' . esc_url( $toggle( 'last_win_at' ) ) . '">' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</a></th>';
 					echo '</tr></thead><tbody>';
 
 					$pos = 1;
 				foreach ( $rows as $row ) {
 					echo '<tr>';
-					echo '<td>' . (int) $pos++ . '</td>';
-					echo '<td>' . esc_html(
-						$row->user_login ?: sprintf(
-						/* translators: %d: user ID. */
-							bhg_t( 'label_user_hash', 'user#%d' ),
-							(int) $row->user_id
-						)
-					) . '</td>';
+									echo '<td>' . (int) $pos . '</td>';
+									++$pos;
+									echo '<td>' . esc_html(
+										$row->user_login ? $row->user_login : sprintf(
+													/* translators: %d: user ID. */
+											bhg_t( 'label_user_hash', 'user#%d' ),
+											(int) $row->user_id
+										)
+									) . '</td>';
 					echo '<td>' . (int) $row->wins . '</td>';
 					echo '<td>' . ( $row->last_win_date ? esc_html( mysql2date( get_option( 'date_format' ), $row->last_win_date ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 					echo '</tr>';
@@ -953,7 +973,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					return ob_get_clean();
 			}
 
-			// List view with filters
+						// List view with filters.
 			$a = shortcode_atts(
 				array(
 					'status'     => 'active',
@@ -986,7 +1006,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$args[]  = $status;
 			}
 
-			// Accept either relative time window OR explicit type
+						// Accept either relative time window OR explicit type.
 			if ( in_array( $timeline, array( 'day', 'week', 'month', 'year' ), true ) ) {
 				$map     = array(
 					'day'   => '-1 day',
@@ -1007,15 +1027,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$args[]  = $website;
 			}
 
-				$query = 'SELECT * FROM %i';
+			$query = 'SELECT * FROM %i';
 			if ( $where ) {
 				$query .= ' WHERE ' . implode( ' AND ', $where );
 			}
-				$query .= ' ORDER BY start_date DESC, id DESC';
+			$query .= ' ORDER BY start_date DESC, id DESC';
 
-				$prep_args = array_merge( array( $t ), $args );
-				$query     = $wpdb->prepare( $query, ...$prep_args );
-				$rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+			$prep_args = array_merge( array( $t ), $args );
+			$query     = $wpdb->prepare( $query, ...$prep_args );
+			$rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ) ) . '</p>';
 			}
@@ -1026,7 +1046,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 			ob_start();
 			echo '<form method="get" class="bhg-tournament-filters">';
-			// keep other query args
+						// Keep other query args.
 			foreach ( $_GET as $raw_key => $v ) {
 				$key = sanitize_key( wp_unslash( $raw_key ) );
 				if ( in_array( $key, array( 'bhg_timeline', 'bhg_status', 'bhg_tournament_id' ), true ) ) {
@@ -1081,14 +1101,14 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			echo '</tr></thead><tbody>';
 
 			foreach ( $rows as $row ) {
-				$detail_url = esc_url( add_query_arg( 'bhg_tournament_id', (int) $row->id, remove_query_arg( array( 'orderby', 'order' ), $current_url ) ) );
-				echo '<tr>';
-				echo '<td>' . esc_html( ucfirst( $row->type ) ) . '</td>';
-				echo '<td>' . esc_html( mysql2date( get_option( 'date_format' ), $row->start_date ) ) . '</td>';
-				echo '<td>' . esc_html( mysql2date( get_option( 'date_format' ), $row->end_date ) ) . '</td>';
-								$status_key = strtolower( (string) $row->status );
-								echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
-				echo '<td><a href="' . $detail_url . '">' . esc_html( bhg_t( 'label_show_details', 'Show details' ) ) . '</a></td>';
+							$detail_url = add_query_arg( 'bhg_tournament_id', (int) $row->id, remove_query_arg( array( 'orderby', 'order' ), $current_url ) );
+							echo '<tr>';
+							echo '<td>' . esc_html( ucfirst( $row->type ) ) . '</td>';
+							echo '<td>' . esc_html( mysql2date( get_option( 'date_format' ), $row->start_date ) ) . '</td>';
+							echo '<td>' . esc_html( mysql2date( get_option( 'date_format' ), $row->end_date ) ) . '</td>';
+															$status_key = strtolower( (string) $row->status );
+															echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
+							echo '<td><a href="' . esc_url( $detail_url ) . '">' . esc_html( bhg_t( 'label_show_details', 'Show details' ) ) . '</a></td>';
 				echo '</tr>';
 			}
 
@@ -1096,7 +1116,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			return ob_get_clean();
 		}
 
-			/** Minimal winners widget: latest closed hunts */
+					/**
+					 * Minimal winners widget: latest closed hunts.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function winner_notifications_shortcode( $atts ) {
 			global $wpdb;
 
@@ -1111,13 +1136,13 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '';
 			}
 			// db call ok; no-cache ok.
-			$sql       = $wpdb->prepare(
+			$sql   = $wpdb->prepare(
 				'SELECT id, title, final_balance, winners_count, closed_at FROM %i WHERE status = %s ORDER BY closed_at DESC LIMIT %d',
 				$hunts_table,
 				'closed',
 				(int) $a['limit']
 			);
-				$hunts = $wpdb->get_results( $sql );
+			$hunts = $wpdb->get_results( $sql );
 
 			if ( ! $hunts ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ) . '</p>';
@@ -1140,7 +1165,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				echo '<div class="bhg-winner">';
 				echo '<p><strong>' . esc_html( $hunt->title ) . '</strong></p>';
 				if ( null !== $hunt->final_balance ) {
-						echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_currency( (float) $hunt->final_balance ) ) . '</p>';
+					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_currency( (float) $hunt->final_balance ) ) . '</p>';
 				}
 
 				if ( $winners ) {
@@ -1148,7 +1173,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					foreach ( $winners as $w ) {
 						$u  = get_userdata( (int) $w->user_id );
 						$nm = $u ? $u->user_login : sprintf( bhg_t( 'label_user_number', 'User #%d' ), (int) $w->user_id );
-												echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_currency( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_currency( (float) $w->diff ) ) . ')</li>';
+											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_currency( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_currency( (float) $w->diff ) ) . ')</li>';
 					}
 					echo '</ul>';
 				}
@@ -1159,7 +1184,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			return ob_get_clean();
 		}
 
-			/** Minimal profile view: affiliate status badge */
+					/**
+					 * Minimal profile view: affiliate status badge.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function user_profile_shortcode( $atts ) {
 			if ( ! is_user_logged_in() ) {
 				return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
@@ -1172,17 +1202,22 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			);
 			$user_id      = get_current_user_id();
 			$is_affiliate = (int) get_user_meta( $user_id, 'bhg_is_affiliate', true );
-			$badge        = $is_affiliate ? '<span class="bhg-aff-green" aria-hidden="true"></span>' : '<span class="bhg-aff-red" aria-hidden="true"></span>';
-			return '<div class="bhg-user-profile">' . $badge . ' ' . esc_html( wp_get_current_user()->display_name ) . '</div>';
+				$badge    = $is_affiliate ? '<span class="bhg-aff-green" aria-hidden="true"></span>' : '<span class="bhg-aff-red" aria-hidden="true"></span>';
+				return '<div class="bhg-user-profile">' . wp_kses_post( $badge ) . ' ' . esc_html( wp_get_current_user()->display_name ) . '</div>';
 		}
 
-			/** [bhg_best_guessers] — simple wins leaderboard with tabs */
+					/**
+					 * Simple wins leaderboard with tabs.
+					 *
+					 * @param array $atts Shortcode attributes.
+					 * @return string HTML output.
+					 */
 		public function best_guessers_shortcode( $atts ) {
 			global $wpdb;
 
-				$wins_tbl  = $wpdb->prefix . 'bhg_tournament_results';
-				$tours_tbl = $wpdb->prefix . 'bhg_tournaments';
-				$users_tbl = $wpdb->users;
+			$wins_tbl  = $wpdb->prefix . 'bhg_tournament_results';
+			$tours_tbl = $wpdb->prefix . 'bhg_tournaments';
+			$users_tbl = $wpdb->users;
 
 			$now_ts        = current_time( 'timestamp' );
 			$current_month = wp_date( 'Y-m', $now_ts );
@@ -1226,19 +1261,19 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						$params[] = $info['end'];
 					}
 					$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
-						. ' FROM %i r'
-						. ' INNER JOIN %i u ON u.ID = r.user_id'
-						. ' INNER JOIN %i t ON t.id = r.tournament_id'
-						. ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
+					. ' FROM %i r'
+					. ' INNER JOIN %i u ON u.ID = r.user_id'
+					. ' INNER JOIN %i t ON t.id = r.tournament_id'
+					. ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
 					// db call ok; no-cache ok.
 					$sql             = $wpdb->prepare( $sql, $wins_tbl, $users_tbl, $tours_tbl, ...$params );
 					$sql            .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
 					$results[ $key ] = $wpdb->get_results( $sql );
 				} else {
 					$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
-						. ' FROM %i r'
-						. ' INNER JOIN %i u ON u.ID = r.user_id'
-						. ' GROUP BY u.ID, u.user_login';
+					. ' FROM %i r'
+					. ' INNER JOIN %i u ON u.ID = r.user_id'
+					. ' GROUP BY u.ID, u.user_login';
 					// db call ok; no-cache ok.
 					$sql            .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
 					$results[ $key ] = $wpdb->get_results( $wpdb->prepare( $sql, $wins_tbl, $users_tbl ) );
@@ -1249,19 +1284,19 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			if ( ! $hunts_tbl ) {
 				return '';
 			}
-			$hunts_sql     = $wpdb->prepare(
+			$hunts_sql = $wpdb->prepare(
 				'SELECT id, title FROM %i WHERE status = %s ORDER BY created_at DESC LIMIT 50',
 				$hunts_tbl,
 				'closed'
 			);
-					$hunts = $wpdb->get_results( $hunts_sql );
+			$hunts     = $wpdb->get_results( $hunts_sql );
 
-						wp_enqueue_style(
-							'bhg-shortcodes',
-							( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-							array(),
-							defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-						);
+				wp_enqueue_style(
+					'bhg-shortcodes',
+					( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+					array(),
+					defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+				);
 			wp_enqueue_script(
 				'bhg-shortcodes-js',
 				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/js/bhg-shortcodes.js',
@@ -1270,38 +1305,45 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				true
 			);
 
-			ob_start();
-			echo '<ul class="bhg-tabs">';
-			$first = true;
+				ob_start();
+				echo '<ul class="bhg-tabs">';
+				$first = true;
 			foreach ( $periods as $key => $info ) {
-				$active = $first ? ' class="active"' : '';
-				echo '<li' . $active . '><a href="#bhg-tab-' . esc_html( $key ) . '">' . esc_html( $info['label'] ) . '</a></li>';
-				$first = false;
+				if ( $first ) {
+					echo '<li class="active"><a href="#bhg-tab-' . esc_html( $key ) . '">' . esc_html( $info['label'] ) . '</a></li>';
+					$first = false;
+				} else {
+						echo '<li><a href="#bhg-tab-' . esc_html( $key ) . '">' . esc_html( $info['label'] ) . '</a></li>';
+				}
 			}
 			if ( $hunts ) {
-				echo '<li><a href="#bhg-tab-hunts">' . esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ) . '</a></li>';
+					echo '<li><a href="#bhg-tab-hunts">' . esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ) . '</a></li>';
 			}
-			echo '</ul>';
+				echo '</ul>';
 
-			$first = true;
+				$first = true;
 			foreach ( $periods as $key => $info ) {
-				$active = $first ? ' active' : '';
-				echo '<div id="bhg-tab-' . esc_attr( $key ) . '" class="bhg-tab-pane' . $active . '">';
-				$rows = isset( $results[ $key ] ) ? $results[ $key ] : array();
-				if ( ! $rows ) {
-					echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
-				} else {
-								echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
-					$pos = 1;
-					foreach ( $rows as $r ) {
-						/* translators: %d: user ID. */
-						$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
-						echo '<tr><td>' . (int) $pos++ . '</td><td>' . esc_html( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
-					}
-					echo '</tbody></table>';
+					$classes = 'bhg-tab-pane';
+				if ( $first ) {
+						$classes .= ' active';
+						$first    = false;
 				}
-				echo '</div>';
-				$first = false;
+					echo '<div id="bhg-tab-' . esc_attr( $key ) . '" class="' . esc_attr( $classes ) . '">';
+					$rows = isset( $results[ $key ] ) ? $results[ $key ] : array();
+				if ( ! $rows ) {
+						echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
+				} else {
+					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
+						$pos = 1;
+					foreach ( $rows as $r ) {
+							/* translators: %d: user ID. */
+							$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
+							echo '<tr><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
+							++$pos;
+					}
+						echo '</tbody></table>';
+				}
+					echo '</div>';
 			}
 
 			if ( $hunts ) {
@@ -1310,29 +1352,34 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				echo '<div id="bhg-tab-hunts" class="bhg-tab-pane">';
 				echo '<ul class="bhg-hunt-history">';
 				foreach ( $hunts as $hunt ) {
-					$url = esc_url( add_query_arg( 'hunt_id', (int) $hunt->id, $base ) );
-					echo '<li><a href="' . $url . '">' . esc_html( $hunt->title ) . '</a></li>';
+						$url = add_query_arg( 'hunt_id', (int) $hunt->id, $base );
+						echo '<li><a href="' . esc_url( $url ) . '">' . esc_html( $hunt->title ) . '</a></li>';
 				}
 				echo '</ul>';
 				echo '</div>';
 			}
 
-			return ob_get_clean();
+				return ob_get_clean();
 		}
 	}
 }
 
-// Register once on init even if no other bootstrap instantiates the class
+// Register once on init even if no other bootstrap instantiates the class.
 if ( ! function_exists( 'bhg_register_shortcodes_once' ) ) {
-	function bhg_register_shortcodes_once() {
-		static $done = false;
+		/**
+		 * Register shortcodes once on init.
+		 *
+		 * @return void
+		 */
+	function bhg_register_shortcodes_once() { // phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed
+			static $done = false;
 		if ( $done ) {
-			return;
+				return;
 		}
-		$done = true;
+			$done = true;
 		if ( class_exists( 'BHG_Shortcodes' ) ) {
-			new BHG_Shortcodes();
+				new BHG_Shortcodes();
 		}
 	}
-	add_action( 'init', 'bhg_register_shortcodes_once', 20 );
+		add_action( 'init', 'bhg_register_shortcodes_once', 20 );
 }
