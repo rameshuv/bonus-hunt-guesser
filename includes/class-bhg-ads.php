@@ -189,29 +189,29 @@ class BHG_Ads {
 		}
 
 			$placements = array( 'footer', 'bottom' );
-			foreach ( $placements as $place ) {
-					$ads = self::get_ads_for_placement( $place );
-					if ( empty( $ads ) ) {
-							continue;
-					}
-
-					$out = array();
-					foreach ( $ads as $row ) {
-							if ( ! self::visibility_ok( $row->visible_to ) ) {
-									continue;
-							}
-							if ( ! self::page_target_ok( $row->target_pages ) ) {
-									continue;
-							}
-							$out[] = self::render_ad_row( $row );
-					}
-
-					if ( ! empty( $out ) ) {
-							echo '<div class="bhg-ads bhg-ads-' . esc_attr( $place ) . '" style="margin:16px 0;text-align:center;">';
-							echo wp_kses_post( implode( "\n", $out ) );
-							echo '</div>';
-					}
+		foreach ( $placements as $place ) {
+				$ads = self::get_ads_for_placement( $place );
+			if ( empty( $ads ) ) {
+					continue;
 			}
+
+				$out = array();
+			foreach ( $ads as $row ) {
+				if ( ! self::visibility_ok( $row->visible_to ) ) {
+						continue;
+				}
+				if ( ! self::page_target_ok( $row->target_pages ) ) {
+						continue;
+				}
+					$out[] = self::render_ad_row( $row );
+			}
+
+			if ( ! empty( $out ) ) {
+					echo '<div class="bhg-ads bhg-ads-' . esc_attr( $place ) . '" style="margin:16px 0;text-align:center;">';
+					echo wp_kses_post( implode( "\n", $out ) );
+					echo '</div>';
+			}
+		}
 	}
 
 	/**

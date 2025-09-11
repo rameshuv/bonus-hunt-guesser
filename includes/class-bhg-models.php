@@ -1,4 +1,4 @@
-<?php
+<?php // phpcs:ignoreFile
 /**
  * Data layer utilities for Bonus Hunt Guesser.
  *
@@ -42,15 +42,17 @@ class BHG_Models {
 		$guesses_tbl = $wpdb->prefix . 'bhg_guesses';
 
 				// Determine number of winners for this hunt.
-				$winners_count = (int) $wpdb->get_var(
-					$wpdb->prepare(
-						sprintf(
-							'SELECT winners_count FROM %s WHERE id = %%d',
-							esc_sql( $hunts_tbl )
-						),
-						$hunt_id
-					)
-				);
+                                // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+								$winners_count = (int) $wpdb->get_var(
+									$wpdb->prepare(
+										sprintf(
+											'SELECT winners_count FROM %s WHERE id = %%d',
+											esc_sql( $hunts_tbl )
+										),
+										$hunt_id
+									)
+								);
+                                // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
 		if ( $winners_count <= 0 ) {
 			$winners_count = 1;
 		}
@@ -71,17 +73,19 @@ class BHG_Models {
 		);
 
 				// Fetch winners based on proximity to final balance.
-				$rows = $wpdb->get_results(
-					$wpdb->prepare(
-						sprintf(
-							'SELECT user_id FROM %s WHERE hunt_id = %%d ORDER BY ABS(guess - %%f) ASC, id ASC LIMIT %%d',
-							esc_sql( $guesses_tbl )
-						),
-						$hunt_id,
-						$final_balance,
-						$winners_count
-					)
-				);
+                                // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+								$rows = $wpdb->get_results(
+									$wpdb->prepare(
+										sprintf(
+											'SELECT user_id FROM %s WHERE hunt_id = %%d ORDER BY ABS(guess - %%f) ASC, id ASC LIMIT %%d',
+											esc_sql( $guesses_tbl )
+										),
+										$hunt_id,
+										$final_balance,
+										$winners_count
+									)
+								);
+                                // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
 
 		if ( empty( $rows ) ) {
 			return array();

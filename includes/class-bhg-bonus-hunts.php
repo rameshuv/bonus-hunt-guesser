@@ -20,37 +20,37 @@ class BHG_Bonus_Hunts {
 		$limit         = max( 1, (int) $limit );
 
 				$hunts = $wpdb->get_results(
-						$wpdb->prepare(
-								"SELECT id, title, starting_balance, final_balance, winners_count, closed_at
+					$wpdb->prepare(
+						'SELECT id, title, starting_balance, final_balance, winners_count, closed_at
 										FROM %i
 										WHERE status = %s AND final_balance IS NOT NULL AND closed_at IS NOT NULL
 										ORDER BY closed_at DESC
-										LIMIT %d",
-								$hunts_table,
-								'closed',
-								$limit
-						)
+										LIMIT %d',
+						$hunts_table,
+						'closed',
+						$limit
+					)
 				);
 
 		$out = array();
 
 		foreach ( (array) $hunts as $h ) {
-			$winners_count = max( 1, (int) $h->winners_count );
-						$winners       = $wpdb->get_results(
-								$wpdb->prepare(
-										"SELECT g.user_id, u.display_name, g.guess,
+			$winners_count       = max( 1, (int) $h->winners_count );
+						$winners = $wpdb->get_results(
+							$wpdb->prepare(
+								'SELECT g.user_id, u.display_name, g.guess,
 														ABS(g.guess - %f) AS diff
 												FROM %i g
 												LEFT JOIN %i u ON u.ID = g.user_id
 												WHERE g.hunt_id = %d
 												ORDER BY diff ASC, g.id ASC
-												LIMIT %d",
-										$h->final_balance,
-										$guesses_table,
-										$wpdb->users,
-										$h->id,
-										$winners_count
-								)
+												LIMIT %d',
+								$h->final_balance,
+								$guesses_table,
+								$wpdb->users,
+								$h->id,
+								$winners_count
+							)
 						);
 
 			$out[] = array(
@@ -73,11 +73,11 @@ class BHG_Bonus_Hunts {
 		$hunts_table = $wpdb->prefix . 'bhg_bonus_hunts';
 
 				return $wpdb->get_row(
-						$wpdb->prepare(
-								'SELECT * FROM %i WHERE id=%d',
-								$hunts_table,
-								(int) $hunt_id
-						)
+					$wpdb->prepare(
+						'SELECT * FROM %i WHERE id=%d',
+						$hunts_table,
+						(int) $hunt_id
+					)
 				);
 	}
 
@@ -98,31 +98,31 @@ class BHG_Bonus_Hunts {
 
 		if ( null !== $hunt->final_balance ) {
 						return $wpdb->get_results(
-								$wpdb->prepare(
-										"SELECT g.*, u.display_name, ABS(g.guess - %f) AS diff
+							$wpdb->prepare(
+								'SELECT g.*, u.display_name, ABS(g.guess - %f) AS diff
 												FROM %i g
 												LEFT JOIN %i u ON u.ID = g.user_id
 												WHERE g.hunt_id = %d
-												ORDER BY diff ASC, g.id ASC",
-										$hunt->final_balance,
-										$guesses_table,
-										$wpdb->users,
-										$hunt_id
-								)
+												ORDER BY diff ASC, g.id ASC',
+								$hunt->final_balance,
+								$guesses_table,
+								$wpdb->users,
+								$hunt_id
+							)
 						);
 		}
 
 				return $wpdb->get_results(
-						$wpdb->prepare(
-								"SELECT g.*, u.display_name, NULL AS diff
+					$wpdb->prepare(
+						'SELECT g.*, u.display_name, NULL AS diff
 										FROM %i g
 										LEFT JOIN %i u ON u.ID = g.user_id
 										WHERE g.hunt_id = %d
-										ORDER BY g.id ASC",
-								$guesses_table,
-								$wpdb->users,
-								$hunt_id
-						)
+										ORDER BY g.id ASC',
+						$guesses_table,
+						$wpdb->users,
+						$hunt_id
+					)
 				);
 	}
 }

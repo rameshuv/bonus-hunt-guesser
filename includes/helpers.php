@@ -91,11 +91,11 @@ if ( ! function_exists( 'bhg_t' ) ) {
 		 * Retrieve a translation value from the database.
 		 *
 		 * @param string $slug    Translation slug.
-		 * @param string $default Default text if not found.
+ * @param string $default_text Default text if not found.
 		 * @param string $locale  Locale to use. Defaults to current locale.
 		 * @return string
 		 */
-	function bhg_t( $slug, $default = '', $locale = '' ) {
+	function bhg_t( $slug, $default_text = '', $locale = '' ) {
 			global $wpdb;
 
 			$slug      = (string) $slug;
@@ -123,8 +123,8 @@ if ( ! function_exists( 'bhg_t' ) ) {
 			return $value;
 		}
 
-			wp_cache_set( $cache_key, (string) $default );
-			return (string) $default;
+			wp_cache_set( $cache_key, (string) $default_text );
+			return (string) $default_text;
 	}
 }
 

@@ -14,7 +14,7 @@ $message = '';
 
 // Process form submissions
 if ( isset( $_POST['bhg_action'] ) ) {
-        $action = sanitize_text_field( wp_unslash( $_POST['bhg_action'] ) );
+		$action = sanitize_text_field( wp_unslash( $_POST['bhg_action'] ) );
 
 	// Verify nonce based on action
 	$nonce_action = 'bhg_' . $action;
@@ -23,12 +23,12 @@ if ( isset( $_POST['bhg_action'] ) ) {
 	switch ( $action ) {
 		case 'create_bonus_hunt':
 			// Handle bonus hunt creation with proper sanitization
-                        $title             = sanitize_text_field( wp_unslash( $_POST['title'] ) );
-                        $starting_balance  = floatval( wp_unslash( $_POST['starting_balance'] ) );
-                        $num_bonuses       = intval( wp_unslash( $_POST['num_bonuses'] ) );
-                        $prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ) );
-                        $status            = sanitize_text_field( wp_unslash( $_POST['status'] ) );
-                        $affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+						$title             = sanitize_text_field( wp_unslash( $_POST['title'] ) );
+						$starting_balance  = floatval( wp_unslash( $_POST['starting_balance'] ) );
+						$num_bonuses       = intval( wp_unslash( $_POST['num_bonuses'] ) );
+						$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ) );
+						$status            = sanitize_text_field( wp_unslash( $_POST['status'] ) );
+						$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
 			// Save to database
 			$result = $bhg_db->create_bonus_hunt(
@@ -53,14 +53,14 @@ if ( isset( $_POST['bhg_action'] ) ) {
 
 		case 'update_bonus_hunt':
 			// Handle bonus hunt update
-                        $id                = intval( wp_unslash( $_POST['id'] ) );
-                        $title             = sanitize_text_field( wp_unslash( $_POST['title'] ) );
-                        $starting_balance  = floatval( wp_unslash( $_POST['starting_balance'] ) );
-                        $num_bonuses       = intval( wp_unslash( $_POST['num_bonuses'] ) );
-                        $prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ) );
-                        $status            = sanitize_text_field( wp_unslash( $_POST['status'] ) );
-                        $final_balance     = isset( $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
-                        $affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+						$id                = intval( wp_unslash( $_POST['id'] ) );
+						$title             = sanitize_text_field( wp_unslash( $_POST['title'] ) );
+						$starting_balance  = floatval( wp_unslash( $_POST['starting_balance'] ) );
+						$num_bonuses       = intval( wp_unslash( $_POST['num_bonuses'] ) );
+						$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ) );
+						$status            = sanitize_text_field( wp_unslash( $_POST['status'] ) );
+						$final_balance     = isset( $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
+						$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
 			$result = $bhg_db->update_bonus_hunt(
 				$id,
@@ -84,8 +84,8 @@ if ( isset( $_POST['bhg_action'] ) ) {
 
 		case 'delete_bonus_hunt':
 			// Handle bonus hunt deletion
-                        $id     = intval( wp_unslash( $_POST['id'] ) );
-			$result = $bhg_db->delete_bonus_hunt( $id );
+						$id = intval( wp_unslash( $_POST['id'] ) );
+			$result         = $bhg_db->delete_bonus_hunt( $id );
 
 			if ( $result ) {
 				$message = 'deleted';
@@ -100,7 +100,7 @@ if ( isset( $_POST['bhg_action'] ) ) {
 	}
 
 	// Redirect to avoid form resubmission
-        $redirect_url = esc_url_raw( add_query_arg( 'message', $message, wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+		$redirect_url = esc_url_raw( add_query_arg( 'message', $message, wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 	wp_safe_redirect( $redirect_url );
 	exit;
 }
@@ -111,7 +111,7 @@ $affiliate_websites = $bhg_db->get_affiliate_websites();
 
 // Display status messages
 if ( isset( $_GET['message'] ) ) {
-        $message_type = sanitize_text_field( wp_unslash( $_GET['message'] ) );
+		$message_type = sanitize_text_field( wp_unslash( $_GET['message'] ) );
 	switch ( $message_type ) {
 		case 'success':
 			echo '<div class="notice notice-success is-dismissible"><p>' .
@@ -315,7 +315,7 @@ if ( isset( $_GET['message'] ) ) {
 							<td><?php echo esc_html( $hunt->title ); ?></td>
 							<td>€<?php echo esc_html( number_format( $hunt->starting_balance, 2 ) ); ?></td>
 							<td>
-								<?php if ( $hunt->final_balance !== null ) : ?>
+								<?php if ( null !== $hunt->final_balance ) : ?>
 									€<?php echo esc_html( number_format( $hunt->final_balance, 2 ) ); ?>
 								<?php else : ?>
 									<em>
