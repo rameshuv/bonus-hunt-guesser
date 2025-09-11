@@ -42,12 +42,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
 				add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
 		}
-			/**
-			 * Validates a database table name against known tables.
-			 *
-			 * @param string $table Table name to validate.
-			 * @return string Sanitized table name or empty string if invalid.
-			 */
+		/**
+		 * Validates a database table name against known tables.
+		 *
+		 * @param string $table Database table name to validate.
+		 * @return string Sanitized table name or empty string if invalid.
+		 */
 		private function sanitize_table( $table ) {
 			global $wpdb;
 
