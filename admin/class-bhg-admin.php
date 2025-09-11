@@ -106,24 +106,24 @@ class BHG_Admin {
 					);
 			}
 
-			if ( 'bhg_page_bhg-bonus-hunts-results' === $hook ) {
-					wp_enqueue_script(
-						'bhg-admin-results',
-						BHG_PLUGIN_URL . 'assets/js/admin-results.js',
-						array(),
-						defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
-						true
-					);
-					wp_localize_script(
-						'bhg-admin-results',
-						'bhgResults',
-						array(
-							'base_url' => esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts-results' ) ),
-						)
-					);
-			}
-		}
-	}
+                       if ( false !== strpos( $hook, 'bhg-bonus-hunts-results' ) ) {
+                                       wp_enqueue_script(
+                                               'bhg-admin-results',
+                                               BHG_PLUGIN_URL . 'assets/js/admin-results.js',
+                                               array(),
+                                               BHG_VERSION,
+                                               true
+                                       );
+                                       wp_localize_script(
+                                               'bhg-admin-results',
+                                               'bhgResults',
+                                               array(
+                                                       'base_url' => admin_url( 'admin.php?page=bhg-bonus-hunts-results' ),
+                                               )
+                                       );
+                       }
+               }
+       }
 
 	// -------------------- Views --------------------
 	/**
