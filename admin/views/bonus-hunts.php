@@ -58,26 +58,22 @@ if ( 'list' === $view ) :
 		$order_by_column = isset( $allowed_orderby[ $orderby ] ) ? $allowed_orderby[ $orderby ] : 'h.id';
 		$order_by_column = preg_replace( '/[^a-zA-Z0-9_\.]/', '', $order_by_column );
 
-		$order_direction = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
-		$order_by_clause = sanitize_sql_orderby( $order_by_column . ' ' . $order_direction );
-		if ( empty( $order_by_clause ) ) {
-		$order_by_clause = 'h.id DESC';
-		}
+                $order_direction = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
+                $search_like     = '%' . $wpdb->esc_like( $search ) . '%';
+                $order_by        = sanitize_sql_orderby( $order_by_column . ' ' . $order_direction );
+                if ( empty( $order_by ) ) {
+                        $order_by = 'h.id DESC';
+                }
 
-               $search_like = '%' . $wpdb->esc_like( $search ) . '%';
+                $hunts_query = $wpdb->prepare(
+                        "SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s ORDER BY {$order_by} LIMIT %d OFFSET %d",
+                        $hunts_table,
+                        $aff_table,
+                        $search_like,
+                        $per_page,
+                        $offset
+                ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- ORDER BY clause sanitized separately.
 
-               $base_query  = $wpdb->prepare(
-                       'SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s',
-                       $hunts_table,
-                       $aff_table,
-                       $search_like
-               );
-
-               $hunts_query = $wpdb->prepare(
-                       "$base_query ORDER BY {$order_by_clause} LIMIT %d OFFSET %d",
-                       $per_page,
-                       $offset
-               ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- ORDER BY clause sanitized.
        $hunts       = $wpdb->get_results( $hunts_query );
 
 	$count_query = $wpdb->prepare(
