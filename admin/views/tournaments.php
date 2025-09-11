@@ -29,13 +29,20 @@ if ( empty( $order_by_clause ) ) {
         $order_by_clause = 'id DESC';
 }
 
-$sql = $wpdb->prepare( 'SELECT * FROM %i', $table );
+$sql    = 'SELECT * FROM %i';
+$params = array( $table );
+
 if ( $search ) {
-        $like = '%' . $wpdb->esc_like( $search ) . '%';
-        $sql .= $wpdb->prepare( ' WHERE title LIKE %s', $like );
+        $sql    .= ' WHERE title LIKE %s';
+        $params[] = '%' . $wpdb->esc_like( $search ) . '%';
 }
 
-$sql .= " ORDER BY {$order_by_clause}";
+$sql    .= ' ORDER BY %i %s';
+$params[] = $orderby;
+$params[] = $order;
+
+$sql  = $wpdb->prepare( $sql, $params );
+$sql  = str_replace( array( "'ASC'", "'DESC'" ), array( 'ASC', 'DESC' ), $sql );
 $rows = $wpdb->get_results( $sql );
 
 $labels = array(
