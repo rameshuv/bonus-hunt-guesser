@@ -570,7 +570,7 @@ function bhg_handle_submit_guess() {
 	$count_cache_key = 'bhg_guess_count_' . $hunt_id . '_' . $user_id;
 	$count           = wp_cache_get( $count_cache_key );
 	if ( false === $count ) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d AND user_id = %d', $g_tbl, $hunt_id, $user_id ) );
 		wp_cache_set( $count_cache_key, $count );
 	}
@@ -580,13 +580,13 @@ function bhg_handle_submit_guess() {
 			$last_guess_key = 'bhg_last_guess_' . $hunt_id . '_' . $user_id;
 			$gid            = wp_cache_get( $last_guess_key );
 			if ( false === $gid ) {
-                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 								$gid = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM %i WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1', $g_tbl, $hunt_id, $user_id ) );
 				wp_cache_set( $last_guess_key, $gid );
 			}
 			if ( $gid ) {
-								// db call ok; no-cache ok.
-                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				// db call ok; no-cache ok.
+								// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 								$wpdb->update(
 									$g_tbl,
 									array(
@@ -615,7 +615,7 @@ function bhg_handle_submit_guess() {
 
 		// Insert.
 		// db call ok; no-cache ok.
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->insert(
 			$g_tbl,
 			array(
@@ -805,7 +805,7 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 				) t';
 				$params_total[] = $g;
 								// db call ok; no-cache ok.
-                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		$total = (int) $wpdb->get_var( $wpdb->prepare( $total_query, $params_total ) );
 
 				$list_query  = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
@@ -829,7 +829,7 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 				$params_list[] = $g;
 				$params_list[] = $per_page;
 				$params_list[] = $offset;
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		$rows = $wpdb->get_results( $wpdb->prepare( $list_query, $params_list ) );
 	if ( ! $rows ) {
 		return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';

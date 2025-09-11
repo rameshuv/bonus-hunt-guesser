@@ -91,7 +91,7 @@ if ( ! function_exists( 'bhg_t' ) ) {
 		 * Retrieve a translation value from the database.
 		 *
 		 * @param string $slug    Translation slug.
- * @param string $default_text Default text if not found.
+		 * @param string $default_text Default text if not found.
 		 * @param string $locale  Locale to use. Defaults to current locale.
 		 * @return string
 		 */

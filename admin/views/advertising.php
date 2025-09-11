@@ -20,11 +20,11 @@ if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
 
 $edit_id = 0;
 if ( isset( $_GET['edit'] ) ) {
-        $nonce = isset( $_GET['bhg_edit_ad_nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_edit_ad_nonce'] ) ) : '';
-        if ( ! $nonce || ! wp_verify_nonce( $nonce, 'bhg_edit_ad' ) ) {
-                wp_die( esc_html( bhg_t( 'notice_invalid_nonce', 'Invalid nonce.' ) ) );
-        }
-        $edit_id = absint( wp_unslash( $_GET['edit'] ) );
+		$nonce = isset( $_GET['bhg_edit_ad_nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_edit_ad_nonce'] ) ) : '';
+	if ( ! $nonce || ! wp_verify_nonce( $nonce, 'bhg_edit_ad' ) ) {
+			wp_die( esc_html( bhg_t( 'notice_invalid_nonce', 'Invalid nonce.' ) ) );
+	}
+		$edit_id = absint( wp_unslash( $_GET['edit'] ) );
 }
 
 // Fetch ads.
@@ -95,13 +95,13 @@ $ads = $wpdb->get_results(
 																<td><?php echo esc_html( $visible_labels[ $visible_to ] ?? $visible_to ); ?></td>
 																<td><?php echo 1 === (int) $ad->active ? esc_html( bhg_t( 'yes', 'Yes' ) ) : esc_html( bhg_t( 'no', 'No' ) ); ?></td>
 																<td>
-<?php
-$edit_url = wp_nonce_url(
-        add_query_arg( array( 'edit' => (int) $ad->id ) ),
-        'bhg_edit_ad',
-        'bhg_edit_ad_nonce'
-);
-?>
+															<?php
+															$edit_url = wp_nonce_url(
+																add_query_arg( array( 'edit' => (int) $ad->id ) ),
+																'bhg_edit_ad',
+																'bhg_edit_ad_nonce'
+															);
+															?>
 <a class="button" href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
 																<button type="submit" name="ad_id" value="<?php echo esc_attr( (int) $ad->id ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
 																</td>
@@ -118,8 +118,8 @@ $edit_url = wp_nonce_url(
 	<?php
 		$ad = null;
 	if ( $edit_id ) {
-									// db call ok; no-cache ok.
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// db call ok; no-cache ok.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$ad = $wpdb->get_row(
 			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $ads_table, $edit_id )
 		);
