@@ -18,7 +18,7 @@
   <config name="php_version" value="70400"/>
 
   <!-- Typical tweaks -->
-  <arg value="--extensions=php" />
-  <arg value="--report=full" />
-  <arg value="--basepath=." />
+  <arg name="extensions" value="php" />
+  <arg name="report" value="full" />
+  <arg name="basepath" value="." />
 </ruleset>
