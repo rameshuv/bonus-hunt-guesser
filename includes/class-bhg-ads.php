@@ -15,26 +15,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 class BHG_Ads {
 
 	/**
-	* Allowed ad placement values.
-	*
-	* @var string[]
-	*/
+	 * Allowed ad placement values.
+	 *
+	 * @var string[]
+	 */
 	private static $allowed_placements = array( 'none', 'footer', 'bottom', 'sidebar', 'shortcode' );
 
 	/**
-	* Retrieve allowed ad placements.
-	*
-	* @return string[]
-	*/
+	 * Retrieve allowed ad placements.
+	 *
+	 * @return string[]
+	 */
 	public static function get_allowed_placements() {
 		return self::$allowed_placements;
 	}
 
 	/**
-	* Initialize front-end hooks for ads.
-	*
-	* @return void
-	*/
+	 * Initialize front-end hooks for ads.
+	 *
+	 * @return void
+	 */
 	public static function init() {
 		add_action( 'wp_footer', array( 'BHG_Ads', 'render_footer' ) );
 		add_shortcode( 'bhg_ad', array( 'BHG_Ads', 'shortcode' ) );
@@ -42,10 +42,10 @@ class BHG_Ads {
 	}
 
 	/**
-	* Checks if front-end ads are enabled in plugin settings.
-	*
-	* @return bool
-	*/
+	 * Checks if front-end ads are enabled in plugin settings.
+	 *
+	 * @return bool
+	 */
 	protected static function ads_enabled() {
 			$settings = get_option( 'bhg_plugin_settings', array() );
 			$enabled  = isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 1;
@@ -53,10 +53,10 @@ class BHG_Ads {
 	}
 
 	/**
-	* Determine current user's affiliate status (global toggle).
-	*
-	* @return bool
-	*/
+	 * Determine current user's affiliate status (global toggle).
+	 *
+	 * @return bool
+	 */
 	protected static function user_is_affiliate() {
 		if ( ! is_user_logged_in() ) {
 			return false;
@@ -66,12 +66,12 @@ class BHG_Ads {
 	}
 
 	/**
-	* Whether current visitor matches the ad's visibility setting.
-	*
-	* @param string $visibility Visibility rule.
-	*
-	* @return bool
-	*/
+	 * Whether current visitor matches the ad's visibility setting.
+	 *
+	 * @param string $visibility Visibility rule.
+	 *
+	 * @return bool
+	 */
 	protected static function visibility_ok( $visibility ) {
 		$visibility = is_string( $visibility ) ? strtolower( $visibility ) : 'all';
 		switch ( $visibility ) {
@@ -90,12 +90,12 @@ class BHG_Ads {
 	}
 
 	/**
-	* Whether the current page is one of the targeted pages (by slug), if any are set.
-	*
-	* @param string $target_pages Comma-separated list of target page slugs.
-	*
-	* @return bool
-	*/
+	 * Whether the current page is one of the targeted pages (by slug), if any are set.
+	 *
+	 * @param string $target_pages Comma-separated list of target page slugs.
+	 *
+	 * @return bool
+	 */
 	protected static function page_target_ok( $target_pages ) {
 		$target_pages = is_string( $target_pages ) ? trim( $target_pages ) : '';
 		if ( '' === $target_pages ) {
@@ -129,12 +129,12 @@ class BHG_Ads {
 	}
 
 	/**
-	* Render a single ad row to HTML.
-	*
-	* @param object $row Database row object.
-	*
-	* @return string
-	*/
+	 * Render a single ad row to HTML.
+	 *
+	 * @param object $row Database row object.
+	 *
+	 * @return string
+	 */
 	protected static function render_ad_row( $row ) {
 		$msg  = isset( $row->content ) ? $row->content : '';
 		$msg  = wp_kses_post( $msg );
@@ -147,12 +147,12 @@ class BHG_Ads {
 	}
 
 	/**
-	* Fetch active ads for a placement.
-	*
-	* @param string $placement Ad placement.
-	*
-	* @return array
-	*/
+	 * Fetch active ads for a placement.
+	 *
+	 * @param string $placement Ad placement.
+	 *
+	 * @return array
+	 */
 	protected static function get_ads_for_placement( $placement = 'footer' ) {
 		global $wpdb;
 		$table          = $wpdb->prefix . 'bhg_ads';
@@ -176,10 +176,10 @@ class BHG_Ads {
 	}
 
 	/**
-	* Render footer-placed ads.
-	*
-	* @return void
-	*/
+	 * Render footer-placed ads.
+	 *
+	 * @return void
+	 */
 	public static function render_footer() {
 		if ( is_admin() ) {
 			return;
@@ -215,18 +215,18 @@ class BHG_Ads {
 	}
 
 	/**
-	* Shortcode handler for rendering a single ad row regardless of placement.
-	*
-	* Usage examples:
-	* [bhg_ad id="123"]
-	* [bhg_advertising ad="123" status="inactive"]
-	*
-	* @param array  $atts    Shortcode attributes.
-	* @param string $content Content enclosed by shortcode (unused).
-	* @param string $tag     Shortcode tag.
-	*
-	* @return string
-	*/
+	 * Shortcode handler for rendering a single ad row regardless of placement.
+	 *
+	 * Usage examples:
+	 * [bhg_ad id="123"]
+	 * [bhg_advertising ad="123" status="inactive"]
+	 *
+	 * @param array  $atts    Shortcode attributes.
+	 * @param string $content Content enclosed by shortcode (unused).
+	 * @param string $tag     Shortcode tag.
+	 *
+	 * @return string
+	 */
 	public static function shortcode( $atts = array(), $content = '', $tag = '' ) {
 		if ( ! self::ads_enabled() ) {
 			return '';

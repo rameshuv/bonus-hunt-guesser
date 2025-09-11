@@ -100,11 +100,11 @@ class BHG_Utils {
 	}
 
 		/**
-		* Retrieve an admin URL, respecting network admin context.
-		*
-		* @param string $path Optional path relative to the admin URL.
-		* @return string Full admin URL for the current context.
-		*/
+		 * Retrieve an admin URL, respecting network admin context.
+		 *
+		 * @param string $path Optional path relative to the admin URL.
+		 * @return string Full admin URL for the current context.
+		 */
 	public static function admin_url( $path = '' ) {
 			return is_network_admin() ? network_admin_url( $path ) : admin_url( $path );
 	}

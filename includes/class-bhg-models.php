@@ -42,7 +42,7 @@ class BHG_Models {
 		$guesses_tbl = $wpdb->prefix . 'bhg_guesses';
 
 				// Determine number of winners for this hunt.
-                                // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+				// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
 								$winners_count = (int) $wpdb->get_var(
 									$wpdb->prepare(
 										sprintf(
@@ -52,7 +52,7 @@ class BHG_Models {
 										$hunt_id
 									)
 								);
-                                // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+				// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
 		if ( $winners_count <= 0 ) {
 			$winners_count = 1;
 		}
@@ -73,7 +73,7 @@ class BHG_Models {
 		);
 
 				// Fetch winners based on proximity to final balance.
-                                // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+				// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
 								$rows = $wpdb->get_results(
 									$wpdb->prepare(
 										sprintf(
@@ -85,7 +85,7 @@ class BHG_Models {
 										$winners_count
 									)
 								);
-                                // phpcs:enable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+				// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
 
 		if ( empty( $rows ) ) {
 			return array();
