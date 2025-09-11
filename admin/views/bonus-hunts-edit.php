@@ -16,12 +16,12 @@ if ( ! $hunt ) {
 		return;
 }
 
-$aff_table = $wpdb->prefix . 'bhg_affiliate_websites';
+\$aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
 if ( isset( $allowed_tables ) && ! in_array( $aff_table, $allowed_tables, true ) ) {
 				wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 $affs = $wpdb->get_results(
-	$wpdb->prepare( 'SELECT id, name FROM %i ORDER BY name ASC', $aff_table )
+        "SELECT id, name FROM {$aff_table} ORDER BY name ASC"
 );
 $sel  = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 

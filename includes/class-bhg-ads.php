@@ -154,9 +154,9 @@ class BHG_Ads {
 	 * @return array
 	 */
 	protected static function get_ads_for_placement( $placement = 'footer' ) {
-		global $wpdb;
-		$table          = $wpdb->prefix . 'bhg_ads';
-		$allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
+                global $wpdb;
+                $table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
+                $allowed_tables = array( $table );
 		if ( ! in_array( $table, $allowed_tables, true ) ) {
 			return array();
 		}
@@ -166,13 +166,12 @@ class BHG_Ads {
 			return array();
 		}
 
-		return $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT id, content, link_url, placement, visible_to, target_pages FROM %i WHERE active = 1 AND placement = %s ORDER BY id DESC',
-				$table,
-				$placement
-			)
-		);
+                return $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT id, content, link_url, placement, visible_to, target_pages FROM {$table} WHERE active = 1 AND placement = %s ORDER BY id DESC",
+                                $placement
+                        )
+                );
 	}
 
 	/**
@@ -249,20 +248,19 @@ class BHG_Ads {
 
 		$status = strtolower( trim( $a['status'] ) );
 
-				global $wpdb;
-				$table          = $wpdb->prefix . 'bhg_ads';
-				$allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
+                global $wpdb;
+                $table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
+                $allowed_tables = array( $table );
 		if ( ! in_array( $table, $allowed_tables, true ) ) {
 				return '';
 		}
 
-				$row = $wpdb->get_row(
-					$wpdb->prepare(
-						'SELECT id, content, placement, visible_to, target_pages, active, link_url FROM %i WHERE id = %d',
-						$table,
-						$id
-					)
-				);
+                $row = $wpdb->get_row(
+                        $wpdb->prepare(
+                                "SELECT id, content, placement, visible_to, target_pages, active, link_url FROM {$table} WHERE id = %d",
+                                $id
+                        )
+                );
 		if ( ! $row ) {
 			return '';
 		}

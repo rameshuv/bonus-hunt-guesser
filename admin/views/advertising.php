@@ -12,8 +12,8 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$ads_table      = $wpdb->prefix . 'bhg_ads';
-$allowed_tables = array( $wpdb->prefix . 'bhg_ads' );
+$ads_table      = esc_sql( $wpdb->prefix . 'bhg_ads' );
+$allowed_tables = array( $ads_table );
 if ( ! in_array( $ads_table, $allowed_tables, true ) ) {
 	wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
@@ -31,7 +31,7 @@ if ( isset( $_GET['edit'] ) ) {
 // db call ok; no-cache ok.
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 $ads = $wpdb->get_results(
-	$wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $ads_table )
+        "SELECT * FROM {$ads_table} ORDER BY id DESC"
 );
 ?>
 <div class="wrap">
@@ -119,10 +119,10 @@ $ads = $wpdb->get_results(
 		$ad = null;
 	if ( $edit_id ) {
 		// db call ok; no-cache ok.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$ad = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $ads_table, $edit_id )
-		);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $ad = $wpdb->get_row(
+                $wpdb->prepare( "SELECT * FROM {$ads_table} WHERE id = %d", $edit_id )
+        );
 	}
 	?>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">

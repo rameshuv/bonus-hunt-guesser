@@ -227,7 +227,7 @@ class BHG_Admin {
 		}
 								check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
 		global $wpdb;
-		$guesses_table = $wpdb->prefix . 'bhg_guesses';
+                                                                                                                        $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
 		$guess_id      = isset( $_POST['guess_id'] ) ? absint( wp_unslash( $_POST['guess_id'] ) ) : 0;
 		if ( $guess_id ) {
 			$wpdb->delete( $guesses_table, array( 'id' => $guess_id ), array( '%d' ) );
@@ -246,7 +246,7 @@ class BHG_Admin {
 		}
 								check_admin_referer( 'bhg_save_hunt', 'bhg_save_hunt_nonce' );
 		global $wpdb;
-		$hunts_table = $wpdb->prefix . 'bhg_bonus_hunts';
+                $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 
 		$id                    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
 		$title                 = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
@@ -297,28 +297,26 @@ class BHG_Admin {
 
 					$emails_enabled = (int) get_option( 'bhg_email_enabled', 1 );
 					if ( $emails_enabled ) {
-																$guesses_table = $wpdb->prefix . 'bhg_guesses';
+                                                                                                                        $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
 
-																$rows = $wpdb->get_results(
-																	$wpdb->prepare(
-																		'SELECT DISTINCT user_id FROM %i WHERE hunt_id = %d',
-																		$guesses_table,
-																		$id
-																	)
-																);
+                                                                                                                        $rows = $wpdb->get_results(
+                                                                                                                        $wpdb->prepare(
+                                                                                                                        "SELECT DISTINCT user_id FROM {$guesses_table} WHERE hunt_id = %d",
+                                                                                                                        $id
+                                                                                                                        )
+                                                                                                                        );
 
 						$template = get_option(
 							'bhg_email_template',
 							'Hi {{username}},\nThe Bonus Hunt "{{hunt}}" is closed. Final balance: €{{final}}. Winners: {{winners}}. Thanks for playing!'
 						);
 
-																$hunt_title = (string) $wpdb->get_var(
-																	$wpdb->prepare(
-																		'SELECT title FROM %i WHERE id = %d',
-																		$hunts_table,
-																		$id
-																	)
-																);
+                                                                                                                        $hunt_title = (string) $wpdb->get_var(
+                                                                                                                        $wpdb->prepare(
+                                                                                                                        "SELECT title FROM {$hunts_table} WHERE id = %d",
+                                                                                                                        $id
+                                                                                                                        )
+                                                                                                                        );
 
 						$winner_names = array();
 						foreach ( (array) $winners as $winner_id ) {
@@ -405,8 +403,8 @@ class BHG_Admin {
 		check_admin_referer( 'bhg_delete_hunt', 'bhg_delete_hunt_nonce' );
 
 		global $wpdb;
-		$hunts_table   = $wpdb->prefix . 'bhg_bonus_hunts';
-		$guesses_table = $wpdb->prefix . 'bhg_guesses';
+                $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
 		$hunt_id       = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 
 		if ( $hunt_id ) {
@@ -428,7 +426,7 @@ class BHG_Admin {
 		check_admin_referer( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' );
 
 		global $wpdb;
-		$hunts_table = $wpdb->prefix . 'bhg_bonus_hunts';
+                $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 		$hunt_id     = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 		$new_state   = isset( $_POST['guessing_enabled'] ) ? absint( wp_unslash( $_POST['guessing_enabled'] ) ) : 0;
 
@@ -457,30 +455,29 @@ class BHG_Admin {
 				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
 			check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
-			global $wpdb;
-			$ads_table   = $wpdb->prefix . 'bhg_ads';
+                        global $wpdb;
+                        $ads_table   = esc_sql( $wpdb->prefix . 'bhg_ads' );
 			$ad_id       = isset( $_POST['ad_id'] ) ? absint( wp_unslash( $_POST['ad_id'] ) ) : 0;
 			$bulk_action = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
 			$bulk_ad_ids = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
 
 		if ( $ad_id ) {
-				$wpdb->query(
-					$wpdb->prepare(
-						'DELETE FROM %i WHERE id = %d',
-						$ads_table,
-						$ad_id
-					)
-				);
+                                $wpdb->query(
+                                        $wpdb->prepare(
+                                                "DELETE FROM {$ads_table} WHERE id = %d",
+                                                $ad_id
+                                        )
+                                );
 		} elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
-				$placeholders          = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
-								$query = $wpdb->prepare(
-									   // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-									"DELETE FROM %i WHERE id IN ($placeholders)",
-									array_merge( array( $ads_table ), $bulk_ad_ids )
-								);
+                                $placeholders = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
+                                                                $query = $wpdb->prepare(
+                                                                           // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                                                                        "DELETE FROM {$ads_table} WHERE id IN ($placeholders)",
+                                                                        ...$bulk_ad_ids
+                                                                );
 
-							   // phpcs:ignore WordPress.DB.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared
-								$wpdb->query( $query );
+                                                               // phpcs:ignore WordPress.DB.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared
+                                                                $wpdb->query( $query );
 		}
 
 			$referer = wp_get_referer();
@@ -691,25 +688,23 @@ class BHG_Admin {
 
 			global $wpdb;
 
-			$hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
-			$tournaments_table = $wpdb->prefix . 'bhg_tournaments';
+                        $hunts_table       = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                        $tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 
 						// Remove existing demo data.
-						$wpdb->query(
-							$wpdb->prepare(
-								'DELETE FROM %i WHERE title LIKE %s',
-								$hunts_table,
-								'%(Demo)%'
-							)
-						);
+                                $wpdb->query(
+                                        $wpdb->prepare(
+                                                "DELETE FROM {$hunts_table} WHERE title LIKE %s",
+                                                '%(Demo)%'
+                                        )
+                                );
 
-						$wpdb->query(
-							$wpdb->prepare(
-								'DELETE FROM %i WHERE title LIKE %s',
-								$tournaments_table,
-								'%(Demo)%'
-							)
-						);
+                                $wpdb->query(
+                                        $wpdb->prepare(
+                                                "DELETE FROM {$tournaments_table} WHERE title LIKE %s",
+                                                '%(Demo)%'
+                                        )
+                                );
 
 			// Seed demo hunt.
 			$wpdb->insert(

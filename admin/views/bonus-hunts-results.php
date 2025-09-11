@@ -17,31 +17,31 @@ $view_type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) 
 $view_type = ( 'tournament' === $view_type ) ? 'tournament' : 'hunt';
 $item_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 
-$hunts_table = $wpdb->prefix . 'bhg_bonus_hunts';
-$guess_table = $wpdb->prefix . 'bhg_guesses';
-$tour_table  = $wpdb->prefix . 'bhg_tournaments';
-$tres_table  = $wpdb->prefix . 'bhg_tournament_results';
+$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$guess_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+$tour_table  = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+$tres_table  = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
+$users_table = esc_sql( $wpdb->users );
 
 // Default to latest closed hunt if no ID is provided.
 if ( 'hunt' === $view_type && ! $item_id ) {
-	$hunt = $wpdb->get_row(
-		$wpdb->prepare(
-			'SELECT * FROM %i WHERE status=%s ORDER BY closed_at DESC LIMIT 1',
-			$hunts_table,
-			'closed'
-		)
-	);
+        $hunt = $wpdb->get_row(
+                $wpdb->prepare(
+                        "SELECT * FROM {$hunts_table} WHERE status=%s ORDER BY closed_at DESC LIMIT 1",
+                        'closed'
+                )
+        );
 	if ( $hunt ) {
 			$item_id = (int) $hunt->id;
 	}
 } elseif ( 'hunt' === $view_type ) {
-	$hunt = $wpdb->get_row(
-		$wpdb->prepare( 'SELECT * FROM %i WHERE id=%d', $hunts_table, $item_id )
-	);
+        $hunt = $wpdb->get_row(
+                $wpdb->prepare( "SELECT * FROM {$hunts_table} WHERE id=%d", $item_id )
+        );
 } elseif ( 'tournament' === $view_type && $item_id ) {
-	$tournament = $wpdb->get_row(
-		$wpdb->prepare( 'SELECT * FROM %i WHERE id=%d', $tour_table, $item_id )
-	);
+        $tournament = $wpdb->get_row(
+                $wpdb->prepare( "SELECT * FROM {$tour_table} WHERE id=%d", $item_id )
+        );
 }
 
 if ( 'tournament' === $view_type ) {
@@ -49,14 +49,12 @@ if ( 'tournament' === $view_type ) {
 			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'tournament_not_found', 'Tournament not found' ) ) . '</h1></div>';
 			return;
 	}
-	$rows         = $wpdb->get_results(
-		$wpdb->prepare(
-			'SELECT r.wins, u.display_name FROM %i r JOIN %i u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY r.wins DESC, r.id ASC',
-			$tres_table,
-			$wpdb->users,
-			$item_id
-		)
-	);
+        $rows         = $wpdb->get_results(
+                $wpdb->prepare(
+                        "SELECT r.wins, u.display_name FROM {$tres_table} r JOIN {$users_table} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY r.wins DESC, r.id ASC",
+                        $item_id
+                )
+        );
 	$result_title = $tournament->title;
 	$wcount       = 3;
 	$columns      = array(
@@ -69,15 +67,13 @@ if ( 'tournament' === $view_type ) {
 			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
 			return;
 	}
-	$rows         = $wpdb->get_results(
-		$wpdb->prepare(
-			'SELECT g.guess, u.display_name, ABS(g.guess - %f) AS diff FROM %i g JOIN %i u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC',
-			(float) $hunt->final_balance,
-			$guess_table,
-			$wpdb->users,
-			$item_id
-		)
-	);
+        $rows         = $wpdb->get_results(
+                $wpdb->prepare(
+                        "SELECT g.guess, u.display_name, ABS(g.guess - %f) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC",
+                        (float) $hunt->final_balance,
+                        $item_id
+                )
+        );
 	$result_title = $hunt->title;
 	$wcount       = (int) $hunt->winners_count;
 	if ( $wcount < 1 ) {
@@ -93,10 +89,10 @@ if ( 'tournament' === $view_type ) {
 
 // Gather hunts and tournaments for the selector.
 $all_hunts = $wpdb->get_results(
-	$wpdb->prepare( 'SELECT id, title FROM %i ORDER BY closed_at DESC, id DESC', $hunts_table )
+        "SELECT id, title FROM {$hunts_table} ORDER BY closed_at DESC, id DESC"
 );
 $all_tours = $wpdb->get_results(
-	$wpdb->prepare( 'SELECT id, title FROM %i ORDER BY id DESC', $tour_table )
+        "SELECT id, title FROM {$tour_table} ORDER BY id DESC"
 );
 $current   = $view_type . '-' . $item_id;
 ?>

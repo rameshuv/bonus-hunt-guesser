@@ -40,22 +40,21 @@ if ( isset( $_POST['bhg_action'] ) ) {
 function bhg_database_cleanup() {
 	global $wpdb;
 
-	$tables = array(
-		$wpdb->prefix . 'bhg_bonus_hunts',
-		$wpdb->prefix . 'bhg_guesses',
-		$wpdb->prefix . 'bhg_tournaments',
-		$wpdb->prefix . 'bhg_tournament_results',
-		$wpdb->prefix . 'bhg_translations',
-		$wpdb->prefix . 'bhg_affiliate_websites',
-		$wpdb->prefix . 'bhg_hunt_winners',
-		$wpdb->prefix . 'bhg_ads',
-	);
+        $tables = array(
+                esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' ),
+                esc_sql( $wpdb->prefix . 'bhg_guesses' ),
+                esc_sql( $wpdb->prefix . 'bhg_tournaments' ),
+                esc_sql( $wpdb->prefix . 'bhg_tournament_results' ),
+                esc_sql( $wpdb->prefix . 'bhg_translations' ),
+                esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' ),
+                esc_sql( $wpdb->prefix . 'bhg_hunt_winners' ),
+                esc_sql( $wpdb->prefix . 'bhg_ads' ),
+        );
 
 	foreach ( $tables as $table ) {
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier placeholder is valid in WP 6.3.
-			$wpdb->query( $wpdb->prepare( 'TRUNCATE TABLE %i', $table ) );
-		}
+                if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) === $table ) {
+                        $wpdb->query( "TRUNCATE TABLE {$table}" );
+                }
 	}
 
 	// Reinsert default data if needed.
@@ -70,22 +69,21 @@ function bhg_database_cleanup() {
 function bhg_database_optimize() {
 	global $wpdb;
 
-	$tables = array(
-		$wpdb->prefix . 'bhg_bonus_hunts',
-		$wpdb->prefix . 'bhg_guesses',
-		$wpdb->prefix . 'bhg_tournaments',
-		$wpdb->prefix . 'bhg_tournament_results',
-		$wpdb->prefix . 'bhg_translations',
-		$wpdb->prefix . 'bhg_affiliate_websites',
-		$wpdb->prefix . 'bhg_hunt_winners',
-		$wpdb->prefix . 'bhg_ads',
-	);
+        $tables = array(
+                esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' ),
+                esc_sql( $wpdb->prefix . 'bhg_guesses' ),
+                esc_sql( $wpdb->prefix . 'bhg_tournaments' ),
+                esc_sql( $wpdb->prefix . 'bhg_tournament_results' ),
+                esc_sql( $wpdb->prefix . 'bhg_translations' ),
+                esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' ),
+                esc_sql( $wpdb->prefix . 'bhg_hunt_winners' ),
+                esc_sql( $wpdb->prefix . 'bhg_ads' ),
+        );
 
 	foreach ( $tables as $table ) {
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier placeholder is valid in WP 6.3.
-			$wpdb->query( $wpdb->prepare( 'OPTIMIZE TABLE %i', $table ) );
-		}
+                if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) === $table ) {
+                        $wpdb->query( "OPTIMIZE TABLE {$table}" );
+                }
 	}
 }
 
