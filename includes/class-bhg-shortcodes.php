@@ -8,10 +8,8 @@
  * @package Bonus_Hunt_Guesser
  */
 
-// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.DateTime.CurrentTimeTimestamp.Requested
-
 if ( ! defined( 'ABSPATH' ) ) {
-		exit;
+                exit;
 }
 
 if ( ! class_exists( 'BHG_Shortcodes' ) ) {
@@ -76,9 +74,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			if ( is_user_logged_in() ) {
 					return '';
 			}
-						$raw      = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : home_url( '/' );
-						$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-						$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+$base     = wp_validate_redirect( $raw, home_url( '/' ) );
+$redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
 						return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
 						. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
@@ -144,9 +142,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$hunt_id = (int) $atts['hunt_id'];
 
 			if ( ! is_user_logged_in() ) {
-				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : home_url( '/' );
-				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+$base     = wp_validate_redirect( $raw, home_url( '/' ) );
+$redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
 				return '<p>' . esc_html( bhg_t( 'notice_login_to_guess', 'Please log in to submit your guess.' ) ) . '</p>'
 				. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
@@ -1040,9 +1038,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ) ) . '</p>';
 			}
 
-			$current_url = isset( $_SERVER['REQUEST_URI'] )
-			? esc_url_raw( wp_validate_redirect( wp_unslash( $_SERVER['REQUEST_URI'] ), home_url( '/' ) ) )
-			: home_url( '/' );
+$current_url = isset( $_SERVER['REQUEST_URI'] )
+? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) )
+: home_url( '/' );
 
 			ob_start();
 			echo '<form method="get" class="bhg-tournament-filters">';
@@ -1347,8 +1345,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			}
 
 			if ( $hunts ) {
-				$raw  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : home_url( '/' );
-				$base = esc_url_raw( remove_query_arg( 'hunt_id', wp_validate_redirect( $raw, home_url( '/' ) ) ) );
+$raw  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+$base = esc_url_raw( remove_query_arg( 'hunt_id', wp_validate_redirect( $raw, home_url( '/' ) ) ) );
 				echo '<div id="bhg-tab-hunts" class="bhg-tab-pane">';
 				echo '<ul class="bhg-hunt-history">';
 				foreach ( $hunts as $hunt ) {
