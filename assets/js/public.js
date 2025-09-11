@@ -20,7 +20,10 @@ jQuery(document).ready(function($) {
         
         // Tab switching for leaderboard views
         initLeaderboardTabs();
-        
+
+        // Leaderboard pagination
+        initLeaderboardPagination();
+
         // Login redirect handling
         handleLoginRedirects();
         
@@ -193,6 +196,27 @@ jQuery(document).ready(function($) {
             complete: function() {
                 $('#bhg-leaderboard-' + timeframe).removeClass('loading');
             }
+        });
+    }
+
+    // Handle pagination for leaderboard tables
+    function initLeaderboardPagination() {
+        $('.bhg-pagination').on('click', 'a', function(e) {
+            e.preventDefault();
+
+            var url = $(this).attr('href');
+            var container = $(this).closest('.bhg-leaderboard-wrapper');
+
+            $.get(url, function(response) {
+                var newHtml = $(response).find('.bhg-leaderboard-wrapper').html();
+                container.html(newHtml);
+
+                // Reinitialize sorting and pagination on new content
+                initLeaderboardSorting();
+                initLeaderboardPagination();
+            }).fail(function() {
+                window.location.href = url;
+            });
         });
     }
 
