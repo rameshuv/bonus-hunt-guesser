@@ -23,10 +23,10 @@ if ( ! function_exists( 'bhg_get_latest_closed_hunts' ) ) {
 
 global $wpdb;
 
-$hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
-$hunts_count       = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $hunts_table ) );
-$tournaments_table = $wpdb->prefix . 'bhg_tournaments';
-$tournaments_count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $tournaments_table ) );
+$hunts_table       = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$hunts_count       = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$hunts_table}" );
+$tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+$tournaments_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$tournaments_table}" );
 
 $user_counts = count_users();
 $users_count = isset( $user_counts['total_users'] ) ? (int) $user_counts['total_users'] : 0;

@@ -13,8 +13,8 @@ if ( ! in_array( $table, $allowed_tables, true ) ) {
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 $row     = $edit_id
-		? $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $edit_id ) )
-		: null;
+                ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id ) )
+                : null;
 
 $search          = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 $orderby         = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'id';
@@ -29,16 +29,16 @@ if ( empty( $order_by_clause ) ) {
 		$order_by_clause = 'id DESC';
 }
 
-$sql    = 'SELECT * FROM %i';
-$params = array( $table );
+$sql    = "SELECT * FROM {$table}";
+$params = array();
 
 if ( $search ) {
-		$sql     .= ' WHERE title LIKE %s';
-		$params[] = '%' . $wpdb->esc_like( $search ) . '%';
+                $sql     .= ' WHERE title LIKE %s';
+                $params[] = '%' . $wpdb->esc_like( $search ) . '%';
 }
 
 $sql .= ' ORDER BY ' . $order_by_clause;
-$sql  = $wpdb->prepare( $sql, $params ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$sql  = $params ? $wpdb->prepare( $sql, ...$params ) : $sql; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 $labels = array(

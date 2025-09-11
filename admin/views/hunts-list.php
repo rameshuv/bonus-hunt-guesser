@@ -14,22 +14,21 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$t = $wpdb->prefix . 'bhg_bonus_hunts';
+$t = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 
 $paged    = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
 $per_page = 20;
 $offset   = ( $paged - 1 ) * $per_page;
 
 $rows  = $wpdb->get_results(
-	$wpdb->prepare(
-		'SELECT id, title, start_balance, final_balance, status, winners_count, closed_at FROM %i ORDER BY id DESC LIMIT %d OFFSET %d',
-		$t,
-		$per_page,
-		$offset
-	)
+        $wpdb->prepare(
+                "SELECT id, title, start_balance, final_balance, status, winners_count, closed_at FROM {$t} ORDER BY id DESC LIMIT %d OFFSET %d",
+                $per_page,
+                $offset
+        )
 );
 $total = (int) $wpdb->get_var(
-	$wpdb->prepare( 'SELECT COUNT(*) FROM %i', $t )
+        "SELECT COUNT(*) FROM {$t}"
 );
 $pages = max( 1, (int) ceil( $total / $per_page ) );
 

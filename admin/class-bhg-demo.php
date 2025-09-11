@@ -63,25 +63,23 @@ class BHG_Demo {
 		check_admin_referer( 'bhg_demo_reseed', 'bhg_demo_reseed_nonce' );
 		global $wpdb;
 
-		// Wipe demo data.
-		$hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
-		$tournaments_table = $wpdb->prefix . 'bhg_tournaments';
+                // Wipe demo data.
+                $hunts_table       = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                $tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 
-				$wpdb->query(
-					$wpdb->prepare(
-						'DELETE FROM %i WHERE title LIKE %s',
-						$hunts_table,
-						'%\(Demo\)%'
-					)
-				);
+                                $wpdb->query(
+                                        $wpdb->prepare(
+                                                "DELETE FROM {$hunts_table} WHERE title LIKE %s",
+                                                '%\(Demo\)%'
+                                        )
+                                );
 
-				$wpdb->query(
-					$wpdb->prepare(
-						'DELETE FROM %i WHERE title LIKE %s',
-						$tournaments_table,
-						'%\(Demo\)%'
-					)
-				);
+                                $wpdb->query(
+                                        $wpdb->prepare(
+                                                "DELETE FROM {$tournaments_table} WHERE title LIKE %s",
+                                                '%\(Demo\)%'
+                                        )
+                                );
 
 		// Insert demo hunt.
 		$wpdb->insert(

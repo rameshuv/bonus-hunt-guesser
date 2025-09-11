@@ -11,23 +11,22 @@ if ( ! current_user_can( 'manage_options' ) ) {
 				wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 global $wpdb;
-$table          = $wpdb->prefix . 'bhg_affiliate_websites';
-$allowed_tables = array( $wpdb->prefix . 'bhg_affiliate_websites' );
+$table          = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+$allowed_tables = array( $table );
 if ( ! in_array( $table, $allowed_tables, true ) ) {
-	wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+        wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
-$table = esc_sql( $table );
 
 // Load for edit.
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 $row     = $edit_id ? $wpdb->get_row(
-	$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $edit_id )
+        $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id )
 ) : null;
 
 // List
 // db call ok; no-cache ok.
 $rows = $wpdb->get_results(
-	$wpdb->prepare( 'SELECT * FROM %i ORDER BY id DESC', $table )
+        "SELECT * FROM {$table} ORDER BY id DESC"
 );
 ?>
 <div class="wrap">

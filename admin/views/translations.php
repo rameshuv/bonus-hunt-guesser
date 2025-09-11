@@ -17,7 +17,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$table = $wpdb->prefix . 'bhg_translations';
+$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
 
 if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
 	bhg_seed_default_translations_if_empty();
@@ -44,14 +44,13 @@ if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_t
 	if ( '' === $slug ) {
 			$form_error = bhg_t( 'key_field_is_required', 'Key field is required.' );
 	} else {
-			$exists = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT COUNT(*) FROM %i WHERE slug = %s AND locale = %s',
-					$table,
-					$slug,
-					$locale
-				)
-			);
+                        $exists = (int) $wpdb->get_var(
+                                $wpdb->prepare(
+                                        "SELECT COUNT(*) FROM {$table} WHERE slug = %s AND locale = %s",
+                                        $slug,
+                                        $locale
+                                )
+                        );
 
 		if ( $exists ) {
 				$wpdb->update(
@@ -84,42 +83,36 @@ if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_t
 
 // Fetch rows with pagination and optional search.
 if ( $search_term ) {
-		$like  = '%' . $wpdb->esc_like( $search_term ) . '%';
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i WHERE slug LIKE %s OR text LIKE %s OR default_text LIKE %s',
-				$table,
-				$like,
-				$like,
-				$like
-			)
-		);
-		$rows  = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT slug, default_text, text, locale FROM %i WHERE slug LIKE %s OR text LIKE %s OR default_text LIKE %s ORDER BY slug ASC LIMIT %d OFFSET %d',
-				$table,
-				$like,
-				$like,
-				$like,
-				$items_per_page,
-				$offset
-			)
-		);
+                $like  = '%' . $wpdb->esc_like( $search_term ) . '%';
+                $total = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                                "SELECT COUNT(*) FROM {$table} WHERE slug LIKE %s OR text LIKE %s OR default_text LIKE %s",
+                                $like,
+                                $like,
+                                $like
+                        )
+                );
+                $rows  = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT slug, default_text, text, locale FROM {$table} WHERE slug LIKE %s OR text LIKE %s OR default_text LIKE %s ORDER BY slug ASC LIMIT %d OFFSET %d",
+                                $like,
+                                $like,
+                                $like,
+                                $items_per_page,
+                                $offset
+                        )
+                );
 } else {
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i',
-				$table
-			)
-		);
-		$rows  = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT slug, default_text, text, locale FROM %i ORDER BY slug ASC LIMIT %d OFFSET %d',
-				$table,
-				$items_per_page,
-				$offset
-			)
-		);
+                $total = (int) $wpdb->get_var(
+                        "SELECT COUNT(*) FROM {$table}"
+                );
+                $rows  = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT slug, default_text, text, locale FROM {$table} ORDER BY slug ASC LIMIT %d OFFSET %d",
+                                $items_per_page,
+                                $offset
+                        )
+                );
 }
 
 // Pagination links.
