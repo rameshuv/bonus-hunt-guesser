@@ -1,4 +1,4 @@
-<?php // phpcs:ignoreFile
+<?php
 /**
  * Shortcodes for Bonus Hunt Guesser.
  *
@@ -250,18 +250,18 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					 * @return string HTML output.
 					 */
 		public function leaderboard_shortcode( $atts ) {
-               $a = shortcode_atts(
-                                                               array(
-                                                               'hunt_id'  => 0,
-                                                               'orderby'  => 'guess', // guess|user|position.
-                                                               'order'    => 'ASC',
-                                                               'fields'   => 'position,user,guess',
-                                                               'paged'    => 1,
-                                                               'per_page' => 10,
-                                                               ),
-                                                               $atts,
-                                                               'bhg_leaderboard'
-                                                               );
+				$a = shortcode_atts(
+					array(
+						'hunt_id'  => 0,
+						'orderby'  => 'guess', // guess|user|position.
+						'order'    => 'ASC',
+						'fields'   => 'position,user,guess',
+						'paged'    => 1,
+						'per_page' => 10,
+					),
+					$atts,
+					'bhg_leaderboard'
+				);
 
 				global $wpdb;
 			$hunt_id = (int) $a['hunt_id'];
@@ -288,28 +288,28 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			if ( ! in_array( $order, $allowed_orders, true ) ) {
 				$order = 'ASC';
 			}
-                               $allowed_orderby = array(
-                                       'guess'    => 'g.guess',
-                                       'user'     => 'u.user_login',
-                                       'position' => 'g.id', // stable proxy.
-                               );
-                               $orderby_key     = sanitize_key( $a['orderby'] );
-                               if ( ! isset( $allowed_orderby[ $orderby_key ] ) ) {
-                                               $orderby_key = 'guess';
-                               }
-                               $orderby = $allowed_orderby[ $orderby_key ];
+								$allowed_orderby = array(
+									'guess'    => 'g.guess',
+									'user'     => 'u.user_login',
+									'position' => 'g.id', // stable proxy.
+								);
+								$orderby_key     = sanitize_key( $a['orderby'] );
+								if ( ! isset( $allowed_orderby[ $orderby_key ] ) ) {
+												$orderby_key = 'guess';
+								}
+								$orderby = $allowed_orderby[ $orderby_key ];
 
-                               $paged    = isset( $_GET['bhg_page'] ) ? (int) $_GET['bhg_page'] : (int) $a['paged'];
-                               $paged    = max( 1, $paged );
-                               $per_page = max( 1, (int) $a['per_page'] );
-                               $offset   = ( $paged - 1 ) * $per_page;
+								$paged    = isset( $_GET['bhg_page'] ) ? (int) $_GET['bhg_page'] : (int) $a['paged'];
+								$paged    = max( 1, $paged );
+								$per_page = max( 1, (int) $a['per_page'] );
+								$offset   = ( $paged - 1 ) * $per_page;
 
 								$fields_raw    = explode( ',', (string) $a['fields'] );
 								$allowed_field = array( 'position', 'user', 'guess' );
 								$fields        = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
-				if ( empty( $fields ) ) {
-								$fields = $allowed_field;
-				}
+								if ( empty( $fields ) ) {
+												$fields = $allowed_field;
+								}
 
 								$total = (int) $wpdb->get_var(
 									$wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE hunt_id = %d', $g, $hunt_id )
@@ -323,45 +323,45 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '';
 			}
 // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
-                       $query = $wpdb->prepare(
-                               sprintf(
-                                       'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %%i g LEFT JOIN %%i u ON u.ID = g.user_id LEFT JOIN %%i h ON h.id = g.hunt_id WHERE g.hunt_id = %%d ORDER BY %s %s LIMIT %%d OFFSET %%d',
-                                       esc_sql( $orderby ),
-                                       esc_sql( $order )
-                               ),
-                               $g,
-                               $u,
-                               $hunts_table,
-                               $hunt_id,
-                               $per_page,
-                               $offset
-                       ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+						$query = $wpdb->prepare(
+							sprintf(
+								'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %%i g LEFT JOIN %%i u ON u.ID = g.user_id LEFT JOIN %%i h ON h.id = g.hunt_id WHERE g.hunt_id = %%d ORDER BY %s %s LIMIT %%d OFFSET %%d',
+								esc_sql( $orderby ),
+								esc_sql( $order )
+							),
+							$g,
+							$u,
+							$hunts_table,
+							$hunt_id,
+							$per_page,
+							$offset
+						); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
 																				$rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- db call ok; no-cache ok.
 
-                       wp_enqueue_style(
-                               'bhg-shortcodes',
-                               ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-                               array(),
-                               defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-                       );
+						wp_enqueue_style(
+							'bhg-shortcodes',
+							( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+							array(),
+							defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+						);
 
-                       ob_start();
-                       echo '<div class="bhg-leaderboard-wrapper">';
-                       echo '<table class="bhg-leaderboard">';
-                       echo '<thead><tr>';
-                       foreach ( $fields as $field ) {
-                               if ( 'position' === $field ) {
-						echo '<th class="sortable" data-column="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
+						ob_start();
+						echo '<div class="bhg-leaderboard-wrapper">';
+						echo '<table class="bhg-leaderboard">';
+						echo '<thead><tr>';
+			foreach ( $fields as $field ) {
+				if ( 'position' === $field ) {
+					echo '<th class="sortable" data-column="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
 				} elseif ( 'user' === $field ) {
 					echo '<th class="sortable" data-column="user">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
 				} elseif ( 'guess' === $field ) {
 					echo '<th class="sortable" data-column="guess">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</th>';
 				}
 			}
-                       echo '</tr></thead><tbody>';
+						echo '</tr></thead><tbody>';
 
-                                               $pos       = $offset + 1;
-                                               $need_user = in_array( 'user', $fields, true );
+												$pos       = $offset + 1;
+												$need_user = in_array( 'user', $fields, true );
 			foreach ( $rows as $r ) {
 				if ( $need_user ) {
 					$site_id                         = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
@@ -380,30 +380,30 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
 					}
 				}
-                               echo '</tr>';
-                                                               ++$pos;
-                       }
-                                               echo '</tbody></table>';
+								echo '</tr>';
+																++$pos;
+			}
+												echo '</tbody></table>';
 
-                                               $pages = (int) ceil( $total / $per_page );
-                       if ( $pages > 1 ) {
-                               echo '<div class="bhg-pagination">';
-                               echo wp_kses_post(
-                                       paginate_links(
-                                               array(
-                                                       'base'    => esc_url_raw( add_query_arg( 'bhg_page', '%#%' ) ),
-                                                       'format'  => '',
-                                                       'current' => $paged,
-                                                       'total'   => $pages,
-                                               )
-                                       )
-                               );
-                               echo '</div>';
-                       }
-                       echo '</div>';
+												$pages = (int) ceil( $total / $per_page );
+			if ( $pages > 1 ) {
+					echo '<div class="bhg-pagination">';
+					echo wp_kses_post(
+						paginate_links(
+							array(
+								'base'    => esc_url_raw( add_query_arg( 'bhg_page', '%#%' ) ),
+								'format'  => '',
+								'current' => $paged,
+								'total'   => $pages,
+							)
+						)
+					);
+					echo '</div>';
+			}
+						echo '</div>';
 
-                                               return ob_get_clean();
-               }
+												return ob_get_clean();
+		}
 
 					/**
 					 * Renders a table of guesses for a user.
