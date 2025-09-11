@@ -43,45 +43,45 @@ if ( 'list' === $view ) :
 	$per_page     = 30;
 	$offset       = ( $current_page - 1 ) * $per_page;
 	$search       = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-		$orderby      = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
-		$order        = ( isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) ) ? 'ASC' : 'DESC';
+		$orderby  = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
+		$order    = ( isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) ) ? 'ASC' : 'DESC';
 
 		$allowed_orderby = array(
-'id'               => 'h.id',
-'title'            => 'h.title',
-	'starting_balance' => 'h.starting_balance',
-	'final_balance'    => 'h.final_balance',
-	'affiliate'        => 'a.name',
-	'winners'          => 'h.winners_count',
-	'status'           => 'h.status',
-	);
+			'id'               => 'h.id',
+			'title'            => 'h.title',
+			'starting_balance' => 'h.starting_balance',
+			'final_balance'    => 'h.final_balance',
+			'affiliate'        => 'a.name',
+			'winners'          => 'h.winners_count',
+			'status'           => 'h.status',
+		);
 		$order_by_column = isset( $allowed_orderby[ $orderby ] ) ? $allowed_orderby[ $orderby ] : 'h.id';
 		$order_by_column = preg_replace( '/[^a-zA-Z0-9_\.]/', '', $order_by_column );
 
-                $order_direction = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
-                $search_like     = '%' . $wpdb->esc_like( $search ) . '%';
-                $order_by_sql = sanitize_sql_orderby( $order_by_column . ' ' . $order_direction );
-                if ( empty( $order_by_sql ) ) {
-                        $order_by_sql = 'h.id DESC';
-                }
+				$order_direction = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
+				$search_like     = '%' . $wpdb->esc_like( $search ) . '%';
+				$order_by_sql    = sanitize_sql_orderby( $order_by_column . ' ' . $order_direction );
+		if ( empty( $order_by_sql ) ) {
+				$order_by_sql = 'h.id DESC';
+		}
 
-                $hunts_query  = $wpdb->prepare(
-                        'SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s',
-                        $hunts_table,
-                        $aff_table,
-                        $search_like
-                );
-                $hunts_query .= ' ORDER BY ' . $order_by_sql;
-                $hunts_query .= $wpdb->prepare( ' LIMIT %d OFFSET %d', $per_page, $offset );
+				$hunts_query  = $wpdb->prepare(
+					'SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s',
+					$hunts_table,
+					$aff_table,
+					$search_like
+				);
+				$hunts_query .= ' ORDER BY ' . $order_by_sql;
+				$hunts_query .= $wpdb->prepare( ' LIMIT %d OFFSET %d', $per_page, $offset );
 
-       $hunts       = $wpdb->get_results( $hunts_query );
+				$hunts = $wpdb->get_results( $hunts_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 	$count_query = $wpdb->prepare(
 		'SELECT COUNT(*) FROM %i h WHERE h.title LIKE %s',
 		$hunts_table,
 		$search_like
 	);
-	$total       = (int) $wpdb->get_var( $count_query );
+		$total   = (int) $wpdb->get_var( $count_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	$base_url    = remove_query_arg( array( 'paged' ) );
 	$sort_base   = remove_query_arg( array( 'paged', 'orderby', 'order' ) );
 	?>
@@ -256,7 +256,7 @@ if ( 'list' === $view ) :
 					);
 					?>
 "><?php echo esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ); ?></a>
-<?php elseif ( $h->final_balance !== null ) : ?>
+<?php elseif ( null !== $h->final_balance ) : ?>
 <a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts-results&id=' . (int) $h->id ) ); ?>"><?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?></a>
 <?php endif; ?>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_hunt', 'Delete this hunt?' ) ); ?>');" class="bhg-inline-form">
@@ -341,7 +341,7 @@ endif;
 
 <?php
 /** ADD VIEW */
-if ( $view === 'add' ) :
+if ( 'add' === $view ) :
 	?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'add_new_bonus_hunt', 'Add New Bonus Hunt' ) ); ?></h1>
@@ -454,7 +454,7 @@ if ( $view === 'add' ) :
 
 <?php
 /** EDIT VIEW */
-if ( $view === 'edit' ) :
+if ( 'edit' === $view ) :
 		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
 		// db call ok; no-cache ok.
 				$hunt = $wpdb->get_row(
@@ -568,7 +568,7 @@ if ( $view === 'edit' ) :
 				</tr>
 <tr>
 <th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
-<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ?: 3 ); ?>"></td>
+<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ? $hunt->winners_count : 3 ); ?>"></td>
 </tr>
 <tr>
 <th scope="row"><label for="bhg_guessing_enabled"><?php echo esc_html( bhg_t( 'guessing_enabled', 'Guessing Enabled' ) ); ?></label></th>

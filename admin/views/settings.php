@@ -62,12 +62,12 @@ foreach ( $periods as $key => $label ) :
 <select name="bhg_currency" id="bhg_currency">
 <?php
 $currencies       = array(
-'eur' => bhg_t( 'eur', 'EUR' ),
-'usd' => bhg_t( 'usd', 'USD' ),
+	'eur' => bhg_t( 'eur', 'EUR' ),
+	'usd' => bhg_t( 'usd', 'USD' ),
 );
 $current_currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
 foreach ( $currencies as $key => $label ) :
-?>
+	?>
 <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $current_currency, $key ); ?>><?php echo esc_html( $label ); ?></option>
 <?php endforeach; ?>
 </select>

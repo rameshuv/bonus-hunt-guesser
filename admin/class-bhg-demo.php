@@ -67,21 +67,21 @@ class BHG_Demo {
 		$hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
 		$tournaments_table = $wpdb->prefix . 'bhg_tournaments';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names can't be parameterized.
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$hunts_table} WHERE title LIKE %s",
-				'%\(Demo\)%'
-			)
-		);
+				$wpdb->query(
+					$wpdb->prepare(
+						'DELETE FROM %i WHERE title LIKE %s',
+						$hunts_table,
+						'%\(Demo\)%'
+					)
+				);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names can't be parameterized.
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$tournaments_table} WHERE title LIKE %s",
-				'%\(Demo\)%'
-			)
-		);
+				$wpdb->query(
+					$wpdb->prepare(
+						'DELETE FROM %i WHERE title LIKE %s',
+						$tournaments_table,
+						'%\(Demo\)%'
+					)
+				);
 
 		// Insert demo hunt.
 		$wpdb->insert(
@@ -103,7 +103,7 @@ class BHG_Demo {
 			)
 		);
 
-           wp_safe_redirect( esc_url_raw( BHG_Utils::admin_url( 'admin.php?page=bhg_demo&demo_reset=1' ) ) );
+			wp_safe_redirect( esc_url_raw( BHG_Utils::admin_url( 'admin.php?page=bhg_demo&demo_reset=1' ) ) );
 		exit;
 	}
 }

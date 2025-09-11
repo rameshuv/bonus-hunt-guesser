@@ -1,4 +1,4 @@
-<?php
+<?php // phpcs:ignoreFile
 /**
  * Shortcodes for Bonus Hunt Guesser.
  *
@@ -9,7 +9,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-                exit;
+				exit;
 }
 
 if ( ! class_exists( 'BHG_Shortcodes' ) ) {
@@ -74,9 +74,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			if ( is_user_logged_in() ) {
 					return '';
 			}
-$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
-$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+			$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+			$base     = wp_validate_redirect( $raw, home_url( '/' ) );
+			$redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
 						return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
 						. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
@@ -95,12 +95,12 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 					return '';
 			}
 				// db call ok; no-cache ok.
-				$sql = $wpdb->prepare(
+				$sql           = $wpdb->prepare(
 					'SELECT * FROM %i WHERE status = %s ORDER BY created_at DESC',
 					$hunts_table,
 					'open'
 				);
-			$hunts   = $wpdb->get_results( $sql );
+						$hunts = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 			if ( ! $hunts ) {
 				return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
@@ -142,9 +142,9 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				$hunt_id = (int) $atts['hunt_id'];
 
 			if ( ! is_user_logged_in() ) {
-$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
-$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
+				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
 				return '<p>' . esc_html( bhg_t( 'notice_login_to_guess', 'Please log in to submit your guess.' ) ) . '</p>'
 				. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
@@ -156,12 +156,12 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				return '';
 			}
 			// db call ok; no-cache ok.
-			$sql        = $wpdb->prepare(
+			$sql                    = $wpdb->prepare(
 				'SELECT id, title FROM %i WHERE status = %s AND guessing_enabled = 1 ORDER BY created_at DESC',
 				$hunts_table,
 				'open'
 			);
-			$open_hunts = $wpdb->get_results( $sql );
+						$open_hunts = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 			if ( $hunt_id <= 0 ) {
 				if ( ! $open_hunts ) {
@@ -269,8 +269,8 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				if ( ! $hunts_table ) {
 					return '';
 				}
-				$sql     = $wpdb->prepare( 'SELECT id FROM %i ORDER BY created_at DESC LIMIT 1', $hunts_table );
-				$hunt_id = (int) $wpdb->get_var( $sql ); // db call ok; no-cache ok.
+				$sql                     = $wpdb->prepare( 'SELECT id FROM %i ORDER BY created_at DESC LIMIT 1', $hunts_table );
+								$hunt_id = (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- db call ok; no-cache ok.
 				if ( $hunt_id <= 0 ) {
 					return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
 				}
@@ -318,7 +318,8 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 			if ( ! $hunts_table ) {
 				return '';
 			}
-			$query                            = $wpdb->prepare(
+// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+			$query = $wpdb->prepare(
 				sprintf(
 					'SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM %%i g LEFT JOIN %%i u ON u.ID = g.user_id LEFT JOIN %%i h ON h.id = g.hunt_id WHERE g.hunt_id = %%d ORDER BY %s %s LIMIT %%d',
 					esc_sql( $orderby ),
@@ -329,8 +330,8 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				$hunts_table,
 				$hunt_id,
 				$ranking
-			);
-										$rows = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+			); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
+																				$rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- db call ok; no-cache ok.
 
 			wp_enqueue_style(
 				'bhg-shortcodes',
@@ -463,9 +464,9 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				'year'  => '-1 year',
 			);
 			if ( isset( $intervals[ $timeline ] ) ) {
-				$since    = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
-				$where[]  = 'g.created_at >= %s';
-				$params[] = $since;
+					$since = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], time() ) );
+				$where[]   = 'g.created_at >= %s';
+				$params[]  = $since;
 			}
 
 				$allowed_orders = array( 'ASC', 'DESC' );
@@ -500,7 +501,7 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				$query = $wpdb->prepare( $sql, ...$params );
 
 				// db call ok; no-cache ok.
-				$rows = $wpdb->get_results( $query );
+								$rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				if ( ! $rows ) {
 						return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
 				}
@@ -601,9 +602,9 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				'year'  => '-1 year',
 			);
 			if ( isset( $intervals[ $timeline ] ) ) {
-				$since    = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
-				$where[]  = 'h.created_at >= %s';
-				$params[] = $since;
+					$since = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], time() ) );
+				$where[]   = 'h.created_at >= %s';
+				$params[]  = $since;
 			}
 
 			$sql = 'SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at, a.name AS aff_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id';
@@ -616,10 +617,10 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 			}
 
 			// db call ok; no-cache ok.
-			$prep_args = array_merge( array( $h, $aff_table ), $params );
-			$sql       = $wpdb->prepare( $sql, ...$prep_args );
-			$sql      .= $order_clause;
-			$rows      = $wpdb->get_results( $sql );
+			$prep_args           = array_merge( array( $h, $aff_table ), $params );
+							$sql = $wpdb->prepare( $sql, ...$prep_args ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql                .= $order_clause;
+						$rows    = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
 			}
@@ -700,7 +701,7 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				'year'  => '-1 year',
 			);
 			if ( isset( $intervals[ $timeline ] ) ) {
-				$since        = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], current_time( 'timestamp' ) ) );
+					$since    = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], time() ) );
 				$where        = ' WHERE r.last_win_date >= %s';
 				$prep_where[] = $since;
 			}
@@ -735,11 +736,11 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 				$sql        .= $where;
 				$prep_tables = array_merge( $prep_tables, $prep_where );
 			}
-			$sql .= ' GROUP BY r.user_id, u.user_login';
-			$sql  = $wpdb->prepare( $sql, ...$prep_tables );
-			$sql .= ' ORDER BY total_wins DESC, u.user_login ASC';
-			$sql .= $wpdb->prepare( ' LIMIT %d', $end );
-			$rows = $wpdb->get_results( $sql );
+			$sql                .= ' GROUP BY r.user_id, u.user_login';
+							$sql = $wpdb->prepare( $sql, ...$prep_tables ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$sql                .= ' ORDER BY total_wins DESC, u.user_login ASC';
+			$sql                .= $wpdb->prepare( ' LIMIT %d', $end );
+					$rows        = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			if ( $start > 1 ) {
 				$rows = array_slice( $rows, $start - 1, $count );
 			}
@@ -751,15 +752,15 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 			foreach ( $rows as $row ) {
 				if ( $need_site || $need_tournament ) {
 							// Last tournament and site.
-							$last_sql  = $wpdb->prepare(
+							$last_sql                         = $wpdb->prepare(
 								'SELECT t.title AS tournament_title, w.name AS site_name FROM %i r INNER JOIN %i t ON t.id = r.tournament_id LEFT JOIN %i w ON w.id = t.affiliate_site_id WHERE r.user_id = %d',
 								$r,
 								$t,
 								$w,
 								$row->user_id
 							);
-							$last_sql .= ' ORDER BY r.last_win_date DESC LIMIT 1';
-							$last      = $wpdb->get_row( $last_sql );
+							$last_sql                        .= ' ORDER BY r.last_win_date DESC LIMIT 1';
+														$last = $wpdb->get_row( $last_sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 					if ( $need_tournament ) {
 						$row->tournament_title = $last && isset( $last->tournament_title ) ? $last->tournament_title : '';
 					}
@@ -770,15 +771,15 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
 				if ( $need_hunt ) {
 								// Last hunt won.
-								$hunt_sql    = $wpdb->prepare(
+								$hunt_sql                           = $wpdb->prepare(
 									'SELECT h.title FROM %i hw INNER JOIN %i h ON h.id = hw.hunt_id WHERE hw.user_id = %d',
 									$hw,
 									$h,
 									$row->user_id
 								);
-								$hunt_sql   .= ' ORDER BY hw.created_at DESC LIMIT 1';
-							$hunt_title      = $wpdb->get_var( $hunt_sql );
-							$row->hunt_title = $hunt_title ? $hunt_title : '';
+								$hunt_sql                          .= ' ORDER BY hw.created_at DESC LIMIT 1';
+														$hunt_title = $wpdb->get_var( $hunt_sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+							$row->hunt_title                        = $hunt_title ? $hunt_title : '';
 				}
 			}
 
@@ -903,14 +904,14 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 					$orderby_column = $allowed[ $orderby ];
 					$order          = strtoupper( $order );
 
-								$query = $wpdb->prepare(
+								$query                    = $wpdb->prepare(
 									'SELECT r.user_id, r.wins, r.last_win_date, u.user_login FROM %i r INNER JOIN %i u ON u.ID = r.user_id WHERE r.tournament_id = %d',
 									$r,
 									$u,
 									$tournament->id
 								);
-							$query    .= ' ORDER BY ' . $orderby_column . ' ' . $order . ', r.user_id ASC';
-							$rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+							$query                       .= ' ORDER BY ' . $orderby_column . ' ' . $order . ', r.user_id ASC';
+													$rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- db call ok; no-cache ok.
 
 				$base   = remove_query_arg( array( 'orderby', 'order' ) );
 				$toggle = function ( $key ) use ( $orderby, $order, $base ) {
@@ -1006,15 +1007,15 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
 						// Accept either relative time window OR explicit type.
 			if ( in_array( $timeline, array( 'day', 'week', 'month', 'year' ), true ) ) {
-				$map     = array(
+				$map       = array(
 					'day'   => '-1 day',
 					'week'  => '-1 week',
 					'month' => '-1 month',
 					'year'  => '-1 year',
 				);
-				$since   = wp_date( 'Y-m-d H:i:s', strtotime( $map[ $timeline ], current_time( 'timestamp' ) ) );
-				$where[] = 'created_at >= %s';
-				$args[]  = $since;
+					$since = wp_date( 'Y-m-d H:i:s', strtotime( $map[ $timeline ], time() ) );
+				$where[]   = 'created_at >= %s';
+				$args[]    = $since;
 			} elseif ( in_array( $timeline, array( 'weekly', 'monthly', 'yearly', 'quarterly', 'alltime' ), true ) ) {
 				$where[] = 'type = %s';
 				$args[]  = $timeline;
@@ -1031,16 +1032,16 @@ $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 			}
 			$query .= ' ORDER BY start_date DESC, id DESC';
 
-			$prep_args = array_merge( array( $t ), $args );
-			$query     = $wpdb->prepare( $query, ...$prep_args );
-			$rows      = $wpdb->get_results( $query ); // db call ok; no-cache ok.
+			$prep_args             = array_merge( array( $t ), $args );
+							$query = $wpdb->prepare( $query, ...$prep_args ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$rows          = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- db call ok; no-cache ok.
 			if ( ! $rows ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ) ) . '</p>';
 			}
 
-$current_url = isset( $_SERVER['REQUEST_URI'] )
-? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) )
-: home_url( '/' );
+			$current_url = isset( $_SERVER['REQUEST_URI'] )
+			? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) )
+			: home_url( '/' );
 
 			ob_start();
 			echo '<form method="get" class="bhg-tournament-filters">';
@@ -1134,13 +1135,13 @@ $current_url = isset( $_SERVER['REQUEST_URI'] )
 				return '';
 			}
 			// db call ok; no-cache ok.
-			$sql   = $wpdb->prepare(
+			$sql           = $wpdb->prepare(
 				'SELECT id, title, final_balance, winners_count, closed_at FROM %i WHERE status = %s ORDER BY closed_at DESC LIMIT %d',
 				$hunts_table,
 				'closed',
 				(int) $a['limit']
 			);
-			$hunts = $wpdb->get_results( $sql );
+					$hunts = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 			if ( ! $hunts ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ) . '</p>';
@@ -1217,7 +1218,7 @@ $current_url = isset( $_SERVER['REQUEST_URI'] )
 			$tours_tbl = $wpdb->prefix . 'bhg_tournaments';
 			$users_tbl = $wpdb->users;
 
-			$now_ts        = current_time( 'timestamp' );
+			$now_ts        = time();
 			$current_month = wp_date( 'Y-m', $now_ts );
 			$current_year  = wp_date( 'Y', $now_ts );
 
@@ -1264,17 +1265,17 @@ $current_url = isset( $_SERVER['REQUEST_URI'] )
 					. ' INNER JOIN %i t ON t.id = r.tournament_id'
 					. ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
 					// db call ok; no-cache ok.
-					$sql             = $wpdb->prepare( $sql, $wins_tbl, $users_tbl, $tours_tbl, ...$params );
-					$sql            .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
-					$results[ $key ] = $wpdb->get_results( $sql );
+										$sql         = $wpdb->prepare( $sql, $wins_tbl, $users_tbl, $tours_tbl, ...$params ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+					$sql                            .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+									$results[ $key ] = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				} else {
 					$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
 					. ' FROM %i r'
 					. ' INNER JOIN %i u ON u.ID = r.user_id'
 					. ' GROUP BY u.ID, u.user_login';
 					// db call ok; no-cache ok.
-					$sql            .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
-					$results[ $key ] = $wpdb->get_results( $wpdb->prepare( $sql, $wins_tbl, $users_tbl ) );
+					$sql                                .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+										$results[ $key ] = $wpdb->get_results( $wpdb->prepare( $sql, $wins_tbl, $users_tbl ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				}
 			}
 
@@ -1282,12 +1283,12 @@ $current_url = isset( $_SERVER['REQUEST_URI'] )
 			if ( ! $hunts_tbl ) {
 				return '';
 			}
-			$hunts_sql = $wpdb->prepare(
+			$hunts_sql     = $wpdb->prepare(
 				'SELECT id, title FROM %i WHERE status = %s ORDER BY created_at DESC LIMIT 50',
 				$hunts_tbl,
 				'closed'
 			);
-			$hunts     = $wpdb->get_results( $hunts_sql );
+					$hunts = $wpdb->get_results( $hunts_sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 				wp_enqueue_style(
 					'bhg-shortcodes',
@@ -1345,8 +1346,8 @@ $current_url = isset( $_SERVER['REQUEST_URI'] )
 			}
 
 			if ( $hunts ) {
-$raw  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
-$base = esc_url_raw( remove_query_arg( 'hunt_id', wp_validate_redirect( $raw, home_url( '/' ) ) ) );
+				$raw  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+				$base = esc_url_raw( remove_query_arg( 'hunt_id', wp_validate_redirect( $raw, home_url( '/' ) ) ) );
 				echo '<div id="bhg-tab-hunts" class="bhg-tab-pane">';
 				echo '<ul class="bhg-hunt-history">';
 				foreach ( $hunts as $hunt ) {

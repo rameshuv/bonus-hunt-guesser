@@ -63,7 +63,7 @@ class BHG_Utils {
 		update_option( 'bhg_settings', $new );
 		return $new;
 	}
-	
+
 	/**
 	 * Retrieve the "From" email address for notifications.
 	 *
@@ -73,11 +73,11 @@ class BHG_Utils {
 		$settings = get_option( 'bhg_plugin_settings', array() );
 		$email    = isset( $settings['email_from'] ) ? $settings['email_from'] : get_bloginfo( 'admin_email' );
 		$email    = sanitize_email( $email );
-		
+
 		if ( ! is_email( $email ) ) {
 			$email = sanitize_email( get_bloginfo( 'admin_email' ) );
 		}
-		
+
 		return $email;
 	}
 
@@ -86,28 +86,28 @@ class BHG_Utils {
 	 *
 	 * @return void
 	 */
-        public static function require_cap() {
-                           if ( ! current_user_can( 'manage_options' ) ) {
-                                           wp_die(
-                                                           esc_html(
-                                                                           bhg_t(
-                                                                                           'you_do_not_have_permission_to_access_this_page',
-                                                                                           'You do not have permission to access this page'
-                                                                           )
-                                                           )
-                                           );
-                           }
-        }
+	public static function require_cap() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die(
+				esc_html(
+					bhg_t(
+						'you_do_not_have_permission_to_access_this_page',
+						'You do not have permission to access this page'
+					)
+				)
+			);
+		}
+	}
 
-       /**
-        * Retrieve an admin URL, respecting network admin context.
-        *
-        * @param string $path Optional path relative to the admin URL.
-        * @return string Full admin URL for the current context.
-        */
-       public static function admin_url( $path = '' ) {
-               return is_network_admin() ? network_admin_url( $path ) : admin_url( $path );
-       }
+		/**
+		* Retrieve an admin URL, respecting network admin context.
+		*
+		* @param string $path Optional path relative to the admin URL.
+		* @return string Full admin URL for the current context.
+		*/
+	public static function admin_url( $path = '' ) {
+			return is_network_admin() ? network_admin_url( $path ) : admin_url( $path );
+	}
 
 	/**
 	 * Output a nonce field for the given action.

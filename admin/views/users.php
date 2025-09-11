@@ -56,7 +56,7 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			add_query_arg(
 				array(
 					'orderby' => 'user_login',
-					'order'   => $order === 'ASC' ? 'desc' : 'asc',
+					'order'   => 'ASC' === $order ? 'desc' : 'asc',
 				),
 				$base_url
 			)
@@ -69,7 +69,7 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			add_query_arg(
 				array(
 					'orderby' => 'display_name',
-					'order'   => $order === 'ASC' ? 'desc' : 'asc',
+					'order'   => 'ASC' === $order ? 'desc' : 'asc',
 				),
 				$base_url
 			)
@@ -83,7 +83,7 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			add_query_arg(
 				array(
 					'orderby' => 'user_email',
-					'order'   => $order === 'ASC' ? 'desc' : 'asc',
+					'order'   => 'ASC' === $order ? 'desc' : 'asc',
 				),
 				$base_url
 			)

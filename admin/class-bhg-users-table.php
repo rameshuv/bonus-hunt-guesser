@@ -84,7 +84,7 @@ class BHG_Users_Table extends WP_List_Table {
 			'number'  => $this->per_page,
 			'offset'  => ( $paged - 1 ) * $this->per_page,
 			'fields'  => array( 'ID', 'user_login', 'user_email', 'roles' ),
-			'orderby' => in_array( $orderby, array( 'username', 'email' ) ) ? ( $orderby === 'username' ? 'login' : 'email' ) : 'login',
+			'orderby' => in_array( $orderby, array( 'username', 'email' ), true ) ? ( 'username' === $orderby ? 'login' : 'email' ) : 'login',
 			'order'   => $order,
 		);
 		if ( $search ) {
@@ -123,9 +123,9 @@ class BHG_Users_Table extends WP_List_Table {
 			$w_table = $wpdb->prefix . 'bhg_tournament_results';
 
 			// Guesses per user
-			$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-			$sql_g        = "SELECT user_id, COUNT(*) c FROM `$g_table` WHERE user_id IN ($placeholders) GROUP BY user_id";
-			$g_counts     = $wpdb->get_results( $wpdb->prepare( $sql_g, $ids ) );
+			$placeholders         = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+			$sql_g                = "SELECT user_id, COUNT(*) c FROM `$g_table` WHERE user_id IN ($placeholders) GROUP BY user_id";
+						$g_counts = $wpdb->get_results( $wpdb->prepare( $sql_g, $ids ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			foreach ( (array) $g_counts as $row ) {
 				$uid = (int) $row->user_id;
 				if ( isset( $items[ $uid ] ) ) {
@@ -136,9 +136,9 @@ class BHG_Users_Table extends WP_List_Table {
 			// Wins per user (if table exists)
 			$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $w_table ) );
 			if ( $exists ) {
-				$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-				$sql_w        = "SELECT user_id, SUM(wins) c FROM `$w_table` WHERE user_id IN ($placeholders) GROUP BY user_id";
-				$w_counts     = $wpdb->get_results( $wpdb->prepare( $sql_w, $ids ) );
+				$placeholders             = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+				$sql_w                    = "SELECT user_id, SUM(wins) c FROM `$w_table` WHERE user_id IN ($placeholders) GROUP BY user_id";
+								$w_counts = $wpdb->get_results( $wpdb->prepare( $sql_w, $ids ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				foreach ( (array) $w_counts as $row ) {
 					$uid = (int) $row->user_id;
 					if ( isset( $items[ $uid ] ) ) {
@@ -156,10 +156,10 @@ class BHG_Users_Table extends WP_List_Table {
 				function ( $a, $b ) use ( $orderby, $order ) {
 					$av = $a[ $orderby ];
 					$bv = $b[ $orderby ];
-					if ( $av == $bv ) {
+					if ( $av === $bv ) {
 						return 0;
 					}
-					if ( $order === 'ASC' ) {
+					if ( 'ASC' === $order ) {
 						return ( $av < $bv ) ? -1 : 1;
 					}
 					return ( $av > $bv ) ? -1 : 1;
@@ -182,7 +182,7 @@ class BHG_Users_Table extends WP_List_Table {
 	}
 
 	public function extra_tablenav( $which ) {
-		if ( $which === 'top' ) {
+		if ( 'top' === $which ) {
 			echo '<div class="alignleft actions">';
 			$this->search_box( __( 'Search users', 'bonus-hunt-guesser' ), 'bhg-users' );
 			echo '</div>';

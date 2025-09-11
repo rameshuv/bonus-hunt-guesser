@@ -273,11 +273,11 @@ class BHG_Admin {
 
 				$format = array( '%s', '%f', '%d', '%s', '%d', '%d', '%d', '%d' );
 
-                                if ( null !== $final_balance ) {
-                                                $data['final_balance'] = $final_balance;
-                                                // Use a float format to match the stored value.
-                                                $format[]              = '%f';
-                                }
+				if ( null !== $final_balance ) {
+								$data['final_balance'] = $final_balance;
+								// Use a float format to match the stored value.
+								$format[] = '%f';
+				}
 
 				$data['status']     = $status;
 				$data['updated_at'] = current_time( 'mysql' );
@@ -694,22 +694,22 @@ class BHG_Admin {
 			$hunts_table       = $wpdb->prefix . 'bhg_bonus_hunts';
 			$tournaments_table = $wpdb->prefix . 'bhg_tournaments';
 
-			// Remove existing demo data.
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names cannot be parameterized.
-			$wpdb->query(
-				$wpdb->prepare(
-					"DELETE FROM {$hunts_table} WHERE title LIKE %s",
-					'%(Demo)%'
-				)
-			);
+						// Remove existing demo data.
+						$wpdb->query(
+							$wpdb->prepare(
+								'DELETE FROM %i WHERE title LIKE %s',
+								$hunts_table,
+								'%(Demo)%'
+							)
+						);
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names cannot be parameterized.
-			$wpdb->query(
-				$wpdb->prepare(
-					"DELETE FROM {$tournaments_table} WHERE title LIKE %s",
-					'%(Demo)%'
-				)
-			);
+						$wpdb->query(
+							$wpdb->prepare(
+								'DELETE FROM %i WHERE title LIKE %s',
+								$tournaments_table,
+								'%(Demo)%'
+							)
+						);
 
 			// Seed demo hunt.
 			$wpdb->insert(

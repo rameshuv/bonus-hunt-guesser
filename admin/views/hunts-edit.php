@@ -13,7 +13,7 @@ check_admin_referer( 'bhg_edit_hunt_' . $hunt_id, 'bhg_nonce' );
 // Handle delete guess action
 if ( isset( $_POST['bhg_remove_guess'] ) ) {
 	check_admin_referer( 'bhg_remove_guess_action', 'bhg_remove_guess_nonce' );
-        $guess_id = isset( $_POST['guess_id'] ) ? absint( wp_unslash( $_POST['guess_id'] ) ) : 0;
+		$guess_id = isset( $_POST['guess_id'] ) ? absint( wp_unslash( $_POST['guess_id'] ) ) : 0;
 	if ( $guess_id > 0 && function_exists( 'bhg_remove_guess' ) ) {
 		bhg_remove_guess( $guess_id );
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( bhg_t( 'guess_removed', 'Guess removed.' ) ) . '</p></div>';
@@ -45,7 +45,12 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 	echo esc_html( bhg_t( 'participants', 'Participants' ) );
 	?>
 </h2>
-	<p><?php echo esc_html( sprintf( _n( '%s participant', '%s participants', $total, 'bonus-hunt-guesser' ), number_format_i18n( $total ) ) ); ?></p>
+		<p>
+		<?php
+		/* translators: %s: number of participants */
+		echo esc_html( sprintf( _n( '%s participant', '%s participants', $total, 'bonus-hunt-guesser' ), number_format_i18n( $total ) ) );
+		?>
+		</p>
 
 	<table class="widefat striped">
 	<thead>

@@ -105,7 +105,12 @@ $base     = remove_query_arg( 'ppaged' );
 	echo esc_html( bhg_t( 'participants', 'Participants' ) );
 	?>
 </h2>
-	<p><?php echo esc_html( sprintf( _n( '%s participant', '%s participants', $total, 'bonus-hunt-guesser' ), number_format_i18n( $total ) ) ); ?></p>
+		<p>
+		<?php
+		/* translators: %s: number of participants */
+		echo esc_html( sprintf( _n( '%s participant', '%s participants', $total, 'bonus-hunt-guesser' ), number_format_i18n( $total ) ) );
+		?>
+		</p>
 
 	<table class="widefat striped">
 		<thead>
