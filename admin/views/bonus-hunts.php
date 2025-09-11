@@ -60,19 +60,19 @@ if ( 'list' === $view ) :
 
                 $order_direction = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
                 $search_like     = '%' . $wpdb->esc_like( $search ) . '%';
-                $order_by        = sanitize_sql_orderby( $order_by_column . ' ' . $order_direction );
-                if ( empty( $order_by ) ) {
-                        $order_by = 'h.id DESC';
+                $order_by_sql = sanitize_sql_orderby( $order_by_column . ' ' . $order_direction );
+                if ( empty( $order_by_sql ) ) {
+                        $order_by_sql = 'h.id DESC';
                 }
 
-                $hunts_query = $wpdb->prepare(
-                        "SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s ORDER BY {$order_by} LIMIT %d OFFSET %d",
+                $hunts_query  = $wpdb->prepare(
+                        'SELECT h.*, a.name AS affiliate_name FROM %i h LEFT JOIN %i a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s',
                         $hunts_table,
                         $aff_table,
-                        $search_like,
-                        $per_page,
-                        $offset
-                ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- ORDER BY clause sanitized separately.
+                        $search_like
+                );
+                $hunts_query .= ' ORDER BY ' . $order_by_sql;
+                $hunts_query .= $wpdb->prepare( ' LIMIT %d OFFSET %d', $per_page, $offset );
 
        $hunts       = $wpdb->get_results( $hunts_query );
 
