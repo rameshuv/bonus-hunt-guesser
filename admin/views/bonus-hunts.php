@@ -41,9 +41,13 @@ $view = isset( $_GET['view'] ) ? sanitize_text_field( wp_unslash( $_GET['view'] 
 if ( 'list' === $view ) :
 	$current_page = max( 1, isset( $_GET['paged'] ) ? (int) wp_unslash( $_GET['paged'] ) : 1 );
 	$per_page     = 30;
-	$offset       = ( $current_page - 1 ) * $per_page;
-	$search       = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-		$orderby  = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
+        $offset       = ( $current_page - 1 ) * $per_page;
+        $search       = '';
+        if ( isset( $_GET['s'] ) ) {
+                check_admin_referer( 'bhg_hunts_search', 'bhg_hunts_search_nonce' );
+                $search = sanitize_text_field( wp_unslash( $_GET['s'] ) );
+        }
+                $orderby  = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
 		$order    = ( isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) ) ? 'ASC' : 'DESC';
 
 		$allowed_orderby = array(
@@ -91,6 +95,7 @@ if ( 'list' === $view ) :
 
 <form method="get" class="search-form">
 <input type="hidden" name="page" value="bhg-bonus-hunts" />
+<?php wp_nonce_field( 'bhg_hunts_search', 'bhg_hunts_search_nonce' ); ?>
 <p class="search-box">
 <input type="search" name="s" value="<?php echo esc_attr( $search ); ?>" />
 	<?php if ( $orderby ) : ?>
