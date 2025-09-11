@@ -37,13 +37,9 @@ if ( $search ) {
         $params[] = '%' . $wpdb->esc_like( $search ) . '%';
 }
 
-$sql    .= ' ORDER BY %i %s';
-$params[] = $orderby;
-$params[] = $order;
-
-$sql  = $wpdb->prepare( $sql, $params );
-$sql  = str_replace( array( "'ASC'", "'DESC'" ), array( 'ASC', 'DESC' ), $sql );
-$rows = $wpdb->get_results( $sql );
+$sql  .= ' ORDER BY ' . $order_by_clause;
+$sql   = $wpdb->prepare( $sql, $params );
+$rows  = $wpdb->get_results( $sql );
 
 $labels = array(
 	'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
