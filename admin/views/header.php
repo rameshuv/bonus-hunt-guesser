@@ -219,7 +219,7 @@ if ( isset( $_GET['message'] ) ) { // phpcs:ignore WordPress.Security.NonceVerif
 							</td>
 							<td><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $hunt->created_at ) ) ); ?></td>
 							<td>
-								<a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg_bonus_hunts&action=edit&id=' . intval( $hunt->id ) ) ); ?>" class="button button-small">
+								<a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg_bonus_hunts&action=edit&id=' . absint( $hunt->id ) ) ); ?>" class="button button-small">
 									<?php
 									echo esc_html( bhg_t( 'button_edit', 'Edit' ) );
 									?>
