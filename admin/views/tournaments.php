@@ -20,7 +20,7 @@ if ( ! in_array( $table, $allowed_tables, true ) ) {
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 $row     = $edit_id
-		? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id ) ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		? $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'bhg_tournaments WHERE id = %d', $edit_id ) )
 		: null;
 
 $search_term = '';
@@ -45,19 +45,34 @@ $current_page   = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['p
 $items_per_page = 30;
 $offset         = ( $current_page - 1 ) * $items_per_page;
 
-$sql_base = "FROM {$table}";
-$like_sql = '';
+$like_clause = '';
 
 if ( $search_term ) {
-		$like_sql = $wpdb->prepare( ' WHERE title LIKE %s', '%' . $wpdb->esc_like( $search_term ) . '%' );
+		$total = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'bhg_tournaments WHERE title LIKE %s',
+				'%' . $wpdb->esc_like( $search_term ) . '%'
+			)
+		);
+		$rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM ' . $wpdb->prefix . 'bhg_tournaments WHERE title LIKE %s ORDER BY ' . $order_by_clause . ' LIMIT %d OFFSET %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Order by clause sanitized via whitelist
+				'%' . $wpdb->esc_like( $search_term ) . '%',
+				$items_per_page,
+				$offset
+			)
+		);
+} else {
+		$total = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . $wpdb->prefix . 'bhg_tournaments' );
+		$rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM ' . $wpdb->prefix . 'bhg_tournaments ORDER BY ' . $order_by_clause . ' LIMIT %d OFFSET %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Order by clause sanitized via whitelist
+				$items_per_page,
+				$offset
+			)
+		);
 }
-
-$sql  = "SELECT * {$sql_base}{$like_sql} ORDER BY {$order_by_clause} LIMIT %d OFFSET %d";
-$rows = $wpdb->get_results( $wpdb->prepare( $sql, $items_per_page, $offset ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-
-$count_sql = "SELECT COUNT(*) {$sql_base}{$like_sql}";
-$total     = (int) $wpdb->get_var( $count_sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-$base_url  = remove_query_arg( array( 'paged' ) );
+$base_url = remove_query_arg( array( 'paged' ) );
 ?>
 <div class="wrap">
 	<h1 class="wp-heading-inline">
