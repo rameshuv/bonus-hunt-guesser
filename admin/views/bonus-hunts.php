@@ -220,25 +220,24 @@ if ( 'list' === $view ) :
 						<?php
 				else :
                                         foreach ( $hunts as $h ) :
-                                                $url      = add_query_arg(
+                                                $edit_url = add_query_arg(
                                                         array(
                                                                 'view' => 'edit',
                                                                 'id'   => (int) $h->id,
                                                         )
                                                 );
-                                                $edit_url = wp_nonce_url( $url, 'bhg_edit_hunt' );
                                                 ?>
                 <tr>
 <td><?php echo esc_html( (int) $h->id ); ?></td>
-                        <td><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( $h->title ); ?></a></td>
+                        <td><a href="<?php echo esc_url( wp_nonce_url( $edit_url, 'bhg_edit_hunt' ) ); ?>"><?php echo esc_html( $h->title ); ?></a></td>
 <td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
 <td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo esc_html( (int) ( $h->winners_count ?? 3 ) ); ?></td>
 <td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
 <td>
-<a class="button" href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
-						<?php if ( 'open' === $h->status ) : ?>
+<a class="button" href="<?php echo esc_url( wp_nonce_url( $edit_url, 'bhg_edit_hunt' ) ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
+                                                <?php if ( 'open' === $h->status ) : ?>
 <a class="button" href="
 							<?php
 							echo esc_url(
