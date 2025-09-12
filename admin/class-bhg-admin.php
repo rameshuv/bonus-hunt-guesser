@@ -383,8 +383,8 @@ class BHG_Admin {
 		}
 			check_admin_referer( 'bhg_close_hunt', 'bhg_close_hunt_nonce' );
 
-                       $hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
-                       $final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
+			$hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+			$final_balance_raw = isset( $_POST['final_balance'] ) ? wp_unslash( $_POST['final_balance'] ) : '';
 
                $final_balance = null;
                if ( function_exists( 'bhg_parse_amount' ) ) {
@@ -432,13 +432,13 @@ $hunts_table    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 $guesses_table  = esc_sql( $wpdb->prefix . 'bhg_guesses' );
 $winners_table  = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
 $results_table  = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
-$hunt_id        = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+			$hunt_id        = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 
 if ( $hunt_id ) {
 $tournament_id = (int) $wpdb->get_var(
 $wpdb->prepare(
 "SELECT tournament_id FROM {$hunts_table} WHERE id = %d",
-$hunt_id
+			$hunt_id
 )
 );
 
@@ -466,7 +466,7 @@ exit;
 
 		global $wpdb;
                 $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-		$hunt_id     = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+			$hunt_id     = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 		$new_state   = isset( $_POST['guessing_enabled'] ) ? absint( wp_unslash( $_POST['guessing_enabled'] ) ) : 0;
 
 		if ( $hunt_id ) {
