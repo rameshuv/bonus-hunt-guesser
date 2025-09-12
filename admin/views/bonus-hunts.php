@@ -30,7 +30,10 @@ if (
 }
 
 
-$view = isset( $_GET['view'] ) ? sanitize_text_field( wp_unslash( $_GET['view'] ) ) : 'list';
+$view = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : 'list';
+if ( ! in_array( $view, array( 'list', 'add', 'edit' ), true ) ) {
+    $view = 'list';
+}
 
 /** LIST VIEW */
 if ( 'list' === $view ) :
