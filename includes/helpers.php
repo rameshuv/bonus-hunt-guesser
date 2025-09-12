@@ -735,8 +735,9 @@ function bhg_validate_guess( $guess ) {
  * Uses the `bhg_is_affiliate` user meta to determine affiliate status.
  *
  * @param int $user_id User ID.
- * @return string Display name with optional affiliate indicator.
- */
+ * @return string Sanitized display name with optional affiliate indicator.
+ *                Callers should escape the result on output.
+*/
 function bhg_get_user_display_name( $user_id ) {
 		$user = get_userdata( (int) $user_id );
 	if ( ! $user ) {
@@ -750,7 +751,7 @@ function bhg_get_user_display_name( $user_id ) {
 			$display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
 	}
 
-	return $display_name;
+        return wp_kses_post( $display_name );
 }
 
 if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
