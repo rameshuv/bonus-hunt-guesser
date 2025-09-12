@@ -16,20 +16,22 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 // Handle form submissions.
-if ( isset( $_POST['bhg_action'] ) ) {
-	if ( 'db_cleanup' === $_POST['bhg_action'] && isset( $_POST['bhg_db_cleanup'] ) ) {
-		check_admin_referer( 'bhg_db_cleanup_action', 'bhg_nonce' );
+$db_action        = isset( $_POST['bhg_action'] ) ? sanitize_key( wp_unslash( $_POST['bhg_action'] ) ) : '';
+$cleanup_request  = isset( $_POST['bhg_db_cleanup'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_db_cleanup'] ) ) : '';
+$optimize_request = isset( $_POST['bhg_db_optimize'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_db_optimize'] ) ) : '';
 
-		// Perform database cleanup.
-		bhg_database_cleanup();
-		$cleanup_completed = true;
-	} elseif ( 'db_optimize' === $_POST['bhg_action'] && isset( $_POST['bhg_db_optimize'] ) ) {
-		check_admin_referer( 'bhg_db_optimize_action', 'bhg_nonce' );
+if ( 'db_cleanup' === $db_action && ! empty( $cleanup_request ) ) {
+	check_admin_referer( 'bhg_db_cleanup_action', 'bhg_nonce' );
 
-		// Perform database optimization.
-		bhg_database_optimize();
-		$optimize_completed = true;
-	}
+	// Perform database cleanup.
+	bhg_database_cleanup();
+	$cleanup_completed = true;
+} elseif ( 'db_optimize' === $db_action && ! empty( $optimize_request ) ) {
+	check_admin_referer( 'bhg_db_optimize_action', 'bhg_nonce' );
+
+	// Perform database optimization.
+	bhg_database_optimize();
+	$optimize_completed = true;
 }
 
 /**
