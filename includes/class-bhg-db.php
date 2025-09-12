@@ -188,8 +188,8 @@ KEY tournament_id (tournament_id)
 			);
 			foreach ( $need as $c => $alter ) {
 				if ( ! $this->column_exists( $hunts_table, $c ) ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( 'ALTER TABLE `' . $hunts_table . '` ' . $alter );
+               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$hunts_table}` {$alter}" );
 				}
 			}
 			if ( ! $this->index_exists( $hunts_table, 'tournament_id' ) ) {
@@ -203,8 +203,8 @@ KEY tournament_id (tournament_id)
 			);
 			foreach ( $gneed as $c => $alter ) {
 				if ( ! $this->column_exists( $guesses_table, $c ) ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( 'ALTER TABLE `' . $guesses_table . '` ' . $alter );
+               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$guesses_table}` {$alter}" );
 				}
 			}
 
@@ -220,8 +220,8 @@ KEY tournament_id (tournament_id)
 			);
 			foreach ( $tneed as $c => $alter ) {
 				if ( ! $this->column_exists( $tours_table, $c ) ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( 'ALTER TABLE `' . $tours_table . '` ' . $alter );
+               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$tours_table}` {$alter}" );
 				}
 			}
 
@@ -234,8 +234,8 @@ KEY tournament_id (tournament_id)
 			);
 			foreach ( $trrneed as $c => $alter ) {
 				if ( ! $this->column_exists( $tres_table, $c ) ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( 'ALTER TABLE `' . $tres_table . '` ' . $alter );
+               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$tres_table}` {$alter}" );
 				}
 			}
 			if ( ! $this->index_exists( $tres_table, 'tournament_id' ) ) {
@@ -261,8 +261,8 @@ KEY tournament_id (tournament_id)
 			);
 			foreach ( $aneed as $c => $alter ) {
 				if ( ! $this->column_exists( $ads_table, $c ) ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( 'ALTER TABLE `' . $ads_table . '` ' . $alter );
+               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$ads_table}` {$alter}" );
 				}
 			}
 
@@ -277,8 +277,8 @@ KEY tournament_id (tournament_id)
 			);
 			foreach ( $trneed as $c => $alter ) {
 				if ( ! $this->column_exists( $trans_table, $c ) ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( 'ALTER TABLE `' . $trans_table . '` ' . $alter );
+               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$trans_table}` {$alter}" );
 				}
 			}
 												// Ensure composite unique index on (slug, locale).
@@ -311,8 +311,8 @@ KEY tournament_id (tournament_id)
 			);
 			foreach ( $afw_need as $c => $alter ) {
 				if ( ! $this->column_exists( $aff_websites_table, $c ) ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( 'ALTER TABLE `' . $aff_websites_table . '` ' . $alter );
+               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$aff_websites_table}` {$alter}" );
 				}
 			}
 			if ( ! $this->index_exists( $aff_websites_table, 'slug_unique' ) ) {
@@ -331,8 +331,8 @@ KEY tournament_id (tournament_id)
 			);
 			foreach ( $hwneed as $c => $alter ) {
 				if ( ! $this->column_exists( $winners_table, $c ) ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( 'ALTER TABLE `' . $winners_table . '` ' . $alter );
+               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$winners_table}` {$alter}" );
 				}
 			}
 			if ( ! $this->index_exists( $winners_table, 'hunt_id' ) ) {
