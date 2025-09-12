@@ -1,12 +1,15 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; }
+	exit;
+}
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) ); }
+	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
+}
 
 $hunt_id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 if ( ! $hunt_id ) {
-	wp_die( esc_html( bhg_t( 'missing_hunt_id', 'Missing hunt id' ) ) ); }
+	wp_die( esc_html( bhg_t( 'missing_hunt_id', 'Missing hunt id' ) ) );
+}
 
 check_admin_referer( 'bhg_edit_hunt_' . $hunt_id, 'bhg_nonce' );
 
@@ -26,7 +29,8 @@ if ( ! function_exists( 'bhg_get_hunt' ) || ! function_exists( 'bhg_get_hunt_par
 
 $hunt = bhg_get_hunt( $hunt_id );
 if ( ! $hunt ) {
-	wp_die( esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) ); }
+	wp_die( esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) );
+}
 
 $paged    = max( 1, isset( $_GET['ppaged'] ) ? absint( wp_unslash( $_GET['ppaged'] ) ) : 1 );
 $per_page = 30;
