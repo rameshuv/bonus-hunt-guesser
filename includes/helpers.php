@@ -98,10 +98,10 @@ if ( ! function_exists( 'bhg_t' ) ) {
 	function bhg_t( $slug, $default_text = '', $locale = '' ) {
 			global $wpdb;
 
-			$slug      = (string) $slug;
-			$locale    = $locale ? (string) $locale : get_locale();
-			$cache_key = 'bhg_t_' . $slug . '_' . $locale;
-			$cached    = wp_cache_get( $cache_key );
+                        $slug      = (string) $slug;
+                        $locale    = $locale ? (string) $locale : get_locale();
+                        $cache_key = 'bhg_t_' . $slug . '_' . $locale;
+                        $cached    = wp_cache_get( $cache_key, 'bhg_translations' );
 
 		if ( false !== $cached ) {
 				return (string) $cached;
@@ -116,14 +116,14 @@ if ( ! function_exists( 'bhg_t' ) ) {
 						$row   = $wpdb->get_row( $sql );
 
 		if ( $row ) {
-			$value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
-			wp_cache_set( $cache_key, $value );
-			return $value;
-		}
+                        $value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
+                        wp_cache_set( $cache_key, $value, 'bhg_translations' );
+                        return $value;
+                }
 
-			wp_cache_set( $cache_key, (string) $default_text );
-			return (string) $default_text;
-	}
+                        wp_cache_set( $cache_key, (string) $default_text, 'bhg_translations' );
+                        return (string) $default_text;
+        }
 }
 
 if ( ! function_exists( 'bhg_get_default_translations' ) ) {
