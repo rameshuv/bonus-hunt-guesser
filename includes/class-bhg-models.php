@@ -42,22 +42,19 @@ class BHG_Models {
 			return array();
 		}
 
-		$hunts_tbl   = $wpdb->prefix . 'bhg_bonus_hunts';
-		$guesses_tbl = $wpdb->prefix . 'bhg_guesses';
-		$winners_tbl = $wpdb->prefix . 'bhg_hunt_winners';
-		$tres_tbl    = $wpdb->prefix . 'bhg_tournament_results';
+				$hunts_tbl   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+				$guesses_tbl = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+				$winners_tbl = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+				$tres_tbl    = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
 
-		// Determine number of winners and tournament association for this hunt.
-		$hunt_row      = $wpdb->get_row(
-			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-				sprintf(
-					'SELECT winners_count, tournament_id FROM %s WHERE id = %%d',
-					esc_sql( $hunts_tbl )
-				),
-				$hunt_id
-			)
-		);
-		$winners_count = $hunt_row ? (int) $hunt_row->winners_count : 0;
+				// Determine number of winners and tournament association for this hunt.
+				$hunt_row = $wpdb->get_row(
+					$wpdb->prepare(
+						'SELECT winners_count, tournament_id FROM ' . $wpdb->prefix . 'bhg_bonus_hunts WHERE id = %d',
+						(int) $hunt_id
+					)
+				);
+		$winners_count    = $hunt_row ? (int) $hunt_row->winners_count : 0;
 		if ( $winners_count <= 0 ) {
 			$winners_count = 1;
 		}
@@ -83,18 +80,15 @@ class BHG_Models {
 			return false;
 		}
 
-		// Fetch winners based on proximity to final balance.
-		$rows = $wpdb->get_results(
-			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-				sprintf(
-					'SELECT user_id, guess, ABS(guess - %%f) AS diff FROM %s WHERE hunt_id = %%d ORDER BY diff ASC, id ASC LIMIT %%d',
-					esc_sql( $guesses_tbl )
-				),
-				$final_balance,
-				$hunt_id,
-				$winners_count
-			)
-		);
+				// Fetch winners based on proximity to final balance.
+				$rows = $wpdb->get_results(
+					$wpdb->prepare(
+						'SELECT user_id, guess, ABS(guess - %f) AS diff FROM ' . $wpdb->prefix . 'bhg_guesses WHERE hunt_id = %d ORDER BY diff ASC, id ASC LIMIT %d',
+						(float) $final_balance,
+						(int) $hunt_id,
+						(int) $winners_count
+					)
+				);
 
 		if ( empty( $rows ) ) {
 			return array();
@@ -117,16 +111,13 @@ class BHG_Models {
 			);
 
 			if ( $tournament_id > 0 ) {
-				$existing = $wpdb->get_row(
-					$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-						sprintf(
-							'SELECT id, wins FROM %s WHERE tournament_id = %%d AND user_id = %%d',
-							esc_sql( $tres_tbl )
-						),
-						$tournament_id,
-						$row->user_id
-					)
-				);
+										$existing = $wpdb->get_row(
+											$wpdb->prepare(
+												'SELECT id, wins FROM ' . $wpdb->prefix . 'bhg_tournament_results WHERE tournament_id = %d AND user_id = %d',
+												(int) $tournament_id,
+												(int) $row->user_id
+											)
+										);
 				if ( $existing ) {
 					$updated = $wpdb->update(
 						$tres_tbl,
