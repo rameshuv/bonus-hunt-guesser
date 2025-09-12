@@ -1,5 +1,5 @@
 Bonus Hunt Guesser — Consolidated Build
-Date: 2025-09-05
+Date: 2025-09-12
 
 ## Stage-1 (Hotfix & Hardening)
 - Always run DB migrations on init via bhg_check_tables() → fixes missing tournament columns.
