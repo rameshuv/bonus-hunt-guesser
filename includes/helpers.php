@@ -101,7 +101,7 @@ if ( ! function_exists( 'bhg_t' ) ) {
                         $slug      = (string) $slug;
                         $locale    = $locale ? (string) $locale : get_locale();
                         $cache_key = 'bhg_t_' . $slug . '_' . $locale;
-                        $cached    = wp_cache_get( $cache_key, 'bhg_translations' );
+                        $cached    = wp_cache_get( $cache_key, BHG_TRANSLATION_CACHE_GROUP );
 
 		if ( false !== $cached ) {
 				return (string) $cached;
@@ -117,12 +117,27 @@ if ( ! function_exists( 'bhg_t' ) ) {
 
 		if ( $row ) {
                         $value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
-                        wp_cache_set( $cache_key, $value, 'bhg_translations' );
+                        wp_cache_set( $cache_key, $value, BHG_TRANSLATION_CACHE_GROUP );
                         return $value;
                 }
 
-                        wp_cache_set( $cache_key, (string) $default_text, 'bhg_translations' );
+                        wp_cache_set( $cache_key, (string) $default_text, BHG_TRANSLATION_CACHE_GROUP );
                         return (string) $default_text;
+        }
+}
+
+if ( ! function_exists( 'bhg_clear_translation_cache' ) ) {
+                /**
+                 * Flush all cached translations.
+                 *
+                 * @return void
+                 */
+        function bhg_clear_translation_cache() {
+                if ( function_exists( 'wp_cache_flush_group' ) ) {
+                        wp_cache_flush_group( BHG_TRANSLATION_CACHE_GROUP );
+                } else {
+                        wp_cache_flush();
+                }
         }
 }
 
@@ -634,7 +649,7 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
 						$table  = esc_sql( $wpdb->prefix . 'bhg_translations' );
 						$locale = get_locale();
 
-		foreach ( bhg_get_default_translations() as $slug => $def_text ) {
+                foreach ( bhg_get_default_translations() as $slug => $def_text ) {
 				$slug = trim( (string) $slug );
 			if ( '' === $slug ) {
 					continue; // Skip invalid keys.
@@ -650,18 +665,20 @@ if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
 				continue;
 			}
 
-				$wpdb->insert(
-					$table,
-					array(
-						'slug'         => $slug,
-						'default_text' => (string) $def_text,
-						'text'         => '',
-						'locale'       => $locale,
-					),
-					array( '%s', '%s', '%s', '%s' )
-				);
-		}
-	}
+                                $wpdb->insert(
+                                        $table,
+                                        array(
+                                                'slug'         => $slug,
+                                                'default_text' => (string) $def_text,
+                                                'text'         => '',
+                                                'locale'       => $locale,
+                                        ),
+                                        array( '%s', '%s', '%s', '%s' )
+                                );
+                }
+
+                bhg_clear_translation_cache();
+        }
 }
 
 if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
