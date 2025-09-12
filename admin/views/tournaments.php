@@ -17,7 +17,11 @@ $row     = $edit_id
 ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id ) ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 : null;
 
-$search_term     = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+$search_term = '';
+if ( isset( $_GET['s'] ) ) {
+    check_admin_referer( 'bhg_tournaments_search', 'bhg_tournaments_search_nonce' );
+    $search_term = sanitize_text_field( wp_unslash( $_GET['s'] ) );
+}
 $orderby_param   = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order_param     = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
 $allowed_orderby = array(
@@ -55,14 +59,15 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 	echo esc_html( bhg_t( 'all_tournaments', 'All Tournaments' ) );
 	?>
 </h2>
-		<form method="get" class="search-form">
-				<input type="hidden" name="page" value="bhg-tournaments" />
-				<p class="search-box">
-						<label class="screen-reader-text" for="bhg-search-input"><?php echo esc_html( bhg_t( 'search_tournaments', 'Search Tournaments' ) ); ?></label>
+               <form method="get" class="search-form">
+                               <?php wp_nonce_field( 'bhg_tournaments_search', 'bhg_tournaments_search_nonce' ); ?>
+                               <input type="hidden" name="page" value="bhg-tournaments" />
+                               <p class="search-box">
+                                               <label class="screen-reader-text" for="bhg-search-input"><?php echo esc_html( bhg_t( 'search_tournaments', 'Search Tournaments' ) ); ?></label>
 <input type="search" id="bhg-search-input" name="s" value="<?php echo esc_attr( $search_term ); ?>" />
-						<?php submit_button( bhg_t( 'search', 'Search' ), 'button', false, false, array( 'id' => 'search-submit' ) ); ?>
-				</p>
-		</form>
+                                               <?php submit_button( bhg_t( 'search', 'Search' ), 'button', false, false, array( 'id' => 'search-submit' ) ); ?>
+                               </p>
+               </form>
 		<table class="widefat striped">
 		<thead>
 		<tr>
