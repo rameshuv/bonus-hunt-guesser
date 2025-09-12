@@ -31,8 +31,8 @@ if (
 
 
 $view = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : 'list';
-if ( ! in_array( $view, array( 'list', 'add', 'edit' ), true ) ) {
-	$view = 'list';
+if ( ! in_array( $view, array( 'list', 'add', 'edit', 'close' ), true ) ) {
+        $view = 'list';
 }
 
 /** LIST VIEW */
