@@ -1,117 +1,26 @@
 <?php
+/**
+ * Admin Bonus Hunts header view.
+ *
+ * @package BonusHuntGuesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Check user capabilities
+
+// Check user capabilities.
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 
-global $wpdb;
-$bhg_db  = new BHG_DB();
-$message = '';
+$bonus_hunts        = $bonus_hunts ?? array();
+$affiliate_websites = $affiliate_websites ?? array();
 
-// Process form submissions
-if ( isset( $_POST['bhg_action'] ) ) {
-		$action = sanitize_text_field( wp_unslash( $_POST['bhg_action'] ) );
-
-	// Verify nonce based on action
-	$nonce_action = 'bhg_' . $action;
-	check_admin_referer( $nonce_action, 'bhg_nonce' );
-
-	switch ( $action ) {
-		case 'create_bonus_hunt':
-			// Handle bonus hunt creation with proper sanitization
-						$title             = sanitize_text_field( wp_unslash( $_POST['title'] ) );
-						$starting_balance  = floatval( wp_unslash( $_POST['starting_balance'] ) );
-						$num_bonuses       = intval( wp_unslash( $_POST['num_bonuses'] ) );
-						$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ) );
-						$status            = sanitize_text_field( wp_unslash( $_POST['status'] ) );
-						$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
-
-			// Save to database
-			$result = $bhg_db->create_bonus_hunt(
-				array(
-					'title'             => $title,
-					'starting_balance'  => $starting_balance,
-					'num_bonuses'       => $num_bonuses,
-					'prizes'            => $prizes,
-					'status'            => $status,
-					'affiliate_site_id' => $affiliate_site_id,
-					'created_by'        => get_current_user_id(),
-					'created_at'        => current_time( 'mysql' ),
-				)
-			);
-
-			if ( $result ) {
-				$message = 'success';
-			} else {
-				$message = 'error';
-			}
-			break;
-
-		case 'update_bonus_hunt':
-			// Handle bonus hunt update
-						$id                = intval( wp_unslash( $_POST['id'] ) );
-						$title             = sanitize_text_field( wp_unslash( $_POST['title'] ) );
-						$starting_balance  = floatval( wp_unslash( $_POST['starting_balance'] ) );
-						$num_bonuses       = intval( wp_unslash( $_POST['num_bonuses'] ) );
-						$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ) );
-						$status            = sanitize_text_field( wp_unslash( $_POST['status'] ) );
-						$final_balance     = isset( $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
-						$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
-
-			$result = $bhg_db->update_bonus_hunt(
-				$id,
-				array(
-					'title'             => $title,
-					'starting_balance'  => $starting_balance,
-					'num_bonuses'       => $num_bonuses,
-					'prizes'            => $prizes,
-					'status'            => $status,
-					'final_balance'     => $final_balance,
-					'affiliate_site_id' => $affiliate_site_id,
-				)
-			);
-
-			if ( $result ) {
-				$message = 'updated';
-			} else {
-				$message = 'error';
-			}
-			break;
-
-		case 'delete_bonus_hunt':
-			// Handle bonus hunt deletion
-						$id = intval( wp_unslash( $_POST['id'] ) );
-			$result         = $bhg_db->delete_bonus_hunt( $id );
-
-			if ( $result ) {
-				$message = 'deleted';
-			} else {
-				$message = 'error';
-			}
-			break;
-
-		default:
-			// Unknown action
-			break;
-	}
-
-	// Redirect to avoid form resubmission
-		$redirect_url = esc_url_raw( add_query_arg( 'message', $message, wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
-	wp_safe_redirect( $redirect_url );
-	exit;
-}
-
-// Get all bonus hunts
-$bonus_hunts        = $bhg_db->get_all_bonus_hunts();
-$affiliate_websites = $bhg_db->get_affiliate_websites();
-
-// Display status messages
-if ( isset( $_GET['message'] ) ) {
-		$message_type = sanitize_text_field( wp_unslash( $_GET['message'] ) );
+// Display status messages.
+if ( isset( $_GET['message'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$message_type = sanitize_text_field( wp_unslash( $_GET['message'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	switch ( $message_type ) {
 		case 'success':
 			echo '<div class="notice notice-success is-dismissible"><p>' .
@@ -151,58 +60,35 @@ if ( isset( $_GET['message'] ) ) {
 		echo esc_html( bhg_t( 'button_create_new_bonus_hunt', 'Create New Bonus Hunt' ) );
 		?>
 </h2>
-		<form method="post" action="">
-			<?php wp_nonce_field( 'bhg_create_bonus_hunt', 'bhg_nonce' ); ?>
-			<input type="hidden" name="bhg_action" value="create_bonus_hunt">
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+<?php wp_nonce_field( 'bhg_create_bonus_hunt', 'bhg_nonce' ); ?>
+<input type="hidden" name="action" value="bhg_create_bonus_hunt" />
 			
 			<table class="form-table">
-				<tr>
-					<th scope="row"><label for="title">
-					<?php
-					echo esc_html( bhg_t( 'label_bonus_hunt_title', 'Bonus Hunt Title' ) );
-					?>
+<tr>
+<th scope="row"><label for="title">
+<?php echo esc_html( bhg_t( 'label_bonus_hunt_title', 'Bonus Hunt Title' ) ); ?>
 </label></th>
-					<td>
-                                                <input type="text" name="title" id="title" class="regular-text" required
-                                                                value="<?php echo isset( $_POST['title'] ) ? esc_attr( wp_unslash( $_POST['title'] ) ) : ''; ?>">
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="starting_balance">
-					<?php
-					echo esc_html( bhg_t( 'label_start_balance_euro', 'Starting Balance (€)' ) );
-					?>
+<td><input type="text" name="title" id="title" class="regular-text" required /></td>
+</tr>
+<tr>
+<th scope="row"><label for="starting_balance">
+<?php echo esc_html( bhg_t( 'label_start_balance_euro', 'Starting Balance (€)' ) ); ?>
 </label></th>
-					<td>
-                                                <input type="number" name="starting_balance" id="starting_balance" step="0.01" min="0"
-                                                                value="<?php echo esc_attr( isset( $_POST['starting_balance'] ) ? floatval( wp_unslash( $_POST['starting_balance'] ) ) : '0' ); ?>" required>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="num_bonuses">
-					<?php
-					echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) );
-					?>
+<td><input type="number" name="starting_balance" id="starting_balance" step="0.01" min="0" value="0" required /></td>
+</tr>
+<tr>
+<th scope="row"><label for="num_bonuses">
+<?php echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ); ?>
 </label></th>
-					<td>
-                                                <input type="number" name="num_bonuses" id="num_bonuses" min="1"
-                                                                value="<?php echo esc_attr( isset( $_POST['num_bonuses'] ) ? intval( wp_unslash( $_POST['num_bonuses'] ) ) : '10' ); ?>" required>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="prizes">
-					<?php
-					echo esc_html( bhg_t( 'label_prizes_description', 'Prizes Description' ) );
-					?>
+<td><input type="number" name="num_bonuses" id="num_bonuses" min="1" value="10" required /></td>
+</tr>
+<tr>
+<th scope="row"><label for="prizes">
+<?php echo esc_html( bhg_t( 'label_prizes_description', 'Prizes Description' ) ); ?>
 </label></th>
-					<td>
-						<textarea name="prizes" id="prizes" rows="5" class="large-text">
-                                                <?php
-                                                        echo isset( $_POST['prizes'] ) ? esc_textarea( wp_unslash( $_POST['prizes'] ) ) : '';
-                                                ?>
-                                                </textarea>
-					</td>
-				</tr>
+<td><textarea name="prizes" id="prizes" rows="5" class="large-text"></textarea></td>
+</tr>
 				<tr>
 					<th scope="row"><label for="status">
 					<?php
@@ -338,17 +224,17 @@ if ( isset( $_GET['message'] ) ) {
 									echo esc_html( bhg_t( 'button_edit', 'Edit' ) );
 									?>
 								</a>
-								<form method="post" style="display:inline;">
-									<?php wp_nonce_field( 'bhg_delete_bonus_hunt', 'bhg_nonce' ); ?>
-									<input type="hidden" name="bhg_action" value="delete_bonus_hunt">
-									<input type="hidden" name="id" value="<?php echo esc_attr( $hunt->id ); ?>">
-									<button type="submit" class="button button-small button-danger"
-											onclick="return confirm('<?php echo esc_js( bhg_t( 'confirm_delete_bonus_hunt', 'Are you sure you want to delete this bonus hunt?' ) ); ?>');">
-										<?php
-										echo esc_html( bhg_t( 'button_delete', 'Delete' ) );
-										?>
-									</button>
-								</form>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
+						<?php wp_nonce_field( 'bhg_delete_bonus_hunt', 'bhg_nonce' ); ?>
+<input type="hidden" name="action" value="bhg_delete_bonus_hunt" />
+<input type="hidden" name="id" value="<?php echo esc_attr( $hunt->id ); ?>" />
+<button type="submit" class="button button-small button-danger"
+onclick="return confirm('<?php echo esc_js( bhg_t( 'confirm_delete_bonus_hunt', 'Are you sure you want to delete this bonus hunt?' ) ); ?>');">
+						<?php
+						echo esc_html( bhg_t( 'button_delete', 'Delete' ) );
+						?>
+</button>
+</form>
 							</td>
 						</tr>
 					<?php endforeach; ?>
