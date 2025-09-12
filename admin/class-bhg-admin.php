@@ -427,18 +427,32 @@ class BHG_Admin {
 		}
 		check_admin_referer( 'bhg_delete_hunt', 'bhg_delete_hunt_nonce' );
 
-		global $wpdb;
-                $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-                $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-		$hunt_id       = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+               global $wpdb;
+$hunts_table    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$guesses_table  = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+$winners_table  = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+$results_table  = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
+$hunt_id        = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 
-		if ( $hunt_id ) {
-			$wpdb->delete( $hunts_table, array( 'id' => $hunt_id ), array( '%d' ) );
-			$wpdb->delete( $guesses_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
-		}
+if ( $hunt_id ) {
+$tournament_id = (int) $wpdb->get_var(
+$wpdb->prepare(
+"SELECT tournament_id FROM {$hunts_table} WHERE id = %d",
+$hunt_id
+)
+);
 
-				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
-		exit;
+$wpdb->delete( $hunts_table, array( 'id' => $hunt_id ), array( '%d' ) );
+$wpdb->delete( $guesses_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
+$wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
+
+if ( $tournament_id ) {
+$wpdb->delete( $results_table, array( 'tournament_id' => $tournament_id ), array( '%d' ) );
+}
+}
+
+wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts&bhg_msg=hunt_deleted' ) );
+exit;
 	}
 
 	/**
