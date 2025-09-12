@@ -83,16 +83,17 @@ KEY tournament_id (tournament_id)
 ) {$charset_collate};";
 
 				// Guesses.
-				$sql[] = "CREATE TABLE `{$guesses_table}` (
-			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			hunt_id BIGINT UNSIGNED NOT NULL,
-			user_id BIGINT UNSIGNED NOT NULL,
-			guess DECIMAL(12,2) NOT NULL,
-			created_at DATETIME NULL,
-			PRIMARY KEY  (id),
-			KEY hunt_id (hunt_id),
-			KEY user_id (user_id)
-		) {$charset_collate};";
+								$sql[] = "CREATE TABLE `{$guesses_table}` (
+                        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                        hunt_id BIGINT UNSIGNED NOT NULL,
+                        user_id BIGINT UNSIGNED NOT NULL,
+                        guess DECIMAL(12,2) NOT NULL,
+                        created_at DATETIME NULL,
+                        updated_at DATETIME NULL,
+                        PRIMARY KEY  (id),
+                        KEY hunt_id (hunt_id),
+                        KEY user_id (user_id)
+                ) {$charset_collate};";
 
 		// Tournaments.
 		$sql[] = "CREATE TABLE `{$tours_table}` (
@@ -192,11 +193,22 @@ KEY tournament_id (tournament_id)
 				}
 			}
 			if ( ! $this->index_exists( $hunts_table, 'tournament_id' ) ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY tournament_id (tournament_id)" );
+							// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+							$wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY tournament_id (tournament_id)" );
 			}
 
-						// Tournaments: make sure common columns exist.
+						// Guesses columns.
+						$gneed = array(
+							'updated_at' => "ALTER TABLE `{$guesses_table}` ADD COLUMN updated_at DATETIME NULL",
+						);
+						foreach ( $gneed as $c => $alter ) {
+							if ( ! $this->column_exists( $guesses_table, $c ) ) {
+									// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+									$wpdb->query( $alter );
+							}
+						}
+
+												// Tournaments: make sure common columns exist.
 						$tneed = array(
 							'title'             => "ALTER TABLE `{$tours_table}` ADD COLUMN title VARCHAR(190) NOT NULL",
 							'description'       => "ALTER TABLE `{$tours_table}` ADD COLUMN description TEXT NULL",
@@ -391,10 +403,10 @@ KEY tournament_id (tournament_id)
 
 		$wpdb->last_error = '';
 		$sql              = $wpdb->prepare(
-                       'SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND COLUMN_NAME=%s',
-                       DB_NAME,
-                       $table,
-                       $column
+			'SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND COLUMN_NAME=%s',
+			DB_NAME,
+			$table,
+			$column
 		);
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 				$exists = $wpdb->get_var( $sql );
@@ -420,10 +432,10 @@ KEY tournament_id (tournament_id)
 
 		$wpdb->last_error = '';
 		$sql              = $wpdb->prepare(
-                       'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND INDEX_NAME=%s',
-                       DB_NAME,
-                       $table,
-                       $index
+			'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND INDEX_NAME=%s',
+			DB_NAME,
+			$table,
+			$index
 		);
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 				$exists = $wpdb->get_var( $sql );
