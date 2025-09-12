@@ -83,8 +83,8 @@ KEY status (status),
 KEY tournament_id (tournament_id)
 ) {$charset_collate};";
 
-				// Guesses.
-								$sql[] = "CREATE TABLE `{$guesses_table}` (
+		// Guesses table includes updated_at for tracking edits.
+		$sql[] = "CREATE TABLE `{$guesses_table}` (
                         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                         hunt_id BIGINT UNSIGNED NOT NULL,
                         user_id BIGINT UNSIGNED NOT NULL,
@@ -200,6 +200,7 @@ KEY tournament_id (tournament_id)
 
 			// Guesses columns.
 			$gneed = array(
+				// Ensure timestamp for guess updates.
 				'updated_at' => 'ADD COLUMN updated_at DATETIME NULL',
 			);
 			foreach ( $gneed as $c => $alter ) {
