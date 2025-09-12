@@ -150,19 +150,24 @@ $labels = array(
 				) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a>';
 				?>
 				</th>
-		<th>
-		<?php
-		echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
-		?>
+               <th>
+               <?php
+               echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
+               ?>
 </th>
-		</tr>
-	</thead>
-	<tbody>
-		<?php if ( empty( $rows ) ) : ?>
-		<tr><td colspan="7"><em>
-			<?php
-			echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
-			?>
+               <th>
+               <?php
+               echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) );
+               ?>
+</th>
+               </tr>
+       </thead>
+       <tbody>
+               <?php if ( empty( $rows ) ) : ?>
+               <tr><td colspan="8"><em>
+                       <?php
+                       echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
+                       ?>
 </em></td></tr>
 			<?php
 		else :
@@ -173,20 +178,28 @@ $labels = array(
 			<td><?php echo esc_html( $r->title ); ?></td>
 			<td><?php echo esc_html( $labels[ $r->type ] ?? $r->type ); ?></td>
 			<td><?php echo esc_html( $r->start_date ); ?></td>
-			<td><?php echo esc_html( $r->end_date ); ?></td>
-						<td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
-						<td>
-						<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
-								<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
-						</a>
-						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
-								<?php wp_nonce_field( 'bhg_tournament_delete_action', 'bhg_tournament_delete_nonce' ); ?>
-								<input type="hidden" name="action" value="bhg_tournament_delete" />
+                       <td><?php echo esc_html( $r->end_date ); ?></td>
+<td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
+<td>
+<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
+<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
+</a>
+<a class="button" href="<?php echo esc_url( add_query_arg( array( 'close' => (int) $r->id ) ) ); ?>">
+<?php echo esc_html( bhg_t( 'close', 'Close' ) ); ?>
+</a>
+<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts-results&type=tournament&id=' . (int) $r->id ) ); ?>">
+<?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?>
+</a>
+</td>
+<td>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
+<?php wp_nonce_field( 'bhg_tournament_delete_action', 'bhg_tournament_delete_nonce' ); ?>
+<input type="hidden" name="action" value="bhg_tournament_delete" />
 <input type="hidden" name="id" value="<?php echo esc_attr( (int) $r->id ); ?>" />
-								<button type="submit" class="button button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'are_you_sure', 'Are you sure?' ) ); ?>');"><?php echo esc_html( bhg_t( 'button_delete', 'Delete' ) ); ?></button>
-						</form>
-						</td>
-		</tr>
+<button type="submit" class="button button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'are_you_sure', 'Are you sure?' ) ); ?>');"><?php echo esc_html( bhg_t( 'button_delete', 'Delete' ) ); ?></button>
+</form>
+</td>
+               </tr>
 					<?php
 		endforeach;
 endif;
