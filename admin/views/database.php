@@ -27,90 +27,11 @@ if ( 'db_cleanup' === $db_action && ! empty( $cleanup_request ) ) {
 	bhg_database_cleanup();
 	$cleanup_completed = true;
 } elseif ( 'db_optimize' === $db_action && ! empty( $optimize_request ) ) {
-	check_admin_referer( 'bhg_db_optimize_action', 'bhg_nonce' );
+        check_admin_referer( 'bhg_db_optimize_action', 'bhg_nonce' );
 
-	// Perform database optimization.
-	bhg_database_optimize();
-	$optimize_completed = true;
-}
-
-/**
- * Truncate all plugin tables and reinsert demo data.
- *
- * @return void
- */
-function bhg_database_cleanup() {
-	global $wpdb;
-
-        $tables = array(
-                esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' ),
-                esc_sql( $wpdb->prefix . 'bhg_guesses' ),
-                esc_sql( $wpdb->prefix . 'bhg_tournaments' ),
-                esc_sql( $wpdb->prefix . 'bhg_tournament_results' ),
-                esc_sql( $wpdb->prefix . 'bhg_translations' ),
-                esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' ),
-                esc_sql( $wpdb->prefix . 'bhg_hunt_winners' ),
-                esc_sql( $wpdb->prefix . 'bhg_ads' ),
-        );
-
-	foreach ( $tables as $table ) {
-                if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) === $table ) {
-                        $wpdb->query( "TRUNCATE TABLE {$table}" );
-                }
-	}
-
-	// Reinsert default data if needed.
-	bhg_insert_demo_data();
-}
-
-/**
- * Optimize all plugin tables.
- *
- * @return void
- */
-function bhg_database_optimize() {
-	global $wpdb;
-
-        $tables = array(
-                esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' ),
-                esc_sql( $wpdb->prefix . 'bhg_guesses' ),
-                esc_sql( $wpdb->prefix . 'bhg_tournaments' ),
-                esc_sql( $wpdb->prefix . 'bhg_tournament_results' ),
-                esc_sql( $wpdb->prefix . 'bhg_translations' ),
-                esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' ),
-                esc_sql( $wpdb->prefix . 'bhg_hunt_winners' ),
-                esc_sql( $wpdb->prefix . 'bhg_ads' ),
-        );
-
-	foreach ( $tables as $table ) {
-                if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) === $table ) {
-                        $wpdb->query( "OPTIMIZE TABLE {$table}" );
-                }
-	}
-}
-
-/**
- * Insert basic demo data.
- *
- * This would typically live in a separate demo seeder file.
- *
- * @return void
- */
-function bhg_insert_demo_data() {
-	global $wpdb;
-
-	// Insert default bonus hunt.
-	$wpdb->insert(
-		$wpdb->prefix . 'bhg_bonus_hunts',
-		array(
-			'title'            => 'Demo Bonus Hunt',
-			'starting_balance' => 2000,
-			'num_bonuses'      => 10,
-			'status'           => 'active',
-			'created_at'       => current_time( 'mysql' ),
-		),
-		array( '%s', '%d', '%d', '%s', '%s' )
-	);
+        // Perform database optimization.
+        bhg_database_optimize();
+        $optimize_completed = true;
 }
 
 ?>
