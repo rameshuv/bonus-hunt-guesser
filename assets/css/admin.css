@@ -192,6 +192,10 @@ flex: 1;
     text-align: left;
 }
 
+.bhg-dashboard-table td {
+    text-align: left;
+}
+
 .bhg-summary-table td,
 .bhg-summary-table th {
     text-align: center;
@@ -202,10 +206,6 @@ flex: 1;
     font-weight: 600;
 }
 
-.bhg-latest-hunts-table td:nth-child(3),
-.bhg-latest-hunts-table td:nth-child(4) {
-    text-align: right;
-}
 
 .bhg-card-content > p {
     margin-top: var(--bhg-spacing);
