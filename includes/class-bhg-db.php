@@ -23,8 +23,8 @@ class BHG_DB {
 		$db = new self();
 		$db->create_tables();
 
-		global $wpdb;
-		$tours_table = esc_sql( "`{$wpdb->prefix}bhg_tournaments`" );
+				global $wpdb;
+				$tours_table = $wpdb->prefix . 'bhg_tournaments';
 
 		// Drop legacy "period" column and related index if they exist.
 		if ( $db->column_exists( $tours_table, 'period' ) ) {
@@ -50,19 +50,19 @@ class BHG_DB {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$hunts_table        = esc_sql( "`{$wpdb->prefix}bhg_bonus_hunts`" );
-		$guesses_table      = esc_sql( "`{$wpdb->prefix}bhg_guesses`" );
-		$tours_table        = esc_sql( "`{$wpdb->prefix}bhg_tournaments`" );
-		$tres_table         = esc_sql( "`{$wpdb->prefix}bhg_tournament_results`" );
-		$ads_table          = esc_sql( "`{$wpdb->prefix}bhg_ads`" );
-		$trans_table        = esc_sql( "`{$wpdb->prefix}bhg_translations`" );
-		$aff_websites_table = esc_sql( "`{$wpdb->prefix}bhg_affiliate_websites`" );
-		$winners_table      = esc_sql( "`{$wpdb->prefix}bhg_hunt_winners`" );
+				$hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts';
+				$guesses_table      = $wpdb->prefix . 'bhg_guesses';
+				$tours_table        = $wpdb->prefix . 'bhg_tournaments';
+				$tres_table         = $wpdb->prefix . 'bhg_tournament_results';
+				$ads_table          = $wpdb->prefix . 'bhg_ads';
+				$trans_table        = $wpdb->prefix . 'bhg_translations';
+				$aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
+				$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
 
 		$sql = array();
 
 				// Bonus Hunts.
-		$sql[] = "CREATE TABLE {$hunts_table} (
+				$sql[] = "CREATE TABLE `{$hunts_table}` (
 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 title VARCHAR(190) NOT NULL,
 starting_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -83,7 +83,7 @@ KEY tournament_id (tournament_id)
 ) {$charset_collate};";
 
 				// Guesses.
-		$sql[] = "CREATE TABLE {$guesses_table} (
+				$sql[] = "CREATE TABLE `{$guesses_table}` (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			hunt_id BIGINT UNSIGNED NOT NULL,
 			user_id BIGINT UNSIGNED NOT NULL,
@@ -94,8 +94,8 @@ KEY tournament_id (tournament_id)
 			KEY user_id (user_id)
 		) {$charset_collate};";
 
-								// Tournaments.
-								$sql[] = "CREATE TABLE {$tours_table} (
+		// Tournaments.
+		$sql[] = "CREATE TABLE `{$tours_table}` (
                                                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                                 title VARCHAR(190) NOT NULL,
                                                 description TEXT NULL,
@@ -111,8 +111,8 @@ KEY tournament_id (tournament_id)
                                                 KEY status (status)
                                 ) {$charset_collate};";
 
-								// Tournament Results.
-				$sql[] = "CREATE TABLE {$tres_table} (
+		// Tournament Results.
+		$sql[] = "CREATE TABLE `{$tres_table}` (
 						id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 						tournament_id BIGINT UNSIGNED NOT NULL,
 						user_id BIGINT UNSIGNED NOT NULL,
@@ -123,8 +123,8 @@ KEY tournament_id (tournament_id)
 						KEY user_id (user_id)
 				) {$charset_collate};";
 
-								// Ads.
-				$sql[] = "CREATE TABLE {$ads_table} (
+		// Ads.
+		$sql[] = "CREATE TABLE `{$ads_table}` (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			title VARCHAR(190) NOT NULL,
 			content TEXT NULL,
@@ -140,8 +140,8 @@ KEY tournament_id (tournament_id)
 			KEY visible_to (visible_to)
 		) {$charset_collate};";
 
-								// Affiliate Websites.
-				$sql[] = "CREATE TABLE {$aff_websites_table} (
+		// Affiliate Websites.
+		$sql[] = "CREATE TABLE `{$aff_websites_table}` (
 					   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 					   name VARCHAR(190) NOT NULL,
 					   slug VARCHAR(190) NOT NULL,
@@ -153,8 +153,8 @@ KEY tournament_id (tournament_id)
 					   UNIQUE KEY slug_unique (slug)
 			   ) {$charset_collate};";
 
-								// Hunt Winners.
-				$sql[] = "CREATE TABLE {$winners_table} (
+		// Hunt Winners.
+		$sql[] = "CREATE TABLE `{$winners_table}` (
 					   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 					   hunt_id BIGINT UNSIGNED NOT NULL,
 					   user_id BIGINT UNSIGNED NOT NULL,
@@ -347,10 +347,10 @@ KEY tournament_id (tournament_id)
 	private function create_table_translations() {
 			global $wpdb;
 
-			$table           = "`{$wpdb->prefix}bhg_translations`";
-			$charset_collate = $wpdb->get_charset_collate();
+						$table           = $wpdb->prefix . 'bhg_translations';
+						$charset_collate = $wpdb->get_charset_collate();
 
-			$sql = "CREATE TABLE {$table} (
+						$sql = "CREATE TABLE `{$table}` (
 					   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 					   slug VARCHAR(191) NOT NULL,
 					   default_text LONGTEXT NOT NULL,
@@ -373,10 +373,10 @@ KEY tournament_id (tournament_id)
 	public function get_affiliate_websites() {
 						global $wpdb;
 
-			$table = esc_sql( "`{$wpdb->prefix}bhg_affiliate_websites`" );
+						$table = $wpdb->prefix . 'bhg_affiliate_websites';
 
                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-						return $wpdb->get_results( "SELECT id, name, slug, url, status FROM {$table} ORDER BY name ASC" );
+												return $wpdb->get_results( "SELECT id, name, slug, url, status FROM `{$table}` ORDER BY name ASC" );
 	}
 
 		/**
