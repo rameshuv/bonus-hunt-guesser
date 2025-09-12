@@ -163,8 +163,8 @@ if ( isset( $_GET['message'] ) ) {
 					?>
 </label></th>
 					<td>
-						<input type="text" name="title" id="title" class="regular-text" required 
-								value="<?php echo isset( $_POST['title'] ) ? esc_attr( $_POST['title'] ) : ''; ?>">
+                                                <input type="text" name="title" id="title" class="regular-text" required
+                                                                value="<?php echo isset( $_POST['title'] ) ? esc_attr( wp_unslash( $_POST['title'] ) ) : ''; ?>">
 					</td>
 				</tr>
 				<tr>
@@ -174,8 +174,8 @@ if ( isset( $_GET['message'] ) ) {
 					?>
 </label></th>
 					<td>
-						<input type="number" name="starting_balance" id="starting_balance" step="0.01" min="0"
-								value="<?php echo esc_attr( isset( $_POST['starting_balance'] ) ? floatval( $_POST['starting_balance'] ) : '0' ); ?>" required>
+                                                <input type="number" name="starting_balance" id="starting_balance" step="0.01" min="0"
+                                                                value="<?php echo esc_attr( isset( $_POST['starting_balance'] ) ? floatval( wp_unslash( $_POST['starting_balance'] ) ) : '0' ); ?>" required>
 					</td>
 				</tr>
 				<tr>
@@ -185,8 +185,8 @@ if ( isset( $_GET['message'] ) ) {
 					?>
 </label></th>
 					<td>
-						<input type="number" name="num_bonuses" id="num_bonuses" min="1"
-								value="<?php echo esc_attr( isset( $_POST['num_bonuses'] ) ? intval( $_POST['num_bonuses'] ) : '10' ); ?>" required>
+                                                <input type="number" name="num_bonuses" id="num_bonuses" min="1"
+                                                                value="<?php echo esc_attr( isset( $_POST['num_bonuses'] ) ? intval( wp_unslash( $_POST['num_bonuses'] ) ) : '10' ); ?>" required>
 					</td>
 				</tr>
 				<tr>
@@ -197,10 +197,10 @@ if ( isset( $_GET['message'] ) ) {
 </label></th>
 					<td>
 						<textarea name="prizes" id="prizes" rows="5" class="large-text">
-						<?php
-							echo isset( $_POST['prizes'] ) ? esc_textarea( $_POST['prizes'] ) : '';
-						?>
-						</textarea>
+                                                <?php
+                                                        echo isset( $_POST['prizes'] ) ? esc_textarea( wp_unslash( $_POST['prizes'] ) ) : '';
+                                                ?>
+                                                </textarea>
 					</td>
 				</tr>
 				<tr>
