@@ -395,13 +395,23 @@ class BHG_Admin {
 			$final_balance = (float) $final_balance_raw;
 
                 if ( $hunt_id ) {
-                                BHG_Models::close_hunt( $hunt_id, $final_balance );
+                                $result = BHG_Models::close_hunt( $hunt_id, $final_balance );
+                                if ( false === $result ) {
+                                                wp_safe_redirect(
+                                                                add_query_arg(
+                                                                                'bhg_msg',
+                                                                                'close_failed',
+                                                                                BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' )
+                                                                )
+                                                );
+                                                exit;
+                                }
                 }
 
                                 $redirect_url = add_query_arg(
-                                        'closed',
-                                        1,
-                                        BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' )
+                                                'closed',
+                                                1,
+                                                BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' )
                                 );
                                 wp_safe_redirect( $redirect_url );
                 exit;
