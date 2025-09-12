@@ -641,6 +641,7 @@ function bhg_handle_submit_guess() {
 			array( '%d', '%d', '%f', '%s' )
 		);
 	wp_cache_delete( $count_cache_key );
+	$last_guess_key = 'bhg_last_guess_' . $hunt_id . '_' . $user_id;
 	if ( $last_guess_key ) {
 		wp_cache_delete( $last_guess_key );
 	}
