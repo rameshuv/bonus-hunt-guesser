@@ -48,16 +48,17 @@ class BHG_DB {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		$charset_collate = $wpdb->get_charset_collate();
+                $charset_collate = $wpdb->get_charset_collate();
 
-		$hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts'; // Raw table names without backticks.
-		$guesses_table      = $wpdb->prefix . 'bhg_guesses';
-		$tours_table        = $wpdb->prefix . 'bhg_tournaments';
-		$tres_table         = $wpdb->prefix . 'bhg_tournament_results';
-		$ads_table          = $wpdb->prefix . 'bhg_ads';
-		$trans_table        = $wpdb->prefix . 'bhg_translations';
-		$aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
-		$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
+                // Raw table names without backticks.
+                $hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts';
+                $guesses_table      = $wpdb->prefix . 'bhg_guesses';
+                $tours_table        = $wpdb->prefix . 'bhg_tournaments';
+                $tres_table         = $wpdb->prefix . 'bhg_tournament_results';
+                $ads_table          = $wpdb->prefix . 'bhg_ads';
+                $trans_table        = $wpdb->prefix . 'bhg_translations';
+                $aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
+                $winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
 
 		$sql = array();
 

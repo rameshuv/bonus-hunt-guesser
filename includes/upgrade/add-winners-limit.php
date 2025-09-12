@@ -22,7 +22,7 @@ function bhg_upgrade_add_winners_limit_column() {
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 	// Ensure table exists and has winners_count column.
-	$sql = "CREATE TABLE {$hunts} (
+        $sql = "CREATE TABLE `{$hunts}` (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			title VARCHAR(190) NOT NULL,
 			starting_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
