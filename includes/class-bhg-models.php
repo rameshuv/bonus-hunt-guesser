@@ -26,7 +26,7 @@ class BHG_Models {
      * @param int   $hunt_id       Hunt identifier.
      * @param float $final_balance Final balance for the hunt.
      *
-     * @return int[] Array of winning user IDs.
+     * @return int[]|false Array of winning user IDs or false on failure.
      */
     public static function close_hunt( $hunt_id, $final_balance ) {
         global $wpdb;
@@ -58,7 +58,7 @@ class BHG_Models {
 
         // Update hunt status and final details.
         $now = current_time( 'mysql' );
-        $wpdb->update(
+        $updated = $wpdb->update(
             $hunts_tbl,
             array(
                 'status'        => 'closed',
@@ -70,6 +70,11 @@ class BHG_Models {
             array( '%s', '%f', '%s', '%s' ),
             array( '%d' )
         );
+
+        if ( false === $updated ) {
+            bhg_log( $wpdb->last_error );
+            return false;
+        }
 
         // Fetch winners based on proximity to final balance.
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.ReplacementsMismatch
