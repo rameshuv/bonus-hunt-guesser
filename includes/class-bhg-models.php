@@ -31,6 +31,10 @@ class BHG_Models {
     public static function close_hunt( $hunt_id, $final_balance ) {
         global $wpdb;
 
+        if ( class_exists( 'BHG_DB' ) ) {
+            BHG_DB::migrate();
+        }
+
         $hunt_id       = (int) $hunt_id;
         $final_balance = (float) $final_balance;
 

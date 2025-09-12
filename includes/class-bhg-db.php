@@ -197,15 +197,10 @@ KEY tournament_id (tournament_id)
 							$wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY tournament_id (tournament_id)" );
 			}
 
-						// Guesses columns.
-			$gneed = array(
-				'updated_at' => 'ADD COLUMN updated_at DATETIME NULL',
-			);
-			foreach ( $gneed as $c => $alter ) {
-				if ( ! $this->column_exists( $guesses_table, $c ) ) {
-               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-								$wpdb->query( "ALTER TABLE `{$guesses_table}` {$alter}" );
-				}
+			// Guesses columns.
+			if ( ! $this->column_exists( $guesses_table, 'updated_at' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$guesses_table}` ADD COLUMN updated_at DATETIME NULL" );
 			}
 
 												// Tournaments: make sure common columns exist.
