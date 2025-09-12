@@ -25,27 +25,38 @@ if ( isset( $_GET['s'] ) ) {
 $orderby_param   = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order_param     = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
 $allowed_orderby = array(
-	'id'         => 'id',
-	'title'      => 'title',
-	'start_date' => 'start_date',
-	'end_date'   => 'end_date',
-	'status'     => 'status',
+'id'         => 'id',
+'title'      => 'title',
+'start_date' => 'start_date',
+'end_date'   => 'end_date',
+'status'     => 'status',
 );
 $orderby_column  = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'id';
 $order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
 $order_by_clause = sprintf( '%s %s', $orderby_column, $order_param );
 
-$sql    = "SELECT * FROM {$table}";
-$params = array();
+$paged    = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
+$per_page = 30;
+$offset   = ( $paged - 1 ) * $per_page;
+
+$sql       = "SELECT * FROM {$table}";
+$count_sql = "SELECT COUNT(*) FROM {$table}";
+$params    = array();
 
 if ( $search_term ) {
-$sql     .= ' WHERE title LIKE %s';
-$params[] = '%' . $wpdb->esc_like( $search_term ) . '%';
+$sql       .= ' WHERE title LIKE %s';
+$count_sql .= ' WHERE title LIKE %s';
+$params[]   = '%' . $wpdb->esc_like( $search_term ) . '%';
 }
 
-$sql .= " ORDER BY {$order_by_clause}";
-$sql  = $params ? $wpdb->prepare( $sql, ...$params ) : $sql; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-$rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$sql       .= " ORDER BY {$order_by_clause} LIMIT %d OFFSET %d";
+$params_sql = array_merge( $params, array( $per_page, $offset ) );
+$sql        = $wpdb->prepare( $sql, ...$params_sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$rows       = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+$count_sql = $params ? $wpdb->prepare( $count_sql, ...$params ) : $count_sql; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$total     = (int) $wpdb->get_var( $count_sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$base_url  = remove_query_arg( array( 'paged' ) );
 ?>
 <div class="wrap">
 	<h1 class="wp-heading-inline">
@@ -194,6 +205,24 @@ endif;
 		?>
 	</tbody>
 	</table>
+        <?php
+        $total_pages = (int) ceil( $total / $per_page );
+        if ( $total_pages > 1 ) {
+                echo '<div class="tablenav"><div class="tablenav-pages">';
+                echo paginate_links(
+                        array(
+                                'base'      => add_query_arg( 'paged', '%#%', $base_url ),
+                                'format'    => '',
+                                'prev_text' => '&laquo;',
+                                'next_text' => '&raquo;',
+                                'total'     => $total_pages,
+                                'current'   => $paged,
+                        )
+                );
+                echo '</div></div>';
+        }
+        ?>
+
 
 	<h2 class="bhg-margin-top-large"><?php echo $row ? esc_html( bhg_t( 'edit_tournament', 'Edit Tournament' ) ) : esc_html( bhg_t( 'add_tournament', 'Add Tournament' ) ); ?></h2>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900">
