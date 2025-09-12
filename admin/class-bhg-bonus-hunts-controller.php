@@ -44,8 +44,10 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 		 * @return void
 		 */
 		public function init() {
-						add_action( 'admin_init', array( $this, 'handle_form_submissions' ) );
-			add_action( 'admin_post_bhg_delete_guess', array( $this, 'delete_guess' ) );
+				add_action( 'admin_post_bhg_create_bonus_hunt', array( $this, 'handle_form_submissions' ) );
+				add_action( 'admin_post_bhg_update_bonus_hunt', array( $this, 'handle_form_submissions' ) );
+				add_action( 'admin_post_bhg_delete_bonus_hunt', array( $this, 'handle_form_submissions' ) );
+				add_action( 'admin_post_bhg_delete_guess', array( $this, 'delete_guess' ) );
 		}
 
 		/**
@@ -69,56 +71,55 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 		 * @return void
 		 */
 		public function handle_form_submissions() {
-			if ( empty( $_POST['bhg_action'] ) ) {
-				return;
+			if ( empty( $_POST['action'] ) ) {
+						return;
 			}
 
 			if ( ! current_user_can( 'manage_options' ) ) {
-					wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+									wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
 			}
 
-			$action       = sanitize_text_field( wp_unslash( $_POST['bhg_action'] ) );
-			$nonce_action = 'bhg_' . $action;
+							$action = sanitize_text_field( wp_unslash( $_POST['action'] ) );
 
-						check_admin_referer( $nonce_action, 'bhg_nonce' );
+							check_admin_referer( $action, 'bhg_nonce' );
 
-			$db      = new BHG_DB();
-			$message = 'error';
+							$db      = new BHG_DB();
+							$message = 'error';
 
 			switch ( $action ) {
-				case 'create_bonus_hunt':
-					$title             = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
-					$starting_balance  = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
-					$num_bonuses       = intval( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
-					$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
-					$status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
-					$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+				case 'bhg_create_bonus_hunt':
+						$title                         = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
+						$starting_balance              = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
+						$num_bonuses                   = intval( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
+									$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
+									$status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
+									$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
-					$result = $db->create_bonus_hunt(
-						array(
-							'title'             => $title,
-							'starting_balance'  => $starting_balance,
-							'num_bonuses'       => $num_bonuses,
-							'prizes'            => $prizes,
-							'status'            => $status,
-							'affiliate_site_id' => $affiliate_site_id,
-							'created_by'        => get_current_user_id(),
-							'created_at'        => current_time( 'mysql' ),
-						)
-					);
+									$result = $db->create_bonus_hunt(
+										array(
+											'title'       => $title,
+											'starting_balance' => $starting_balance,
+											'num_bonuses' => $num_bonuses,
+											'prizes'      => $prizes,
+											'status'      => $status,
+											'affiliate_site_id' => $affiliate_site_id,
+											'created_by'  => get_current_user_id(),
+											'created_at'  => current_time( 'mysql' ),
+										)
+									);
 
-					$message = $result ? 'success' : 'error';
+										$message = $result ? 'success' : 'error';
 					break;
 
-				case 'update_bonus_hunt':
-					$id                = intval( wp_unslash( $_POST['id'] ?? 0 ) );
-					$title             = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
-					$starting_balance  = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
-					$num_bonuses       = intval( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
-					$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
-					$status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
-					$final_balance     = isset( $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
-					$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+				case 'bhg_update_bonus_hunt':
+						$id               = intval( wp_unslash( $_POST['id'] ?? 0 ) );
+						$title            = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
+						$starting_balance = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
+					$num_bonuses          = intval( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
+					$prizes               = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
+					$status               = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
+					$final_balance        = isset( $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
+					$affiliate_site_id    = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
 					$result = $db->update_bonus_hunt(
 						$id,
@@ -142,19 +143,19 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 						}
 					}
 
-					$message = $result ? 'updated' : 'error';
+						$message = $result ? 'updated' : 'error';
 					break;
 
-				case 'delete_bonus_hunt':
-					$id      = intval( wp_unslash( $_POST['id'] ?? 0 ) );
-					$result  = $db->delete_bonus_hunt( $id );
-					$message = $result ? 'deleted' : 'error';
+				case 'bhg_delete_bonus_hunt':
+						$id      = intval( wp_unslash( $_POST['id'] ?? 0 ) );
+						$result  = $db->delete_bonus_hunt( $id );
+						$message = $result ? 'deleted' : 'error';
 					break;
 			}
 
-						$url = esc_url_raw( add_query_arg( 'message', $message, wp_get_referer() ) );
-						wp_safe_redirect( $url );
-						exit;
+							$url = esc_url_raw( add_query_arg( 'message', $message, wp_get_referer() ) );
+							wp_safe_redirect( $url );
+							exit;
 		}
 
 				/**
