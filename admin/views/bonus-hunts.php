@@ -71,13 +71,15 @@ if ( 'list' === $view ) :
 									$offset
 								);
 
-								$hunts = $wpdb->get_results( $hunts_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+								// db call ok; no-cache ok.
+								$hunts = $wpdb->get_results( $hunts_query );
 
 		$count_query = $wpdb->prepare(
 			"SELECT COUNT(*) FROM {$hunts_table} h WHERE h.title LIKE %s",
 			$search_like
 		);
-		$total       = (int) $wpdb->get_var( $count_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// db call ok; no-cache ok.
+		$total       = (int) $wpdb->get_var( $count_query );
 	$base_url        = remove_query_arg( array( 'paged' ) );
 	$sort_base       = remove_query_arg( array( 'paged', 'orderby', 'order' ) );
 	?>
