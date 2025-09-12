@@ -16,6 +16,10 @@ global $wpdb;
 $view_type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : 'hunt';
 $view_type = ( 'tournament' === $view_type ) ? 'tournament' : 'hunt';
 $item_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
+$timeframe = isset( $_GET['timeframe'] ) ? sanitize_key( wp_unslash( $_GET['timeframe'] ) ) : 'month';
+if ( ! in_array( $timeframe, array( 'month', 'year', 'all' ), true ) ) {
+        $timeframe = 'month';
+}
 
 $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 $guess_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
@@ -25,15 +29,35 @@ $users_table = esc_sql( $wpdb->users );
 
 // Default to latest closed hunt if no ID is provided.
 if ( 'hunt' === $view_type && ! $item_id ) {
-        $hunt = $wpdb->get_row(
-                $wpdb->prepare(
-                        "SELECT * FROM {$hunts_table} WHERE status=%s ORDER BY closed_at DESC LIMIT 1",
-                        'closed'
-                )
-        );
-	if ( $hunt ) {
-			$item_id = (int) $hunt->id;
-	}
+        if ( 'year' === $timeframe ) {
+                $start = gmdate( 'Y-01-01 00:00:00' );
+                $hunt  = $wpdb->get_row(
+                        $wpdb->prepare(
+                                "SELECT * FROM {$hunts_table} WHERE status=%s AND closed_at >= %s ORDER BY closed_at DESC LIMIT 1",
+                                'closed',
+                                $start
+                        )
+                );
+        } elseif ( 'month' === $timeframe ) {
+                $start = gmdate( 'Y-m-01 00:00:00' );
+                $hunt  = $wpdb->get_row(
+                        $wpdb->prepare(
+                                "SELECT * FROM {$hunts_table} WHERE status=%s AND closed_at >= %s ORDER BY closed_at DESC LIMIT 1",
+                                'closed',
+                                $start
+                        )
+                );
+        } else {
+                $hunt = $wpdb->get_row(
+                        $wpdb->prepare(
+                                "SELECT * FROM {$hunts_table} WHERE status=%s ORDER BY closed_at DESC LIMIT 1",
+                                'closed'
+                        )
+                );
+        }
+        if ( $hunt ) {
+                $item_id = (int) $hunt->id;
+        }
 } elseif ( 'hunt' === $view_type ) {
         $hunt = $wpdb->get_row(
                 $wpdb->prepare( "SELECT * FROM {$hunts_table} WHERE id=%d", $item_id )
@@ -88,9 +112,27 @@ if ( 'tournament' === $view_type ) {
 }
 
 // Gather hunts and tournaments for the selector.
-$all_hunts = $wpdb->get_results(
-        "SELECT id, title FROM {$hunts_table} ORDER BY closed_at DESC, id DESC"
-);
+if ( 'year' === $timeframe ) {
+        $start     = gmdate( 'Y-01-01 00:00:00' );
+        $all_hunts = $wpdb->get_results(
+                $wpdb->prepare(
+                        "SELECT id, title FROM {$hunts_table} WHERE closed_at >= %s ORDER BY closed_at DESC, id DESC",
+                        $start
+                )
+        );
+} elseif ( 'month' === $timeframe ) {
+        $start     = gmdate( 'Y-m-01 00:00:00' );
+        $all_hunts = $wpdb->get_results(
+                $wpdb->prepare(
+                        "SELECT id, title FROM {$hunts_table} WHERE closed_at >= %s ORDER BY closed_at DESC, id DESC",
+                        $start
+                )
+        );
+} else {
+        $all_hunts = $wpdb->get_results(
+                "SELECT id, title FROM {$hunts_table} ORDER BY closed_at DESC, id DESC"
+        );
+}
 $all_tours = $wpdb->get_results(
         "SELECT id, title FROM {$tour_table} ORDER BY id DESC"
 );
@@ -98,18 +140,23 @@ $current   = $view_type . '-' . $item_id;
 ?>
 <div class="wrap">
 <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $result_title ) ); ?></h1>
-	<div style="margin:1em 0;">
-			<select id="bhg-results-select">
-			<?php foreach ( (array) $all_hunts as $h ) : ?>
-							<?php $val = 'hunt-' . (int) $h->id; ?>
-							<option value="<?php echo esc_attr( $val ); ?>" <?php selected( $current, $val ); ?>><?php echo esc_html( $h->title ); ?></option>
-			<?php endforeach; ?>
-			<?php foreach ( (array) $all_tours as $t ) : ?>
-							<?php $val = 'tournament-' . (int) $t->id; ?>
-							<option value="<?php echo esc_attr( $val ); ?>" <?php selected( $current, $val ); ?>><?php echo esc_html( $t->title ); ?></option>
-			<?php endforeach; ?>
-			</select>
-	</div>
+        <div style="margin:1em 0;">
+                        <select id="bhg-results-select">
+                        <?php foreach ( (array) $all_hunts as $h ) : ?>
+                                                        <?php $val = 'hunt-' . (int) $h->id; ?>
+                                                        <option value="<?php echo esc_attr( $val ); ?>" <?php selected( $current, $val ); ?>><?php echo esc_html( $h->title ); ?></option>
+                        <?php endforeach; ?>
+                        <?php foreach ( (array) $all_tours as $t ) : ?>
+                                                        <?php $val = 'tournament-' . (int) $t->id; ?>
+                                                        <option value="<?php echo esc_attr( $val ); ?>" <?php selected( $current, $val ); ?>><?php echo esc_html( $t->title ); ?></option>
+                        <?php endforeach; ?>
+                        </select>
+                        <select id="bhg-results-timeframe">
+                                <option value="month" <?php selected( $timeframe, 'month' ); ?>><?php echo esc_html( bhg_t( 'this_month', 'This Month' ) ); ?></option>
+                                <option value="year" <?php selected( $timeframe, 'year' ); ?>><?php echo esc_html( bhg_t( 'this_year', 'This Year' ) ); ?></option>
+                                <option value="all" <?php selected( $timeframe, 'all' ); ?>><?php echo esc_html( bhg_t( 'all_time', 'All Time' ) ); ?></option>
+                        </select>
+        </div>
 	<table class="widefat striped">
 			<thead>
 					<tr>
@@ -118,27 +165,31 @@ $current   = $view_type . '-' . $item_id;
 							<?php endforeach; ?>
 					</tr>
 			</thead>
-			<tbody>
-			<?php
-			$pos = 1;
-			foreach ( (array) $rows as $r ) :
-					$is_winner = $pos <= $wcount;
-				?>
-					<tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
-							<td><?php echo (int) $pos; ?></td>
-							<td><?php echo esc_html( $r->display_name ); ?></td>
-								<?php if ( 'tournament' === $view_type ) : ?>
-										<td><?php echo (int) $r->wins; ?></td>
-								<?php else : ?>
-																		<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-																		<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
-							<?php endif; ?>
-					</tr>
-					<?php
-					++$pos;
-			endforeach;
-			?>
-			</tbody>
-	</table>
+                        <tbody>
+                        <?php if ( empty( $rows ) ) : ?>
+                                <tr><td colspan="<?php echo (int) count( $columns ); ?>"><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></td></tr>
+                        <?php else : ?>
+                                <?php
+                                $pos = 1;
+                                foreach ( (array) $rows as $r ) :
+                                        $is_winner = $pos <= $wcount;
+                                        ?>
+                                        <tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
+                                                        <td><?php echo (int) $pos; ?></td>
+                                                        <td><?php echo esc_html( $r->display_name ); ?></td>
+                                                        <?php if ( 'tournament' === $view_type ) : ?>
+                                                                <td><?php echo (int) $r->wins; ?></td>
+                                                        <?php else : ?>
+                                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
+                                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+                                                        <?php endif; ?>
+                                        </tr>
+                                        <?php
+                                        ++$pos;
+                                endforeach;
+                                ?>
+                        <?php endif; ?>
+                        </tbody>
+        </table>
 </div>
 
