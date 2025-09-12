@@ -4,8 +4,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
+                wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
+
+check_admin_referer( 'bhg_edit_hunt' );
 
 global $wpdb;
 
@@ -16,7 +18,7 @@ if ( ! $hunt ) {
 		return;
 }
 
-\$aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+$aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
 if ( isset( $allowed_tables ) && ! in_array( $aff_table, $allowed_tables, true ) ) {
 				wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }

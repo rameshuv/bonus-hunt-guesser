@@ -217,15 +217,18 @@ if ( 'list' === $view ) :
 			<td><a href="
 				<?php
 				echo esc_url(
-					add_query_arg(
-						array(
-							'view' => 'edit',
-							'id'   => (int) $h->id,
-						)
-					)
-				);
-				?>
-							"><?php echo esc_html( $h->title ); ?></a></td>
+                                        wp_nonce_url(
+                                                add_query_arg(
+                                                        array(
+                                                                'view' => 'edit',
+                                                                'id'   => (int) $h->id,
+                                                        )
+                                                ),
+                                                'bhg_edit_hunt'
+                                        )
+                                );
+                                ?>
+                                        "><?php echo esc_html( $h->title ); ?></a></td>
 <td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
 <td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
@@ -234,16 +237,20 @@ if ( 'list' === $view ) :
 <td>
 <a class="button" href="
 				<?php
-				echo esc_url(
-					add_query_arg(
-						array(
-							'view' => 'edit',
-							'id'   => (int) $h->id,
-						)
-					)
-				);
-				?>
-"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
+                                echo esc_url(
+                                        wp_nonce_url(
+                                                add_query_arg(
+                                                        array(
+                                                                'view' => 'edit',
+                                                                'id'   => (int) $h->id,
+                                                        )
+                                                ),
+                                                'bhg_edit_hunt'
+                                        )
+                                );
+                                ?>
+">
+                                        <?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
 				<?php if ( 'open' === $h->status ) : ?>
 <a class="button" href="
 					<?php
