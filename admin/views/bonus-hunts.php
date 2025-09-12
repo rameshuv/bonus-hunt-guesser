@@ -21,10 +21,10 @@ $users_table    = esc_sql( $wpdb->users );
 $aff_table      = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
 $allowed_tables = array( $hunts_table, $guesses_table, $aff_table, $tours_table, $users_table );
 if (
-                                ! in_array( $hunts_table, $allowed_tables, true ) ||
-                                ! in_array( $guesses_table, $allowed_tables, true ) ||
-                                ! in_array( $users_table, $allowed_tables, true ) ||
-                                ! in_array( $tours_table, $allowed_tables, true )
+								! in_array( $hunts_table, $allowed_tables, true ) ||
+								! in_array( $guesses_table, $allowed_tables, true ) ||
+								! in_array( $users_table, $allowed_tables, true ) ||
+								! in_array( $tours_table, $allowed_tables, true )
 ) {
 				wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
@@ -32,23 +32,23 @@ if (
 
 $view = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : 'list';
 if ( ! in_array( $view, array( 'list', 'add', 'edit' ), true ) ) {
-    $view = 'list';
+	$view = 'list';
 }
 
 /** LIST VIEW */
 if ( 'list' === $view ) :
-        $current_page = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
-	$per_page     = 30;
-		$offset   = ( $current_page - 1 ) * $per_page;
-		$search   = '';
+		$current_page = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
+	$per_page         = 30;
+		$offset       = ( $current_page - 1 ) * $per_page;
+	$search_term      = '';
 	if ( isset( $_GET['s'] ) ) {
 			check_admin_referer( 'bhg_hunts_search', 'bhg_hunts_search_nonce' );
-			$search = sanitize_text_field( wp_unslash( $_GET['s'] ) );
+		$search_term = sanitize_text_field( wp_unslash( $_GET['s'] ) );
 	}
-                $orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
-                $order   = isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) ? 'ASC' : 'DESC';
+	$orderby_param = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
+	$order_param   = isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) ? 'ASC' : 'DESC';
 
-		$allowed_orderby = array(
+		$allowed_orderby         = array(
 			'id'               => 'h.id',
 			'title'            => 'h.title',
 			'starting_balance' => 'h.starting_balance',
@@ -57,32 +57,29 @@ if ( 'list' === $view ) :
 			'winners'          => 'h.winners_count',
 			'status'           => 'h.status',
 		);
-		$order_by_column = isset( $allowed_orderby[ $orderby ] ) ? $allowed_orderby[ $orderby ] : 'h.id';
-		$order_by_column = preg_replace( '/[^a-zA-Z0-9_\.]/', '', $order_by_column );
+		$order_by_column         = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'h.id';
+				$order_by_column = preg_replace( '/[^a-zA-Z0-9_\.]/', '', $order_by_column );
 
-				$order_direction = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
-				$search_like     = '%' . $wpdb->esc_like( $search ) . '%';
-				$order_by_sql    = sanitize_sql_orderby( $order_by_column . ' ' . $order_direction );
-		if ( empty( $order_by_sql ) ) {
-				$order_by_sql = 'h.id DESC';
-		}
+		$order_direction                         = ( 'ASC' === strtoupper( $order_param ) ) ? 'ASC' : 'DESC';
+		$search_like                             = '%' . $wpdb->esc_like( $search_term ) . '%';
+								$order_by_clause = sprintf( '%s %s', $order_by_column, $order_direction );
 
-                                $hunts_query  = $wpdb->prepare(
-                                        "SELECT h.*, a.name AS affiliate_name FROM {$hunts_table} h LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s",
-                                        $search_like
-                                );
-                                $hunts_query .= ' ORDER BY ' . $order_by_sql;
-                                $hunts_query .= $wpdb->prepare( ' LIMIT %d OFFSET %d', $per_page, $offset );
+								$hunts_query = $wpdb->prepare(
+									"SELECT h.*, a.name AS affiliate_name FROM {$hunts_table} h LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s ORDER BY {$order_by_clause} LIMIT %d OFFSET %d",
+									$search_like,
+									$per_page,
+									$offset
+								);
 
-                                $hunts = $wpdb->get_results( $hunts_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+								$hunts = $wpdb->get_results( $hunts_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-        $count_query = $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$hunts_table} h WHERE h.title LIKE %s",
-                $search_like
-        );
-		$total   = (int) $wpdb->get_var( $count_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-	$base_url    = remove_query_arg( array( 'paged' ) );
-	$sort_base   = remove_query_arg( array( 'paged', 'orderby', 'order' ) );
+		$count_query = $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$hunts_table} h WHERE h.title LIKE %s",
+			$search_like
+		);
+		$total       = (int) $wpdb->get_var( $count_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$base_url        = remove_query_arg( array( 'paged' ) );
+	$sort_base       = remove_query_arg( array( 'paged', 'orderby', 'order' ) );
 	?>
 <div class="wrap">
 <h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ); ?></h1>
@@ -92,13 +89,13 @@ if ( 'list' === $view ) :
 <input type="hidden" name="page" value="bhg-bonus-hunts" />
 	<?php wp_nonce_field( 'bhg_hunts_search', 'bhg_hunts_search_nonce' ); ?>
 <p class="search-box">
-<input type="search" name="s" value="<?php echo esc_attr( $search ); ?>" />
-	<?php if ( $orderby ) : ?>
-<input type="hidden" name="orderby" value="<?php echo esc_attr( $orderby ); ?>" />
-	<?php endif; ?>
-	<?php if ( $order ) : ?>
-<input type="hidden" name="order" value="<?php echo esc_attr( strtolower( $order ) ); ?>" />
-	<?php endif; ?>
+<input type="search" name="s" value="<?php echo esc_attr( $search_term ); ?>" />
+<?php if ( $orderby_param ) : ?>
+<input type="hidden" name="orderby" value="<?php echo esc_attr( $orderby_param ); ?>" />
+<?php endif; ?>
+<?php if ( $order_param ) : ?>
+<input type="hidden" name="order" value="<?php echo esc_attr( strtolower( $order_param ) ); ?>" />
+<?php endif; ?>
 <input type="submit" class="button" value="<?php echo esc_attr( bhg_t( 'search_hunts', 'Search Hunts' ) ); ?>" />
 </p>
 </form>
@@ -116,7 +113,7 @@ if ( 'list' === $view ) :
 		add_query_arg(
 			array(
 				'orderby' => 'id',
-				'order'   => ( 'id' === $orderby && 'ASC' === $order ? 'desc' : 'asc' ),
+'order'   => ( 'id' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
 			),
 			$sort_base
 		)
@@ -129,7 +126,7 @@ if ( 'list' === $view ) :
 		add_query_arg(
 			array(
 				'orderby' => 'title',
-				'order'   => ( 'title' === $orderby && 'ASC' === $order ? 'desc' : 'asc' ),
+'order'   => ( 'title' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
 			),
 			$sort_base
 		)
@@ -142,7 +139,7 @@ if ( 'list' === $view ) :
 		add_query_arg(
 			array(
 				'orderby' => 'starting_balance',
-				'order'   => ( 'starting_balance' === $orderby && 'ASC' === $order ? 'desc' : 'asc' ),
+'order'   => ( 'starting_balance' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
 			),
 			$sort_base
 		)
@@ -155,7 +152,7 @@ if ( 'list' === $view ) :
 		add_query_arg(
 			array(
 				'orderby' => 'final_balance',
-				'order'   => ( 'final_balance' === $orderby && 'ASC' === $order ? 'desc' : 'asc' ),
+'order'   => ( 'final_balance' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
 			),
 			$sort_base
 		)
@@ -168,7 +165,7 @@ if ( 'list' === $view ) :
 		add_query_arg(
 			array(
 				'orderby' => 'affiliate',
-				'order'   => ( 'affiliate' === $orderby && 'ASC' === $order ? 'desc' : 'asc' ),
+'order'   => ( 'affiliate' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
 			),
 			$sort_base
 		)
@@ -181,7 +178,7 @@ if ( 'list' === $view ) :
 		add_query_arg(
 			array(
 				'orderby' => 'winners',
-				'order'   => ( 'winners' === $orderby && 'ASC' === $order ? 'desc' : 'asc' ),
+'order'   => ( 'winners' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
 			),
 			$sort_base
 		)
@@ -194,7 +191,7 @@ if ( 'list' === $view ) :
 		add_query_arg(
 			array(
 				'orderby' => 'status',
-				'order'   => ( 'status' === $orderby && 'ASC' === $order ? 'desc' : 'asc' ),
+'order'   => ( 'status' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
 			),
 			$sort_base
 		)
@@ -205,30 +202,30 @@ if ( 'list' === $view ) :
 <th><?php echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) ); ?></th>
 </tr>
 </thead>
-        <tbody>
-                <?php if ( empty( $hunts ) ) : ?>
+		<tbody>
+				<?php if ( empty( $hunts ) ) : ?>
 <tr><td colspan="9"><?php echo esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ); ?></td></tr>
-                        <?php
-                else :
-                        foreach ( $hunts as $h ) :
-				?>
+						<?php
+				else :
+					foreach ( $hunts as $h ) :
+						?>
 		<tr>
 <td><?php echo esc_html( (int) $h->id ); ?></td>
 			<td><a href="
-				<?php
-				echo esc_url(
-                                        wp_nonce_url(
-                                                add_query_arg(
-                                                        array(
-                                                                'view' => 'edit',
-                                                                'id'   => (int) $h->id,
-                                                        )
-                                                ),
-                                                'bhg_edit_hunt'
-                                        )
-                                );
-                                ?>
-                                        "><?php echo esc_html( $h->title ); ?></a></td>
+						<?php
+						echo esc_url(
+							wp_nonce_url(
+								add_query_arg(
+									array(
+										'view' => 'edit',
+										'id'   => (int) $h->id,
+									)
+								),
+								'bhg_edit_hunt'
+							)
+						);
+						?>
+										"><?php echo esc_html( $h->title ); ?></a></td>
 <td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
 <td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
@@ -236,40 +233,40 @@ if ( 'list' === $view ) :
 <td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
 <td>
 <a class="button" href="
-				<?php
-                                echo esc_url(
-                                        wp_nonce_url(
-                                                add_query_arg(
-                                                        array(
-                                                                'view' => 'edit',
-                                                                'id'   => (int) $h->id,
-                                                        )
-                                                ),
-                                                'bhg_edit_hunt'
-                                        )
-                                );
-                                ?>
+						<?php
+							echo esc_url(
+								wp_nonce_url(
+									add_query_arg(
+										array(
+											'view' => 'edit',
+											'id'   => (int) $h->id,
+										)
+									),
+									'bhg_edit_hunt'
+								)
+							);
+						?>
 ">
-                                        <?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
-				<?php if ( 'open' === $h->status ) : ?>
+									<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
+						<?php if ( 'open' === $h->status ) : ?>
 <a class="button" href="
-					<?php
-					echo esc_url(
-						add_query_arg(
-							array(
-								'view' => 'close',
-								'id'   => (int) $h->id,
-							)
-						)
-					);
-					?>
+							<?php
+							echo esc_url(
+								add_query_arg(
+									array(
+										'view' => 'close',
+										'id'   => (int) $h->id,
+									)
+								)
+							);
+							?>
 "><?php echo esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ); ?></a>
 <?php elseif ( null !== $h->final_balance ) : ?>
 <a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts-results&id=' . (int) $h->id ) ); ?>"><?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?></a>
 
 <?php endif; ?>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
-<?php wp_nonce_field( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' ); ?>
+						<?php wp_nonce_field( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_toggle_guessing" />
 <input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
 <input type="hidden" name="guessing_enabled" value="<?php echo esc_attr( $h->guessing_enabled ? 0 : 1 ); ?>" />
@@ -278,17 +275,17 @@ if ( 'list' === $view ) :
 </td>
 <td>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_hunt', 'Delete this hunt?' ) ); ?>');" class="bhg-inline-form">
-<?php wp_nonce_field( 'bhg_delete_hunt', 'bhg_delete_hunt_nonce' ); ?>
+						<?php wp_nonce_field( 'bhg_delete_hunt', 'bhg_delete_hunt_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_delete_hunt" />
 <input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
 <button type="submit" class="button-link-delete"><?php echo esc_html( bhg_t( 'delete', 'Delete' ) ); ?></button>
 </form>
 </td>
 </tr>
-                                <?php
-                        endforeach;
+							<?php
+						endforeach;
 endif;
-		?>
+				?>
 		</tbody>
 	</table>
 
@@ -315,14 +312,14 @@ endif;
 <?php
 /** CLOSE VIEW */
 if ( 'close' === $view ) :
-                               $id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
+								$id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 				// db call ok; no-cache ok.
-                                $hunt = $wpdb->get_row(
-                                        $wpdb->prepare(
-                                                "SELECT * FROM {$hunts_table} WHERE id = %d",
-                                                $id
-                                        )
-                                );
+								$hunt = $wpdb->get_row(
+									$wpdb->prepare(
+										"SELECT * FROM {$hunts_table} WHERE id = %d",
+										$id
+									)
+								);
 	if ( ! $hunt || 'open' !== $hunt->status ) :
 		echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt_2', 'Invalid hunt.' ) ) . '</p></div>';
 	else :
@@ -381,15 +378,15 @@ if ( 'add' === $view ) :
 			<th scope="row"><label for="bhg_affiliate"><?php echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) ); ?></label></th>
 			<td>
 						<?php
-                                                $aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
-                                                if ( ! in_array( $aff_table, $allowed_tables, true ) ) {
-                                                                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
-                                                }
-                                                                                                // db call ok; no-cache ok.
-                                                                                                $affs = $wpdb->get_results(
-                                        "SELECT id, name FROM {$aff_table} ORDER BY name ASC"
-                                                                                                );
-						$sel                          = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
+												$aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+						if ( ! in_array( $aff_table, $allowed_tables, true ) ) {
+										wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+						}
+																								// db call ok; no-cache ok.
+																								$affs = $wpdb->get_results(
+																									"SELECT id, name FROM {$aff_table} ORDER BY name ASC"
+																								);
+						$sel = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 						?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
 				<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
@@ -408,14 +405,14 @@ if ( 'add' === $view ) :
 						<th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
 						<td>
 												<?php
-                                                $t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-                                                if ( ! in_array( $t_table, $allowed_tables, true ) ) {
-                                                                       wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
-                                                }
-                                                // db call ok; no-cache ok.
-                                                $tours = $wpdb->get_results(
-                                        "SELECT id, title FROM {$t_table} ORDER BY title ASC"
-                                                );
+												$t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+												if ( ! in_array( $t_table, $allowed_tables, true ) ) {
+																		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+												}
+												// db call ok; no-cache ok.
+												$tours = $wpdb->get_results(
+													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
+												);
 												$tsel  = isset( $hunt->tournament_id ) ? (int) $hunt->tournament_id : 0;
 												?>
 						<select id="bhg_tournament" name="tournament_id">
@@ -463,14 +460,14 @@ if ( 'add' === $view ) :
 <?php
 /** EDIT VIEW */
 if ( 'edit' === $view ) :
-            $id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
+			$id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 		// db call ok; no-cache ok.
-                                $hunt = $wpdb->get_row(
-                                        $wpdb->prepare(
-                                                "SELECT * FROM {$hunts_table} WHERE id = %d",
-                                                $id
-                                        )
-                                );
+								$hunt = $wpdb->get_row(
+									$wpdb->prepare(
+										"SELECT * FROM {$hunts_table} WHERE id = %d",
+										$id
+									)
+								);
 	if ( ! $hunt ) {
 		echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt', 'Invalid hunt' ) ) . '</p></div>';
 		return;
@@ -481,12 +478,12 @@ if ( 'edit' === $view ) :
 	}
 		$users_table_local = esc_sql( $users_table_local );
 								// db call ok; no-cache ok.
-                                $guesses = $wpdb->get_results(
-                                        $wpdb->prepare(
-                                                "SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table_local} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC",
-                                                $id
-                                        )
-                                );
+								$guesses = $wpdb->get_results(
+									$wpdb->prepare(
+										"SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table_local} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC",
+										$id
+									)
+								);
 	?>
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'edit_bonus_hunt', 'Edit Bonus Hunt' ) ); ?> <?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
@@ -518,15 +515,15 @@ if ( 'edit' === $view ) :
 			<th scope="row"><label for="bhg_affiliate"><?php echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) ); ?></label></th>
 			<td>
 						<?php
-                                                $aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
-                                                if ( ! in_array( $aff_table, $allowed_tables, true ) ) {
-                                                                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
-                                                }
-                                                                                                // db call ok; no-cache ok.
-                                                                                                $affs = $wpdb->get_results(
-                                        "SELECT id, name FROM {$aff_table} ORDER BY name ASC"
-                                                                                                );
-						$sel                          = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
+												$aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+						if ( ! in_array( $aff_table, $allowed_tables, true ) ) {
+										wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+						}
+																								// db call ok; no-cache ok.
+																								$affs = $wpdb->get_results(
+																									"SELECT id, name FROM {$aff_table} ORDER BY name ASC"
+																								);
+						$sel = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 						?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
 				<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
@@ -545,14 +542,14 @@ if ( 'edit' === $view ) :
 						<th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
 						<td>
 												<?php
-                                                $t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-                                                if ( ! in_array( $t_table, $allowed_tables, true ) ) {
-                                                                       wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
-                                                }
-                                                // db call ok; no-cache ok.
-                                                $tours = $wpdb->get_results(
-                                        "SELECT id, title FROM {$t_table} ORDER BY title ASC"
-                                                );
+												$t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+												if ( ! in_array( $t_table, $allowed_tables, true ) ) {
+																		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+												}
+												// db call ok; no-cache ok.
+												$tours = $wpdb->get_results(
+													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
+												);
 												$tsel  = isset( $hunt->tournament_id ) ? (int) $hunt->tournament_id : 0;
 												?>
 						<select id="bhg_tournament" name="tournament_id">

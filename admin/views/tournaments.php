@@ -14,31 +14,32 @@ if ( ! in_array( $table, $allowed_tables, true ) ) {
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 $row     = $edit_id
-                ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id ) )
-                : null;
+? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id ) ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+: null;
 
-$search          = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-$orderby         = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
-$order           = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
-$allowed_orderby = array( 'id', 'title', 'start_date', 'end_date', 'status' );
-if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
-                $orderby = 'id';
-}
-$order           = in_array( strtolower( $order ), array( 'asc', 'desc' ), true ) ? strtoupper( $order ) : 'DESC';
-$order_by_clause = sanitize_sql_orderby( $orderby . ' ' . $order );
-if ( empty( $order_by_clause ) ) {
-		$order_by_clause = 'id DESC';
-}
+$search_term     = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+$orderby_param   = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
+$order_param     = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
+$allowed_orderby = array(
+	'id'         => 'id',
+	'title'      => 'title',
+	'start_date' => 'start_date',
+	'end_date'   => 'end_date',
+	'status'     => 'status',
+);
+$orderby_column  = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'id';
+$order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
+$order_by_clause = sprintf( '%s %s', $orderby_column, $order_param );
 
 $sql    = "SELECT * FROM {$table}";
 $params = array();
 
-if ( $search ) {
-                $sql     .= ' WHERE title LIKE %s';
-                $params[] = '%' . $wpdb->esc_like( $search ) . '%';
+if ( $search_term ) {
+$sql     .= ' WHERE title LIKE %s';
+$params[] = '%' . $wpdb->esc_like( $search_term ) . '%';
 }
 
-$sql .= ' ORDER BY ' . $order_by_clause;
+$sql .= " ORDER BY {$order_by_clause}";
 $sql  = $params ? $wpdb->prepare( $sql, ...$params ) : $sql; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 ?>
@@ -58,7 +59,7 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 				<input type="hidden" name="page" value="bhg-tournaments" />
 				<p class="search-box">
 						<label class="screen-reader-text" for="bhg-search-input"><?php echo esc_html( bhg_t( 'search_tournaments', 'Search Tournaments' ) ); ?></label>
-						<input type="search" id="bhg-search-input" name="s" value="<?php echo esc_attr( $search ); ?>" />
+<input type="search" id="bhg-search-input" name="s" value="<?php echo esc_attr( $search_term ); ?>" />
 						<?php submit_button( bhg_t( 'search', 'Search' ), 'button', false, false, array( 'id' => 'search-submit' ) ); ?>
 				</p>
 		</form>
@@ -67,7 +68,7 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 		<tr>
 				<th>
 				<?php
-				$n = ( 'id' === $orderby && 'ASC' === $order ) ? 'desc' : 'asc';
+				$n = ( 'id' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
 				echo '<a href="' . esc_url(
 					add_query_arg(
 						array(
@@ -80,7 +81,7 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 				</th>
 				<th>
 				<?php
-				$n = ( 'title' === $orderby && 'ASC' === $order ) ? 'desc' : 'asc';
+				$n = ( 'title' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
 				echo '<a href="' . esc_url(
 					add_query_arg(
 						array(
@@ -93,7 +94,7 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 				</th>
 				<th>
 				<?php
-				$n = ( 'start_date' === $orderby && 'ASC' === $order ) ? 'desc' : 'asc';
+				$n = ( 'start_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
 				echo '<a href="' . esc_url(
 					add_query_arg(
 						array(
@@ -106,7 +107,7 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 				</th>
 				<th>
 				<?php
-				$n = ( 'end_date' === $orderby && 'ASC' === $order ) ? 'desc' : 'asc';
+				$n = ( 'end_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
 				echo '<a href="' . esc_url(
 					add_query_arg(
 						array(
@@ -119,7 +120,7 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 				</th>
 				<th>
 				<?php
-				$n = ( 'status' === $orderby && 'ASC' === $order ) ? 'desc' : 'asc';
+				$n = ( 'status' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
 				echo '<a href="' . esc_url(
 					add_query_arg(
 						array(
@@ -130,26 +131,26 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 				) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a>';
 				?>
 				</th>
-               <th>
-               <?php
-               echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
-               ?>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
+				?>
 </th>
-               <th>
-               <?php
-               echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) );
-               ?>
+				<th>
+				<?php
+				echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) );
+				?>
 </th>
-               </tr>
-       </thead>
-       <tbody>
-               <?php if ( empty( $rows ) ) : ?>
-               <tr><td colspan="7"><em>
-                       <?php
-                       echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
-                       ?>
+				</tr>
+		</thead>
+		<tbody>
+				<?php if ( empty( $rows ) ) : ?>
+				<tr><td colspan="7"><em>
+						<?php
+						echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
+						?>
 </em></td></tr>
-			<?php
+					<?php
 		else :
 			foreach ( $rows as $r ) :
 				?>
@@ -157,28 +158,28 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 <td><?php echo esc_html( (int) $r->id ); ?></td>
 			<td><?php echo esc_html( $r->title ); ?></td>
 			<td><?php echo esc_html( $r->start_date ); ?></td>
-                       <td><?php echo esc_html( $r->end_date ); ?></td>
+						<td><?php echo esc_html( $r->end_date ); ?></td>
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 <td>
 <a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
-<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
+				<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
 </a>
 <a class="button" href="<?php echo esc_url( add_query_arg( array( 'close' => (int) $r->id ) ) ); ?>">
-<?php echo esc_html( bhg_t( 'close', 'Close' ) ); ?>
+				<?php echo esc_html( bhg_t( 'close', 'Close' ) ); ?>
 </a>
 <a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts-results&type=tournament&id=' . (int) $r->id ) ); ?>">
-<?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?>
+				<?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?>
 </a>
 </td>
 <td>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
-<?php wp_nonce_field( 'bhg_tournament_delete_action', 'bhg_tournament_delete_nonce' ); ?>
+				<?php wp_nonce_field( 'bhg_tournament_delete_action', 'bhg_tournament_delete_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_tournament_delete" />
 <input type="hidden" name="id" value="<?php echo esc_attr( (int) $r->id ); ?>" />
 <button type="submit" class="button button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'are_you_sure', 'Are you sure?' ) ); ?>');"><?php echo esc_html( bhg_t( 'button_delete', 'Delete' ) ); ?></button>
 </form>
 </td>
-               </tr>
+				</tr>
 					<?php
 		endforeach;
 endif;

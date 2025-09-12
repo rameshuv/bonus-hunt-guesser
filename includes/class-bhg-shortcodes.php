@@ -290,12 +290,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 								}
 								$orderby = $allowed_orderby[ $orderby_key ];
 
-                                                                $paged    = isset( $_GET['bhg_page'] )
-                                                                        ? max( 1, absint( wp_unslash( $_GET['bhg_page'] ) ) )
-                                                                        : (int) $a['paged'];
-                                                                $paged    = max( 1, $paged );
-								$per_page = max( 1, (int) $a['per_page'] );
-								$offset   = ( $paged - 1 ) * $per_page;
+																$paged = isset( $_GET['bhg_page'] )
+																		? max( 1, absint( wp_unslash( $_GET['bhg_page'] ) ) )
+																		: (int) $a['paged'];
+																$paged = max( 1, $paged );
+								$per_page                              = max( 1, (int) $a['per_page'] );
+								$offset                                = ( $paged - 1 ) * $per_page;
 
 								$fields_raw    = explode( ',', (string) $a['fields'] );
 								$allowed_field = array( 'position', 'user', 'guess' );
@@ -311,18 +311,17 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
 			}
 
-						$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+												$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
 			if ( ! $hunts_table ) {
-					return '';
+							return '';
 			}
-						$order_by_sql                  = esc_sql( $orderby );
-						$order_sql                     = esc_sql( $order );
-												$query = $wpdb->prepare(
-													"SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM {$g} g LEFT JOIN {$u} u ON u.ID = g.user_id LEFT JOIN {$hunts_table} h ON h.id = g.hunt_id WHERE g.hunt_id = %d ORDER BY {$order_by_sql} {$order_sql} LIMIT %d OFFSET %d",
-													$hunt_id,
-													$per_page,
-													$offset
-												);
+												$order_by_clause                                       = sprintf( '%s %s', $orderby, $order );
+																								$query = $wpdb->prepare(
+																									"SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM {$g} g LEFT JOIN {$u} u ON u.ID = g.user_id LEFT JOIN {$hunts_table} h ON h.id = g.hunt_id WHERE g.hunt_id = %d ORDER BY {$order_by_clause} LIMIT %d OFFSET %d",
+																									$hunt_id,
+																									$per_page,
+																									$offset
+																								);
 																																$rows = $wpdb->get_results( $query );
 
 						wp_enqueue_style(
