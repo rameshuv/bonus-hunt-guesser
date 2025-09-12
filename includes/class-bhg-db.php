@@ -389,15 +389,12 @@ KEY tournament_id (tournament_id)
 	private function column_exists( $table, $column ) {
 		global $wpdb;
 
-		$table  = esc_sql( $table );
-		$column = esc_sql( $column );
-
 		$wpdb->last_error = '';
 		$sql              = $wpdb->prepare(
-			'SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND COLUMN_NAME=%s',
-			DB_NAME,
-			$table,
-			$column
+                       'SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND COLUMN_NAME=%s',
+                       DB_NAME,
+                       $table,
+                       $column
 		);
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 				$exists = $wpdb->get_var( $sql );
@@ -421,15 +418,12 @@ KEY tournament_id (tournament_id)
 	private function index_exists( $table, $index ) {
 		global $wpdb;
 
-		$table = esc_sql( $table );
-		$index = esc_sql( $index );
-
 		$wpdb->last_error = '';
 		$sql              = $wpdb->prepare(
-			'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND INDEX_NAME=%s',
-			DB_NAME,
-			$table,
-			$index
+                       'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND INDEX_NAME=%s',
+                       DB_NAME,
+                       $table,
+                       $index
 		);
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 				$exists = $wpdb->get_var( $sql );
