@@ -186,15 +186,19 @@ class BHG_Admin {
 			require $view; } else {
 			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
 	}
-	/**
-	 * Render the database maintenance page.
-	 */
-	public function database() {
-		$view = BHG_PLUGIN_DIR . 'admin/views/database.php';
-		if ( file_exists( $view ) ) {
-			require $view; } else {
-			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'database', 'Database' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_database_ui_found', 'No database UI found.' ) ) . '</p></div>'; }
-	}
+        /**
+         * Render the database maintenance page.
+         */
+        public function database() {
+                require_once BHG_PLUGIN_DIR . 'includes/admin-database-tools.php';
+
+                $view = BHG_PLUGIN_DIR . 'admin/views/database.php';
+                if ( file_exists( $view ) ) {
+                        require $view;
+                } else {
+                        echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'database', 'Database' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_database_ui_found', 'No database UI found.' ) ) . '</p></div>';
+                }
+        }
 	/**
 	 * Render the settings page.
 	 */
