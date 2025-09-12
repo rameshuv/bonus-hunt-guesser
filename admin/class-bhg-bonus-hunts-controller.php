@@ -90,10 +90,10 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 				case 'bhg_create_bonus_hunt':
 						$title                         = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
 						$starting_balance              = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
-						$num_bonuses                   = intval( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
+						$num_bonuses                   = absint( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
 									$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
 									$status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
-									$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+									$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
 									$result = $db->create_bonus_hunt(
 										array(
@@ -112,14 +112,14 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 					break;
 
 				case 'bhg_update_bonus_hunt':
-						$id               = intval( wp_unslash( $_POST['id'] ?? 0 ) );
+						$id               = absint( wp_unslash( $_POST['id'] ?? 0 ) );
 						$title            = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
 						$starting_balance = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
-					$num_bonuses          = intval( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
+					$num_bonuses          = absint( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
 					$prizes               = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
 					$status               = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
 					$final_balance        = isset( $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
-					$affiliate_site_id    = isset( $_POST['affiliate_site_id'] ) ? intval( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+					$affiliate_site_id    = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
 					$result = $db->update_bonus_hunt(
 						$id,
@@ -147,7 +147,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 					break;
 
 				case 'bhg_delete_bonus_hunt':
-						$id      = intval( wp_unslash( $_POST['id'] ?? 0 ) );
+						$id      = absint( wp_unslash( $_POST['id'] ?? 0 ) );
 						$result  = $db->delete_bonus_hunt( $id );
 						$message = $result ? 'deleted' : 'error';
 					break;
