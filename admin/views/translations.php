@@ -75,8 +75,8 @@ if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_t
 					);
 		}
 
-                        // Invalidate cached value so updates appear immediately.
-                        wp_cache_delete( 'bhg_t_' . $slug . '_' . $locale, 'bhg_translations' );
+                        // Invalidate cached values so updates appear immediately.
+                        bhg_clear_translation_cache();
                         $notice = bhg_t( 'translation_saved', 'Translation saved.' );
         }
 }
