@@ -68,21 +68,15 @@ if ( 'list' === $view ) :
 	$order_by_clause   = sprintf( '%s %s', $order_by_column, $order_direction );
 	$search_like       = '%' . $wpdb->esc_like( $search_term ) . '%';
 
-	$sql = sprintf(
-		'SELECT h.*, a.name AS affiliate_name FROM %s h LEFT JOIN %s a ON a.id = h.affiliate_site_id WHERE h.title LIKE %%s ORDER BY %s LIMIT %%d OFFSET %%d',
-		$hunts_table,
-		$aff_table,
-		$order_by_clause
-	);
-	$hunts_query = $wpdb->prepare(
-		$sql,
-		$search_like,
-		$per_page,
-		$offset
-	);
+$hunts_query = $wpdb->prepare(
+"SELECT h.*, a.name AS affiliate_name FROM {$hunts_table} h LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s ORDER BY {$order_by_clause} LIMIT %d OFFSET %d",
+$search_like,
+$per_page,
+$offset
+);
 
-								// db call ok; no-cache ok.
-								$hunts = $wpdb->get_results( $hunts_query );
+// db call ok; no-cache ok.
+$hunts = $wpdb->get_results( $hunts_query );
 
 		$count_query = $wpdb->prepare(
 			"SELECT COUNT(*) FROM {$hunts_table} h WHERE h.title LIKE %s",
