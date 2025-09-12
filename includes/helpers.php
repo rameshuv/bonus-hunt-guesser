@@ -101,7 +101,7 @@ if ( ! function_exists( 'bhg_t' ) ) {
                         $slug      = (string) $slug;
                         $locale    = $locale ? (string) $locale : get_locale();
                         $cache_key = 'bhg_t_' . $slug . '_' . $locale;
-                        $cached    = wp_cache_get( $cache_key, BHG_TRANSLATION_CACHE_GROUP );
+                       $cached    = wp_cache_get( $cache_key, 'bhg_translations' );
 
 		if ( false !== $cached ) {
 				return (string) $cached;
@@ -117,11 +117,11 @@ if ( ! function_exists( 'bhg_t' ) ) {
 
 		if ( $row ) {
                         $value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
-                        wp_cache_set( $cache_key, $value, BHG_TRANSLATION_CACHE_GROUP );
+                       wp_cache_set( $cache_key, $value, 'bhg_translations' );
                         return $value;
                 }
 
-                        wp_cache_set( $cache_key, (string) $default_text, BHG_TRANSLATION_CACHE_GROUP );
+                       wp_cache_set( $cache_key, (string) $default_text, 'bhg_translations' );
                         return (string) $default_text;
         }
 }
@@ -133,11 +133,11 @@ if ( ! function_exists( 'bhg_clear_translation_cache' ) ) {
                  * @return void
                  */
         function bhg_clear_translation_cache() {
-                if ( function_exists( 'wp_cache_flush_group' ) ) {
-                        wp_cache_flush_group( BHG_TRANSLATION_CACHE_GROUP );
-                } else {
-                        wp_cache_flush();
-                }
+               if ( function_exists( 'wp_cache_flush_group' ) ) {
+                       wp_cache_flush_group( 'bhg_translations' );
+               } else {
+                       wp_cache_flush();
+               }
         }
 }
 
