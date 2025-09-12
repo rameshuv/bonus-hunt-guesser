@@ -385,6 +385,7 @@ class BHG_Admin {
 
 			$hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 			$final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
+			$final_balance_raw = str_replace( ',', '', $final_balance_raw );
 
 		if ( '' === $final_balance_raw || ! is_numeric( $final_balance_raw ) || (float) $final_balance_raw < 0 ) {
 								wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
