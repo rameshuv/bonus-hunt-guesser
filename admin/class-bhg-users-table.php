@@ -67,7 +67,7 @@ class BHG_Users_Table extends WP_List_Table {
 	}
 
 	public function prepare_items() {
-				$paged   = isset( $_REQUEST['paged'] ) ? max( 1, (int) wp_unslash( $_REQUEST['paged'] ) ) : 1;
+                               $paged   = isset( $_REQUEST['paged'] ) ? max( 1, absint( wp_unslash( $_REQUEST['paged'] ) ) ) : 1;
 				$orderby = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'username';
 				$order   = isset( $_REQUEST['order'] ) && in_array( strtolower( wp_unslash( $_REQUEST['order'] ) ), array( 'asc', 'desc' ), true )
 						? strtoupper( wp_unslash( $_REQUEST['order'] ) )
