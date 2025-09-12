@@ -93,7 +93,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 
 <form method="get" class="search-form">
 <input type="hidden" name="page" value="bhg-bonus-hunts" />
-	<?php wp_nonce_field( 'bhg_hunts_search', 'bhg_hunts_search_nonce' ); ?>
+        <?php wp_nonce_field( 'bhg_hunts_search', 'bhg_hunts_search_nonce' ); ?>
 <p class="search-box">
 <input type="search" name="s" value="<?php echo esc_attr( $search_term ); ?>" />
 <?php if ( $orderby_param ) : ?>
@@ -106,9 +106,13 @@ $hunts = $wpdb->get_results( $hunts_query );
 </p>
 </form>
 
-	<?php if ( isset( $_GET['closed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['closed'] ) ) ) : ?>
-	<div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_closed_successfully', 'Hunt closed successfully.' ) ); ?></p></div>
-	<?php endif; ?>
+       <?php if ( isset( $_GET['bhg_msg'] ) && 'invalid_final_balance' === sanitize_text_field( wp_unslash( $_GET['bhg_msg'] ) ) ) : ?>
+       <div class="notice notice-error is-dismissible"><p><?php echo esc_html( bhg_t( 'invalid_final_balance_please_enter_a_nonnegative_number', 'Invalid final balance. Please enter a non-negative number.' ) ); ?></p></div>
+       <?php endif; ?>
+
+        <?php if ( isset( $_GET['closed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['closed'] ) ) ) : ?>
+        <div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_closed_successfully', 'Hunt closed successfully.' ) ); ?></p></div>
+        <?php endif; ?>
 
 <table class="widefat striped bhg-margin-top-small">
 <thead>

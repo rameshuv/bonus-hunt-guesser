@@ -383,16 +383,17 @@ class BHG_Admin {
 		}
 			check_admin_referer( 'bhg_close_hunt', 'bhg_close_hunt_nonce' );
 
-			$hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
-			$final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
-			$final_balance_raw = str_replace( ',', '', $final_balance_raw );
+                       $hunt_id           = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+                       $final_balance_raw = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
 
-		if ( '' === $final_balance_raw || ! is_numeric( $final_balance_raw ) || (float) $final_balance_raw < 0 ) {
-								wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
-				exit;
-		}
-
-			$final_balance = (float) $final_balance_raw;
+               $final_balance = null;
+               if ( function_exists( 'bhg_parse_amount' ) ) {
+                       $final_balance = bhg_parse_amount( $final_balance_raw );
+               }
+               if ( null === $final_balance || $final_balance < 0 ) {
+                                                               wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
+                               exit;
+               }
 
                 if ( $hunt_id ) {
                                 $result = BHG_Models::close_hunt( $hunt_id, $final_balance );
@@ -809,10 +810,9 @@ class BHG_Admin {
                         't_deleted'             => bhg_t( 'tournament_deleted', 'Tournament deleted.' ),
                        't_closed'              => bhg_t( 'tournament_closed', 'Tournament closed.' ),
                         'nonce'                 => bhg_t( 'security_check_failed_please_retry', 'Security check failed. Please retry.' ),
-                        'noaccess'              => bhg_t( 'you_do_not_have_permission_to_do_that', 'You do not have permission to do that.' ),
-                        'invalid_final_balance' => bhg_t( 'invalid_final_balance_please_enter_a_nonnegative_number', 'Invalid final balance. Please enter a non-negative number.' ),
-                        'tools_success'         => bhg_t( 'tools_action_completed', 'Tools action completed.' ),
-                );
+                       'noaccess'              => bhg_t( 'you_do_not_have_permission_to_do_that', 'You do not have permission to do that.' ),
+                       'tools_success'         => bhg_t( 'tools_action_completed', 'Tools action completed.' ),
+               );
 		$class = ( strpos( $msg, 'error' ) !== false || 'nonce' === $msg || 'noaccess' === $msg ) ? 'notice notice-error' : 'notice notice-success';
 		$text  = isset( $map[ $msg ] ) ? $map[ $msg ] : esc_html( $msg );
 		echo '<div class="' . esc_attr( $class ) . '"><p>' . esc_html( $text ) . '</p></div>';
