@@ -30,9 +30,8 @@ if ( isset( $_GET['edit'] ) ) {
 
 // Fetch ads.
 // db call ok; no-cache ok.
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 $ads = $wpdb->get_results(
-        "SELECT * FROM {$ads_table} ORDER BY id DESC"
+	"SELECT * FROM {$ads_table} ORDER BY id DESC"
 );
 ?>
 <div class="wrap">
@@ -119,11 +118,10 @@ $ads = $wpdb->get_results(
 	<?php
 		$ad = null;
 	if ( $edit_id ) {
-		// db call ok; no-cache ok.
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $ad = $wpdb->get_row(
-                $wpdb->prepare( "SELECT * FROM {$ads_table} WHERE id = %d", $edit_id )
-        );
+			// db call ok; no-cache ok.
+		$ad = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM {$ads_table} WHERE id = %d", $edit_id )
+		);
 	}
 	?>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">

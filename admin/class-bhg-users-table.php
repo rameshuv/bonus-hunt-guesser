@@ -67,12 +67,12 @@ class BHG_Users_Table extends WP_List_Table {
 	}
 
 	public function prepare_items() {
-                               $paged   = isset( $_REQUEST['paged'] ) ? max( 1, absint( wp_unslash( $_REQUEST['paged'] ) ) ) : 1;
-				$orderby = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'username';
-				$order   = isset( $_REQUEST['order'] ) && in_array( strtolower( wp_unslash( $_REQUEST['order'] ) ), array( 'asc', 'desc' ), true )
+								$paged = isset( $_REQUEST['paged'] ) ? max( 1, absint( wp_unslash( $_REQUEST['paged'] ) ) ) : 1;
+				$orderby               = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'username';
+				$order                 = isset( $_REQUEST['order'] ) && in_array( strtolower( wp_unslash( $_REQUEST['order'] ) ), array( 'asc', 'desc' ), true )
 						? strtoupper( wp_unslash( $_REQUEST['order'] ) )
 						: 'ASC';
-				$search  = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '';
+				$search                = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '';
 
 		// Whitelist orderby
 		$allowed = array( 'username', 'email', 'role', 'guesses', 'wins' );
@@ -117,33 +117,32 @@ class BHG_Users_Table extends WP_List_Table {
 			}
 		}
 
-		global $wpdb;
+				global $wpdb;
 		if ( ! empty( $ids ) ) {
-			$in      = implode( ',', array_map( 'intval', $ids ) );
-			$g_table = $wpdb->prefix . 'bhg_guesses';
-			$w_table = $wpdb->prefix . 'bhg_tournament_results';
+				$g_table = $wpdb->prefix . 'bhg_guesses';
+				$w_table = $wpdb->prefix . 'bhg_tournament_results';
 
-			// Guesses per user
-			$placeholders         = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-			$sql_g                = "SELECT user_id, COUNT(*) c FROM `$g_table` WHERE user_id IN ($placeholders) GROUP BY user_id";
-						$g_counts = $wpdb->get_results( $wpdb->prepare( $sql_g, $ids ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				// Guesses per user.
+				$placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
+				$sql_g        = 'SELECT user_id, COUNT(*) c FROM `' . $g_table . '` WHERE user_id IN (' . $placeholders . ') GROUP BY user_id';
+				$g_counts     = $wpdb->get_results( $wpdb->prepare( $sql_g, $ids ) );
 			foreach ( (array) $g_counts as $row ) {
-				$uid = (int) $row->user_id;
+						$uid = (int) $row->user_id;
 				if ( isset( $items[ $uid ] ) ) {
 					$items[ $uid ]['guesses'] = (int) $row->c;
 				}
 			}
 
-			// Wins per user (if table exists)
-			$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $w_table ) );
+				// Wins per user (if table exists).
+				$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $w_table ) );
 			if ( $exists ) {
-				$placeholders             = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-				$sql_w                    = "SELECT user_id, SUM(wins) c FROM `$w_table` WHERE user_id IN ($placeholders) GROUP BY user_id";
-								$w_counts = $wpdb->get_results( $wpdb->prepare( $sql_w, $ids ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+							$placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
+							$sql_w        = 'SELECT user_id, SUM(wins) c FROM `' . $w_table . '` WHERE user_id IN (' . $placeholders . ') GROUP BY user_id';
+							$w_counts     = $wpdb->get_results( $wpdb->prepare( $sql_w, $ids ) );
 				foreach ( (array) $w_counts as $row ) {
-					$uid = (int) $row->user_id;
+						$uid = (int) $row->user_id;
 					if ( isset( $items[ $uid ] ) ) {
-						$items[ $uid ]['wins'] = (int) $row->c;
+							$items[ $uid ]['wins'] = (int) $row->c;
 					}
 				}
 			}
