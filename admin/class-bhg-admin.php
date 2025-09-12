@@ -393,13 +393,18 @@ class BHG_Admin {
 
 			$final_balance = (float) $final_balance_raw;
 
-		if ( $hunt_id ) {
-				BHG_Models::close_hunt( $hunt_id, $final_balance );
-		}
+                if ( $hunt_id ) {
+                                BHG_Models::close_hunt( $hunt_id, $final_balance );
+                }
 
-				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
-		exit;
-	}
+                                $redirect_url = add_query_arg(
+                                        'closed',
+                                        1,
+                                        BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' )
+                                );
+                                wp_safe_redirect( $redirect_url );
+                exit;
+        }
 
 	/**
 	 * Delete a bonus hunt and its guesses.
