@@ -48,17 +48,17 @@ class BHG_DB {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-                $charset_collate = $wpdb->get_charset_collate();
+				$charset_collate = $wpdb->get_charset_collate();
 
-                // Raw table names without backticks.
-                $hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts';
-                $guesses_table      = $wpdb->prefix . 'bhg_guesses';
-                $tours_table        = $wpdb->prefix . 'bhg_tournaments';
-                $tres_table         = $wpdb->prefix . 'bhg_tournament_results';
-                $ads_table          = $wpdb->prefix . 'bhg_ads';
-                $trans_table        = $wpdb->prefix . 'bhg_translations';
-                $aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
-                $winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
+				// Raw table names without backticks.
+				$hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts';
+				$guesses_table      = $wpdb->prefix . 'bhg_guesses';
+				$tours_table        = $wpdb->prefix . 'bhg_tournaments';
+				$tres_table         = $wpdb->prefix . 'bhg_tournament_results';
+				$ads_table          = $wpdb->prefix . 'bhg_ads';
+				$trans_table        = $wpdb->prefix . 'bhg_translations';
+				$aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
+				$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
 
 		$sql = array();
 
@@ -199,9 +199,14 @@ KEY tournament_id (tournament_id)
 			}
 
 			// Guesses columns.
-			if ( ! $this->column_exists( $guesses_table, 'updated_at' ) ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-				$wpdb->query( "ALTER TABLE `{$guesses_table}` ADD COLUMN updated_at DATETIME NULL" );
+			$gneed = array(
+				'updated_at' => 'ADD COLUMN updated_at DATETIME NULL',
+			);
+			foreach ( $gneed as $c => $alter ) {
+				if ( ! $this->column_exists( $guesses_table, $c ) ) {
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+					$wpdb->query( "ALTER TABLE `{$guesses_table}` {$alter}" );
+				}
 			}
 
 												// Tournaments: make sure common columns exist.
