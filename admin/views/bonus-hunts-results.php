@@ -157,18 +157,19 @@ $current   = $view_type . '-' . $item_id;
                                 <option value="all" <?php selected( $timeframe, 'all' ); ?>><?php echo esc_html( bhg_t( 'all_time', 'All Time' ) ); ?></option>
                         </select>
         </div>
-	<table class="widefat striped">
-			<thead>
-					<tr>
-							<?php foreach ( $columns as $label ) : ?>
-									<th><?php echo esc_html( $label ); ?></th>
-							<?php endforeach; ?>
-					</tr>
-			</thead>
+        <?php if ( empty( $rows ) ) : ?>
+                <p><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></p>
+        <?php endif; ?>
+        <table class="widefat striped">
+                        <thead>
+                                        <tr>
+                                                        <?php foreach ( $columns as $label ) : ?>
+                                                                        <th><?php echo esc_html( $label ); ?></th>
+                                                        <?php endforeach; ?>
+                                        </tr>
+                        </thead>
                         <tbody>
-                        <?php if ( empty( $rows ) ) : ?>
-                                <tr><td colspan="<?php echo (int) count( $columns ); ?>"><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></td></tr>
-                        <?php else : ?>
+                        <?php if ( ! empty( $rows ) ) : ?>
                                 <?php
                                 $pos = 1;
                                 foreach ( (array) $rows as $r ) :
