@@ -20,7 +20,13 @@ if ( ! in_array( $table, $allowed_tables, true ) ) {
 
 // Load for edit.
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
-$row     = $edit_id ? $wpdb->get_row(
+if ( $edit_id ) {
+        $nonce = isset( $_GET['bhg_edit_affiliate_nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_edit_affiliate_nonce'] ) ) : '';
+        if ( ! wp_verify_nonce( $nonce, 'bhg_edit_affiliate' ) ) {
+                $edit_id = 0;
+        }
+}
+$row = $edit_id ? $wpdb->get_row(
         $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $edit_id )
 ) : null;
 
@@ -86,23 +92,30 @@ $rows = $wpdb->get_results(
 						<td><?php echo esc_html( $r->slug ); ?></td>
 						<td><?php echo esc_html( $r->url ); ?></td>
 												<td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
-			<td>
-			<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
-				<?php
-				echo esc_html( bhg_t( 'button_edit', 'Edit' ) );
-				?>
-</a>
-						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_affiliate', 'Delete this affiliate website?' ) ); ?>');">
-														<?php wp_nonce_field( 'bhg_delete_affiliate', 'bhg_delete_affiliate_nonce' ); ?>
-				<input type="hidden" name="action" value="bhg_delete_affiliate">
-				<input type="hidden" name="id" value="<?php echo (int) $r->id; ?>">
-				<button class="button-link-delete" type="submit">
-				<?php
-				echo esc_html( bhg_t( 'remove', 'Remove' ) );
-				?>
-</button>
-			</form>
-			</td>
+                        <td>
+                        <?php
+                        $edit_url = wp_nonce_url(
+                                add_query_arg( array( 'edit' => (int) $r->id ) ),
+                                'bhg_edit_affiliate',
+                                'bhg_edit_affiliate_nonce'
+                        );
+                        ?>
+                        <a class="button" href="<?php echo esc_url( $edit_url ); ?>">
+                                <?php
+                                echo esc_html( bhg_t( 'button_edit', 'Edit' ) );
+                                ?>
+                        </a>
+                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_affiliate', 'Delete this affiliate website?' ) ); ?>');">
+                                                        <?php wp_nonce_field( 'bhg_delete_affiliate', 'bhg_delete_affiliate_nonce' ); ?>
+                                <input type="hidden" name="action" value="bhg_delete_affiliate">
+                                <input type="hidden" name="id" value="<?php echo (int) $r->id; ?>">
+                                <button class="button-link-delete" type="submit">
+                                <?php
+                                echo esc_html( bhg_t( 'remove', 'Remove' ) );
+                                ?>
+                                </button>
+                        </form>
+                        </td>
 		</tr>
 					<?php
 					endforeach;
