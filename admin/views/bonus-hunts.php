@@ -42,8 +42,8 @@ if ( 'list' === $view ) :
 			check_admin_referer( 'bhg_hunts_search', 'bhg_hunts_search_nonce' );
 			$search = sanitize_text_field( wp_unslash( $_GET['s'] ) );
 	}
-				$orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
-		$order           = ( isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) ) ? 'ASC' : 'DESC';
+                $orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
+                $order   = isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) ? 'ASC' : 'DESC';
 
 		$allowed_orderby = array(
 			'id'               => 'h.id',
