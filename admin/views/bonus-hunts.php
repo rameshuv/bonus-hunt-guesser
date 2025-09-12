@@ -110,9 +110,13 @@ $hunts = $wpdb->get_results( $hunts_query );
        <div class="notice notice-error is-dismissible"><p><?php echo esc_html( bhg_t( 'invalid_final_balance_please_enter_a_nonnegative_number', 'Invalid final balance. Please enter a non-negative number.' ) ); ?></p></div>
        <?php endif; ?>
 
-        <?php if ( isset( $_GET['closed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['closed'] ) ) ) : ?>
-        <div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_closed_successfully', 'Hunt closed successfully.' ) ); ?></p></div>
-        <?php endif; ?>
+       <?php if ( isset( $_GET['closed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['closed'] ) ) ) : ?>
+       <div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_closed_successfully', 'Hunt closed successfully.' ) ); ?></p></div>
+       <?php endif; ?>
+
+       <?php if ( isset( $_GET['bhg_msg'] ) && 'close_failed' === sanitize_text_field( wp_unslash( $_GET['bhg_msg'] ) ) ) : ?>
+       <div class="notice notice-error is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_close_failed', 'Failed to close the hunt.' ) ); ?></p></div>
+       <?php endif; ?>
 
 <table class="widefat striped bhg-margin-top-small">
 <thead>
