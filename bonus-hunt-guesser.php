@@ -134,10 +134,17 @@ define( 'BHG_TABLE_PREFIX', 'bhg_' );
  * @return void
  */
 function bhg_create_tables() {
-	if ( class_exists( 'BHG_DB' ) ) {
-			( new BHG_DB() )->create_tables();
-			return;
-	}
+        if ( ! class_exists( 'BHG_DB' ) ) {
+                return;
+        }
+
+        try {
+                ( new BHG_DB() )->create_tables();
+        } catch ( Throwable $e ) {
+                if ( function_exists( 'do_action' ) ) {
+                        do_action( 'bhg_db_error', $e );
+                }
+        }
 }
 
 // Check and create tables if needed.
@@ -147,10 +154,10 @@ function bhg_create_tables() {
  * @return void
  */
 function bhg_check_tables() {
-	if ( ! get_option( 'bhg_tables_created' ) ) {
-			bhg_create_tables();
-			update_option( 'bhg_tables_created', true );
-	}
+        if ( ! get_option( 'bhg_tables_created' ) ) {
+                        bhg_create_tables();
+                        update_option( 'bhg_tables_created', true );
+        }
 }
 
 /**
@@ -398,6 +405,8 @@ function bhg_init_plugin() {
 
 // Early table check on init.
 add_action( 'init', 'bhg_check_tables', 0 );
+add_action( 'admin_init', 'bhg_create_tables' );
+register_activation_hook( __FILE__, 'bhg_create_tables' );
 
 // Form handler for settings save.
 /**
@@ -938,26 +947,5 @@ function bhg_save_extra_user_profile_fields( $user_id ) {
 
 		$affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
 		update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
-}
-
-if ( ! function_exists( 'bhg_self_heal_db' ) ) {
-	/**
-	 * Attempt to repair missing database tables.
-	 *
-	 * @return void
-	 */
-	function bhg_self_heal_db() {
-		if ( ! class_exists( 'BHG_DB' ) ) {
-				require_once __DIR__ . '/includes/class-bhg-db.php';
-		}
-		try {
-				$db = new BHG_DB();
-				$db->create_tables();
-		} catch ( Throwable $e ) {
-			do_action( 'bhg_db_error', $e );
-		}
-	}
-		add_action( 'admin_init', 'bhg_self_heal_db' );
-		register_activation_hook( __FILE__, 'bhg_self_heal_db' );
 }
 
