@@ -390,9 +390,9 @@ class BHG_Admin {
                if ( function_exists( 'bhg_parse_amount' ) ) {
                        $final_balance = bhg_parse_amount( $final_balance_raw );
                }
-               if ( null === $final_balance || $final_balance < 0 ) {
-                                                               wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
-                               exit;
+               if ( null === $final_balance || ! is_numeric( $final_balance ) || $final_balance < 0 ) {
+                       wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) );
+                       exit;
                }
 
                 if ( $hunt_id ) {
