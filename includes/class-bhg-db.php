@@ -24,7 +24,7 @@ class BHG_DB {
 		$db->create_tables();
 
 		global $wpdb;
-		$tours_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+		$tours_table = esc_sql( "`{$wpdb->prefix}bhg_tournaments`" );
 
 		// Drop legacy "period" column and related index if they exist.
 		if ( $db->column_exists( $tours_table, 'period' ) ) {
@@ -50,14 +50,14 @@ class BHG_DB {
 
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$hunts_table        = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-		$guesses_table      = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-		$tours_table        = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-		$tres_table         = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
-		$ads_table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
-		$trans_table        = esc_sql( $wpdb->prefix . 'bhg_translations' );
-		$aff_websites_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
-		$winners_table      = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+		$hunts_table        = esc_sql( "`{$wpdb->prefix}bhg_bonus_hunts`" );
+		$guesses_table      = esc_sql( "`{$wpdb->prefix}bhg_guesses`" );
+		$tours_table        = esc_sql( "`{$wpdb->prefix}bhg_tournaments`" );
+		$tres_table         = esc_sql( "`{$wpdb->prefix}bhg_tournament_results`" );
+		$ads_table          = esc_sql( "`{$wpdb->prefix}bhg_ads`" );
+		$trans_table        = esc_sql( "`{$wpdb->prefix}bhg_translations`" );
+		$aff_websites_table = esc_sql( "`{$wpdb->prefix}bhg_affiliate_websites`" );
+		$winners_table      = esc_sql( "`{$wpdb->prefix}bhg_hunt_winners`" );
 
 		$sql = array();
 
@@ -347,7 +347,7 @@ KEY tournament_id (tournament_id)
 	private function create_table_translations() {
 			global $wpdb;
 
-			$table           = $wpdb->prefix . 'bhg_translations';
+			$table           = "`{$wpdb->prefix}bhg_translations`";
 			$charset_collate = $wpdb->get_charset_collate();
 
 			$sql = "CREATE TABLE {$table} (
@@ -373,7 +373,7 @@ KEY tournament_id (tournament_id)
 	public function get_affiliate_websites() {
 						global $wpdb;
 
-						$table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+			$table = esc_sql( "`{$wpdb->prefix}bhg_affiliate_websites`" );
 
                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 						return $wpdb->get_results( "SELECT id, name, slug, url, status FROM {$table} ORDER BY name ASC" );
