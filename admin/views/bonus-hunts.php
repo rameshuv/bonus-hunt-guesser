@@ -34,7 +34,7 @@ $view = isset( $_GET['view'] ) ? sanitize_text_field( wp_unslash( $_GET['view'] 
 
 /** LIST VIEW */
 if ( 'list' === $view ) :
-	$current_page = max( 1, isset( $_GET['paged'] ) ? (int) wp_unslash( $_GET['paged'] ) : 1 );
+        $current_page = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
 	$per_page     = 30;
 		$offset   = ( $current_page - 1 ) * $per_page;
 		$search   = '';
@@ -305,7 +305,7 @@ endif;
 <?php
 /** CLOSE VIEW */
 if ( 'close' === $view ) :
-				$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
+                               $id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 				// db call ok; no-cache ok.
                                 $hunt = $wpdb->get_row(
                                         $wpdb->prepare(
@@ -453,7 +453,7 @@ if ( 'add' === $view ) :
 <?php
 /** EDIT VIEW */
 if ( 'edit' === $view ) :
-		$id = isset( $_GET['id'] ) ? (int) wp_unslash( $_GET['id'] ) : 0;
+            $id = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 		// db call ok; no-cache ok.
                                 $hunt = $wpdb->get_row(
                                         $wpdb->prepare(
