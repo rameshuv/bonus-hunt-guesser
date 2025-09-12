@@ -134,17 +134,17 @@ define( 'BHG_TABLE_PREFIX', 'bhg_' );
  * @return void
  */
 function bhg_create_tables() {
-        if ( ! class_exists( 'BHG_DB' ) ) {
-                return;
-        }
+	if ( ! class_exists( 'BHG_DB' ) ) {
+			return;
+	}
 
-        try {
-                ( new BHG_DB() )->create_tables();
-        } catch ( Throwable $e ) {
-                if ( function_exists( 'do_action' ) ) {
-                        do_action( 'bhg_db_error', $e );
-                }
-        }
+	try {
+			( new BHG_DB() )->create_tables();
+	} catch ( Throwable $e ) {
+		if ( function_exists( 'do_action' ) ) {
+				do_action( 'bhg_db_error', $e );
+		}
+	}
 }
 
 // Check and create tables if needed.
@@ -154,10 +154,10 @@ function bhg_create_tables() {
  * @return void
  */
 function bhg_check_tables() {
-        if ( ! get_option( 'bhg_tables_created' ) ) {
-                        bhg_create_tables();
-                        update_option( 'bhg_tables_created', true );
-        }
+	if ( ! get_option( 'bhg_tables_created' ) ) {
+					bhg_create_tables();
+					update_option( 'bhg_tables_created', true );
+	}
 }
 
 /**
@@ -239,12 +239,15 @@ function bhg_maybe_seed_translations() {
  */
 function bhg_activate_plugin() {
 	if ( ! current_user_can( 'activate_plugins' ) ) {
-			return;
+					return;
 	}
 
-		bhg_maybe_run_migrations();
+				bhg_maybe_run_migrations();
 
-		bhg_seed_default_translations_if_empty();
+				// Ensure database schema is up to date on activation.
+				bhg_create_tables();
+
+				bhg_seed_default_translations_if_empty();
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
@@ -268,10 +271,10 @@ function bhg_activate_plugin() {
 		update_option( 'bhg_demo_notice', 1 );
 
 				// Set tables created flag.
-		update_option( 'bhg_tables_created', true );
+				update_option( 'bhg_tables_created', true );
 
-		// Flush rewrite rules after database changes.
-	flush_rewrite_rules();
+				// Flush rewrite rules after database changes.
+		flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, 'bhg_activate_plugin' );
 
@@ -279,7 +282,7 @@ register_activation_hook( __FILE__, 'bhg_activate_plugin' );
 register_deactivation_hook(
 	__FILE__,
 	function () {
-		// Keep data intact by default.
+			// Keep data intact by default.
 	}
 );
 
@@ -406,7 +409,6 @@ function bhg_init_plugin() {
 // Early table check on init.
 add_action( 'init', 'bhg_check_tables', 0 );
 add_action( 'admin_init', 'bhg_create_tables' );
-register_activation_hook( __FILE__, 'bhg_create_tables' );
 
 // Form handler for settings save.
 /**
@@ -548,15 +550,15 @@ function bhg_handle_submit_guess() {
 	}
 
 	global $wpdb;
-        $hunts   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-        $g_tbl   = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+		$hunts = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		$g_tbl = esc_sql( $wpdb->prefix . 'bhg_guesses' );
 
 	// db call ok; caching added.
 	$hunt_cache_key = 'bhg_hunt_' . $hunt_id;
 	$hunt           = wp_cache_get( $hunt_cache_key );
 	if ( false === $hunt ) {
                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-                        $hunt = $wpdb->get_row( $wpdb->prepare( "SELECT id, status, guessing_enabled FROM {$hunts} WHERE id = %d", $hunt_id ) );
+						$hunt = $wpdb->get_row( $wpdb->prepare( "SELECT id, status, guessing_enabled FROM {$hunts} WHERE id = %d", $hunt_id ) );
 			wp_cache_set( $hunt_cache_key, $hunt );
 	}
 	if ( ! $hunt ) {
@@ -581,7 +583,7 @@ function bhg_handle_submit_guess() {
 	$count           = wp_cache_get( $count_cache_key );
 	if ( false === $count ) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-                                $count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$g_tbl} WHERE hunt_id = %d AND user_id = %d", $hunt_id, $user_id ) );
+								$count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$g_tbl} WHERE hunt_id = %d AND user_id = %d", $hunt_id, $user_id ) );
 		wp_cache_set( $count_cache_key, $count );
 	}
 	if ( $count >= $max ) {
@@ -591,7 +593,7 @@ function bhg_handle_submit_guess() {
 			$gid            = wp_cache_get( $last_guess_key );
 			if ( false === $gid ) {
                                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-                                                                $gid = (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$g_tbl} WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1", $hunt_id, $user_id ) );
+																$gid = (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$g_tbl} WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1", $hunt_id, $user_id ) );
 				wp_cache_set( $last_guess_key, $gid );
 			}
 			if ( $gid ) {
@@ -609,7 +611,7 @@ function bhg_handle_submit_guess() {
 								);
 				wp_cache_delete( $count_cache_key );
 				if ( $last_guess_key ) {
-				wp_cache_delete( $last_guess_key );
+					wp_cache_delete( $last_guess_key );
 				}
 				if ( wp_doing_ajax() ) {
 					wp_send_json_success();
@@ -640,7 +642,7 @@ function bhg_handle_submit_guess() {
 		);
 	wp_cache_delete( $count_cache_key );
 	if ( $last_guess_key ) {
-	wp_cache_delete( $last_guess_key );
+		wp_cache_delete( $last_guess_key );
 	}
 
 	if ( wp_doing_ajax() ) {
@@ -705,13 +707,13 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
 	$rows      = wp_cache_get( $cache_key );
 	if ( false === $rows ) {
                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-                        $rows = $wpdb->get_results(
-                                $wpdb->prepare(
-                                        "SELECT * FROM {$table} WHERE placement = %s AND active = %d",
-                                        $placement,
-                                        1
-                                )
-                        );
+						$rows = $wpdb->get_results(
+							$wpdb->prepare(
+								"SELECT * FROM {$table} WHERE placement = %s AND active = %d",
+								$placement,
+								1
+							)
+						);
 		wp_cache_set( $cache_key, $rows );
 	}
 	if ( did_action( 'wp' ) && function_exists( 'get_queried_object_id' ) ) {
@@ -795,42 +797,42 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 			break;
 	}
 
-                                $g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-                                $h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-                                $u = esc_sql( $wpdb->users );
+								$g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+								$h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+								$u = esc_sql( $wpdb->users );
 
-                                $total_query  = "SELECT COUNT(*) FROM (
+								$total_query  = "SELECT COUNT(*) FROM (
                                 SELECT g.user_id
                                 FROM {$g} g
                                 INNER JOIN {$h} h ON h.id = g.hunt_id
                                 WHERE h.status='closed' AND h.final_balance IS NOT NULL";
-                                $params_total = array();
-        if ( $start_date ) {
-                        $total_query   .= ' AND h.updated_at >= %s';
-                        $params_total[] = $start_date;
-        }
-                                $total_query   .= " AND NOT EXISTS (
+								$params_total = array();
+	if ( $start_date ) {
+					$total_query   .= ' AND h.updated_at >= %s';
+					$params_total[] = $start_date;
+	}
+								$total_query .= " AND NOT EXISTS (
                                 SELECT 1 FROM {$g} g2
                                 WHERE g2.hunt_id = g.hunt_id
                                 AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
                                 )
                                 GROUP BY g.user_id
                                 ) t";
-                                                                // db call ok; no-cache ok.
+																// db call ok; no-cache ok.
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                $total = (int) $wpdb->get_var( $wpdb->prepare( $total_query, ...$params_total ) );
+				$total = (int) $wpdb->get_var( $wpdb->prepare( $total_query, ...$params_total ) );
 
-                                $list_query  = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
+								$list_query  = "SELECT g.user_id, u.user_login, COUNT(*) AS wins
                                 FROM {$g} g
                                 INNER JOIN {$h} h ON h.id = g.hunt_id
                                 INNER JOIN {$u} u ON u.ID = g.user_id
                                 WHERE h.status='closed' AND h.final_balance IS NOT NULL";
-                                $params_list = array();
-        if ( $start_date ) {
-                        $list_query   .= ' AND h.updated_at >= %s';
-                        $params_list[] = $start_date;
-        }
-                                $list_query   .= " AND NOT EXISTS (
+								$params_list = array();
+	if ( $start_date ) {
+					$list_query   .= ' AND h.updated_at >= %s';
+					$params_list[] = $start_date;
+	}
+								$list_query   .= " AND NOT EXISTS (
                                 SELECT 1 FROM {$g} g2
                                 WHERE g2.hunt_id = g.hunt_id
                                 AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
@@ -838,10 +840,10 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
                                 GROUP BY g.user_id, u.user_login
                                 ORDER BY wins DESC, u.user_login ASC
                                 LIMIT %d OFFSET %d";
-                                $params_list[] = $per_page;
-                                $params_list[] = $offset;
+								$params_list[] = $per_page;
+								$params_list[] = $offset;
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                $rows = $wpdb->get_results( $wpdb->prepare( $list_query, ...$params_list ) );
+				$rows = $wpdb->get_results( $wpdb->prepare( $list_query, ...$params_list ) );
 	if ( ! $rows ) {
 		return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
 	}
