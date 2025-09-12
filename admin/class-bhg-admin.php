@@ -262,7 +262,10 @@ class BHG_Admin {
 		$winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
 		$guessing_enabled      = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
 				$final_balance = ( isset( $_POST['final_balance'] ) && '' !== $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
-				$status        = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'open';
+				$status        = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'open';
+				if ( ! in_array( $status, array( 'open', 'closed' ), true ) ) {
+					$status = 'open';
+				}
 
 				$data = array(
 					'title'             => $title,
@@ -548,7 +551,7 @@ class BHG_Admin {
 		global $wpdb;
 		$t                     = $wpdb->prefix . 'bhg_tournaments';
 		$id                    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
-			$participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
+			$participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_key( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
 		if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
 				$participants_mode = 'winners';
 		}
@@ -560,9 +563,12 @@ class BHG_Admin {
 				'participants_mode' => $participants_mode,
 				'start_date'        => isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : null,
 				'end_date'          => isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : null,
-				'status'            => isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'active',
+				'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
 				'updated_at'        => current_time( 'mysql' ),
 			);
+			if ( ! in_array( $data['status'], array( 'active', 'inactive' ), true ) ) {
+				$data['status'] = 'active';
+			}
 			try {
 					$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
 				if ( $id > 0 ) {
@@ -621,7 +627,10 @@ class BHG_Admin {
 			$name   = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 			$slug   = isset( $_POST['slug'] ) ? sanitize_title( wp_unslash( $_POST['slug'] ) ) : sanitize_title( $name );
 			$url    = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
-			$status = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'active';
+			$status = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active';
+			if ( ! in_array( $status, array( 'active', 'inactive' ), true ) ) {
+				$status = 'active';
+			}
 
 		$data       = array(
 			'name'       => $name,

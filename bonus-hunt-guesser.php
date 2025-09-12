@@ -421,7 +421,7 @@ function bhg_handle_settings_save() {
 		$settings = array();
 
 	if ( isset( $_POST['bhg_default_tournament_period'] ) ) {
-			$period = sanitize_text_field( wp_unslash( $_POST['bhg_default_tournament_period'] ) );
+			$period = sanitize_key( wp_unslash( $_POST['bhg_default_tournament_period'] ) );
 		if ( in_array( $period, array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' ), true ) ) {
 				$settings['default_tournament_period'] = $period;
 		}
@@ -442,7 +442,7 @@ function bhg_handle_settings_save() {
 	}
 
 	if ( isset( $_POST['bhg_currency'] ) ) {
-					$currency = sanitize_text_field( wp_unslash( $_POST['bhg_currency'] ) );
+					$currency = sanitize_key( wp_unslash( $_POST['bhg_currency'] ) );
 		if ( in_array( $currency, array( 'eur', 'usd' ), true ) ) {
 						$settings['currency'] = $currency;
 		}
@@ -456,7 +456,7 @@ function bhg_handle_settings_save() {
 	}
 
 	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
-			$allow = sanitize_text_field( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
+			$allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
 		if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
 				$settings['allow_guess_changes'] = $allow;
 		}
