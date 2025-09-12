@@ -19,7 +19,7 @@ $row     = $edit_id
 $search          = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 $orderby         = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order           = isset( $_GET['order'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'DESC';
-$allowed_orderby = array( 'id', 'title', 'type', 'start_date', 'end_date', 'status' );
+$allowed_orderby = array( 'id', 'title', 'start_date', 'end_date', 'status' );
 if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
 		$orderby = 'id';
 }
@@ -40,14 +40,6 @@ if ( $search ) {
 $sql .= ' ORDER BY ' . $order_by_clause;
 $sql  = $params ? $wpdb->prepare( $sql, ...$params ) : $sql; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-
-$labels = array(
-	'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
-	'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
-	'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
-	'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
-	'alltime'   => bhg_t( 'label_alltime', 'Alltime' ),
-);
 ?>
 <div class="wrap">
 	<h1 class="wp-heading-inline">
@@ -96,19 +88,6 @@ $labels = array(
 						)
 					)
 				) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a>';
-				?>
-				</th>
-				<th>
-				<?php
-				$n = ( 'type' === $orderby && 'ASC' === $order ) ? 'desc' : 'asc';
-				echo '<a href="' . esc_url(
-					add_query_arg(
-						array(
-							'orderby' => 'type',
-							'order'   => $n,
-						)
-					)
-				) . '">' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</a>';
 				?>
 				</th>
 				<th>
@@ -164,7 +143,7 @@ $labels = array(
        </thead>
        <tbody>
                <?php if ( empty( $rows ) ) : ?>
-               <tr><td colspan="8"><em>
+               <tr><td colspan="7"><em>
                        <?php
                        echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
                        ?>
@@ -176,7 +155,6 @@ $labels = array(
 		<tr>
 <td><?php echo esc_html( (int) $r->id ); ?></td>
 			<td><?php echo esc_html( $r->title ); ?></td>
-			<td><?php echo esc_html( $labels[ $r->type ] ?? $r->type ); ?></td>
 			<td><?php echo esc_html( $r->start_date ); ?></td>
                        <td><?php echo esc_html( $r->end_date ); ?></td>
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
@@ -233,24 +211,6 @@ endif;
 		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
 		</tr>
 		<tr>
-		<th><label for="bhg_t_type">
-		<?php
-		echo esc_html( bhg_t( 'label_type', 'Type' ) );
-		?>
-</label></th>
-		<td>
-			<?php
-			$types = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
-			$cur   = $row->type ?? 'weekly';
-			?>
-			<select id="bhg_t_type" name="type">
-			<?php foreach ( $types as $t ) : ?>
-				<option value="<?php echo esc_attr( $t ); ?>" <?php selected( $cur, $t ); ?>><?php echo esc_html( $labels[ $t ] ); ?></option>
-			<?php endforeach; ?>
-			</select>
-				</td>
-				</tr>
-				<tr>
 				<th><label for="bhg_t_pmode">
 				<?php
 				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
