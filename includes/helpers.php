@@ -854,7 +854,8 @@ if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
 		$is_aff        = bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_affiliate_site_id );
 				$cls   = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
 				$label = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
-				return '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
+                               $html = '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
+                               return wp_kses_post( $html );
 	}
 }
 
