@@ -107,9 +107,9 @@ $hunts = $wpdb->get_results( $hunts_query );
 </form>
 
 <?php if ( isset( $_GET['bhg_msg'] ) && 'invalid_final_balance' === sanitize_key( wp_unslash( $_GET['bhg_msg'] ) ) ) : ?>
-       <div class="notice notice-error is-dismissible">
-               <p><?php echo esc_html( bhg_t( 'invalid_final_balance_please_enter_a_nonnegative_number', 'Invalid final balance. Please enter a non-negative number.' ) ); ?></p>
-       </div>
+<div class="notice notice-error notice-large is-dismissible">
+<p><strong><?php echo esc_html( bhg_t( 'hunt_not_closed_invalid_final_balance', 'Hunt not closed. Please enter a non-negative final balance.' ) ); ?></strong></p>
+</div>
 <?php endif; ?>
 
        <?php if ( isset( $_GET['closed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['closed'] ) ) ) : ?>
