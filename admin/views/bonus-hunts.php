@@ -324,7 +324,7 @@ if ( 'close' === $view ) :
 		<tbody>
 		<tr>
 			<th scope="row"><label for="bhg_final_balance"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></label></th>
-			<td><input type="number" step="0.01" min="0" id="bhg_final_balance" name="final_balance" required></td>
+                        <td><input type="text" id="bhg_final_balance" name="final_balance" required></td>
 		</tr>
 		</tbody>
 	</table>
@@ -437,8 +437,8 @@ if ( 'add' === $view ) :
 			</td>
 		</tr>
 		<tr>
-			<th scope="row"><label for="bhg_final"><?php echo esc_html( bhg_t( 'final_balance_optional', 'Final Balance (optional)' ) ); ?></label></th>
-			<td><input type="number" step="0.01" min="0" id="bhg_final" name="final_balance" value=""></td>
+                        <th scope="row"><label for="bhg_final"><?php echo esc_html( bhg_t( 'final_balance_optional', 'Final Balance (optional)' ) ); ?></label></th>
+                        <td><input type="text" id="bhg_final" name="final_balance" value=""></td>
 		</tr>
 		</tbody>
 	</table>
@@ -566,7 +566,7 @@ if ( 'edit' === $view ) :
 </tr>
 <tr>
 <th scope="row"><label for="bhg_final"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></label></th>
-<td><input type="number" step="0.01" min="0" id="bhg_final" name="final_balance" value="<?php echo esc_attr( $hunt->final_balance ); ?>" placeholder="<?php echo esc_attr( esc_html( bhg_t( 'label_emdash', '—' ) ) ); ?>"></td>
+<td><input type="text" id="bhg_final" name="final_balance" value="<?php echo esc_attr( $hunt->final_balance ); ?>" placeholder="<?php echo esc_attr( esc_html( bhg_t( 'label_emdash', '—' ) ) ); ?>"></td>
 </tr>
 		<tr>
 			<th scope="row"><label for="bhg_status"><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) ); ?></label></th>
