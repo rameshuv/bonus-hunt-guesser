@@ -76,7 +76,9 @@ $base     = remove_query_arg( 'ppaged' );
 						<select id="bhg_affiliate" name="affiliate_site_id">
 							<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
 							<?php foreach ( $affs as $a ) : ?>
-								<option value="<?php echo (int) $a->id; ?>" <?php selected( $sel, (int) $a->id ); ?>><?php echo esc_html( $a->name ); ?></option>
+								<option value="<?php echo (int) $a->id; ?>" <?php selected( $sel, (int) $a->id ); ?>>
+									<?php echo esc_html( $a->name ); ?>
+								</option>
 							<?php endforeach; ?>
 						</select>
 					</td>
