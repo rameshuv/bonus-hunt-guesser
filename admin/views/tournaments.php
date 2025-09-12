@@ -18,13 +18,13 @@ $row     = $edit_id
                 : null;
 
 $search          = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-$orderby         = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'id';
-$order           = isset( $_GET['order'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'DESC';
+$orderby         = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
+$order           = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
 $allowed_orderby = array( 'id', 'title', 'start_date', 'end_date', 'status' );
 if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
-		$orderby = 'id';
+                $orderby = 'id';
 }
-$order           = ( 'ASC' === $order ) ? 'ASC' : 'DESC';
+$order           = in_array( strtolower( $order ), array( 'asc', 'desc' ), true ) ? strtoupper( $order ) : 'DESC';
 $order_by_clause = sanitize_sql_orderby( $orderby . ' ' . $order );
 if ( empty( $order_by_clause ) ) {
 		$order_by_clause = 'id DESC';
