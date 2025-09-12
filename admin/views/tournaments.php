@@ -162,13 +162,16 @@ $rows = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.Not
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 <td>
 <a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
-				<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
+                                <?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
 </a>
-<a class="button" href="<?php echo esc_url( add_query_arg( array( 'close' => (int) $r->id ) ) ); ?>">
-				<?php echo esc_html( bhg_t( 'close', 'Close' ) ); ?>
-</a>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
+                                <?php wp_nonce_field( 'bhg_tournament_close', 'bhg_tournament_close_nonce' ); ?>
+                                <input type="hidden" name="action" value="bhg_tournament_close" />
+                                <input type="hidden" name="tournament_id" value="<?php echo esc_attr( (int) $r->id ); ?>" />
+                                <button type="submit" class="button"><?php echo esc_html( bhg_t( 'close', 'Close' ) ); ?></button>
+</form>
 <a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts-results&type=tournament&id=' . (int) $r->id ) ); ?>">
-				<?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?>
+                                <?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?>
 </a>
 </td>
 <td>
