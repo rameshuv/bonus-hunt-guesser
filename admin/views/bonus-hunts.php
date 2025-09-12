@@ -14,11 +14,11 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$hunts_table    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+			$hunts_table    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 $guesses_table  = esc_sql( $wpdb->prefix . 'bhg_guesses' );
 $tours_table    = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 $users_table    = esc_sql( $wpdb->users );
-$aff_table      = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+			$aff_table      = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
 $allowed_tables = array( $hunts_table, $guesses_table, $aff_table, $tours_table, $users_table );
 if (
 								! in_array( $hunts_table, $allowed_tables, true ) ||
@@ -45,31 +45,41 @@ if ( 'list' === $view ) :
 			check_admin_referer( 'bhg_hunts_search', 'bhg_hunts_search_nonce' );
 		$search_term = sanitize_text_field( wp_unslash( $_GET['s'] ) );
 	}
-	$orderby_param = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
-	$order_param   = isset( $_GET['order'] ) && 'asc' === strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) ? 'ASC' : 'DESC';
+        $orderby_param = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
+        $order_param   = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
 
-		$allowed_orderby         = array(
-			'id'               => 'h.id',
-			'title'            => 'h.title',
-			'starting_balance' => 'h.starting_balance',
-			'final_balance'    => 'h.final_balance',
-			'affiliate'        => 'a.name',
-			'winners'          => 'h.winners_count',
-			'status'           => 'h.status',
-		);
-		$order_by_column         = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'h.id';
-				$order_by_column = preg_replace( '/[^a-zA-Z0-9_\.]/', '', $order_by_column );
+        $allowed_orderby = array(
+                'id'               => 'h.id',
+                'title'            => 'h.title',
+                'starting_balance' => 'h.starting_balance',
+                'final_balance'    => 'h.final_balance',
+                'affiliate'        => 'a.name',
+                'winners'          => 'h.winners_count',
+                'status'           => 'h.status',
+        );
 
-		$order_direction                         = ( 'ASC' === strtoupper( $order_param ) ) ? 'ASC' : 'DESC';
-		$search_like                             = '%' . $wpdb->esc_like( $search_term ) . '%';
-								$order_by_clause = sprintf( '%s %s', $order_by_column, $order_direction );
+        $allowed_order    = array(
+                'asc'  => 'ASC',
+                'desc' => 'DESC',
+        );
 
-								$hunts_query = $wpdb->prepare(
-									"SELECT h.*, a.name AS affiliate_name FROM {$hunts_table} h LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id WHERE h.title LIKE %s ORDER BY {$order_by_clause} LIMIT %d OFFSET %d",
-									$search_like,
-									$per_page,
-									$offset
-								);
+	$order_by_column   = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : $allowed_orderby['id'];
+	$order_direction   = isset( $allowed_order[ $order_param ] ) ? $allowed_order[ $order_param ] : 'DESC';
+	$order_by_clause   = sprintf( '%s %s', $order_by_column, $order_direction );
+	$search_like       = '%' . $wpdb->esc_like( $search_term ) . '%';
+
+	$sql = sprintf(
+		'SELECT h.*, a.name AS affiliate_name FROM %s h LEFT JOIN %s a ON a.id = h.affiliate_site_id WHERE h.title LIKE %%s ORDER BY %s LIMIT %%d OFFSET %%d',
+		$hunts_table,
+		$aff_table,
+		$order_by_clause
+	);
+	$hunts_query = $wpdb->prepare(
+		$sql,
+		$search_like,
+		$per_page,
+		$offset
+	);
 
 								// db call ok; no-cache ok.
 								$hunts = $wpdb->get_results( $hunts_query );
