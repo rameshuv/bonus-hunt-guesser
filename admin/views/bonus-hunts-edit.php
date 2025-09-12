@@ -7,7 +7,8 @@ if ( ! current_user_can( 'manage_options' ) ) {
                 wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
 
-check_admin_referer( 'bhg_edit_hunt' ); // Verify nonce before processing request parameters.
+// Verify nonce before processing request parameters.
+check_admin_referer( 'bhg_edit_hunt' );
 
 global $wpdb;
 
