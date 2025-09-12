@@ -569,6 +569,7 @@ function bhg_handle_submit_guess() {
 	// db call ok; caching added.
 	$count_cache_key = 'bhg_guess_count_' . $hunt_id . '_' . $user_id;
 	$count           = wp_cache_get( $count_cache_key );
+	$last_guess_key  = '';
 	if ( false === $count ) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
                                 $count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$g_tbl} WHERE hunt_id = %d AND user_id = %d", $hunt_id, $user_id ) );
@@ -598,7 +599,9 @@ function bhg_handle_submit_guess() {
 									array( '%d' )
 								);
 				wp_cache_delete( $count_cache_key );
+				if ( $last_guess_key ) {
 				wp_cache_delete( $last_guess_key );
+				}
 				if ( wp_doing_ajax() ) {
 					wp_send_json_success();
 				}
@@ -627,7 +630,9 @@ function bhg_handle_submit_guess() {
 			array( '%d', '%d', '%f', '%s' )
 		);
 	wp_cache_delete( $count_cache_key );
+	if ( $last_guess_key ) {
 	wp_cache_delete( $last_guess_key );
+	}
 
 	if ( wp_doing_ajax() ) {
 		wp_send_json_success();
