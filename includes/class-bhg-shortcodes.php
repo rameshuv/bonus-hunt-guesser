@@ -290,8 +290,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 								}
 								$orderby = $allowed_orderby[ $orderby_key ];
 
-								$paged    = isset( $_GET['bhg_page'] ) ? (int) $_GET['bhg_page'] : (int) $a['paged'];
-								$paged    = max( 1, $paged );
+                                                                $paged    = isset( $_GET['bhg_page'] )
+                                                                        ? max( 1, absint( wp_unslash( $_GET['bhg_page'] ) ) )
+                                                                        : (int) $a['paged'];
+                                                                $paged    = max( 1, $paged );
 								$per_page = max( 1, (int) $a['per_page'] );
 								$offset   = ( $paged - 1 ) * $per_page;
 
