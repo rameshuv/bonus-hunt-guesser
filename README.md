@@ -1,5 +1,7 @@
 # Bonus Hunt Guesser
 
+Requires at least: WordPress 5.5.5
+
 ## Shortcodes
 
 ### `[bhg_user_guesses]`
