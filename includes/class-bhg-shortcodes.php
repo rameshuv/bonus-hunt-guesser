@@ -478,38 +478,36 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[]  = $since;
 			}
 
-				$allowed_orders = array( 'ASC', 'DESC' );
-				$order          = strtoupper( sanitize_key( $a['order'] ) );
-			if ( ! in_array( $order, $allowed_orders, true ) ) {
-				$order = 'DESC';
+			$direction_map = array(
+			'asc'  => 'ASC',
+			'desc' => 'DESC',
+			);
+			$direction_key = strtolower( sanitize_key( $a['order'] ) );
+			$direction     = $direction_map[ $direction_key ] ?? 'DESC';
+			
+			$orderby_map = array(
+			'guess' => 'g.guess',
+			'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
+			);
+			$orderby_key = sanitize_key( $a['orderby'] );
+			$orderby     = $orderby_map[ $orderby_key ] ?? $orderby_map['hunt'];
+			
+			$order_sql = sprintf( ' ORDER BY %s %s', $orderby, $direction );
+			$limit_sql = '';
+			$limit_val = 0;
+			if ( 'recent' === strtolower( $a['timeline'] ) ) {
+			$limit_sql = ' LIMIT %d';
+			$limit_val = 10;
 			}
-				$orderby_map = array(
-					'guess' => 'g.guess',
-					'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
-				);
-				$orderby_key = sanitize_key( $a['orderby'] );
-				if ( ! isset( $orderby_map[ $orderby_key ] ) ) {
-						$orderby_key = 'hunt';
-				}
-				$orderby = $orderby_map[ $orderby_key ];
 
-				$order_sql = sprintf( ' ORDER BY %s %s', esc_sql( $orderby ), esc_sql( $order ) );
-				$limit_sql = '';
-				$limit_val = 0;
-				if ( 'recent' === strtolower( $a['timeline'] ) ) {
-						$limit_sql = ' LIMIT %d';
-						$limit_val = 10;
-				}
+                               $sql = "SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id WHERE " . implode( ' AND ', $where ) . $order_sql . $limit_sql;
+                               if ( $limit_val ) {
+                                                               $params[] = $limit_val;
+                               }
+                               $query = $wpdb->prepare( $sql, ...$params );
 
-								$sql = "SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id WHERE " . implode( ' AND ', $where ) . $order_sql . $limit_sql;
-				if ( $limit_val ) {
-								$params[] = $limit_val;
-				}
-                                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query built with placeholders and sanitized identifiers.
-								$query = $wpdb->prepare( $sql, ...$params );
-
-				// db call ok; no-cache ok.
-								$rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                               // db call ok; no-cache ok.
+                               $rows = $wpdb->get_results( $query );
 				if ( ! $rows ) {
 						return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
 				}
