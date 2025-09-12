@@ -106,9 +106,11 @@ $hunts = $wpdb->get_results( $hunts_query );
 </p>
 </form>
 
-       <?php if ( isset( $_GET['bhg_msg'] ) && 'invalid_final_balance' === sanitize_text_field( wp_unslash( $_GET['bhg_msg'] ) ) ) : ?>
-       <div class="notice notice-error is-dismissible"><p><?php echo esc_html( bhg_t( 'invalid_final_balance_please_enter_a_nonnegative_number', 'Invalid final balance. Please enter a non-negative number.' ) ); ?></p></div>
-       <?php endif; ?>
+<?php if ( isset( $_GET['bhg_msg'] ) && 'invalid_final_balance' === sanitize_key( wp_unslash( $_GET['bhg_msg'] ) ) ) : ?>
+       <div class="notice notice-error is-dismissible">
+               <p><?php echo esc_html( bhg_t( 'invalid_final_balance_please_enter_a_nonnegative_number', 'Invalid final balance. Please enter a non-negative number.' ) ); ?></p>
+       </div>
+<?php endif; ?>
 
        <?php if ( isset( $_GET['closed'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['closed'] ) ) ) : ?>
        <div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_closed_successfully', 'Hunt closed successfully.' ) ); ?></p></div>
@@ -328,7 +330,7 @@ if ( 'close' === $view ) :
 		<tbody>
 		<tr>
 			<th scope="row"><label for="bhg_final_balance"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></label></th>
-                        <td><input type="text" id="bhg_final_balance" name="final_balance" required></td>
+                       <td><input type="text" id="bhg_final_balance" name="final_balance" value="" required></td>
 		</tr>
 		</tbody>
 	</table>
