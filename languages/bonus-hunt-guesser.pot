@@ -2,7 +2,7 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Bonus Hunt Guesser 8.0.08\n"
+"Project-Id-Version: Bonus Hunt Guesser 8.0.09\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/my-awesome-wordpress-plugin\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
