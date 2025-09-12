@@ -124,7 +124,7 @@ class BHG_Models {
                     )
                 );
                 if ( $existing ) {
-                    $wpdb->update(
+                    $updated = $wpdb->update(
                         $tres_tbl,
                         array(
                             'wins'         => (int) $existing->wins + 1,
@@ -134,6 +134,11 @@ class BHG_Models {
                         array( '%d', '%s' ),
                         array( '%d' )
                     );
+
+                    if ( false === $updated ) {
+                        bhg_log( $wpdb->last_error );
+                        return false;
+                    }
                 } else {
                     $wpdb->insert(
                         $tres_tbl,
