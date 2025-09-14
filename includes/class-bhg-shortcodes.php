@@ -287,11 +287,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						echo esc_html( bhg_t( 'label_select_hunt', 'Select a hunt' ) );
 						?>
 </option>
-						<?php foreach ( $open_hunts as $oh ) : ?>
-							<option value="<?php echo (int) $oh->id; ?>" <?php selected( $hunt_id, (int) $oh->id ); ?>>
-								<?php echo esc_html( $oh->title ); ?>
-							</option>
-						<?php endforeach; ?>
+                                                <?php foreach ( $open_hunts as $oh ) : ?>
+                                                        <option value="<?php echo esc_attr( (int) $oh->id ); ?>" <?php selected( $hunt_id, (int) $oh->id ); ?>>
+                                                                <?php echo esc_html( $oh->title ); ?>
+                                                        </option>
+                                                <?php endforeach; ?>
 					</select>
 				<?php else : ?>
 					<input type="hidden" name="hunt_id" value="<?php echo esc_attr( $hunt_id ); ?>">
