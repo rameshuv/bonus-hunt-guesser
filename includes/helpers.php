@@ -385,6 +385,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'notice_guess_removed'                         => 'Guess removed.',
 			'notice_hunt_closed_successfully'              => 'Hunt closed successfully.',
 			'notice_missing_hunt_id'                       => 'Missing hunt id.',
+			'notice_db_update_required'                    => 'Database upgrade required. Please run plugin upgrades.',
 			'notice_no_active_hunt'                        => 'No active bonus hunt found.',
 			'notice_no_results'                            => 'No results available.',
 			'notice_user_removed'                          => 'User removed.',
