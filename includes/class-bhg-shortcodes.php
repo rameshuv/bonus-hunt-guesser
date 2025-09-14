@@ -1506,21 +1506,41 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					 * @param array $atts Shortcode attributes.
 					 * @return string HTML output.
 					 */
-		public function user_profile_shortcode( $atts ) {
-			if ( ! is_user_logged_in() ) {
-				return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
-			}
-			wp_enqueue_style(
-				'bhg-shortcodes',
-				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				array(),
-				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-			);
-			$user_id      = get_current_user_id();
-			$is_affiliate = (int) get_user_meta( $user_id, 'bhg_is_affiliate', true );
-				$badge    = $is_affiliate ? '<span class="bhg-aff-green" aria-hidden="true"></span>' : '<span class="bhg-aff-red" aria-hidden="true"></span>';
-				return '<div class="bhg-user-profile">' . wp_kses_post( $badge ) . ' ' . esc_html( wp_get_current_user()->display_name ) . '</div>';
-		}
+               public function user_profile_shortcode( $atts ) {
+                       unset( $atts ); // Parameter unused but kept for shortcode signature.
+                       if ( ! is_user_logged_in() ) {
+                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+                       }
+                       wp_enqueue_style(
+                               'bhg-shortcodes',
+                               ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                               array(),
+                               defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                       );
+                       $user        = wp_get_current_user();
+                       $user_id     = $user->ID;
+                       $real_name   = trim( $user->get( 'first_name' ) . ' ' . $user->get( 'last_name' ) );
+                       $username    = $user->user_login;
+                       $email       = $user->user_email;
+                       $is_affiliate = (int) get_user_meta( $user_id, 'bhg_is_affiliate', true );
+                       $badge       = $is_affiliate ? '<span class="bhg-aff-green" aria-hidden="true"></span>' : '<span class="bhg-aff-red" aria-hidden="true"></span>';
+                       $aff_text    = $is_affiliate ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_not_affiliate', 'Not Affiliate' );
+                       $edit_link   = '';
+                       if ( current_user_can( 'edit_user', $user_id ) ) {
+                               $edit_link = get_edit_user_link( $user_id );
+                       }
+                       $output  = '<div class="bhg-user-profile"><table class="bhg-user-profile-table">';
+                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th><td>' . esc_html( $real_name ) . '</td></tr>';
+                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
+                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_email', 'Email' ) ) . '</th><td>' . esc_html( $email ) . '</td></tr>';
+                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_affiliate_status', 'Affiliate Status' ) ) . '</th><td>' . wp_kses_post( $badge ) . ' ' . esc_html( $aff_text ) . '</td></tr>';
+                       $output .= '</table>';
+                       if ( $edit_link ) {
+                               $output .= '<p><a href="' . esc_url( $edit_link ) . '">' . esc_html( bhg_t( 'link_edit_profile', 'Edit Profile' ) ) . '</a></p>';
+                       }
+                       $output .= '</div>';
+                       return $output;
+               }
 
 					/**
 					 * Simple wins leaderboard with tabs.
