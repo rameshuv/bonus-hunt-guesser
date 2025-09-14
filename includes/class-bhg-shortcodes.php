@@ -323,9 +323,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 						'hunt_id'  => 0,
 						'orderby'  => 'guess', // guess|user|position.
 						'order'    => 'ASC',
-						'fields'   => 'position,user,guess',
-						'paged'    => 1,
-						'per_page' => 10,
+                                               'fields'   => 'position,user,guess',
+                                               'paged'    => 1,
+                                               'per_page' => 30,
+                                               'search'   => '',
 					),
 					$atts,
 					'bhg_leaderboard'
@@ -362,11 +363,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '';
 			}
 
-				$allowed_orders = array( 'ASC', 'DESC' );
-				$order          = strtoupper( sanitize_key( $a['order'] ) );
-			if ( ! in_array( $order, $allowed_orders, true ) ) {
-				$order = 'ASC';
-			}
+                                $allowed_orders = array( 'ASC', 'DESC' );
+                                $order          = strtoupper( sanitize_key( $a['order'] ) );
+                        if ( ! in_array( $order, $allowed_orders, true ) ) {
+                                $order = 'ASC';
+                        }
+                                $direction_key = strtolower( $order );
 								$allowed_orderby = array(
 									'guess'    => 'g.guess',
 									'user'     => 'u.user_login',
@@ -378,53 +380,59 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 								}
 								$orderby = $allowed_orderby[ $orderby_key ];
 
-								$paged    = isset( $_GET['bhg_page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-								? max( 1, absint( wp_unslash( $_GET['bhg_page'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-								: (int) $a['paged']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-								$paged    = max( 1, $paged );
-								$per_page = max( 1, (int) $a['per_page'] );
-								$offset   = ( $paged - 1 ) * $per_page;
+                                                               $paged    = isset( $_GET['bhg_page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                               ? max( 1, absint( wp_unslash( $_GET['bhg_page'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                               : (int) $a['paged']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                               $paged    = max( 1, $paged );
+                                                               $per_page = max( 1, (int) $a['per_page'] );
+                                                               $offset   = ( $paged - 1 ) * $per_page;
 
-								$fields_raw    = explode( ',', (string) $a['fields'] );
-								$allowed_field = array( 'position', 'user', 'guess' );
-								$fields        = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
-								if ( empty( $fields ) ) {
-												$fields = $allowed_field;
-								}
+                                                               $search = isset( $_GET['bhg_search'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                               ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                               : (string) $a['search'];
 
-								$total_cache = 'bhg_leaderboard_total_' . $hunt_id;
-								$total       = wp_cache_get( $total_cache, 'bhg' );
-								if ( false === $total ) {
-										// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above.
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-																				$total = (int) $wpdb->get_var(
-																					$wpdb->prepare(
-                                                                                              /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above. */
-																						"SELECT COUNT(*) FROM {$g} WHERE hunt_id = %d",
-																						$hunt_id
-																					)
-																				); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-										wp_cache_set( $total_cache, $total, 'bhg', 300 );
-								}
-								if ( $total < 1 ) {
-											return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
-								}
+                                                                $fields_raw    = explode( ',', (string) $a['fields'] );
+                                                                $allowed_field = array( 'position', 'user', 'guess' );
+                                                                $fields        = array_values( array_intersect( $allowed_field, array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) ) ) );
+                                                                if ( empty( $fields ) ) {
+                                                                                                $fields = $allowed_field;
+                                                                }
 
-												$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-								if ( ! $hunts_table ) {
-												return '';
-								}
-												$order_by_clause = sprintf( '%s %s', $orderby, $order );
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-								$rows = $wpdb->get_results(
-									$wpdb->prepare(
-							/* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tables and order clause sanitized above. */
-										"SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM {$g} g LEFT JOIN {$u} u ON u.ID = g.user_id LEFT JOIN {$hunts_table} h ON h.id = g.hunt_id WHERE g.hunt_id = %d ORDER BY {$order_by_clause} LIMIT %d OFFSET %d",
-										$hunt_id,
-										$per_page,
-										$offset
-									)
-								); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                               $where  = array( 'g.hunt_id = %d' );
+                                                               $params = array( $hunt_id );
+                                                               if ( '' !== $search ) {
+                                                                       $where[]  = 'u.user_login LIKE %s';
+                                                                       $params[] = '%' . $wpdb->esc_like( $search ) . '%';
+                                                               }
+                                                               $where_sql = implode( ' AND ', $where );
+
+                                                               $total_cache = 'bhg_leaderboard_total_' . $hunt_id . '_' . md5( $search );
+                                                               $total       = wp_cache_get( $total_cache, 'bhg' );
+                                                               if ( false === $total ) {
+                                                                               // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names sanitized above.
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                                       $count_sql = "SELECT COUNT(*) FROM {$g} g LEFT JOIN {$u} u ON u.ID = g.user_id WHERE {$where_sql}";
+                                                                       $total     = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$params ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                                       wp_cache_set( $total_cache, $total, 'bhg', 300 );
+                                                               }
+                                                               if ( $total < 1 ) {
+                                                                                       return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
+                                                               }
+
+                                                                                                $hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+                                                               if ( ! $hunts_table ) {
+                                                                                                return '';
+                                                               }
+                                                                                                $order_by_clause = sprintf( '%s %s', $orderby, $order );
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                               $sql  = "SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM {$g} g LEFT JOIN {$u} u ON u.ID = g.user_id LEFT JOIN {$hunts_table} h ON h.id = g.hunt_id WHERE {$where_sql} ORDER BY {$order_by_clause} LIMIT %d OFFSET %d";
+                                                               $rows = $wpdb->get_results( $wpdb->prepare( $sql, ...array_merge( $params, array( $per_page, $offset ) ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+                                                               $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
+                                                               $base_url    = remove_query_arg( 'bhg_page', $current_url );
+                                                               if ( '' === $search ) {
+                                                                       $base_url = remove_query_arg( 'bhg_search', $base_url );
+                                                               }
 
 						wp_enqueue_style(
 							'bhg-shortcodes',
@@ -433,10 +441,21 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 							defined( 'BHG_VERSION' ) ? BHG_VERSION : null
 						);
 
-						ob_start();
-						echo '<div class="bhg-leaderboard-wrapper">';
-						echo '<table class="bhg-leaderboard">';
-						echo '<thead><tr>';
+                                               ob_start();
+                                               echo '<div class="bhg-leaderboard-wrapper">';
+                                               echo '<form method="get" class="bhg-search-form">';
+                                               foreach ( $_GET as $raw_key => $v ) {
+                                                       $key = sanitize_key( wp_unslash( $raw_key ) );
+                                                       if ( 'bhg_search' === $key ) {
+                                                               continue;
+                                                       }
+                                                       echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
+                                               }
+                                               echo '<input type="text" name="bhg_search" value="' . esc_attr( $search ) . '">';
+                                               echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
+                                               echo '</form>';
+                                               echo '<table class="bhg-leaderboard">';
+                                               echo '<thead><tr>';
 			foreach ( $fields as $field ) {
 				if ( 'position' === $field ) {
 					echo '<th class="sortable" data-column="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
@@ -473,22 +492,28 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			}
 												echo '</tbody></table>';
 
-												$pages = (int) ceil( $total / $per_page );
-			if ( $pages > 1 ) {
-					echo '<div class="bhg-pagination">';
-					echo wp_kses_post(
-						paginate_links(
-							array(
-								'base'    => esc_url_raw( add_query_arg( 'bhg_page', '%#%' ) ),
-								'format'  => '',
-								'current' => $paged,
-								'total'   => $pages,
-							)
-						)
-					);
-					echo '</div>';
-			}
-						echo '</div>';
+                                                                                                $pages = (int) ceil( $total / $per_page );
+                        if ( $pages > 1 ) {
+                                        $pagination = paginate_links(
+                                                array(
+                                                        'base'     => add_query_arg( 'bhg_page', '%#%', $base_url ),
+                                                        'format'   => '',
+                                                        'current'  => $paged,
+                                                        'total'    => $pages,
+                                                        'add_args' => array_filter(
+                                                                array(
+                                                                        'bhg_search'  => $search,
+                                                                        'bhg_orderby' => $orderby_key,
+                                                                        'bhg_order'   => $direction_key,
+                                                                )
+                                                        ),
+                                                )
+                                        );
+                                        if ( $pagination ) {
+                                                echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
+                                        }
+                        }
+                                               echo '</div>';
 
 												return ob_get_clean();
 		}
