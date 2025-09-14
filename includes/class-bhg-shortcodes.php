@@ -779,9 +779,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 'bhg_hunts'
                         );
 
-			$fields_raw    = explode( ',', (string) $a['fields'] );
-			$allowed_field = array( 'title', 'start', 'final', 'status', 'user' );
-			$fields_arr    = array_values(
+                        $fields_raw    = explode( ',', (string) $a['fields'] );
+                        $allowed_field = array( 'title', 'start', 'final', 'status', 'user', 'site' );
+                        $fields_arr    = array_values(
 				array_unique(
 					array_intersect(
 						$allowed_field,
@@ -792,6 +792,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         if ( empty( $fields_arr ) ) {
                                 $fields_arr = array( 'title', 'start', 'final', 'status' );
                         }
+
+                        $need_site_field = in_array( 'site', $fields_arr, true );
 
                         $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
                         $search = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
@@ -863,7 +865,13 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         }
                         $total = (int) ( $params ? $wpdb->get_var( $wpdb->prepare( $count_sql, ...$params ) ) : $wpdb->get_var( $count_sql ) );
 
-                        $sql = "SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at, a.name AS aff_name FROM {$h} h LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id";
+                        $select = "SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at";
+                        $join   = '';
+                        if ( $need_site_field ) {
+                                $select .= ', a.name AS site_name';
+                                $join    = " LEFT JOIN {$aff_table} a ON a.id = h.affiliate_site_id";
+                        }
+                        $sql = $select . " FROM {$h} h" . $join;
                         if ( $where ) {
                                 $sql .= ' WHERE ' . implode( ' AND ', $where );
                         }
@@ -897,7 +905,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
                         }
 
-                        $show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
+                        $show_site = $need_site_field && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
 
                         ob_start();
                         echo '<form method="get" class="bhg-search-form">';
@@ -917,8 +925,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         echo '<th><a href="' . esc_url( $toggle( 'start' ) ) . '">' . esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
-                        if ( $show_aff ) {
-                                echo '<th>' . esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ) . '</th>';
+                        if ( $show_site ) {
+                                echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
                         }
                         echo '</tr></thead><tbody>';
 
@@ -929,9 +937,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 							echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 							$status_key = strtolower( (string) $row->status );
 							echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
-				if ( $show_aff ) {
-					echo '<td>' . ( $row->aff_name ? esc_html( $row->aff_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-				}
+                                if ( $show_site ) {
+                                        echo '<td>' . ( $row->site_name ? esc_html( $row->site_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                }
 				echo '</tr>';
 			}
                         echo '</tbody></table>';
