@@ -1003,7 +1003,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         if ( $where ) {
                                 $count_sql .= $where;
                         }
-                        $total = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$prep_where ) );
+                        if ( empty( $prep_where ) ) {
+                                $total = (int) $wpdb->get_var( $count_sql );
+                        } else {
+                                $total = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$prep_where ) );
+                        }
 
                         $sql .= ' GROUP BY r.user_id, u.user_login';
                         $orderby_map = array(
