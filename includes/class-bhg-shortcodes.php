@@ -517,19 +517,21 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
           'bhg_user_guesses'
         );
 
-			$fields_raw    = explode( ',', (string) $a['fields'] );
-			$allowed_field = array( 'hunt', 'guess', 'final', 'user' );
-			$fields_arr    = array_values(
-	  array_unique(
-		  array_intersect(
-	$allowed_field,
-	array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) )
-		  )
-	  )
-			);
-                        if ( empty( $fields_arr ) ) {
-                                $fields_arr = array( 'hunt', 'guess', 'final' );
-                        }
+        $fields_raw    = explode( ',', (string) $a['fields'] );
+        $allowed_field = array( 'hunt', 'guess', 'final', 'user', 'site' );
+        $fields_arr    = array_values(
+                array_unique(
+                        array_intersect(
+                                $allowed_field,
+                                array_map( 'sanitize_key', array_map( 'trim', $fields_raw ) )
+                        )
+                )
+        );
+        if ( empty( $fields_arr ) ) {
+                $fields_arr = array( 'hunt', 'guess', 'final' );
+        }
+
+        $need_site = in_array( 'site', $fields_arr, true );
 
                         $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
                         $search = isset( $_GET['bhg_s'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_s'] ) ) : '';
@@ -546,11 +548,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_user_specified', 'No user specified.' ) ) . '</p>';
 			}
 
-	$g = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
-	$h = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-			if ( ! $g || ! $h ) {
-				return '';
-			}
+        $g = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
+        $h = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+        $w = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+        if ( ! $g || ! $h ) {
+                return '';
+        }
+        if ( $need_site && ! $w ) {
+                return '';
+        }
 
 			// Ensure hunts table has created_at column. If missing, attempt migration and fall back.
 	$has_created_at = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$h} LIKE %s", 'created_at' ) );
@@ -608,10 +614,18 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         $count_sql    = "SELECT COUNT(*) FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id WHERE " . implode( ' AND ', $where );
                         $total        = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$count_params ) );
 
-                        $sql      = "SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id WHERE " . implode( ' AND ', $where ) . $order_sql . ' LIMIT %d OFFSET %d';
-                        $params[] = $limit;
-                        $params[] = $offset;
-                        $query    = $wpdb->prepare( $sql, ...$params );
+        $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id';
+        if ( $need_site ) {
+                $sql .= ', w.name AS site_name';
+        }
+        $sql .= " FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id";
+        if ( $need_site ) {
+                $sql .= " LEFT JOIN {$w} w ON w.id = h.affiliate_site_id";
+        }
+        $sql .= ' WHERE ' . implode( ' AND ', $where ) . $order_sql . ' LIMIT %d OFFSET %d';
+        $params[] = $limit;
+        $params[] = $offset;
+        $query    = $wpdb->prepare( $sql, ...$params );
 
                         // db call ok; no-cache ok.
                         $rows  = $wpdb->get_results( $query );
@@ -654,26 +668,32 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
           echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
           echo '</form>';
 
-          echo '<table class="bhg-user-guesses"><thead><tr>';
-          echo '<th><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
-          echo '<th><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
-          echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</a></th>';
-          echo '</tr></thead><tbody>';
+        echo '<table class="bhg-user-guesses"><thead><tr>';
+        echo '<th><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
+        echo '<th><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
+        if ( $need_site ) {
+                echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
+        }
+        echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</a></th>';
+        echo '</tr></thead><tbody>';
 
           $current_user_id = $user_id; // for aff dot.
                         foreach ( $rows as $row ) {
                                 echo '<tr>';
-                                echo '<td>' . esc_html( $row->title ) . '</td>';
-                                        $guess_cell = esc_html( bhg_format_currency( (float) $row->guess ) );
-                                if ( $show_aff ) {
-                                                $dot        = bhg_render_affiliate_dot( (int) $current_user_id, (int) $row->affiliate_site_id );
-                                                $guess_cell = $dot . $guess_cell;
-                                }
-                                                                                        echo '<td>' . wp_kses_post( $guess_cell ) . '</td>';
-                                                                                        echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-                                echo '</tr>';
-                        }
-          echo '</tbody></table>';
+                echo '<td>' . esc_html( $row->title ) . '</td>';
+                $guess_cell = esc_html( bhg_format_currency( (float) $row->guess ) );
+                if ( $show_aff ) {
+                        $dot        = bhg_render_affiliate_dot( (int) $current_user_id, (int) $row->affiliate_site_id );
+                        $guess_cell = $dot . $guess_cell;
+                }
+                echo '<td>' . wp_kses_post( $guess_cell ) . '</td>';
+                if ( $need_site ) {
+                        echo '<td>' . esc_html( $row->site_name ? $row->site_name : bhg_t( 'label_emdash', '—' ) ) . '</td>';
+                }
+                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                echo '</tr>';
+        }
+        echo '</tbody></table>';
 
           $pagination = paginate_links(
                   array(
@@ -1026,32 +1046,37 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
                         }
 
-			foreach ( $rows as $row ) {
-				if ( $need_site || $need_tournament ) {
-							// Last tournament and site.
-														$last_sql = $wpdb->prepare(
-															"SELECT t.title AS tournament_title, w.name AS site_name FROM {$r} r INNER JOIN {$t} t ON t.id = r.tournament_id LEFT JOIN {$w} w ON w.id = t.affiliate_site_id WHERE r.user_id = %d ORDER BY r.last_win_date DESC LIMIT 1",
-															$row->user_id
-														);
-																												$last = $wpdb->get_row( $last_sql );
-					if ( $need_tournament ) {
-						$row->tournament_title = $last && isset( $last->tournament_title ) ? $last->tournament_title : '';
-					}
-					if ( $need_site ) {
-										$row->site_name = $last && isset( $last->site_name ) ? $last->site_name : '';
-					}
-				}
+                        foreach ( $rows as $row ) {
+                                if ( $need_site || $need_tournament ) {
+                                        // Last tournament and site.
+                                        $last_sql = $wpdb->prepare(
+                                                "SELECT t.title AS tournament_title, w.name AS site_name FROM {$r} r INNER JOIN {$t} t ON t.id = r.tournament_id LEFT JOIN {$w} w ON w.id = t.affiliate_site_id WHERE r.user_id = %d ORDER BY r.last_win_date DESC LIMIT 1",
+                                                $row->user_id
+                                        );
+                                        $last = $wpdb->get_row( $last_sql );
+                                        if ( $need_tournament ) {
+                                                $row->tournament_title = $last && isset( $last->tournament_title ) ? $last->tournament_title : '';
+                                        }
+                                        if ( $need_site ) {
+                                                $row->site_name = $last && isset( $last->site_name ) ? $last->site_name : '';
+                                        }
+                                }
 
-				if ( $need_hunt ) {
-								// Last hunt won.
-																$hunt_sql = $wpdb->prepare(
-																	"SELECT h.title FROM {$hw} hw INNER JOIN {$h} h ON h.id = hw.hunt_id WHERE hw.user_id = %d ORDER BY hw.created_at DESC LIMIT 1",
-																	$row->user_id
-																);
-																												$hunt_title = $wpdb->get_var( $hunt_sql );
-							$row->hunt_title = $hunt_title ? $hunt_title : '';
-				}
-			}
+                                if ( $need_hunt || ( $need_site && empty( $row->site_name ) ) ) {
+                                        // Last hunt won with optional site.
+                                        $hunt_sql = $wpdb->prepare(
+                                                "SELECT h.title, w.name AS site_name FROM {$hw} hw INNER JOIN {$h} h ON h.id = hw.hunt_id LEFT JOIN {$w} w ON w.id = h.affiliate_site_id WHERE hw.user_id = %d ORDER BY hw.created_at DESC LIMIT 1",
+                                                $row->user_id
+                                        );
+                                        $hunt = $wpdb->get_row( $hunt_sql );
+                                        if ( $need_hunt ) {
+                                                $row->hunt_title = $hunt && isset( $hunt->title ) ? $hunt->title : '';
+                                        }
+                                        if ( $need_site && empty( $row->site_name ) ) {
+                                                $row->site_name = $hunt && isset( $hunt->site_name ) ? $hunt->site_name : '';
+                                        }
+                                }
+                        }
 
                         wp_enqueue_style(
                                 'bhg-shortcodes',
