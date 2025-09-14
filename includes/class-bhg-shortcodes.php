@@ -1073,7 +1073,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         $orderby = isset( $orderby_map[ $orderby_key ] ) ? $orderby_map[ $orderby_key ] : $orderby_map['wins'];
                         $sql    .= sprintf( ' ORDER BY %s %s LIMIT %d OFFSET %d', $orderby, $direction, $limit, $offset );
                         $params  = $prep_where;
-                        $query   = $wpdb->prepare( $sql, ...$params );
+                        $query   = $params ? $wpdb->prepare( $sql, ...$params ) : $sql;
                         $rows    = $wpdb->get_results( $query );
                         $pages   = (int) ceil( $total / $limit );
 
