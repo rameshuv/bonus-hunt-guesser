@@ -48,8 +48,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		 * @param string $table Database table name to validate.
 		 * @return string Sanitized table name or empty string if invalid.
 		 */
-		private function sanitize_table( $table ) {
-			global $wpdb;
+                private function sanitize_table( $table ) {
+                        global $wpdb;
 
 			$allowed = array(
 				$wpdb->prefix . 'bhg_bonus_hunts',
@@ -61,16 +61,61 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$wpdb->users,
 			);
 
-			return in_array( $table, $allowed, true ) ? $table : '';
-		}
+                        return in_array( $table, $allowed, true ) ? $table : '';
+                }
 
-					/**
-					 * Minimal login hint used by some themes.
-					 *
-					 * @param array $atts Shortcode attributes. Unused.
-					 * @return string HTML output.
-					 */
-		public function login_hint_shortcode( $atts = array() ) {
+	/**
+	* Calculates start and end datetime for a given timeline keyword.
+	*
+	* @param string $timeline Timeline keyword.
+	* @return array|null Array with 'start' and 'end' in `Y-m-d H:i:s` or null for no restriction.
+	*/
+	private function get_timeline_range( $timeline ) {
+	$tz  = wp_timezone();
+	$now = new DateTimeImmutable( 'now', $tz );
+
+	switch ( $timeline ) {
+	case 'this_week':
+	$week     = get_weekstartend( $now->format( 'Y-m-d' ) );
+	$start_dt = ( new DateTimeImmutable( '@' . $week['start'] ) )->setTimezone( $tz );
+	$end_dt   = ( new DateTimeImmutable( '@' . $week['end'] ) )->setTimezone( $tz );
+	break;
+
+	case 'this_month':
+	$start_dt = $now->modify( 'first day of this month' )->setTime( 0, 0, 0 );
+	$end_dt   = $now->modify( 'last day of this month' )->setTime( 23, 59, 59 );
+	break;
+
+	case 'this_year':
+	$start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
+	$end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
+	break;
+
+	case 'last_year':
+	$year     = (int) $now->format( 'Y' ) - 1;
+	$start_dt = $now->setDate( $year, 1, 1 )->setTime( 0, 0, 0 );
+	$end_dt   = $now->setDate( $year, 12, 31 )->setTime( 23, 59, 59 );
+	break;
+
+	case 'all_time':
+	default:
+	return null;
+	}
+
+	return array(
+	'start' => $start_dt->format( 'Y-m-d H:i:s' ),
+	'end'   => $end_dt->format( 'Y-m-d H:i:s' ),
+	);
+	}
+
+
+                                        /**
+                                         * Minimal login hint used by some themes.
+                                         *
+                                         * @param array $atts Shortcode attributes. Unused.
+                                         * @return string HTML output.
+                                         */
+                public function login_hint_shortcode( $atts = array() ) {
 				unset( $atts ); // Parameter unused but kept for shortcode signature.
 
 			if ( is_user_logged_in() ) {
@@ -528,18 +573,13 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[] = $website;
 			}
 
-	// Timeline handling (relative time window).
-			$timeline  = sanitize_key( $a['timeline'] );
-			$intervals = array(
-	  'day'   => '-1 day',
-	  'week'  => '-1 week',
-	  'month' => '-1 month',
-	  'year'  => '-1 year',
-			);
-                        if ( isset( $intervals[ $timeline ] ) ) {
-                                        $since = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], time() ) );
-                                $where[]   = 'g.created_at >= %s';
-                                $params[]  = $since;
+        // Timeline handling (explicit range).
+                        $timeline = sanitize_key( $a['timeline'] );
+                        $range    = $this->get_timeline_range( $timeline );
+                        if ( $range ) {
+                                $where[]  = 'g.created_at BETWEEN %s AND %s';
+                                $params[] = $range['start'];
+                                $params[] = $range['end'];
                         }
 
                         if ( '' !== $search ) {
@@ -726,18 +766,13 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$params[] = $website;
 			}
 
-						// Timeline handling.
-			$timeline  = sanitize_key( $a['timeline'] );
-			$intervals = array(
-				'day'   => '-1 day',
-				'week'  => '-1 week',
-				'month' => '-1 month',
-				'year'  => '-1 year',
-			);
-                        if ( isset( $intervals[ $timeline ] ) ) {
-                                        $since = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], time() ) );
-                                $where[]   = 'h.created_at >= %s';
-                                $params[]  = $since;
+                                            // Timeline handling.
+                        $timeline = sanitize_key( $a['timeline'] );
+                        $range    = $this->get_timeline_range( $timeline );
+                        if ( $range ) {
+                                $where[]  = 'h.created_at BETWEEN %s AND %s';
+                                $params[] = $range['start'];
+                                $params[] = $range['end'];
                         }
 
                         if ( '' !== $search ) {
@@ -898,21 +933,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         $limit  = 30;
                         $offset = ( $paged - 1 ) * $limit;
 
-			// Optional timeline filter.
-			$where      = '';
-			$prep_where = array();
-			$timeline   = sanitize_key( $a['timeline'] );
-			$intervals  = array(
-				'day'   => '-1 day',
-				'week'  => '-1 week',
-				'month' => '-1 month',
-				'year'  => '-1 year',
-			);
-                        if ( isset( $intervals[ $timeline ] ) ) {
-                                        $since    = wp_date( 'Y-m-d H:i:s', strtotime( $intervals[ $timeline ], time() ) );
-                                $where        = ' WHERE r.last_win_date >= %s';
-                                $prep_where[] = $since;
-                        }
+                    // Optional timeline filter.
+                    $where      = '';
+                    $prep_where = array();
+                    $timeline   = sanitize_key( $a['timeline'] );
+                    $range      = $this->get_timeline_range( $timeline );
+                    if ( $range ) {
+                                $where        = ' WHERE r.last_win_date BETWEEN %s AND %s';
+                                $prep_where[] = $range['start'];
+                                $prep_where[] = $range['end'];
+                    }
 
                         if ( '' !== $search ) {
                                 $like         = '%' . $wpdb->esc_like( $search ) . '%';
@@ -1273,21 +1303,18 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				$args[]  = $status;
 			}
 
-						// Accept either relative time window OR explicit type.
-			if ( in_array( $timeline, array( 'day', 'week', 'month', 'year' ), true ) ) {
-				$map       = array(
-					'day'   => '-1 day',
-					'week'  => '-1 week',
-					'month' => '-1 month',
-					'year'  => '-1 year',
-				);
-					$since = wp_date( 'Y-m-d H:i:s', strtotime( $map[ $timeline ], time() ) );
-				$where[]   = 'created_at >= %s';
-				$args[]    = $since;
-			} elseif ( in_array( $timeline, array( 'weekly', 'monthly', 'yearly', 'quarterly', 'alltime' ), true ) ) {
-				$where[] = 'type = %s';
-				$args[]  = $timeline;
-			}
+                                            // Accept either explicit time window or tournament type.
+                        if ( in_array( $timeline, array( 'weekly', 'monthly', 'yearly', 'quarterly', 'alltime' ), true ) ) {
+                                $where[] = 'type = %s';
+                                $args[]  = $timeline;
+                        } else {
+                                $range = $this->get_timeline_range( $timeline );
+                                if ( $range ) {
+                                        $where[] = 'created_at BETWEEN %s AND %s';
+                                        $args[]  = $range['start'];
+                                        $args[]  = $range['end'];
+                                }
+                        }
 
 			if ( $website > 0 ) {
 				$where[] = 'affiliate_site_id = %d';
@@ -1322,19 +1349,19 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			}
 
 			echo '<label class="bhg-tournament-label">' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . ' ';
-			echo '<select name="bhg_timeline">';
-			$timelines    = array(
-				'all'       => bhg_t( 'label_all', 'All' ),
-				'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
-				'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
-				'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
-				'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
-				'alltime'   => bhg_t( 'label_all_time', 'All-Time' ),
-				'day'       => bhg_t( 'label_last_day', 'Last day' ),
-				'week'      => bhg_t( 'label_last_week', 'Last week' ),
-				'month'     => bhg_t( 'label_last_month', 'Last month' ),
-				'year'      => bhg_t( 'label_last_year', 'Last year' ),
-			);
+                        echo '<select name="bhg_timeline">';
+                        $timelines    = array(
+                                'all_time'  => bhg_t( 'label_all_time', 'All Time' ),
+                                'this_week' => bhg_t( 'label_this_week', 'This week' ),
+                                'this_month'=> bhg_t( 'label_this_month', 'This month' ),
+                                'this_year' => bhg_t( 'label_this_year', 'This year' ),
+                                'last_year' => bhg_t( 'label_last_year', 'Last year' ),
+                                'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+                                'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+                                'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+                                'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+                                'alltime'   => bhg_t( 'label_all_time', 'All-Time' ),
+                        );
 			$timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline;
 			foreach ( $timelines as $key => $label ) {
 				echo '<option value="' . esc_attr( $key ) . '"' . selected( $timeline_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
