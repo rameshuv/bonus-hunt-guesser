@@ -429,10 +429,22 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                                $rows = $wpdb->get_results( $wpdb->prepare( $sql, ...array_merge( $params, array( $per_page, $offset ) ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
                                                                $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
-                                                               $base_url    = remove_query_arg( 'bhg_page', $current_url );
+                                                               $base_url    = remove_query_arg( array( 'bhg_page', 'bhg_orderby', 'bhg_order' ), $current_url );
                                                                if ( '' === $search ) {
                                                                        $base_url = remove_query_arg( 'bhg_search', $base_url );
                                                                }
+
+                                                               $toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search ) {
+                                                                       $dir  = ( $orderby_key === $field && 'asc' === $direction_key ) ? 'desc' : 'asc';
+                                                                       $args = array(
+                                                                               'bhg_orderby' => $field,
+                                                                               'bhg_order'   => $dir,
+                                                                       );
+                                                                       if ( '' !== $search ) {
+                                                                               $args['bhg_search'] = $search;
+                                                                       }
+                                                                       return add_query_arg( $args, $base_url );
+                                                               };
 
 						wp_enqueue_style(
 							'bhg-shortcodes',
@@ -456,15 +468,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                echo '</form>';
                                                echo '<table class="bhg-leaderboard">';
                                                echo '<thead><tr>';
-			foreach ( $fields as $field ) {
-				if ( 'position' === $field ) {
-					echo '<th class="sortable" data-column="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
-				} elseif ( 'user' === $field ) {
-					echo '<th class="sortable" data-column="user">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
-				} elseif ( 'guess' === $field ) {
-					echo '<th class="sortable" data-column="guess">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</th>';
-				}
-			}
+                       foreach ( $fields as $field ) {
+                                if ( 'position' === $field ) {
+                                        echo '<th class="sortable" data-column="position"><a href="' . esc_url( $toggle( 'position' ) ) . '">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</a></th>';
+                                } elseif ( 'user' === $field ) {
+                                        echo '<th class="sortable" data-column="user"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</a></th>';
+                                } elseif ( 'guess' === $field ) {
+                                        echo '<th class="sortable" data-column="guess"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
+                                }
+                       }
 						echo '</tr></thead><tbody>';
 
 												$pos       = $offset + 1;
