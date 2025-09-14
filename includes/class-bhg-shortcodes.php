@@ -1,4 +1,4 @@
-<?php
+	<?php
 /**
  * Shortcodes for Bonus Hunt Guesser.
  *
@@ -10,7 +10,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 				exit;
-}
+			}
 
 if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
@@ -596,11 +596,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                 return '';
         }
 
-			// Ensure hunts table has created_at column. If missing, attempt migration and fall back.
+			// Ensure hunts table has created_at column. If missing, inform admin to run upgrades manually.
 	$has_created_at = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$h} LIKE %s", 'created_at' ) );
-			if ( empty( $has_created_at ) && class_exists( 'BHG_DB' ) ) {
-								BHG_DB::migrate();
-								$has_created_at = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$h} LIKE %s", 'created_at' ) );
+			if ( empty( $has_created_at ) ) {
+								error_log( 'Bonus Hunt Guesser: missing required column created_at in table ' . $h );
+								return '<p>' . esc_html( bhg_t( 'notice_db_update_required', 'Database upgrade required. Please run plugin upgrades.' ) ) . '</p>';
 			}
 
 			$where  = array( 'g.user_id = %d' );
