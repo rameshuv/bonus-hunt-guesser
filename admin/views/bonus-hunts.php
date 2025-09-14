@@ -386,14 +386,9 @@ if ( 'add' === $view ) :
 						?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
 				<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
-				<?php foreach ( $affs as $a ) : ?>
-				<option value="<?php echo esc_attr( (int) $a->id ); ?>" 
-					<?php
-					if ( $sel === (int) $a->id ) {
-						echo 'selected';}
-					?>
-				><?php echo esc_html( $a->name ); ?></option>
-				<?php endforeach; ?>
+                                <?php foreach ( $affs as $a ) : ?>
+                                <option value="<?php echo esc_attr( (int) $a->id ); ?>" <?php selected( $sel, (int) $a->id ); ?>><?php echo esc_html( $a->name ); ?></option>
+                                <?php endforeach; ?>
 			</select>
 			</td>
 				</tr>
@@ -413,15 +408,9 @@ if ( 'add' === $view ) :
 												?>
 						<select id="bhg_tournament" name="tournament_id">
 								<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
-								<?php foreach ( $tours as $t ) : ?>
-								<option value="<?php echo esc_attr( (int) $t->id ); ?>"
-										<?php
-										if ( $tsel === (int) $t->id ) {
-												echo 'selected';
-										}
-										?>
-								><?php echo esc_html( $t->title ); ?></option>
-								<?php endforeach; ?>
+                                                                <?php foreach ( $tours as $t ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $t->id ); ?>" <?php selected( $tsel, (int) $t->id ); ?>><?php echo esc_html( $t->title ); ?></option>
+                                                                <?php endforeach; ?>
 						</select>
 						</td>
 				</tr>
@@ -523,14 +512,9 @@ if ( 'edit' === $view ) :
 						?>
 			<select id="bhg_affiliate" name="affiliate_site_id">
 				<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
-				<?php foreach ( $affs as $a ) : ?>
-				<option value="<?php echo esc_attr( (int) $a->id ); ?>" 
-					<?php
-					if ( $sel === (int) $a->id ) {
-						echo 'selected';}
-					?>
-				><?php echo esc_html( $a->name ); ?></option>
-				<?php endforeach; ?>
+                                <?php foreach ( $affs as $a ) : ?>
+                                <option value="<?php echo esc_attr( (int) $a->id ); ?>" <?php selected( $sel, (int) $a->id ); ?>><?php echo esc_html( $a->name ); ?></option>
+                                <?php endforeach; ?>
 			</select>
 						</td>
 				</tr>
@@ -550,15 +534,9 @@ if ( 'edit' === $view ) :
 												?>
 						<select id="bhg_tournament" name="tournament_id">
 								<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
-								<?php foreach ( $tours as $t ) : ?>
-								<option value="<?php echo esc_attr( (int) $t->id ); ?>"
-										<?php
-										if ( $tsel === (int) $t->id ) {
-												echo 'selected';
-										}
-										?>
-								><?php echo esc_html( $t->title ); ?></option>
-								<?php endforeach; ?>
+                                                                <?php foreach ( $tours as $t ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $t->id ); ?>" <?php selected( $tsel, (int) $t->id ); ?>><?php echo esc_html( $t->title ); ?></option>
+                                                                <?php endforeach; ?>
 						</select>
 						</td>
 				</tr>
