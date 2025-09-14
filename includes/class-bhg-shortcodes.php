@@ -512,6 +512,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                   'orderby'  => 'hunt',
                   'order'    => 'DESC',
                   'paged'    => 1,
+                  'search'   => '',
           ),
           $atts,
           'bhg_user_guesses'
@@ -534,7 +535,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
         $need_site = in_array( 'site', $fields_arr, true );
 
                         $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
-                        $search = isset( $_GET['bhg_s'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_s'] ) ) : '';
+                        $search = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
                         $limit  = 30;
                         $offset = ( $paged - 1 ) * $limit;
 
@@ -634,7 +635,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
                         $base_url    = remove_query_arg( array( 'bhg_orderby', 'bhg_order', 'bhg_paged' ), $current_url );
                         if ( '' === $search ) {
-                                $base_url = remove_query_arg( 'bhg_s', $base_url );
+                                $base_url = remove_query_arg( 'bhg_search', $base_url );
                         }
 
                         $toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search ) {
@@ -644,7 +645,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                         'bhg_order'   => $dir,
                                 );
                                 if ( '' !== $search ) {
-                                        $args['bhg_s'] = $search;
+                                        $args['bhg_search'] = $search;
                                 }
                                 return add_query_arg( $args, $base_url );
                         };
@@ -659,12 +660,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
           echo '<form method="get" class="bhg-search-form">';
           foreach ( $_GET as $raw_key => $v ) {
                   $key = sanitize_key( wp_unslash( $raw_key ) );
-                  if ( 'bhg_s' === $key ) {
+                  if ( 'bhg_search' === $key ) {
                           continue;
                   }
                   echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
           }
-          echo '<input type="text" name="bhg_s" value="' . esc_attr( $search ) . '">';
+          echo '<input type="text" name="bhg_search" value="' . esc_attr( $search ) . '">';
           echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
           echo '</form>';
 
@@ -705,7 +706,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                   array(
                                           'bhg_orderby' => $orderby_key,
                                           'bhg_order'   => $direction_key,
-                                          'bhg_s'       => $search,
+                                          'bhg_search'  => $search,
                                   )
                           ),
                   )
@@ -723,8 +724,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					 * @param array $atts Shortcode attributes.
 					 * @return string HTML output.
 					 */
-		public function hunts_shortcode( $atts ) {
-			$a = shortcode_atts(
+                public function hunts_shortcode( $atts ) {
+                        $a = shortcode_atts(
                                 array(
                                         'id'       => 0,
                                         'aff'      => 'no',
@@ -735,6 +736,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                         'orderby'  => 'created',
                                         'order'    => 'DESC',
                                         'paged'    => 1,
+                                        'search'   => '',
                                 ),
                                 $atts,
                                 'bhg_hunts'
@@ -755,7 +757,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         }
 
                         $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
-                        $search = isset( $_GET['bhg_s'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_s'] ) ) : '';
+                        $search = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
                         $limit  = 30;
                         $offset = ( $paged - 1 ) * $limit;
 
@@ -840,7 +842,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
                         $base_url    = remove_query_arg( array( 'bhg_orderby', 'bhg_order', 'bhg_paged' ), $current_url );
                         if ( '' === $search ) {
-                                $base_url = remove_query_arg( 'bhg_s', $base_url );
+                                $base_url = remove_query_arg( 'bhg_search', $base_url );
                         }
                         $toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search ) {
                                 $dir  = ( $orderby_key === $field && 'asc' === $direction_key ) ? 'desc' : 'asc';
@@ -849,7 +851,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                         'bhg_order'   => $dir,
                                 );
                                 if ( '' !== $search ) {
-                                        $args['bhg_s'] = $search;
+                                        $args['bhg_search'] = $search;
                                 }
                                 return add_query_arg( $args, $base_url );
                         };
@@ -864,12 +866,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         echo '<form method="get" class="bhg-search-form">';
                         foreach ( $_GET as $raw_key => $v ) {
                                 $key = sanitize_key( wp_unslash( $raw_key ) );
-                                if ( 'bhg_s' === $key ) {
+                                if ( 'bhg_search' === $key ) {
                                         continue;
                                 }
                                 echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
                         }
-                        echo '<input type="text" name="bhg_s" value="' . esc_attr( $search ) . '">';
+                        echo '<input type="text" name="bhg_search" value="' . esc_attr( $search ) . '">';
                         echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
                         echo '</form>';
 
@@ -907,7 +909,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                 array(
                                                         'bhg_orderby' => $orderby_key,
                                                         'bhg_order'   => $direction_key,
-                                                        'bhg_s'       => $search,
+                                                        'bhg_search'  => $search,
                                                 )
                                         ),
                                 )
@@ -925,8 +927,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					 * @param array $atts Shortcode attributes.
 					 * @return string HTML output.
 					 */
-		public function leaderboards_shortcode( $atts ) {
-			$a = shortcode_atts(
+                public function leaderboards_shortcode( $atts ) {
+                        $a = shortcode_atts(
                                 array(
                                         'fields'   => 'pos,user,wins',
                                         'ranking'  => 10,
@@ -934,6 +936,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                         'orderby'  => 'wins',
                                         'order'    => 'DESC',
                                         'paged'    => 1,
+                                        'search'   => '',
                                 ),
                                 $atts,
                                 'bhg_leaderboards'
@@ -949,7 +952,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         global $wpdb;
 
                         $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
-                        $search = isset( $_GET['bhg_s'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_s'] ) ) : '';
+                        $search = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
                         $limit  = 30;
                         $offset = ( $paged - 1 ) * $limit;
 
@@ -1028,7 +1031,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
                         $base_url    = remove_query_arg( array( 'bhg_orderby', 'bhg_order', 'bhg_paged' ), $current_url );
                         if ( '' === $search ) {
-                                $base_url = remove_query_arg( 'bhg_s', $base_url );
+                                $base_url = remove_query_arg( 'bhg_search', $base_url );
                         }
                         $toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search ) {
                                 $dir  = ( $orderby_key === $field && 'asc' === $direction_key ) ? 'desc' : 'asc';
@@ -1037,7 +1040,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                         'bhg_order'   => $dir,
                                 );
                                 if ( '' !== $search ) {
-                                        $args['bhg_s'] = $search;
+                                        $args['bhg_search'] = $search;
                                 }
                                 return add_query_arg( $args, $base_url );
                         };
@@ -1089,12 +1092,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         echo '<form method="get" class="bhg-search-form">';
                         foreach ( $_GET as $raw_key => $v ) {
                                 $key = sanitize_key( wp_unslash( $raw_key ) );
-                                if ( 'bhg_s' === $key ) {
+                                if ( 'bhg_search' === $key ) {
                                         continue;
                                 }
                                 echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
                         }
-                        echo '<input type="text" name="bhg_s" value="' . esc_attr( $search ) . '">';
+                        echo '<input type="text" name="bhg_search" value="' . esc_attr( $search ) . '">';
                         echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
                         echo '</form>';
 
@@ -1163,7 +1166,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                 array(
                                                         'bhg_orderby' => $orderby_key,
                                                         'bhg_order'   => $direction_key,
-                                                        'bhg_s'       => $search,
+                                                        'bhg_search'  => $search,
                                                 )
                                         ),
                                 )
