@@ -8,6 +8,9 @@
 
 # Changelog
 
+## 8.0.11 — 2025-09-14
+- Version bump.
+
 ## 8.0.10 — 2025-09-12
 - Bump version to 8.0.10.
 - Set minimum WordPress version to 5.5.5.
