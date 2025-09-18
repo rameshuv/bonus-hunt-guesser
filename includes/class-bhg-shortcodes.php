@@ -820,20 +820,29 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			$direction     = $direction_map[ $direction_key ] ?? 'DESC';
 
                         $orderby_map = array(
-          'guess' => 'g.guess',
-          'hunt'  => $has_created_at ? 'h.created_at' : 'h.id',
-          'final' => 'h.final_balance',
+          'guess'      => 'g.guess',
+          'hunt'       => $has_created_at ? 'h.created_at' : 'h.id',
+          'final'      => 'h.final_balance',
+          'time'       => 'g.created_at',
+          'difference' => 'difference',
                         );
                         $orderby_key = sanitize_key( $a['orderby'] );
                         $orderby     = isset( $orderby_map[ $orderby_key ] ) ? $orderby_map[ $orderby_key ] : $orderby_map['hunt'];
 
-                        $order_sql = sprintf( ' ORDER BY %s %s', $orderby, $direction );
+                        if ( 'difference' === $orderby_key ) {
+                                $order_sql = sprintf(
+                                        ' ORDER BY CASE WHEN h.final_balance IS NULL THEN 1 ELSE 0 END ASC, CASE WHEN h.final_balance IS NULL THEN g.created_at END %1$s, difference %1$s',
+                                        $direction
+                                );
+                        } else {
+                                $order_sql = sprintf( ' ORDER BY %s %s', $orderby, $direction );
+                        }
 
                         $count_params = $params;
                         $count_sql    = "SELECT COUNT(*) FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id WHERE " . implode( ' AND ', $where );
                         $total        = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$count_params ) );
 
-        $sql = 'SELECT g.guess, h.title, h.final_balance, h.affiliate_site_id';
+                        $sql = 'SELECT g.guess, g.created_at, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(g.guess - h.final_balance) END AS difference';
         if ( $need_site ) {
                 $sql .= ', w.name AS site_name';
         }
@@ -894,6 +903,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                 echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
         }
         echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</a></th>';
+        echo '<th><a href="' . esc_url( $toggle( 'difference' ) ) . '">' . esc_html( bhg_t( 'sc_difference', 'Difference' ) ) . '</a></th>';
         echo '</tr></thead><tbody>';
 
           $current_user_id = $user_id; // for aff dot.
@@ -910,6 +920,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         echo '<td>' . esc_html( $row->site_name ? $row->site_name : bhg_t( 'label_emdash', '—' ) ) . '</td>';
                 }
                 echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                echo '<td>' . ( isset( $row->difference ) ? esc_html( bhg_format_currency( (float) $row->difference ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                 echo '</tr>';
         }
         echo '</tbody></table>';
