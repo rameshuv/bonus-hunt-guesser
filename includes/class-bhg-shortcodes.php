@@ -753,10 +753,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
         $need_site = in_array( 'site', $fields_arr, true );
 
-                        $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
-                        $search = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                        $limit  = 30;
-                        $offset = ( $paged - 1 ) * $limit;
+                        $paged           = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
+                        $search          = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
+                        $limit           = 30;
+                        $offset          = ( $paged - 1 ) * $limit;
+                        $orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
+                        $order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
 
                         global $wpdb;
 
@@ -988,10 +990,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
                         $need_site_field = in_array( 'site', $fields_arr, true );
 
-                        $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
-                        $search = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                        $limit  = 30;
-                        $offset = ( $paged - 1 ) * $limit;
+                        $paged           = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
+                        $search          = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
+                        $limit           = 30;
+                        $offset          = ( $paged - 1 ) * $limit;
+                        $orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
+                        $order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
 
                                                 global $wpdb;
                                                 $h         = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
@@ -1038,7 +1042,14 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 'asc'  => 'ASC',
                                 'desc' => 'DESC',
                         );
-                        $direction     = $direction_map[ $direction_key ] ?? 'DESC';
+                        $direction_key = strtolower( $order_request );
+                        if ( ! isset( $direction_map[ $direction_key ] ) ) {
+                                $direction_key = strtolower( sanitize_key( $a['order'] ) );
+                        }
+                        if ( ! isset( $direction_map[ $direction_key ] ) ) {
+                                $direction_key = 'desc';
+                        }
+                        $direction = $direction_map[ $direction_key ];
 
                         $orderby_map = array(
                                 'title'   => 'h.title',
@@ -1048,8 +1059,15 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 'status'  => 'h.status',
                                 'created' => 'h.created_at',
                         );
-                        $orderby_key = sanitize_key( $a['orderby'] );
-                        $orderby     = isset( $orderby_map[ $orderby_key ] ) ? $orderby_map[ $orderby_key ] : $orderby_map['created'];
+                        $default_orderby = sanitize_key( $a['orderby'] );
+                        if ( '' === $default_orderby || ! isset( $orderby_map[ $default_orderby ] ) ) {
+                                $default_orderby = 'created';
+                        }
+                        if ( '' === $orderby_request ) {
+                                $orderby_request = $default_orderby;
+                        }
+                        $orderby_key = isset( $orderby_map[ $orderby_request ] ) ? $orderby_request : $default_orderby;
+                        $orderby     = $orderby_map[ $orderby_key ];
                         $order_sql   = sprintf( ' ORDER BY %s %s', $orderby, $direction );
 
                         $count_sql = "SELECT COUNT(*) FROM {$h} h";
