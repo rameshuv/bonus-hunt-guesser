@@ -26,3 +26,11 @@ List tournaments or show details.
 
 - `timeline`: limit tournaments by `day`, `week`, `month`, `year`, the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`, or by type keywords `all_time`, `weekly`, `monthly`, `yearly`, `quarterly`, `alltime`.
 
+## Manual Testing
+
+- **Hunt deletion updates tournaments**
+  1. Create a tournament and associate a hunt with winners.
+  2. Note the wins recorded for those users on the tournament leaderboard.
+  3. Delete the hunt from the admin panel and confirm no SQL errors are displayed.
+  4. Reload the tournament leaderboard and verify the affected users have their win counts reduced or removed accordingly.
+
