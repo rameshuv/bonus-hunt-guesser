@@ -972,7 +972,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         );
 
                         $fields_raw    = explode( ',', (string) $a['fields'] );
-                        $allowed_field = array( 'title', 'start', 'final', 'status', 'user', 'site' );
+                        $allowed_field = array( 'title', 'start', 'final', 'winners', 'status', 'user', 'site' );
                         $fields_arr    = array_values(
 				array_unique(
 					array_intersect(
@@ -1044,6 +1044,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 'title'   => 'h.title',
                                 'start'   => 'h.starting_balance',
                                 'final'   => 'h.final_balance',
+                                'winners' => 'h.winners_count',
                                 'status'  => 'h.status',
                                 'created' => 'h.created_at',
                         );
@@ -1057,7 +1058,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         }
                         $total = (int) ( $params ? $wpdb->get_var( $wpdb->prepare( $count_sql, ...$params ) ) : $wpdb->get_var( $count_sql ) );
 
-                        $select = "SELECT h.id, h.title, h.starting_balance, h.final_balance, h.status, h.created_at, h.closed_at";
+                        $select = "SELECT h.id, h.title, h.starting_balance, h.final_balance, h.winners_count, h.status, h.created_at, h.closed_at";
                         $join   = '';
                         if ( $need_site_field ) {
                                 $select .= ', a.name AS site_name';
@@ -1116,6 +1117,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         echo '<th><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'start' ) ) . '">' . esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ) . '</a></th>';
+                        echo '<th><a href="' . esc_url( $toggle( 'winners' ) ) . '">' . esc_html( bhg_t( 'sc_winners', 'Winners' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
                         if ( $show_site ) {
                                 echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
@@ -1126,9 +1128,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				echo '<tr>';
 				echo '<td>' . esc_html( $row->title ) . '</td>';
 							echo '<td>' . esc_html( bhg_format_currency( (float) $row->starting_balance ) ) . '</td>';
-							echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-							$status_key = strtolower( (string) $row->status );
-							echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
+                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                $winners_display = isset( $row->winners_count ) ? number_format_i18n( (int) $row->winners_count ) : bhg_t( 'label_emdash', '—' );
+                                echo '<td>' . esc_html( $winners_display ) . '</td>';
+                                $status_key = strtolower( (string) $row->status );
+                                echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
                                 if ( $show_site ) {
                                         echo '<td>' . ( $row->site_name ? esc_html( $row->site_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                                 }

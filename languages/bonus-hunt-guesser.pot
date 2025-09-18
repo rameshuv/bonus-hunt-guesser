@@ -445,6 +445,7 @@ msgstr ""
 
 #: admin/views/bonus-hunts.php:37
 #: admin/views/hunts-list.php:36
+#: includes/class-bhg-shortcodes.php:1120
 msgid "Winners"
 msgstr ""
 
