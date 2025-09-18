@@ -344,10 +344,13 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_timeline_colon'                         => 'Timeline:',
 			'label_user_hash'                              => 'user#%d',
 			'label_emdash'                                 => '—',
-			'placeholder_enter_guess'                      => 'Enter your guess',
-			'placeholder_custom_value'                     => 'Custom value',
+                        'placeholder_enter_guess'                      => 'Enter your guess',
+                        'placeholder_custom_value'                     => 'Custom value',
+                        'post_submit_redirect_url'                     => 'Post-submit redirect URL',
+                        'post_submit_redirect_description'             => 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.',
+                        'post_submit_redirect_placeholder'             => 'https://example.com/thank-you',
 
-			// Buttons.
+                        // Buttons.
 			'button_save'                                  => 'Save',
 			'button_cancel'                                => 'Cancel',
 			'button_delete'                                => 'Delete',
@@ -355,9 +358,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'button_view'                                  => 'View',
 			'button_back'                                  => 'Back',
 			'button_create_new_bonus_hunt'                 => 'Create New Bonus Hunt',
-			'button_results'                               => 'Results',
-			'button_submit_guess'                          => 'Submit Guess',
-			'button_filter'                                => 'Filter',
+                        'button_results'                               => 'Results',
+                        'button_submit_guess'                          => 'Submit Guess',
+                        'button_edit_guess'                            => 'Edit Guess',
+                        'button_filter'                                => 'Filter',
 			'button_log_in'                                => 'Log in',
 			'button_view_edit'                             => 'View / Edit',
 			'button_update'                                => 'Update',
@@ -368,8 +372,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 
 			// Notices / messages.
 			'notice_login_required'                        => 'You must be logged in to guess.',
-			'notice_guess_saved'                           => 'Your guess has been saved.',
-			'notice_guess_updated'                         => 'Your guess has been updated.',
+                        'notice_guess_saved'                           => 'Your guess has been saved.',
+                        'notice_guess_updated'                         => 'Your guess has been updated.',
+                        'guess_updated'                                => 'Your guess has been updated!',
 			'notice_hunt_closed'                           => 'This bonus hunt is closed.',
 			'notice_invalid_guess'                         => 'Please enter a valid guess.',
 			'notice_ajax_error'                            => 'An error occurred. Please try again.',

@@ -435,9 +435,11 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 					)
 				) : ''; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-			$settings = get_option( 'bhg_plugin_settings' );
-			$min      = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
-			$max      = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
+                        $settings        = get_option( 'bhg_plugin_settings' );
+                        $min             = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
+                        $max             = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
+                        $redirect_target = ! empty( $settings['post_submit_redirect'] ) ? wp_validate_redirect( $settings['post_submit_redirect'], '' ) : '';
+                        $button_label    = $existing_id ? bhg_t( 'button_edit_guess', 'Edit Guess' ) : bhg_t( 'button_submit_guess', 'Submit Guess' );
 
 			wp_enqueue_style(
 				'bhg-shortcodes',
@@ -447,9 +449,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			);
 
 			ob_start(); ?>
-						<form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-																<input type="hidden" name="action" value="bhg_submit_guess">
-														<?php wp_nonce_field( 'bhg_submit_guess', 'bhg_submit_guess_nonce' ); ?>
+                                                <form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                                                                                                                               <input type="hidden" name="action" value="bhg_submit_guess">
+                                                                                                                <?php wp_nonce_field( 'bhg_submit_guess', 'bhg_submit_guess_nonce' ); ?>
+                                                <?php if ( $redirect_target ) : ?>
+                                                        <input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_target ); ?>">
+                                                <?php endif; ?>
 
 					<?php if ( $open_hunts && count( $open_hunts ) > 1 ) : ?>
 					<label for="bhg-hunt-select">
@@ -481,7 +486,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				<input type="number" step="0.01" min="<?php echo esc_attr( $min ); ?>" max="<?php echo esc_attr( $max ); ?>"
 					id="bhg-guess" name="guess" value="<?php echo esc_attr( $existing_guess ); ?>" required>
 				<div class="bhg-error-message"></div>
-				<button type="submit" class="bhg-submit-btn button button-primary"><?php echo esc_html( bhg_t( 'button_submit_guess', 'Submit Guess' ) ); ?></button>
+                                <button type="submit" class="bhg-submit-btn button button-primary"><?php echo esc_html( $button_label ); ?></button>
 			</form>
 				<?php
 				return ob_get_clean();
