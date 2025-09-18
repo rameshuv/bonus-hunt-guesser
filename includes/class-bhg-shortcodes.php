@@ -1701,24 +1701,24 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                return add_query_arg( $args, $base_url );
                        };
 
-                       echo '<table class="bhg-tournaments">';
-                       echo '<thead><tr>';
-                       echo '<th><a href="' . esc_url( $toggle( 'type' ) ) . '">' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</a></th>';
-                       echo '<th><a href="' . esc_url( $toggle( 'start_date' ) ) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a></th>';
-                       echo '<th><a href="' . esc_url( $toggle( 'end_date' ) ) . '">' . esc_html( bhg_t( 'sc_end', 'End' ) ) . '</a></th>';
-                       echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
-                       echo '<th>' . esc_html( bhg_t( 'label_details', 'Details' ) ) . '</th>';
-                       echo '</tr></thead><tbody>';
+			echo '<table class="bhg-tournaments">';
+			echo '<thead><tr>';
+			echo '<th><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</a></th>';
+			echo '<th><a href="' . esc_url( $toggle( 'start_date' ) ) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a></th>';
+			echo '<th><a href="' . esc_url( $toggle( 'end_date' ) ) . '">' . esc_html( bhg_t( 'sc_end', 'End' ) ) . '</a></th>';
+			echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
+			echo '<th>' . esc_html( bhg_t( 'label_details', 'Details' ) ) . '</th>';
+			echo '</tr></thead><tbody>';
 
 			foreach ( $rows as $row ) {
-							$detail_url = add_query_arg( 'bhg_tournament_id', (int) $row->id, remove_query_arg( array( 'orderby', 'order' ), $current_url ) );
-							echo '<tr>';
-							echo '<td>' . esc_html( ucfirst( $row->type ) ) . '</td>';
-							echo '<td>' . esc_html( mysql2date( get_option( 'date_format' ), $row->start_date ) ) . '</td>';
-							echo '<td>' . esc_html( mysql2date( get_option( 'date_format' ), $row->end_date ) ) . '</td>';
-															$status_key = strtolower( (string) $row->status );
-															echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
-							echo '<td><a href="' . esc_url( $detail_url ) . '">' . esc_html( bhg_t( 'label_show_details', 'Show details' ) ) . '</a></td>';
+				$detail_url = add_query_arg( 'bhg_tournament_id', (int) $row->id, remove_query_arg( array( 'orderby', 'order' ), $current_url ) );
+				echo '<tr>';
+				echo '<td data-label="' . esc_attr( bhg_t( 'label_name', 'Name' ) ) . '"><a href="' . esc_url( $detail_url ) . '">' . esc_html( $row->title ? $row->title : bhg_t( 'label_unnamed_tournament', 'Untitled tournament' ) ) . '</a></td>';
+				echo '<td data-label="' . esc_attr( bhg_t( 'sc_start', 'Start' ) ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $row->start_date ) ) . '</td>';
+				echo '<td data-label="' . esc_attr( bhg_t( 'sc_end', 'End' ) ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $row->end_date ) ) . '</td>';
+				$status_key = strtolower( (string) $row->status );
+				echo '<td data-label="' . esc_attr( bhg_t( 'sc_status', 'Status' ) ) . '">' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
+				echo '<td data-label="' . esc_attr( bhg_t( 'label_details', 'Details' ) ) . '"><a href="' . esc_url( $detail_url ) . '">' . esc_html( bhg_t( 'label_show_details', 'Show details' ) ) . '</a></td>';
 				echo '</tr>';
 			}
 
