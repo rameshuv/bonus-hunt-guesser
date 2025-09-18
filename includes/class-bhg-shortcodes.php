@@ -71,43 +71,71 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 	* @param string $timeline Timeline keyword.
 	* @return array|null Array with 'start' and 'end' in `Y-m-d H:i:s` or null for no restriction.
 	*/
-	private function get_timeline_range( $timeline ) {
-	$tz  = wp_timezone();
-	$now = new DateTimeImmutable( 'now', $tz );
+        private function get_timeline_range( $timeline ) {
+                $timeline = strtolower( (string) $timeline );
 
-	switch ( $timeline ) {
-	case 'this_week':
-	$week     = get_weekstartend( $now->format( 'Y-m-d' ) );
-	$start_dt = ( new DateTimeImmutable( '@' . $week['start'] ) )->setTimezone( $tz );
-	$end_dt   = ( new DateTimeImmutable( '@' . $week['end'] ) )->setTimezone( $tz );
-	break;
+                if ( '' === $timeline ) {
+                        return null;
+                }
 
-	case 'this_month':
-	$start_dt = $now->modify( 'first day of this month' )->setTime( 0, 0, 0 );
-	$end_dt   = $now->modify( 'last day of this month' )->setTime( 23, 59, 59 );
-	break;
+                $aliases = array(
+                        'day'        => 'day',
+                        'today'      => 'day',
+                        'this_day'   => 'day',
+                        'week'       => 'week',
+                        'this_week'  => 'week',
+                        'month'      => 'month',
+                        'this_month' => 'month',
+                        'year'       => 'year',
+                        'this_year'  => 'year',
+                        'last_year'  => 'last_year',
+                        'all_time'   => 'all_time',
+                        'alltime'    => 'all_time',
+                );
 
-	case 'this_year':
-	$start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
-	$end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
-	break;
+                $canonical = isset( $aliases[ $timeline ] ) ? $aliases[ $timeline ] : $timeline;
 
-	case 'last_year':
-	$year     = (int) $now->format( 'Y' ) - 1;
-	$start_dt = $now->setDate( $year, 1, 1 )->setTime( 0, 0, 0 );
-	$end_dt   = $now->setDate( $year, 12, 31 )->setTime( 23, 59, 59 );
-	break;
+                $tz  = wp_timezone();
+                $now = new DateTimeImmutable( 'now', $tz );
 
-	case 'all_time':
-	default:
-	return null;
-	}
+                switch ( $canonical ) {
+                        case 'day':
+                                $start_dt = $now->setTime( 0, 0, 0 );
+                                $end_dt   = $now->setTime( 23, 59, 59 );
+                                break;
 
-	return array(
-	'start' => $start_dt->format( 'Y-m-d H:i:s' ),
-	'end'   => $end_dt->format( 'Y-m-d H:i:s' ),
-	);
-	}
+                        case 'week':
+                                $week     = get_weekstartend( $now->format( 'Y-m-d' ) );
+                                $start_dt = ( new DateTimeImmutable( '@' . $week['start'] ) )->setTimezone( $tz );
+                                $end_dt   = ( new DateTimeImmutable( '@' . $week['end'] ) )->setTimezone( $tz );
+                                break;
+
+                        case 'month':
+                                $start_dt = $now->modify( 'first day of this month' )->setTime( 0, 0, 0 );
+                                $end_dt   = $now->modify( 'last day of this month' )->setTime( 23, 59, 59 );
+                                break;
+
+                        case 'year':
+                                $start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
+                                $end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
+                                break;
+
+                        case 'last_year':
+                                $year     = (int) $now->format( 'Y' ) - 1;
+                                $start_dt = $now->setDate( $year, 1, 1 )->setTime( 0, 0, 0 );
+                                $end_dt   = $now->setDate( $year, 12, 31 )->setTime( 23, 59, 59 );
+                                break;
+
+                        case 'all_time':
+                        default:
+                                return null;
+                }
+
+                return array(
+                        'start' => $start_dt->format( 'Y-m-d H:i:s' ),
+                        'end'   => $end_dt->format( 'Y-m-d H:i:s' ),
+                );
+        }
 
 
                                         /**
@@ -1828,10 +1856,14 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                        echo '<select name="bhg_timeline">';
                         $timelines    = array(
                                 'all_time'  => bhg_t( 'label_all_time', 'All Time' ),
-                                'this_week' => bhg_t( 'label_this_week', 'This week' ),
-                                'this_month'=> bhg_t( 'label_this_month', 'This month' ),
-                                'this_year' => bhg_t( 'label_this_year', 'This year' ),
+                                'day'       => bhg_t( 'label_today', 'Today' ),
+                                'week'      => bhg_t( 'label_this_week', 'This week' ),
+                                'month'     => bhg_t( 'label_this_month', 'This month' ),
+                                'year'      => bhg_t( 'label_this_year', 'This year' ),
                                 'last_year' => bhg_t( 'label_last_year', 'Last year' ),
+                                'this_week' => bhg_t( 'label_this_week_legacy', 'This week (legacy alias)' ),
+                                'this_month'=> bhg_t( 'label_this_month_legacy', 'This month (legacy alias)' ),
+                                'this_year' => bhg_t( 'label_this_year_legacy', 'This year (legacy alias)' ),
                                 'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
                                 'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
                                 'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
