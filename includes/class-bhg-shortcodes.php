@@ -1189,13 +1189,17 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                 public function leaderboards_shortcode( $atts ) {
                         $a = shortcode_atts(
                                 array(
-                                        'fields'   => 'pos,user,wins',
-                                        'ranking'  => 10,
-                                        'timeline' => '',
-                                        'orderby'  => 'wins',
-                                        'order'    => 'DESC',
-                                        'paged'    => 1,
-                                        'search'   => '',
+                                        'fields'     => 'pos,user,wins',
+                                        'ranking'    => 10,
+                                        'timeline'   => '',
+                                        'orderby'    => 'wins',
+                                        'order'      => 'DESC',
+                                        'paged'      => 1,
+                                        'search'     => '',
+                                        'tournament' => '',
+                                        'bonushunt'  => '',
+                                        'website'    => '',
+                                        'aff'        => '',
                                 ),
                                 $atts,
                                 'bhg_leaderboards'
@@ -1220,17 +1224,37 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
                         global $wpdb;
 
-                        $paged     = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
-                        $search    = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                        $timeline  = sanitize_key( $a['timeline'] );
-                        $limit     = max( 1, (int) $a['ranking'] );
-                        $offset    = ( $paged - 1 ) * $limit;
+                        $paged    = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
+                        $search   = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
+                        $timeline = sanitize_key( $a['timeline'] );
+                        $limit    = max( 1, (int) $a['ranking'] );
+                        $offset   = ( $paged - 1 ) * $limit;
+
                         $orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
                         $order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
-                        $tournament_id = isset( $_GET['bhg_tournament'] ) ? absint( wp_unslash( $_GET['bhg_tournament'] ) ) : absint( $a['tournament'] );
-                        $hunt_id       = isset( $_GET['bhg_hunt'] ) ? absint( wp_unslash( $_GET['bhg_hunt'] ) ) : absint( $a['bonushunt'] );
-                        $website_id    = isset( $_GET['bhg_site'] ) ? absint( wp_unslash( $_GET['bhg_site'] ) ) : absint( $a['website'] );
-                        $aff_filter    = isset( $_GET['bhg_aff'] ) ? sanitize_key( wp_unslash( $_GET['bhg_aff'] ) ) : sanitize_key( $a['aff'] );
+
+                        $shortcode_tournament = isset( $a['tournament'] ) ? $a['tournament'] : '';
+                        $shortcode_hunt       = isset( $a['bonushunt'] ) ? $a['bonushunt'] : '';
+                        $shortcode_site       = isset( $a['website'] ) ? $a['website'] : '';
+                        $shortcode_aff        = isset( $a['aff'] ) ? $a['aff'] : '';
+
+                        $raw_tournament = isset( $_GET['bhg_tournament'] ) ? wp_unslash( $_GET['bhg_tournament'] ) : $shortcode_tournament;
+                        $raw_hunt       = isset( $_GET['bhg_hunt'] ) ? wp_unslash( $_GET['bhg_hunt'] ) : $shortcode_hunt;
+                        $raw_site       = isset( $_GET['bhg_site'] ) ? wp_unslash( $_GET['bhg_site'] ) : $shortcode_site;
+                        $raw_aff        = isset( $_GET['bhg_aff'] ) ? wp_unslash( $_GET['bhg_aff'] ) : $shortcode_aff;
+
+                        $tournament_id = max( 0, absint( $raw_tournament ) );
+                        $hunt_id       = max( 0, absint( $raw_hunt ) );
+                        $website_id    = max( 0, absint( $raw_site ) );
+
+                        $aff_filter = sanitize_key( (string) $raw_aff );
+                        if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
+                                $aff_filter = 'yes';
+                        } elseif ( in_array( $aff_filter, array( 'no', 'false', '0' ), true ) ) {
+                                $aff_filter = 'no';
+                        } else {
+                                $aff_filter = '';
+                        }
 
                         if ( '' === $orderby_request ) {
                                 $orderby_request = 'wins';
