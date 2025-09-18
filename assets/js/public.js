@@ -41,6 +41,7 @@ jQuery(document).ready(function($) {
             var guessValue = parseFloat(guessInput.val());
             var errorContainer = form.find('.bhg-error-message');
             var isValid = true;
+            var redirectField = form.find('[name="redirect_to"]').val() || '';
 
             // Clear previous errors
             errorContainer.html('').hide();
@@ -81,19 +82,30 @@ jQuery(document).ready(function($) {
                     action: 'submit_bhg_guess',
                     nonce: bhg_nonce,
                     guess_amount: guessValue,
-                    hunt_id: form.find('[name="hunt_id"]').val()
+                    hunt_id: form.find('[name="hunt_id"]').val(),
+                    redirect_to: redirectField
                 },
                 success: function(response) {
-                    if (response.success) {
-                        // Show success message and reload page
-                        showSuccess(errorContainer, bhg_public_ajax.i18n.guess_submitted);
+                    form.find('.bhg-submit-btn').prop('disabled', false).removeClass('loading');
+
+                    if (response && response.success) {
+                        var data = response.data || {};
+                        var status = data.status || '';
+                        var message = data.message || (status === 'updated' ? bhg_public_ajax.i18n.guess_updated : bhg_public_ajax.i18n.guess_submitted);
+                        var redirectUrl = data.redirect || form.find('[name="redirect_to"]').val();
+
+                        showSuccess(errorContainer, message);
+
                         setTimeout(function() {
-                            location.reload();
-                        }, 2000);
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            } else {
+                                window.location.reload();
+                            }
+                        }, 1500);
                     } else {
-                        // Show error message
-                        showError(errorContainer, response.data);
-                        form.find('.bhg-submit-btn').prop('disabled', false).removeClass('loading');
+                        var errorMessage = response && response.data ? response.data : bhg_public_ajax.i18n.ajax_error;
+                        showError(errorContainer, errorMessage);
                     }
                 },
                 error: function() {
