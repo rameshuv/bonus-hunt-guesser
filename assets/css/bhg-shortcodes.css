@@ -242,6 +242,26 @@
     border-collapse: collapse;
 }
 
+.bhg-tournaments th:first-child,
+.bhg-tournaments td:first-child {
+    width: 35%;
+}
+
+.bhg-tournaments td:first-child a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.bhg-tournaments td:first-child a:focus,
+.bhg-tournaments td:first-child a:hover {
+    text-decoration: underline;
+}
+
+.bhg-tournaments th:last-child,
+.bhg-tournaments td:last-child {
+    text-align: right;
+}
+
 .bhg-leaderboard th,
 .bhg-tournaments th {
     text-align: left;
