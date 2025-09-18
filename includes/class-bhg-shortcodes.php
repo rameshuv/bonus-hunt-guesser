@@ -135,57 +135,233 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			 * @param array $atts Shortcode attributes.
 			 * @return string HTML output.
 			 */
-		public function active_hunt_shortcode( $atts ) {
-						unset( $atts ); // Parameter unused but kept for shortcode signature.
+	       public function active_hunt_shortcode( $atts ) {
+			       unset( $atts ); // Parameter unused but kept for shortcode signature.
 
-						global $wpdb;
-						$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-			if ( ! $hunts_table ) {
-								return '';
-			}
+			       global $wpdb;
+			       $hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+		       if ( ! $hunts_table ) {
+				       return '';
+		       }
 
-						$cache_key = 'bhg_active_hunts';
-						$hunts     = wp_cache_get( $cache_key, 'bhg' );
-			if ( false === $hunts ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-						$hunts = $wpdb->get_results(
-							$wpdb->prepare(
-                                       /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above. */
-								"SELECT * FROM {$hunts_table} WHERE status = %s ORDER BY created_at DESC",
-								'open'
-							)
-						); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-							wp_cache_set( $cache_key, $hunts, 'bhg', 300 );
-			}
+			       $cache_key = 'bhg_active_hunts';
+			       $hunts     = wp_cache_get( $cache_key, 'bhg' );
+		       if ( false === $hunts ) {
+			       $hunts = $wpdb->get_results(
+				       $wpdb->prepare(
+		      /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above. */
+					       "SELECT * FROM {$hunts_table} WHERE status = %s ORDER BY created_at DESC",
+					       'open'
+				       )
+			       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			       wp_cache_set( $cache_key, $hunts, 'bhg', 300 );
+		       }
 
-			if ( empty( $hunts ) ) {
-				return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
-			}
+		       if ( empty( $hunts ) ) {
+			       return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
+		       }
 
-							wp_enqueue_style(
-								'bhg-shortcodes',
-								( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-								array(),
-								defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-							);
+		       $hunts_map = array();
+		       foreach ( $hunts as $hunt ) {
+			       $hunts_map[ (int) $hunt->id ] = $hunt;
+		       }
 
-			ob_start();
-			echo '<div class="bhg-active-hunts">';
-			foreach ( $hunts as $hunt ) {
-				echo '<div class="bhg-hunt-card">';
-				echo '<h3>' . esc_html( $hunt->title ) . '</h3>';
-				echo '<ul class="bhg-hunt-meta">';
-							echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $hunt->starting_balance ) ) . '</li>';
-				echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $hunt->num_bonuses . '</li>';
-				if ( ! empty( $hunt->prizes ) ) {
-					echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $hunt->prizes ) . '</li>';
-				}
-				echo '</ul>';
-				echo '</div>';
-			}
-			echo '</div>';
-			return ob_get_clean();
-		}
+		       $selected_hunt_id = 0;
+		       if ( isset( $_GET['bhg_hunt'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data.
+			       $selected_hunt_id = absint( wp_unslash( $_GET['bhg_hunt'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		       }
+
+		       if ( $selected_hunt_id <= 0 || ! isset( $hunts_map[ $selected_hunt_id ] ) ) {
+			       $first_hunt       = reset( $hunts );
+			       $selected_hunt_id = $first_hunt ? (int) $first_hunt->id : 0;
+		       }
+
+		       if ( $selected_hunt_id <= 0 ) {
+			       return '';
+		       }
+
+		       $selected_hunt = $hunts_map[ $selected_hunt_id ];
+
+		       $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 25 );
+		       if ( $per_page <= 0 ) {
+			       $per_page = 25;
+		       }
+
+		       $current_page = 1;
+		       if ( isset( $_GET['bhg_hunt_page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data.
+			       $current_page = max( 1, absint( wp_unslash( $_GET['bhg_hunt_page'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		       }
+
+			       $guesses_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
+			       $users_table   = esc_sql( $this->sanitize_table( $wpdb->users ) );
+		       if ( ! $guesses_table || ! $users_table ) {
+				       return '';
+		       }
+
+		       $offset        = ( $current_page - 1 ) * $per_page;
+		       $final_balance = isset( $selected_hunt->final_balance ) ? $selected_hunt->final_balance : null;
+		       $final_balance = '' === $final_balance ? null : $final_balance;
+		       $has_final     = null !== $final_balance;
+
+		       if ( $has_final ) {
+			       $sql = sprintf(
+				       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, ABS(g.guess - %%f) AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY diff ASC, g.id ASC LIMIT %%d OFFSET %%d',
+				       $guesses_table,
+				       $users_table
+			       );
+			       $rows = $wpdb->get_results(
+				       $wpdb->prepare(
+					       $sql,
+					       (float) $final_balance,
+					       $selected_hunt_id,
+					       $per_page,
+					       $offset
+				       )
+			       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		       } else {
+			       $sql = sprintf(
+				       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, NULL AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY g.guess ASC, g.id ASC LIMIT %%d OFFSET %%d',
+				       $guesses_table,
+				       $users_table
+			       );
+			       $rows = $wpdb->get_results(
+				       $wpdb->prepare(
+					       $sql,
+					       $selected_hunt_id,
+					       $per_page,
+					       $offset
+				       )
+			       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		       }
+
+		       $total_guesses = (int) $wpdb->get_var(
+			       $wpdb->prepare(
+				       "SELECT COUNT(*) FROM {$guesses_table} WHERE hunt_id = %d",
+				       $selected_hunt_id
+			       )
+		       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		       $total_pages = $total_guesses > 0 ? (int) ceil( $total_guesses / $per_page ) : 1;
+
+			       wp_enqueue_style(
+				       'bhg-shortcodes',
+				       ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+				       array(),
+				       defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+			       );
+		       wp_enqueue_script(
+			       'bhg-shortcodes-js',
+			       ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/js/bhg-shortcodes.js',
+			       array(),
+			       defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
+			       true
+		       );
+
+		       $hunt_site_id = isset( $selected_hunt->affiliate_site_id ) ? (int) $selected_hunt->affiliate_site_id : 0;
+
+		       ob_start();
+		       echo '<div class="bhg-active-hunt">';
+
+		       if ( count( $hunts ) > 1 ) {
+			       echo '<form class="bhg-hunt-selector" method="get">';
+			       if ( ! empty( $_GET ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Preserving query vars.
+				       foreach ( wp_unslash( $_GET ) as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					       if ( in_array( $key, array( 'bhg_hunt', 'bhg_hunt_page' ), true ) ) {
+						       continue;
+					       }
+					       if ( is_array( $value ) ) {
+						       continue;
+					       }
+					       echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( sanitize_text_field( $value ) ) . '">';
+				       }
+			       }
+			       echo '<label for="bhg-hunt-select">' . esc_html( bhg_t( 'label_choose_hunt', 'Choose a hunt:' ) ) . '</label>';
+			       echo '<select id="bhg-hunt-select" class="bhg-hunt-select" name="bhg_hunt">';
+			       foreach ( $hunts as $hunt ) {
+				       $hunt_id = (int) $hunt->id;
+				       echo '<option value="' . esc_attr( $hunt_id ) . '"' . selected( $hunt_id, $selected_hunt_id, false ) . '>' . esc_html( $hunt->title ) . '</option>';
+			       }
+			       echo '</select>';
+			       echo '<noscript><button type="submit" class="button button-primary">' . esc_html( bhg_t( 'button_apply', 'Apply' ) ) . '</button></noscript>';
+			       echo '</form>';
+		       }
+
+		       echo '<div class="bhg-hunt-card">';
+		       echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
+		       echo '<ul class="bhg-hunt-meta">';
+		       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
+		       echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
+		       if ( ! empty( $selected_hunt->prizes ) ) {
+			       echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
+		       }
+		       if ( $has_final ) {
+			       echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $final_balance ) ) . '</li>';
+		       }
+		       echo '</ul>';
+		       echo '</div>';
+
+		       echo '<div class="bhg-table-wrapper">';
+		       if ( empty( $rows ) ) {
+			       echo '<p class="bhg-no-guesses">' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses have been submitted for this hunt yet.' ) ) . '</p>';
+		       } else {
+			       echo '<table class="bhg-leaderboard bhg-active-hunt-table">';
+			       echo '<thead><tr>';
+			       echo '<th scope="col">' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
+			       echo '<th scope="col">' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th>';
+			       echo '<th scope="col">' . esc_html( bhg_t( 'label_guess', 'Guess' ) ) . '</th>';
+			       if ( $has_final ) {
+				       echo '<th scope="col">' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
+			       }
+			       echo '</tr></thead><tbody>';
+			       foreach ( $rows as $index => $row ) {
+				       $position   = $offset + $index + 1;
+				       $user_login = ! empty( $row->display_name ) ? $row->display_name : $row->user_login;
+				       $user_label = $user_login ? $user_login : bhg_t( 'label_unknown_user', 'Unknown user' );
+				       $aff_dot    = bhg_render_affiliate_dot( (int) $row->user_id, $hunt_site_id );
+
+				       echo '<tr>';
+				       echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
+				       echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'Username' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
+				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
+				       if ( $has_final ) {
+					       $diff = isset( $row->diff ) ? (float) $row->diff : 0.0;
+					       echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_currency( $diff ) ) . '</td>';
+				       }
+				       echo '</tr>';
+			       }
+			       echo '</tbody></table>';
+		       }
+		       echo '</div>';
+
+		       if ( $total_pages > 1 ) {
+			       $pagination_links = paginate_links(
+				       array(
+					       'base'      => esc_url_raw( add_query_arg( array( 'bhg_hunt_page' => '%#%', 'bhg_hunt' => $selected_hunt_id ) ) ),
+					       'format'    => '',
+					       'current'   => $current_page,
+					       'total'     => $total_pages,
+					       'type'      => 'array',
+					       'prev_text' => esc_html__( '&laquo;', 'bonus-hunt-guesser' ),
+					       'next_text' => esc_html__( '&raquo;', 'bonus-hunt-guesser' ),
+				       )
+			       );
+
+			       if ( ! empty( $pagination_links ) ) {
+				       echo '<nav class="bhg-pagination" aria-label="' . esc_attr( bhg_t( 'label_pagination', 'Pagination' ) ) . '">';
+				       echo '<ul class="bhg-pagination-list">';
+				       foreach ( $pagination_links as $link ) {
+					       $class = false !== strpos( $link, 'current' ) ? ' class="bhg-current-page"' : '';
+					       echo '<li' . $class . '>' . wp_kses_post( $link ) . '</li>';
+				       }
+				       echo '</ul>';
+				       echo '</nav>';
+			       }
+		       }
+
+		       echo '</div>';
+
+		       return ob_get_clean();
+	       }
 
 					/**
 					 * Renders the guess submission form.
