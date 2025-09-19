@@ -5,7 +5,7 @@ Requires at least: WordPress 5.5.5
 ## Shortcodes
 
 ### `[bhg_user_guesses]`
-Display guesses submitted by a user.
+Display guesses submitted for a specific bonus hunt. Pass `id` to target a hunt; omit it to use the most recent active hunt.
 
 - `timeline`: limit results to `day`, `week`, `month`, `year`, or the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`.
 
