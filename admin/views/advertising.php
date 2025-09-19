@@ -34,7 +34,7 @@ $ads = $wpdb->get_results(
 	"SELECT * FROM {$ads_table} ORDER BY id DESC"
 );
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_advertising', 'Advertising' ) ); ?></h1>
 
 		<h2 style="margin-top:1em"><?php echo esc_html( bhg_t( 'existing_ads', 'Existing Ads' ) ); ?></h2>

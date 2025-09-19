@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 	<h1><?php echo esc_html( bhg_t( 'demo_tools', 'Demo Tools' ) ); ?></h1>
 
 	<p class="description" style="max-width:800px;">
