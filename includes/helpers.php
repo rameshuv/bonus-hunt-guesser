@@ -879,13 +879,21 @@ if ( ! function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
 	 * @param int $site_id Site ID.
 	 * @return bool
 	 */
-	function bhg_is_user_affiliate_for_site( $user_id, $site_id ) {
-		if ( ! $site_id ) {
-			return bhg_is_user_affiliate( (int) $user_id );
-		}
-				$sites = bhg_get_user_affiliate_websites( (int) $user_id );
-				return in_array( absint( $site_id ), array_map( 'absint', (array) $sites ), true );
-	}
+        function bhg_is_user_affiliate_for_site( $user_id, $site_id ) {
+                $user_id = (int) $user_id;
+
+                if ( ! $site_id ) {
+                        return bhg_is_user_affiliate( $user_id );
+                }
+
+                                $sites = bhg_get_user_affiliate_websites( $user_id );
+
+                if ( empty( $sites ) ) {
+                        return bhg_is_user_affiliate( $user_id );
+                }
+
+                                return in_array( absint( $site_id ), array_map( 'absint', (array) $sites ), true );
+        }
 }
 
 if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
