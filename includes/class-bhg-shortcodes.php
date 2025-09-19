@@ -80,18 +80,24 @@ $wpdb->usermeta,
                 }
 
                 $aliases = array(
-                        'day'        => 'day',
-                        'today'      => 'day',
-                        'this_day'   => 'day',
-                        'week'       => 'week',
-                        'this_week'  => 'week',
-                        'month'      => 'month',
-                        'this_month' => 'month',
-                        'year'       => 'year',
-                        'this_year'  => 'year',
-                        'last_year'  => 'last_year',
-                        'all_time'   => 'all_time',
-                        'alltime'    => 'all_time',
+                        'day'         => 'day',
+                        'today'       => 'day',
+                        'this_day'    => 'day',
+                        'week'        => 'week',
+                        'this_week'   => 'week',
+                        'weekly'      => 'week',
+                        'month'       => 'month',
+                        'this_month'  => 'month',
+                        'monthly'     => 'month',
+                        'year'        => 'year',
+                        'this_year'   => 'year',
+                        'yearly'      => 'year',
+                        'quarter'     => 'quarter',
+                        'quarterly'   => 'quarter',
+                        'this_quarter' => 'quarter',
+                        'last_year'   => 'last_year',
+                        'all_time'    => 'all_time',
+                        'alltime'     => 'all_time',
                 );
 
                 $canonical = isset( $aliases[ $timeline ] ) ? $aliases[ $timeline ] : $timeline;
@@ -119,6 +125,15 @@ $wpdb->usermeta,
                         case 'year':
                                 $start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
                                 $end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
+                                break;
+
+                        case 'quarter':
+                                $year         = (int) $now->format( 'Y' );
+                                $month        = (int) $now->format( 'n' );
+                                $quarter      = (int) floor( ( $month - 1 ) / 3 ) + 1;
+                                $start_month  = ( ( $quarter - 1 ) * 3 ) + 1;
+                                $start_dt     = $now->setDate( $year, $start_month, 1 )->setTime( 0, 0, 0 );
+                                $end_dt       = $start_dt->modify( '+2 months' )->modify( 'last day of this month' )->setTime( 23, 59, 59 );
                                 break;
 
                         case 'last_year':
