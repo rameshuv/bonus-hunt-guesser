@@ -1514,8 +1514,7 @@ $wpdb->usermeta,
                                 'asc'  => 'ASC',
                                 'desc' => 'DESC',
                         );
-                        $direction_key = strtolower( sanitize_key( $a['order'] ) );
-                        $direction     = $direction_map[ $direction_key ] ?? 'DESC';
+                        $direction     = isset( $direction_map[ $direction_key ] ) ? $direction_map[ $direction_key ] : $direction_map['desc'];
                         $orderby       = isset( $orderby_map[ $orderby_key ] ) ? $orderby_map[ $orderby_key ] : $orderby_map['wins'];
                         $select_sql   .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
 
