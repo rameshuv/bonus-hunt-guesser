@@ -31,7 +31,7 @@ class BHG_Demo {
 	 */
 	public function demo_menu() {
 		add_submenu_page(
-			'bhg_dashboard',
+			'bhg',
 			__( 'Demo Tools', 'bonus-hunt-guesser' ),
 			__( 'Demo Tools', 'bonus-hunt-guesser' ),
 			'manage_options',
