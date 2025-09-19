@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'bhg_database_cleanup' ) ) {
     /**
-     * Truncate all plugin tables and reinsert demo data.
+     * Truncate all plugin tables.
      */
     function bhg_database_cleanup() {
         global $wpdb;
@@ -32,8 +32,6 @@ if ( ! function_exists( 'bhg_database_cleanup' ) ) {
                 $wpdb->query( "TRUNCATE TABLE {$table}" );
             }
         }
-
-        bhg_insert_demo_data();
     }
 }
 
@@ -60,27 +58,6 @@ if ( ! function_exists( 'bhg_database_optimize' ) ) {
                 $wpdb->query( "OPTIMIZE TABLE {$table}" );
             }
         }
-    }
-}
-
-if ( ! function_exists( 'bhg_insert_demo_data' ) ) {
-    /**
-     * Insert basic demo data.
-     */
-    function bhg_insert_demo_data() {
-        global $wpdb;
-
-        $wpdb->insert(
-            $wpdb->prefix . 'bhg_bonus_hunts',
-            array(
-                'title'            => 'Demo Bonus Hunt',
-                'starting_balance' => 2000,
-                'num_bonuses'      => 10,
-                'status'           => 'active',
-                'created_at'       => current_time( 'mysql' ),
-            ),
-            array( '%s', '%d', '%d', '%s', '%s' )
-        );
     }
 }
 
