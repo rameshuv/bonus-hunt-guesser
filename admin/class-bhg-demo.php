@@ -105,5 +105,3 @@ class BHG_Demo {
 		exit;
 	}
 }
-
-new BHG_Demo();
