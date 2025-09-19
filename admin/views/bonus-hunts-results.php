@@ -105,15 +105,20 @@ if ( 'tournament' === $view_type ) {
 			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
 			return;
 	}
-        $rows         = $wpdb->get_results(
-                $wpdb->prepare(
-                        "SELECT g.guess, u.display_name, ABS(g.guess - %f) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC",
-                        (float) $hunt->final_balance,
-                        $item_id
-                )
-        );
-	$result_title = $hunt->title;
-	$wcount       = (int) $hunt->winners_count;
+        $has_final_balance = isset( $hunt->final_balance ) && '' !== $hunt->final_balance && null !== $hunt->final_balance;
+        if ( $has_final_balance ) {
+                $rows = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT g.guess, u.display_name, ABS(g.guess - %f) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC",
+                                (float) $hunt->final_balance,
+                                $item_id
+                        )
+                );
+        } else {
+                $rows = array();
+        }
+        $result_title = $hunt->title;
+        $wcount       = (int) $hunt->winners_count;
 	if ( $wcount < 1 ) {
 			$wcount = 3;
 	}
