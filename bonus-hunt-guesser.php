@@ -496,7 +496,8 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-		$settings['ads_enabled'] = isset( $_POST['bhg_ads_enabled'] ) ? 1 : 0;
+$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
+$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
 
         if ( isset( $_POST['bhg_email_from'] ) ) {
                         $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
