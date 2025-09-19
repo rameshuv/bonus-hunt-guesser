@@ -791,16 +791,8 @@ $wpdb->usermeta,
 
                         global $wpdb;
 
-			$user_id = (int) $a['id'];
-			if ( $user_id <= 0 ) {
-				$user_id = get_current_user_id();
-			}
-			if ( $user_id <= 0 ) {
-				return '<p>' . esc_html( bhg_t( 'notice_no_user_specified', 'No user specified.' ) ) . '</p>';
-			}
-
-			$g  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
-			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+                        $g  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
+                        $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
 			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
 			if ( ! $g || ! $h ) {
@@ -817,8 +809,33 @@ $wpdb->usermeta,
 								return '<p>' . esc_html( bhg_t( 'notice_db_update_required', 'Database upgrade required. Please run plugin upgrades.' ) ) . '</p>';
 			}
 
-			$where  = array( 'g.user_id = %d' );
-			$params = array( $user_id );
+                        $order_column = 'id';
+                        if ( $has_created_at ) {
+                                $order_column = 'created_at';
+                        }
+
+                        $hunt_id = (int) $a['id'];
+                        if ( $hunt_id <= 0 ) {
+                                $hunt_id = (int) $wpdb->get_var(
+                                        $wpdb->prepare(
+                                                /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above. */
+                                                "SELECT id FROM {$h} WHERE status = %s ORDER BY {$order_column} DESC LIMIT 1",
+                                                'open'
+                                        )
+                                );
+                        }
+                        if ( $hunt_id <= 0 ) {
+                                $hunt_id = (int) $wpdb->get_var(
+                                        /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above. */
+                                        "SELECT id FROM {$h} ORDER BY {$order_column} DESC LIMIT 1"
+                                );
+                        }
+                        if ( $hunt_id <= 0 ) {
+                                return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
+                        }
+
+                        $where  = array( 'g.hunt_id = %d' );
+                        $params = array( $hunt_id );
 
 			$aff_raw    = array_key_exists( 'aff', $atts ) ? $atts['aff'] : '';
 			$aff_filter = sanitize_key( (string) $aff_raw );
@@ -918,7 +935,7 @@ $wpdb->usermeta,
 			$select_join_sql = $select_joins ? ' ' . implode( ' ', $select_joins ) . ' ' : ' ';
 			$where_sql       = implode( ' AND ', $where );
 
-			$sql = 'SELECT g.guess, g.created_at, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(g.guess - h.final_balance) END AS difference';
+        $sql = 'SELECT g.guess, g.created_at, g.user_id, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(g.guess - h.final_balance) END AS difference';
         if ( $need_site ) {
                 $sql .= ', w.name AS site_name';
         }
@@ -978,13 +995,12 @@ $wpdb->usermeta,
         echo '<th><a href="' . esc_url( $toggle( 'difference' ) ) . '">' . esc_html( bhg_t( 'sc_difference', 'Difference' ) ) . '</a></th>';
         echo '</tr></thead><tbody>';
 
-          $current_user_id = $user_id; // for aff dot.
                         foreach ( $rows as $row ) {
                                 echo '<tr>';
                 echo '<td>' . esc_html( $row->title ) . '</td>';
                 $guess_cell = esc_html( bhg_format_currency( (float) $row->guess ) );
                 if ( $show_aff ) {
-                        $dot        = bhg_render_affiliate_dot( (int) $current_user_id, (int) $row->affiliate_site_id );
+                        $dot        = bhg_render_affiliate_dot( (int) $row->user_id, (int) $row->affiliate_site_id );
                         $guess_cell = $dot . $guess_cell;
                 }
                 echo '<td>' . wp_kses_post( $guess_cell ) . '</td>';
