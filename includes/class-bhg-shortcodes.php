@@ -771,7 +771,7 @@ $wpdb->usermeta,
                   'website'  => 0,
                   'status'   => '',
                   'timeline' => '',
-                  'fields'   => 'hunt,guess,final',
+          'fields'   => 'hunt,user,guess,final',
                   'orderby'  => 'hunt',
                   'order'    => 'DESC',
                   'paged'    => 1,
@@ -792,7 +792,7 @@ $wpdb->usermeta,
                 )
         );
         if ( empty( $fields_arr ) ) {
-                $fields_arr = array( 'hunt', 'guess', 'final' );
+                $fields_arr = array( 'hunt', 'user', 'guess', 'final' );
         }
 
         $need_site  = in_array( 'site', $fields_arr, true );
