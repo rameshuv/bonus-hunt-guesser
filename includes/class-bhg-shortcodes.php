@@ -1624,6 +1624,7 @@ $wpdb->usermeta,
                         $need_tournament_name = in_array( 'tournament', $fields_arr, true );
                         $need_hunt_name       = in_array( 'hunt', $fields_arr, true );
                         $need_aff             = in_array( 'aff', $fields_arr, true );
+                        $need_site_details    = $need_site || $need_aff;
 
                         $r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
                         $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
@@ -1721,8 +1722,12 @@ $wpdb->usermeta,
                         }
                         $sub_where_sql = ' WHERE ' . implode( ' AND ', $sub_where_parts );
 
-                        if ( $need_site ) {
-                                $select_parts[] = "(SELECT w2.name FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$w} w2 ON w2.id = h2.affiliate_site_id{$sub_where_sql} ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS site_name";
+                        if ( $need_site_details ) {
+                                $site_subquery_template = "(SELECT %s FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$w} w2 ON w2.id = h2.affiliate_site_id{$sub_where_sql} ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1)";
+                                $select_parts[]         = sprintf( $site_subquery_template, 'h2.affiliate_site_id' ) . ' AS site_id';
+                                if ( $need_site ) {
+                                        $select_parts[] = sprintf( $site_subquery_template, 'w2.name' ) . ' AS site_name';
+                                }
                         }
 
                         if ( $need_hunt_name ) {
@@ -1887,10 +1892,11 @@ $wpdb->usermeta,
                         echo '</tr></thead><tbody>';
 
                         $pos = $offset + 1;
-			foreach ( $rows as $row ) {
-				if ( $need_aff ) {
-											$aff = bhg_render_affiliate_dot( (int) $row->user_id );
-				}
+                        foreach ( $rows as $row ) {
+                                if ( $need_aff ) {
+                                        $site_id = isset( $row->site_id ) ? (int) $row->site_id : 0;
+                                        $aff     = bhg_render_affiliate_dot( (int) $row->user_id, $site_id );
+                                }
 										/* translators: %d: user ID. */
 										$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
 										echo '<tr>';
