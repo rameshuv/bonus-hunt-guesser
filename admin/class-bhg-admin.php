@@ -255,7 +255,23 @@ class BHG_Admin {
 
 		$id                    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
 		$title                 = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
-		$starting              = isset( $_POST['starting_balance'] ) ? floatval( wp_unslash( $_POST['starting_balance'] ) ) : 0;
+               $starting_raw          = isset( $_POST['starting_balance'] ) ? wp_unslash( $_POST['starting_balance'] ) : '';
+               $starting              = 0.0;
+               $redirect_url          = wp_get_referer();
+               if ( ! $redirect_url ) {
+                       $redirect_url = BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' );
+               }
+
+               if ( '' !== trim( (string) $starting_raw ) ) {
+                       $starting_parsed = function_exists( 'bhg_parse_amount' ) ? bhg_parse_amount( $starting_raw ) : null;
+
+                       if ( null === $starting_parsed ) {
+                               wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_starting_balance', $redirect_url ) );
+                               exit;
+                       }
+
+                       $starting = (float) $starting_parsed;
+               }
 		$num_bonuses           = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
 		$prizes                = isset( $_POST['prizes'] ) ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
 		$affiliate_site        = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
@@ -270,7 +286,19 @@ $tournament_ids = array( $legacy );
 $primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
 		$winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
 		$guessing_enabled      = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
-				$final_balance = ( isset( $_POST['final_balance'] ) && '' !== $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
+               $final_balance_raw = isset( $_POST['final_balance'] ) ? wp_unslash( $_POST['final_balance'] ) : '';
+               $final_balance     = null;
+
+               if ( '' !== trim( (string) $final_balance_raw ) ) {
+                       $final_parsed = function_exists( 'bhg_parse_amount' ) ? bhg_parse_amount( $final_balance_raw ) : null;
+
+                       if ( null === $final_parsed ) {
+                               wp_safe_redirect( add_query_arg( 'bhg_msg', 'invalid_final_balance', $redirect_url ) );
+                               exit;
+                       }
+
+                       $final_balance = (float) $final_parsed;
+               }
 				$status        = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'open';
 		if ( ! in_array( $status, array( 'open', 'closed' ), true ) ) {
 			$status = 'open';
@@ -1017,8 +1045,16 @@ exit;
 		$map   = array(
 			't_saved'       => bhg_t( 'tournament_saved', 'Tournament saved.' ),
 			't_error'       => bhg_t( 'could_not_save_tournament_check_logs', 'Could not save tournament. Check logs.' ),
-			't_deleted'     => bhg_t( 'tournament_deleted', 'Tournament deleted.' ),
-			't_closed'      => bhg_t( 'tournament_closed', 'Tournament closed.' ),
+                       't_deleted'     => bhg_t( 'tournament_deleted', 'Tournament deleted.' ),
+                       't_closed'      => bhg_t( 'tournament_closed', 'Tournament closed.' ),
+                       'invalid_starting_balance' => bhg_t(
+                               'invalid_starting_balance',
+                               'Starting balance could not be parsed. Please enter a numeric amount.'
+                       ),
+                       'invalid_final_balance'    => bhg_t(
+                               'invalid_final_balance',
+                               'Final balance could not be parsed. Please enter a numeric amount.'
+                       ),
 			'nonce'         => bhg_t( 'security_check_failed_please_retry', 'Security check failed. Please retry.' ),
 			'noaccess'      => bhg_t( 'you_do_not_have_permission_to_do_that', 'You do not have permission to do that.' ),
 			'tools_success' => bhg_t( 'tools_action_completed', 'Tools action completed.' ),
