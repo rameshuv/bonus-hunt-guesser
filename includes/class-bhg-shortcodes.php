@@ -783,12 +783,13 @@ $wpdb->usermeta,
         $need_site  = in_array( 'site', $fields_arr, true );
         $need_users = in_array( 'user', $fields_arr, true );
 
-                        $paged           = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
-                        $search          = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                        $limit           = 30;
-                        $offset          = ( $paged - 1 ) * $limit;
-                        $orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
-                        $order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
+        $paged               = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
+        $search              = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
+        $limit               = 30;
+        $offset              = ( $paged - 1 ) * $limit;
+        $has_orderby_query   = isset( $_GET['bhg_orderby'] );
+        $orderby_request     = $has_orderby_query ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
+        $order_request       = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
 
                         global $wpdb;
 
@@ -840,8 +841,18 @@ $wpdb->usermeta,
                                 return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
                         }
 
-                        $where  = array( 'g.hunt_id = %d' );
-                        $params = array( $hunt_id );
+        $where  = array( 'g.hunt_id = %d' );
+        $params = array( $hunt_id );
+
+        $hunt_context = $wpdb->get_row(
+                $wpdb->prepare(
+                        /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above. */
+                        "SELECT final_balance FROM {$h} WHERE id = %d",
+                        $hunt_id
+                )
+        );
+        $hunt_has_final_balance = ( $hunt_context && null !== $hunt_context->final_balance );
+        $is_open_hunt           = ! $hunt_has_final_balance;
 
 			$aff_raw    = array_key_exists( 'aff', $atts ) ? $atts['aff'] : '';
 			$aff_filter = sanitize_key( (string) $aff_raw );
@@ -914,29 +925,38 @@ $wpdb->usermeta,
                         $direction_key     = isset( $direction_map[ $order_request_key ] ) ? $order_request_key : $default_direction_key;
                         $direction         = $direction_map[ $direction_key ];
 
-                        $orderby_map = array(
-                                'guess'      => 'g.guess',
-                                'hunt'       => $has_created_at ? 'h.created_at' : 'h.id',
-                                'final'      => 'h.final_balance',
-                                'time'       => 'g.created_at',
-                                'difference' => 'difference',
-                        );
-                        $default_orderby_key = sanitize_key( $a['orderby'] );
-                        if ( ! isset( $orderby_map[ $default_orderby_key ] ) ) {
-                                $default_orderby_key = 'hunt';
-                        }
-                        $orderby_request_key = sanitize_key( $orderby_request );
-                        $orderby_key         = isset( $orderby_map[ $orderby_request_key ] ) ? $orderby_request_key : $default_orderby_key;
-                        $orderby             = $orderby_map[ $orderby_key ];
+        $orderby_map = array(
+                'guess'      => 'g.guess',
+                'hunt'       => $has_created_at ? 'h.created_at' : 'h.id',
+                'final'      => 'h.final_balance',
+                'time'       => 'g.created_at',
+                'difference' => 'difference',
+        );
+        $default_orderby_key = sanitize_key( $a['orderby'] );
+        if ( $is_open_hunt && ! $has_orderby_query ) {
+                $default_orderby_key = 'time';
+        }
+        if ( ! isset( $orderby_map[ $default_orderby_key ] ) ) {
+                $default_orderby_key = $is_open_hunt ? 'time' : 'hunt';
+        }
+        $orderby_request_key = sanitize_key( $orderby_request );
+        $orderby_key         = isset( $orderby_map[ $orderby_request_key ] ) ? $orderby_request_key : $default_orderby_key;
+        $orderby             = $orderby_map[ $orderby_key ];
 
-                        if ( 'difference' === $orderby_key ) {
-                                $order_sql = sprintf(
-                                        ' ORDER BY CASE WHEN h.final_balance IS NULL THEN 1 ELSE 0 END ASC, CASE WHEN h.final_balance IS NULL THEN g.created_at END %1$s, difference %1$s',
-                                        $direction
-                                );
-                        } else {
-                                $order_sql = sprintf( ' ORDER BY %s %s', $orderby, $direction );
-                        }
+        if ( $is_open_hunt ) {
+                if ( 'difference' === $orderby_key || 'final' === $orderby_key || 'hunt' === $orderby_key ) {
+                        $order_sql = sprintf( ' ORDER BY g.created_at %s', $direction );
+                } else {
+                        $order_sql = sprintf( ' ORDER BY %s %s', $orderby, $direction );
+                }
+        } elseif ( 'difference' === $orderby_key ) {
+                $order_sql = sprintf(
+                        ' ORDER BY CASE WHEN h.final_balance IS NULL THEN 1 ELSE 0 END ASC, CASE WHEN h.final_balance IS NULL THEN g.created_at END %1$s, difference %1$s',
+                        $direction
+                );
+        } else {
+                $order_sql = sprintf( ' ORDER BY %s %s', $orderby, $direction );
+        }
 
 			$count_params    = $params;
 			$count_join_sql  = $count_joins ? ' ' . implode( ' ', $count_joins ) . ' ' : ' ';
