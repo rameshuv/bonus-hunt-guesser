@@ -298,7 +298,9 @@
 }
 
 .bhg-leaderboard,
-.bhg-tournaments {
+.bhg-tournaments,
+.bhg-user-guesses,
+.bhg-hunts {
     width: 100%;
     border-collapse: collapse;
 }
@@ -324,7 +326,9 @@
 }
 
 .bhg-leaderboard th,
-.bhg-tournaments th {
+.bhg-tournaments th,
+.bhg-user-guesses th,
+.bhg-hunts th {
     text-align: left;
     border: 1px solid var(--bhg-accent-color);
     border-bottom: 2px solid var(--bhg-accent-color);
@@ -334,18 +338,24 @@
 }
 
 .bhg-leaderboard td,
-.bhg-tournaments td {
+.bhg-tournaments td,
+.bhg-user-guesses td,
+.bhg-hunts td {
     padding: 6px;
     border-bottom: 1px solid #f1f5f9;
 }
 
 .bhg-leaderboard tr:nth-child(even),
-.bhg-tournaments tr:nth-child(even) {
+.bhg-tournaments tr:nth-child(even),
+.bhg-user-guesses tr:nth-child(even),
+.bhg-hunts tr:nth-child(even) {
     background-color: #f9fafb;
 }
 
 .bhg-leaderboard tr:hover,
-.bhg-tournaments tr:hover {
+.bhg-tournaments tr:hover,
+.bhg-user-guesses tr:hover,
+.bhg-hunts tr:hover {
     background-color: #eef2ff;
 }
 
@@ -362,19 +372,35 @@
     .bhg-tournaments tbody,
     .bhg-tournaments th,
     .bhg-tournaments td,
-    .bhg-tournaments tr {
+    .bhg-tournaments tr,
+    .bhg-user-guesses,
+    .bhg-user-guesses thead,
+    .bhg-user-guesses tbody,
+    .bhg-user-guesses th,
+    .bhg-user-guesses td,
+    .bhg-user-guesses tr,
+    .bhg-hunts,
+    .bhg-hunts thead,
+    .bhg-hunts tbody,
+    .bhg-hunts th,
+    .bhg-hunts td,
+    .bhg-hunts tr {
         display: block;
     }
 
     .bhg-leaderboard thead tr,
-    .bhg-tournaments thead tr {
+    .bhg-tournaments thead tr,
+    .bhg-user-guesses thead tr,
+    .bhg-hunts thead tr {
         position: absolute;
         top: -9999px;
         left: -9999px;
     }
 
     .bhg-leaderboard tr,
-    .bhg-tournaments tr {
+    .bhg-tournaments tr,
+    .bhg-user-guesses tr,
+    .bhg-hunts tr {
         border: 1px solid #e5e7eb;
         margin-bottom: 6px;
         border-radius: 6px;
@@ -382,7 +408,9 @@
     }
 
     .bhg-leaderboard td,
-    .bhg-tournaments td {
+    .bhg-tournaments td,
+    .bhg-user-guesses td,
+    .bhg-hunts td {
         border: none;
         border-bottom: 1px solid #e5e7eb;
         position: relative;
@@ -391,7 +419,9 @@
     }
 
     .bhg-leaderboard td::before,
-    .bhg-tournaments td::before {
+    .bhg-tournaments td::before,
+    .bhg-user-guesses td::before,
+    .bhg-hunts td::before {
         position: absolute;
         top: 6px;
         left: 10px;
@@ -403,7 +433,9 @@
     }
 
     .bhg-leaderboard td:last-child,
-    .bhg-tournaments td:last-child {
+    .bhg-tournaments td:last-child,
+    .bhg-user-guesses td:last-child,
+    .bhg-hunts td:last-child {
         border-bottom: 0;
     }
 }
