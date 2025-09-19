@@ -126,91 +126,91 @@ $hunts = $wpdb->get_results( $hunts_query );
 <th><a href="
 	<?php
 	echo esc_url(
-		add_query_arg(
-			array(
-				'orderby' => 'id',
-'order'   => ( 'id' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
-			),
-			$sort_base
-		)
+                add_query_arg(
+                        array(
+                                'orderby' => 'id',
+                                'order'   => ( 'id' === $orderby_param && 'asc' === $order_param ) ? 'desc' : 'asc',
+                        ),
+                        $sort_base
+                )
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'id', 'ID' ) ); ?></a></th>
 <th><a href="
 	<?php
 	echo esc_url(
-		add_query_arg(
-			array(
-				'orderby' => 'title',
-'order'   => ( 'title' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
-			),
-			$sort_base
-		)
+                add_query_arg(
+                        array(
+                                'orderby' => 'title',
+                                'order'   => ( 'title' === $orderby_param && 'asc' === $order_param ) ? 'desc' : 'asc',
+                        ),
+                        $sort_base
+                )
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_title', 'Title' ) ); ?></a></th>
 <th><a href="
 	<?php
 	echo esc_url(
-		add_query_arg(
-			array(
-				'orderby' => 'starting_balance',
-'order'   => ( 'starting_balance' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
-			),
-			$sort_base
-		)
+                add_query_arg(
+                        array(
+                                'orderby' => 'starting_balance',
+                                'order'   => ( 'starting_balance' === $orderby_param && 'asc' === $order_param ) ? 'desc' : 'asc',
+                        ),
+                        $sort_base
+                )
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ); ?></a></th>
 <th><a href="
 	<?php
 	echo esc_url(
-		add_query_arg(
-			array(
-				'orderby' => 'final_balance',
-'order'   => ( 'final_balance' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
-			),
-			$sort_base
-		)
+                add_query_arg(
+                        array(
+                                'orderby' => 'final_balance',
+                                'order'   => ( 'final_balance' === $orderby_param && 'asc' === $order_param ) ? 'desc' : 'asc',
+                        ),
+                        $sort_base
+                )
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></a></th>
 <th><a href="
 	<?php
 	echo esc_url(
-		add_query_arg(
-			array(
-				'orderby' => 'affiliate',
-'order'   => ( 'affiliate' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
-			),
-			$sort_base
-		)
+                add_query_arg(
+                        array(
+                                'orderby' => 'affiliate',
+                                'order'   => ( 'affiliate' === $orderby_param && 'asc' === $order_param ) ? 'desc' : 'asc',
+                        ),
+                        $sort_base
+                )
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'affiliate', 'Affiliate' ) ); ?></a></th>
 <th><a href="
 	<?php
 	echo esc_url(
-		add_query_arg(
-			array(
-				'orderby' => 'winners',
-'order'   => ( 'winners' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
-			),
-			$sort_base
-		)
+                add_query_arg(
+                        array(
+                                'orderby' => 'winners',
+                                'order'   => ( 'winners' === $orderby_param && 'asc' === $order_param ) ? 'desc' : 'asc',
+                        ),
+                        $sort_base
+                )
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></a></th>
 <th><a href="
 	<?php
 	echo esc_url(
-		add_query_arg(
-			array(
-				'orderby' => 'status',
-'order'   => ( 'status' === $orderby_param && 'ASC' === $order_param ? 'desc' : 'asc' ),
-			),
-			$sort_base
-		)
+                add_query_arg(
+                        array(
+                                'orderby' => 'status',
+                                'order'   => ( 'status' === $orderby_param && 'asc' === $order_param ) ? 'desc' : 'asc',
+                        ),
+                        $sort_base
+                )
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) ); ?></a></th>
