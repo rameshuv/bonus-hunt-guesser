@@ -721,6 +721,11 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                                 $participants_mode = 'winners';
                 }
 
+                        $hunt_link_mode = isset( $_POST['hunt_link_mode'] ) ? sanitize_key( wp_unslash( $_POST['hunt_link_mode'] ) ) : 'manual';
+                        if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
+                                $hunt_link_mode = 'manual';
+                        }
+
                         $allowed_types  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
                         $raw_start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
                         $raw_end_date   = isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : '';
@@ -732,6 +737,7 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                                 'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
                                 'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
                                 'participants_mode' => $participants_mode,
+                                'hunt_link_mode'    => $hunt_link_mode,
                                 'start_date'        => $start_date,
                                 'end_date'          => $end_date,
                                 'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
@@ -761,8 +767,12 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                         }
 
 $data['type'] = $resolved_type;
+
+if ( 'auto' === $hunt_link_mode ) {
+        $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
+}
 try {
-$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
 if ( $id > 0 ) {
 $wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
 $saved_id = $id;
@@ -898,6 +908,53 @@ exit;
                         }
 
                         return 'alltime';
+        }
+
+        /**
+         * Retrieve hunt IDs that fall within the provided tournament date range.
+         *
+         * Uses the hunt's closed, updated, or created timestamp (in that order) for comparisons.
+         *
+         * @param string|null $start_date Tournament start date (Y-m-d) or null.
+         * @param string|null $end_date   Tournament end date (Y-m-d) or null.
+         * @return array<int> Normalized hunt IDs.
+         */
+        private function get_hunt_ids_within_range( $start_date, $end_date ) {
+                global $wpdb;
+
+                $table       = $wpdb->prefix . 'bhg_bonus_hunts';
+                $date_column = 'COALESCE(closed_at, updated_at, created_at)';
+                $where       = array();
+                $params      = array();
+
+                if ( is_string( $start_date ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $start_date ) ) {
+                        $where[]  = $date_column . ' >= %s';
+                        $params[] = $start_date . ' 00:00:00';
+                }
+
+                if ( is_string( $end_date ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $end_date ) ) {
+                        $where[]  = $date_column . ' <= %s';
+                        $params[] = $end_date . ' 23:59:59';
+                }
+
+                $sql = "SELECT id FROM `{$table}`";
+                if ( $where ) {
+                        $sql .= ' WHERE ' . implode( ' AND ', $where );
+                }
+                $sql .= " ORDER BY {$date_column} ASC, id ASC";
+
+                $query = $sql;
+                if ( ! empty( $params ) ) {
+                        $query = $wpdb->prepare( $sql, $params );
+                }
+
+                $ids = $wpdb->get_col( $query );
+
+                if ( function_exists( 'bhg_normalize_int_list' ) ) {
+                        return bhg_normalize_int_list( $ids );
+                }
+
+                return array_map( 'absint', (array) $ids );
         }
 
                 /**

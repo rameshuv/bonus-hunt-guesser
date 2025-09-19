@@ -98,12 +98,13 @@ KEY tournament_id (tournament_id)
                 ) {$charset_collate};";
 
 		// Tournaments.
-		$sql[] = "CREATE TABLE `{$tours_table}` (
+                $sql[] = "CREATE TABLE `{$tours_table}` (
                                                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                                 title VARCHAR(190) NOT NULL,
                                                 description TEXT NULL,
                                                 type VARCHAR(20) NOT NULL,
                                                 participants_mode VARCHAR(20) NOT NULL DEFAULT 'winners',
+                                                hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual',
                                                 start_date DATE NULL,
                                                 end_date DATE NULL,
                                                 status VARCHAR(20) NOT NULL DEFAULT 'active',
@@ -228,7 +229,8 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 				'title'             => 'ADD COLUMN title VARCHAR(190) NOT NULL',
 				'description'       => 'ADD COLUMN description TEXT NULL',
 				'type'              => 'ADD COLUMN type VARCHAR(20) NOT NULL',
-				'participants_mode' => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
+                                'participants_mode' => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
+                                'hunt_link_mode'    => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
 				'start_date'        => 'ADD COLUMN start_date DATE NULL',
 				'end_date'          => 'ADD COLUMN end_date DATE NULL',
 				'status'            => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'active\'',
