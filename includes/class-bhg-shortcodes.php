@@ -799,13 +799,14 @@ $wpdb->usermeta,
 				return '<p>' . esc_html( bhg_t( 'notice_no_user_specified', 'No user specified.' ) ) . '</p>';
 			}
 
-        $g = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
-        $h = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-        $w = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
-        if ( ! $g || ! $h ) {
+			$g  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
+			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
+			if ( ! $g || ! $h ) {
                 return '';
         }
-        if ( $need_site && ! $w ) {
+			if ( $need_site && ! $w ) {
                 return '';
         }
 
@@ -819,6 +820,30 @@ $wpdb->usermeta,
 			$where  = array( 'g.user_id = %d' );
 			$params = array( $user_id );
 
+			$aff_raw    = array_key_exists( 'aff', $atts ) ? $atts['aff'] : '';
+			$aff_filter = sanitize_key( (string) $aff_raw );
+			if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
+				$aff_filter = 'yes';
+			} elseif ( in_array( $aff_filter, array( 'no', 'false', '0' ), true ) ) {
+				$aff_filter = 'no';
+			} else {
+				$aff_filter = '';
+			}
+
+			if ( '' !== $aff_filter && ! $um ) {
+				return '';
+			}
+
+			$aff_yes_values = array( '1', 'yes', 'true', 'on' );
+			$aff_yes_sql    = array();
+			foreach ( $aff_yes_values as $val ) {
+				$aff_yes_sql[] = "'" . esc_sql( $val ) . "'";
+			}
+			$aff_yes_list = implode( ',', $aff_yes_sql );
+
+			$count_joins  = array( "INNER JOIN {$h} h ON h.id = g.hunt_id" );
+			$select_joins = $count_joins;
+
 			if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
 				$where[]  = 'h.status = %s';
 				$params[] = $a['status'];
@@ -828,6 +853,16 @@ $wpdb->usermeta,
 			if ( $website > 0 ) {
 				$where[]  = 'h.affiliate_site_id = %d';
 				$params[] = $website;
+			}
+
+			if ( 'yes' === $aff_filter ) {
+				$count_joins[]  = "INNER JOIN {$um} um_aff ON um_aff.user_id = g.user_id AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+				$select_joins[] = "INNER JOIN {$um} um_aff ON um_aff.user_id = g.user_id AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+				$where[]        = "CAST(um_aff.meta_value AS CHAR) IN ({$aff_yes_list})";
+			} elseif ( 'no' === $aff_filter ) {
+				$count_joins[]  = "LEFT JOIN {$um} um_aff ON um_aff.user_id = g.user_id AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+				$select_joins[] = "LEFT JOIN {$um} um_aff ON um_aff.user_id = g.user_id AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+				$where[]        = "(um_aff.user_id IS NULL OR CAST(um_aff.meta_value AS CHAR) = '' OR CAST(um_aff.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
 			}
 
         // Timeline handling (explicit range).
@@ -870,19 +905,24 @@ $wpdb->usermeta,
                                 $order_sql = sprintf( ' ORDER BY %s %s', $orderby, $direction );
                         }
 
-                        $count_params = $params;
-                        $count_sql    = "SELECT COUNT(*) FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id WHERE " . implode( ' AND ', $where );
+			$count_params    = $params;
+			$count_join_sql  = $count_joins ? ' ' . implode( ' ', $count_joins ) . ' ' : ' ';
+			$count_where_sql = implode( ' AND ', $where );
+			$count_sql       = "SELECT COUNT(*) FROM {$g} g{$count_join_sql}WHERE {$count_where_sql}";
                         $total        = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$count_params ) );
 
-                        $sql = 'SELECT g.guess, g.created_at, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(g.guess - h.final_balance) END AS difference';
+        if ( $need_site ) {
+                $select_joins[] = "LEFT JOIN {$w} w ON w.id = h.affiliate_site_id";
+        }
+
+			$select_join_sql = $select_joins ? ' ' . implode( ' ', $select_joins ) . ' ' : ' ';
+			$where_sql       = implode( ' AND ', $where );
+
+			$sql = 'SELECT g.guess, g.created_at, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(g.guess - h.final_balance) END AS difference';
         if ( $need_site ) {
                 $sql .= ', w.name AS site_name';
         }
-        $sql .= " FROM {$g} g INNER JOIN {$h} h ON h.id = g.hunt_id";
-        if ( $need_site ) {
-                $sql .= " LEFT JOIN {$w} w ON w.id = h.affiliate_site_id";
-        }
-        $sql .= ' WHERE ' . implode( ' AND ', $where ) . $order_sql . ' LIMIT %d OFFSET %d';
+        $sql .= " FROM {$g} g{$select_join_sql}WHERE {$where_sql}{$order_sql} LIMIT %d OFFSET %d";
         $params[] = $limit;
         $params[] = $offset;
         $query    = $wpdb->prepare( $sql, ...$params );
@@ -1277,12 +1317,12 @@ $wpdb->usermeta,
                         $website_id    = max( 0, absint( $raw_site ) );
 
                         $aff_filter = sanitize_key( (string) $raw_aff );
-                        if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
-                                $aff_filter = 'yes';
-                        } elseif ( in_array( $aff_filter, array( 'no', 'false', '0' ), true ) ) {
-                                $aff_filter = 'no';
+			if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
+				$aff_filter = 'yes';
+			} elseif ( in_array( $aff_filter, array( 'no', 'false', '0' ), true ) ) {
+				$aff_filter = 'no';
                         } else {
-                                $aff_filter = '';
+				$aff_filter = '';
                         }
 
                         if ( '' === $orderby_request ) {
@@ -1334,21 +1374,21 @@ $wpdb->usermeta,
                         $r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
                         $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
                         $t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
-                        $w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
                         $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
-                        $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
                         $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
-                        $um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
+			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
                         if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um || ! $ht ) {
                                 return '';
                         }
 
-                        $aff_yes_values = array( '1', 'yes', 'true', 'on' );
-                        $aff_yes_sql    = array();
-                        foreach ( $aff_yes_values as $val ) {
-                                $aff_yes_sql[] = "'" . esc_sql( $val ) . "'";
+			$aff_yes_values = array( '1', 'yes', 'true', 'on' );
+			$aff_yes_sql    = array();
+			foreach ( $aff_yes_values as $val ) {
+				$aff_yes_sql[] = "'" . esc_sql( $val ) . "'";
                         }
-                        $aff_yes_list = implode( ',', $aff_yes_sql );
+			$aff_yes_list = implode( ',', $aff_yes_sql );
 
                         $joins = array(
                                 "INNER JOIN {$h} h ON h.id = hw.hunt_id",
