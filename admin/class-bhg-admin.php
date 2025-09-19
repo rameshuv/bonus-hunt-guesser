@@ -37,8 +37,7 @@ class BHG_Admin {
 				add_action( 'admin_post_bhg_save_affiliate', array( $this, 'handle_save_affiliate' ) );
 				add_action( 'admin_post_bhg_delete_affiliate', array( $this, 'handle_delete_affiliate' ) );
 				add_action( 'admin_post_bhg_save_user_meta', array( $this, 'handle_save_user_meta' ) );
-				add_action( 'admin_post_bhg_tools_action', array( $this, 'handle_tools_action' ) );
-	}
+        }
 
 	/**
 	 * Register admin menus and pages.
@@ -1032,65 +1031,9 @@ exit;
 		exit;
 	}
 
-		/**
-		 * Handle submission of the Tools page.
-		 */
-	public function handle_tools_action() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-		}
-
-			// Verify nonce for tools action submission.
-			check_admin_referer( 'bhg_tools_action', 'bhg_tools_nonce' );
-
-			global $wpdb;
-
-						$hunts_table       = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-						$tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-
-						// Remove existing demo data.
-								$wpdb->query(
-									$wpdb->prepare(
-										"DELETE FROM {$hunts_table} WHERE title LIKE %s",
-										'%(Demo)%'
-									)
-								);
-
-								$wpdb->query(
-									$wpdb->prepare(
-										"DELETE FROM {$tournaments_table} WHERE title LIKE %s",
-										'%(Demo)%'
-									)
-								);
-
-			// Seed demo hunt.
-			$wpdb->insert(
-				$hunts_table,
-				array(
-					'title'            => 'Sample Hunt (Demo)',
-					'starting_balance' => 1000,
-					'num_bonuses'      => 5,
-					'status'           => 'open',
-				)
-			);
-
-			// Seed demo tournament.
-			$wpdb->insert(
-				$tournaments_table,
-				array(
-					'title'  => 'August Tournament (Demo)',
-					'status' => 'active',
-				)
-			);
-
-			// Redirect back to the tools page with a success message.
-						wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-tools&bhg_msg=tools_success' ) );
-			exit;
-	}
-
-	/**
-	 * Display admin notices for tournament actions.
-	 */
+        /**
+         * Display admin notices for tournament actions.
+         */
 	public function admin_notices() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
