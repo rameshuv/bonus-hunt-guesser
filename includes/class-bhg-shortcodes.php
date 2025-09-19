@@ -789,7 +789,9 @@ $wpdb->usermeta,
         $offset              = ( $paged - 1 ) * $limit;
         $has_orderby_query   = isset( $_GET['bhg_orderby'] );
         $orderby_request     = $has_orderby_query ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
-        $order_request       = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
+        $has_order_query     = isset( $_GET['bhg_order'] );
+        $order_request       = $has_order_query ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
+        $has_order_attribute = array_key_exists( 'order', $atts );
 
                         global $wpdb;
 
@@ -923,7 +925,10 @@ $wpdb->usermeta,
                         }
                         $order_request_key = strtolower( $order_request );
                         $direction_key     = isset( $direction_map[ $order_request_key ] ) ? $order_request_key : $default_direction_key;
-                        $direction         = $direction_map[ $direction_key ];
+                        if ( $is_open_hunt && ! $has_order_query && ! $has_order_attribute ) {
+                                $direction_key = 'asc';
+                        }
+                        $direction = $direction_map[ $direction_key ];
 
         $orderby_map = array(
                 'guess'      => 'g.guess',
