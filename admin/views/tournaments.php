@@ -75,7 +75,13 @@ if ( $search_term ) {
 $base_url = remove_query_arg( array( 'paged' ) );
 $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 $all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
-$linked_hunts = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
+if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
+        $hunt_link_mode = 'manual';
+}
+$hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
+$hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
 ?>
 <div class="wrap">
 	<h1 class="wp-heading-inline">
@@ -319,6 +325,26 @@ endif;
                 </td>
                 </tr>
                 <tr>
+                                <th><label for="bhg_t_hunt_mode">
+                                <?php
+                                echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <fieldset>
+                                                                <label>
+                                                                                <input type="radio" id="bhg_t_hunt_mode_manual" name="hunt_link_mode" value="manual" <?php checked( $hunt_link_mode, 'manual' ); ?> />
+                                                                                <?php echo esc_html( bhg_t( 'hunt_mode_manual', 'From Hunt admin (manual selection)' ) ); ?>
+                                                                </label><br />
+                                                                <label>
+                                                                                <input type="radio" id="bhg_t_hunt_mode_auto" name="hunt_link_mode" value="auto" <?php checked( $hunt_link_mode, 'auto' ); ?> />
+                                                                                <?php echo esc_html( bhg_t( 'hunt_mode_auto', 'All hunts within start/end period' ) ); ?>
+                                                                </label>
+                                                </fieldset>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'hunt_mode_description', 'Choose how hunts are linked to this tournament.' ) ); ?></p>
+                                </td>
+                </tr>
+                <tr id="bhg_t_hunts_row"<?php echo $hunts_row_attr; ?>>
                 <th><label for="bhg_t_hunts">
                 <?php
                 echo esc_html( bhg_t( 'connected_bonus_hunts', 'Connected Bonus Hunts' ) );
@@ -333,7 +359,35 @@ endif;
                         <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
                 </td>
                 </tr>
-	</table>
-	<?php submit_button( $row ? bhg_t( 'update_tournament', 'Update Tournament' ) : bhg_t( 'create_tournament', 'Create Tournament' ) ); ?>
-	</form>
+        </table>
+        <?php submit_button( $row ? bhg_t( 'update_tournament', 'Update Tournament' ) : bhg_t( 'create_tournament', 'Create Tournament' ) ); ?>
+        </form>
+        <script>
+        document.addEventListener( 'DOMContentLoaded', function() {
+                var modeInputs = document.querySelectorAll( 'input[name="hunt_link_mode"]' );
+                var huntsRow = document.getElementById( 'bhg_t_hunts_row' );
+
+                if ( ! modeInputs.length || ! huntsRow ) {
+                        return;
+                }
+
+                var toggleRow = function() {
+                        var selectedMode = 'manual';
+                        for ( var i = 0; i < modeInputs.length; i++ ) {
+                                if ( modeInputs[ i ].checked ) {
+                                        selectedMode = modeInputs[ i ].value;
+                                        break;
+                                }
+                        }
+
+                        huntsRow.style.display = ( 'auto' === selectedMode ) ? 'none' : '';
+                };
+
+                for ( var j = 0; j < modeInputs.length; j++ ) {
+                        modeInputs[ j ].addEventListener( 'change', toggleRow );
+                }
+
+                toggleRow();
+        } );
+        </script>
 </div>
