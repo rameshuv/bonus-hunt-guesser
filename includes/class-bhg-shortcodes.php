@@ -752,7 +752,7 @@ $wpdb->usermeta,
         $a = shortcode_atts(
           array(
                   'id'       => 0,
-                  'aff'      => 'yes',
+                  'aff'      => '',
                   'website'  => 0,
                   'status'   => '',
                   'timeline' => '',
@@ -994,7 +994,7 @@ $wpdb->usermeta,
                                 return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
                         }
 
-          $show_aff = in_array( 'user', $fields_arr, true ) && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
+          $show_aff = $need_users;
 
           ob_start();
           echo '<form method="get" class="bhg-search-form">';
