@@ -1034,9 +1034,16 @@ $wpdb->usermeta,
                                 return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
                         }
 
-          $show_aff = $need_users;
+        $show_aff = $need_users;
 
-          ob_start();
+        wp_enqueue_style(
+                'bhg-shortcodes',
+                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                array(),
+                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+        );
+
+        ob_start();
           echo '<form method="get" class="bhg-search-form">';
           foreach ( $_GET as $raw_key => $v ) {
                   $key = sanitize_key( wp_unslash( $raw_key ) );
@@ -1281,6 +1288,13 @@ $wpdb->usermeta,
                         }
 
                         $show_site = $need_site_field && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
+
+                        wp_enqueue_style(
+                                'bhg-shortcodes',
+                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                array(),
+                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                        );
 
                         ob_start();
                         echo '<form method="get" class="bhg-search-form">';
