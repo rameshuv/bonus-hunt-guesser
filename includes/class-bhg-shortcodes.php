@@ -2386,12 +2386,38 @@ $wpdb->usermeta,
                        if ( current_user_can( 'edit_user', $user_id ) ) {
                                $edit_link = get_edit_user_link( $user_id );
                        }
-                       $output  = '<div class="bhg-user-profile"><table class="bhg-user-profile-table">';
-                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th><td>' . esc_html( $real_name ) . '</td></tr>';
-                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
-                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_email', 'Email' ) ) . '</th><td>' . esc_html( $email ) . '</td></tr>';
-                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_affiliate_status', 'Affiliate Status' ) ) . '</th><td>' . wp_kses_post( $badge ) . ' ' . esc_html( $aff_text ) . '</td></tr>';
-                       $output .= '</table>';
+                      $output  = '<div class="bhg-user-profile"><table class="bhg-user-profile-table">';
+                      $output .= '<tr><th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th><td>' . esc_html( $real_name ) . '</td></tr>';
+                      $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
+                      $output .= '<tr><th>' . esc_html( bhg_t( 'label_email', 'Email' ) ) . '</th><td>' . esc_html( $email ) . '</td></tr>';
+                      $output .= '<tr><th>' . esc_html( bhg_t( 'label_affiliate_status', 'Affiliate Status' ) ) . '</th><td>' . wp_kses_post( $badge ) . ' ' . esc_html( $aff_text ) . '</td></tr>';
+
+                      $site_rows = array();
+                      if ( function_exists( 'bhg_get_user_affiliate_websites' ) ) {
+                              $site_ids = array_filter( array_map( 'absint', (array) bhg_get_user_affiliate_websites( (int) $user_id ) ) );
+                              if ( $site_ids ) {
+                                      global $wpdb;
+                                      $sites_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                                      if ( $sites_table ) {
+                                              $placeholders = implode( ',', array_fill( 0, count( $site_ids ), '%d' ) );
+                                              // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $placeholders created using prepare-safe values.
+                                              $query = "SELECT id, name FROM {$sites_table} WHERE id IN ({$placeholders}) ORDER BY id ASC";
+                                              // db call ok; no-cache ok.
+                                              $site_rows = $wpdb->get_results( $wpdb->prepare( $query, $site_ids ) );
+                                      }
+                              }
+                      }
+
+                      if ( $site_rows ) {
+                              $count = 1;
+                              foreach ( $site_rows as $site_row ) {
+                                      $label = sprintf( bhg_t( 'label_affiliate_website_number', 'Affiliate Website %d' ), $count );
+                                      $output .= '<tr><th>' . esc_html( $label ) . '</th><td>' . esc_html( $site_row->name ) . '</td></tr>';
+                                      $count++;
+                              }
+                      }
+
+                      $output .= '</table>';
                        if ( $edit_link ) {
                                $output .= '<p><a href="' . esc_url( $edit_link ) . '">' . esc_html( bhg_t( 'link_edit_profile', 'Edit Profile' ) ) . '</a></p>';
                        }
