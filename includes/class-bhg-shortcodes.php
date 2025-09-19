@@ -211,10 +211,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 		       $selected_hunt = $hunts_map[ $selected_hunt_id ];
 
-		       $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 25 );
-		       if ( $per_page <= 0 ) {
-			       $per_page = 25;
-		       }
+                       $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 30 );
+                       if ( $per_page <= 0 ) {
+                               $per_page = 30;
+                       }
 
 		       $current_page = 1;
 		       if ( isset( $_GET['bhg_hunt_page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data.
