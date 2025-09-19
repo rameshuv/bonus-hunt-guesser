@@ -291,17 +291,35 @@ class BHG_Admin {
 				$data['updated_at'] = current_time( 'mysql' );
 				$format[]           = '%s';
 				$format[]           = '%s';
-				if ( $id ) {
-					$wpdb->update( $hunts_table, $data, array( 'id' => $id ), $format, array( '%d' ) );
-				} else {
-					$data['created_at'] = current_time( 'mysql' );
-					$format[]           = '%s';
-					$wpdb->insert( $hunts_table, $data, $format );
-					$id = (int) $wpdb->insert_id;
-				}
+                                $previous_status = null;
+                                if ( $id ) {
+                                        $existing_row = $wpdb->get_row(
+                                                $wpdb->prepare(
+                                                        'SELECT status FROM ' . $hunts_table . ' WHERE id = %d',
+                                                        (int) $id
+                                                )
+                                        );
 
-				if ( 'closed' === $status && null !== $final_balance ) {
-					$winners = BHG_Models::close_hunt( $id, $final_balance );
+                                        if ( $existing_row && isset( $existing_row->status ) ) {
+                                                $previous_status = (string) $existing_row->status;
+                                        }
+
+                                        $wpdb->update( $hunts_table, $data, array( 'id' => $id ), $format, array( '%d' ) );
+                                } else {
+                                        $data['created_at'] = current_time( 'mysql' );
+                                        $format[]           = '%s';
+                                        $wpdb->insert( $hunts_table, $data, $format );
+                                        $id = (int) $wpdb->insert_id;
+                                }
+
+                                $should_close = (
+                                        'closed' === $status
+                                        && null !== $final_balance
+                                        && ( null === $previous_status || 'closed' !== $previous_status )
+                                );
+
+                                if ( $should_close ) {
+                                        $winners = BHG_Models::close_hunt( $id, $final_balance );
 
 					$emails_enabled = (int) get_option( 'bhg_email_enabled', 1 );
 					if ( $emails_enabled ) {

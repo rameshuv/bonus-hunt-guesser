@@ -80,8 +80,83 @@ class BHG_Models {
 			return false;
 		}
 
-				// Fetch winners based on proximity to final balance.
-				$rows = $wpdb->get_results(
+		// Remove existing winners and reverse previous tournament tallies.
+		$existing_winners = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT user_id FROM ' . $winners_tbl . ' WHERE hunt_id = %d',
+				$hunt_id
+			)
+		);
+
+		if ( null === $existing_winners && $wpdb->last_error ) {
+			bhg_log( $wpdb->last_error );
+			return false;
+		}
+
+		if ( ! empty( $existing_winners ) ) {
+			$winner_counts = array();
+			foreach ( $existing_winners as $existing_winner ) {
+				$user_id = isset( $existing_winner->user_id ) ? (int) $existing_winner->user_id : 0;
+
+				if ( $user_id <= 0 ) {
+					continue;
+				}
+
+				if ( ! isset( $winner_counts[ $user_id ] ) ) {
+					$winner_counts[ $user_id ] = 0;
+				}
+
+				++$winner_counts[ $user_id ];
+			}
+
+			$deleted = $wpdb->delete( $winners_tbl, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
+			if ( false === $deleted ) {
+				bhg_log( $wpdb->last_error );
+				return false;
+			}
+
+			if ( $tournament_id > 0 && ! empty( $winner_counts ) ) {
+				foreach ( $winner_counts as $user_id => $count ) {
+					$existing_result = $wpdb->get_row(
+						$wpdb->prepare(
+							'SELECT id, wins FROM ' . $tres_tbl . ' WHERE tournament_id = %d AND user_id = %d',
+							$tournament_id,
+							$user_id
+						)
+					);
+
+					if ( ! $existing_result ) {
+						continue;
+					}
+
+					$remaining_wins = max( 0, (int) $existing_result->wins - (int) $count );
+
+					if ( $remaining_wins > 0 ) {
+						$updated = $wpdb->update(
+							$tres_tbl,
+							array( 'wins' => $remaining_wins ),
+							array( 'id' => (int) $existing_result->id ),
+							array( '%d' ),
+							array( '%d' )
+						);
+
+						if ( false === $updated ) {
+							bhg_log( $wpdb->last_error );
+							return false;
+						}
+					} else {
+						$deleted_result = $wpdb->delete( $tres_tbl, array( 'id' => (int) $existing_result->id ), array( '%d' ) );
+						if ( false === $deleted_result ) {
+							bhg_log( $wpdb->last_error );
+							return false;
+						}
+					}
+				}
+			}
+		}
+
+                // Fetch winners based on proximity to final balance.
+                $rows = $wpdb->get_results(
 					$wpdb->prepare(
 						'SELECT user_id, guess, ABS(guess - %f) AS diff FROM ' . $wpdb->prefix . 'bhg_guesses WHERE hunt_id = %d ORDER BY diff ASC, id ASC LIMIT %d',
 						(float) $final_balance,
