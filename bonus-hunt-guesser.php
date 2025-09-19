@@ -221,7 +221,6 @@ spl_autoload_register(
 			'BHG_Ads'                    => 'includes/class-bhg-ads.php',
 			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
 			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
-			'BHG_Demo'                   => 'admin/class-bhg-demo.php',
 		);
 
 		if ( isset( $class_map[ $class_name ] ) ) {
@@ -385,9 +384,6 @@ function bhg_init_plugin() {
 	if ( is_admin() ) {
 		if ( class_exists( 'BHG_Admin' ) ) {
 			new BHG_Admin();
-		}
-		if ( class_exists( 'BHG_Demo' ) ) {
-			new BHG_Demo();
 		}
 	}
 
