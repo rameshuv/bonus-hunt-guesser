@@ -187,8 +187,10 @@ $current   = $view_type . '-' . $item_id;
                                 <option value="all_time" <?php selected( $timeframe, 'all_time' ); ?>><?php echo esc_html( bhg_t( 'all_time', 'All Time' ) ); ?></option>
                         </select>
         </div>
-	<?php if ( empty( $rows ) ) : ?>
-		<p><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></p>
+        <?php if ( empty( $rows ) ) : ?>
+                <div class="notice notice-info">
+                        <p><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></p>
+                </div>
 	<?php else : ?>
 		<table class="widefat striped">
 			<thead>
