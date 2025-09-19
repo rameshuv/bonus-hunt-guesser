@@ -51,16 +51,17 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                 private function sanitize_table( $table ) {
                         global $wpdb;
 
-			$allowed = array(
-				$wpdb->prefix . 'bhg_bonus_hunts',
-				$wpdb->prefix . 'bhg_guesses',
-				$wpdb->prefix . 'bhg_tournaments',
-				$wpdb->prefix . 'bhg_tournament_results',
-				$wpdb->prefix . 'bhg_affiliate_websites',
-				$wpdb->prefix . 'bhg_hunt_winners',
-                                $wpdb->users,
-                                $wpdb->usermeta,
-			);
+$allowed = array(
+$wpdb->prefix . 'bhg_bonus_hunts',
+$wpdb->prefix . 'bhg_guesses',
+$wpdb->prefix . 'bhg_tournaments',
+$wpdb->prefix . 'bhg_tournament_results',
+$wpdb->prefix . 'bhg_affiliate_websites',
+$wpdb->prefix . 'bhg_hunt_winners',
+$wpdb->prefix . 'bhg_hunt_tournaments',
+$wpdb->users,
+$wpdb->usermeta,
+);
 
                         return in_array( $table, $allowed, true ) ? $table : '';
                 }
@@ -1313,11 +1314,6 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 $prep_where[] = '%' . $wpdb->esc_like( $search ) . '%';
                         }
 
-                        if ( $tournament_id > 0 ) {
-                                $where[]      = 'h.tournament_id = %d';
-                                $prep_where[] = $tournament_id;
-                        }
-
                         if ( $hunt_id > 0 ) {
                                 $where[]      = 'hw.hunt_id = %d';
                                 $prep_where[] = $hunt_id;
@@ -1335,20 +1331,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         $need_hunt_name       = in_array( 'hunt', $fields_arr, true );
                         $need_aff             = in_array( 'aff', $fields_arr, true );
 
-                                                $r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
-                                                $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
-                                                $t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
-                                                $w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
-                                                $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
-                                                $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                                                $um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
-                        if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um ) {
+                        $r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
+                        $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
+                        $t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+                        $w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                        $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
+                        $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
+                        if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um || ! $ht ) {
                                 return '';
-                        }
-
-                        $where_sql = '';
-                        if ( $where ) {
-                                $where_sql = ' WHERE ' . implode( ' AND ', $where );
                         }
 
                         $aff_yes_values = array( '1', 'yes', 'true', 'on' );
@@ -1363,16 +1355,22 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 "INNER JOIN {$u} u ON u.ID = hw.user_id",
                         );
 
+                        if ( $tournament_id > 0 ) {
+                                $joins[]     = "LEFT JOIN {$ht} ht ON ht.hunt_id = h.id";
+                                $where[]      = '(ht.tournament_id = %d OR (ht.hunt_id IS NULL AND h.tournament_id = %d))';
+                                $prep_where[] = $tournament_id;
+                                $prep_where[] = $tournament_id;
+                        }
+
                         if ( 'yes' === $aff_filter || 'true' === $aff_filter || '1' === $aff_filter ) {
                                 $joins[]   = "INNER JOIN {$um} um_aff ON um_aff.user_id = u.ID AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
-                                $where[]   = "CAST(um_aff.meta_value AS CHAR) IN ({$aff_yes_list})";
-                                $where_sql = ' WHERE ' . implode( ' AND ', $where );
-                                $prep_where = $prep_where; // Ensure reference maintained.
+                                $where[] = "CAST(um_aff.meta_value AS CHAR) IN ({$aff_yes_list})";
                         } elseif ( 'no' === $aff_filter || 'false' === $aff_filter || '0' === $aff_filter ) {
                                 $joins[]   = "LEFT JOIN {$um} um_aff ON um_aff.user_id = u.ID AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
                                 $where[]   = "(um_aff.user_id IS NULL OR CAST(um_aff.meta_value AS CHAR) = '' OR CAST(um_aff.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
-                                $where_sql = ' WHERE ' . implode( ' AND ', $where );
                         }
+
+                        $where_sql = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
 
                         $base_joins_sql = ' ' . implode( ' ', $joins ) . ' ';
 
@@ -1412,7 +1410,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
                         $sub_filters = array();
                         if ( $tournament_id > 0 ) {
-                                $sub_filters[] = $wpdb->prepare( 'h2.tournament_id = %d', $tournament_id );
+                                $sub_filters[] = $wpdb->prepare( '(ht2.tournament_id = %d OR (ht2.hunt_id IS NULL AND h2.tournament_id = %d))', $tournament_id, $tournament_id );
                         }
                         if ( $hunt_id > 0 ) {
                                 $sub_filters[] = $wpdb->prepare( 'hw2.hunt_id = %d', $hunt_id );
@@ -1430,15 +1428,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                         $sub_where_sql = ' WHERE ' . implode( ' AND ', $sub_where_parts );
 
                         if ( $need_site ) {
-                                $select_parts[] = "(SELECT w2.name FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$w} w2 ON w2.id = h2.affiliate_site_id{$sub_where_sql} ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS site_name";
+                                $select_parts[] = "(SELECT w2.name FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$w} w2 ON w2.id = h2.affiliate_site_id{$sub_where_sql} ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS site_name";
                         }
 
                         if ( $need_hunt_name ) {
-                                $select_parts[] = "(SELECT h2.title FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id{$sub_where_sql} ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS hunt_title";
+                                $select_parts[] = "(SELECT h2.title FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id{$sub_where_sql} ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS hunt_title";
                         }
 
                         if ( $need_tournament_name ) {
-                                $select_parts[] = "(SELECT t2.title FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$t} t2 ON t2.id = h2.tournament_id{$sub_where_sql} AND h2.tournament_id IS NOT NULL ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS tournament_title";
+                                $tournament_where_sql = $sub_where_sql . ' AND (ht2.tournament_id IS NOT NULL OR h2.tournament_id IS NOT NULL)';
+                                $select_parts[]       = "(SELECT COALESCE(t2.title, t2_legacy.title) FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$t} t2 ON t2.id = ht2.tournament_id LEFT JOIN {$t} t2_legacy ON t2_legacy.id = h2.tournament_id{$tournament_where_sql} ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS tournament_title";
                         }
 
                         $select_sql = 'SELECT ' . implode( ', ', $select_parts ) . " FROM {$hw} hw{$base_joins_sql}";

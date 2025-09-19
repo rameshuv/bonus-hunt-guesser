@@ -404,14 +404,14 @@ if ( 'add' === $view ) :
 												$tours = $wpdb->get_results(
 													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
 												);
-												$tsel  = isset( $hunt->tournament_id ) ? (int) $hunt->tournament_id : 0;
-												?>
-						<select id="bhg_tournament" name="tournament_id">
-								<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                                                                                $selected_tournaments = array();
+                                                                                                ?>
+                                                <select id="bhg_tournament" name="tournament_ids[]" multiple="multiple" size="5">
                                                                 <?php foreach ( $tours as $t ) : ?>
-                                                                <option value="<?php echo esc_attr( (int) $t->id ); ?>" <?php selected( $tsel, (int) $t->id ); ?>><?php echo esc_html( $t->title ); ?></option>
+                                                                <option value="<?php echo esc_attr( (int) $t->id ); ?>" <?php selected( in_array( (int) $t->id, $selected_tournaments, true ) ); ?>><?php echo esc_html( $t->title ); ?></option>
                                                                 <?php endforeach; ?>
-						</select>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
 						</td>
 				</tr>
 <tr>
@@ -530,14 +530,14 @@ if ( 'edit' === $view ) :
 												$tours = $wpdb->get_results(
 													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
 												);
-												$tsel  = isset( $hunt->tournament_id ) ? (int) $hunt->tournament_id : 0;
-												?>
-						<select id="bhg_tournament" name="tournament_id">
-								<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                                                                                $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+                                                                                                ?>
+                                                <select id="bhg_tournament" name="tournament_ids[]" multiple="multiple" size="5">
                                                                 <?php foreach ( $tours as $t ) : ?>
-                                                                <option value="<?php echo esc_attr( (int) $t->id ); ?>" <?php selected( $tsel, (int) $t->id ); ?>><?php echo esc_html( $t->title ); ?></option>
+                                                                <option value="<?php echo esc_attr( (int) $t->id ); ?>" <?php selected( in_array( (int) $t->id, $selected_tournaments, true ) ); ?>><?php echo esc_html( $t->title ); ?></option>
                                                                 <?php endforeach; ?>
-						</select>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
 						</td>
 				</tr>
 <tr>

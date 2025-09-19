@@ -9,6 +9,7 @@ class MockWPDB {
     public $guesses = array();
     public $hunt_winners = array();
     public $tournament_results = array();
+    public $hunt_tournaments = array();
 
     private $winner_auto_increment = 0;
     private $tournament_auto_increment = 0;
@@ -103,6 +104,30 @@ class MockWPDB {
             }
 
             return $results;
+        }
+
+        return array();
+    }
+
+    public function get_col( $query ) {
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_tournaments' ) ) {
+            $hunt_id = $this->match_int( '/WHERE hunt_id = (\d+)/', $query );
+            $results = array();
+
+            foreach ( $this->hunt_tournaments as $row ) {
+                if ( (int) $row['hunt_id'] === $hunt_id ) {
+                    $results[] = (int) $row['tournament_id'];
+                }
+            }
+
+            return $results;
+        }
+
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_bonus_hunts' ) ) {
+            $hunt_id = $this->match_int( '/WHERE id = (\d+)/', $query );
+            if ( isset( $this->bonus_hunts[ $hunt_id ] ) && isset( $this->bonus_hunts[ $hunt_id ]['tournament_id'] ) ) {
+                return array( (int) $this->bonus_hunts[ $hunt_id ]['tournament_id'] );
+            }
         }
 
         return array();

@@ -32,6 +32,11 @@ final class CloseHuntTest extends TestCase {
             'created_at'     => '2024-01-01 00:00:00',
         );
 
+        $this->wpdb->hunt_tournaments[] = array(
+            'hunt_id'       => $hunt_id,
+            'tournament_id' => $tournament_id,
+        );
+
         $this->wpdb->guesses = array(
             array( 'id' => 1, 'hunt_id' => $hunt_id, 'user_id' => 101, 'guess' => 1000.00 ),
             array( 'id' => 2, 'hunt_id' => $hunt_id, 'user_id' => 102, 'guess' => 995.00 ),
