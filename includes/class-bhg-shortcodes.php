@@ -1287,7 +1287,7 @@ $wpdb->usermeta,
                                 return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
                         }
 
-                        $show_site = $need_site_field && in_array( strtolower( (string) $a['aff'] ), array( 'yes', '1', 'true' ), true );
+                        $show_site = $need_site_field;
 
                         wp_enqueue_style(
                                 'bhg-shortcodes',
