@@ -153,4 +153,89 @@ class BHG_Models {
 
 		return array_map( 'intval', wp_list_pluck( $rows, 'user_id' ) );
 	}
+
+	/**
+	 * Recalculate tournament leaderboards based on current hunt winners.
+	 *
+	 * @param int[] $tournament_ids Tournament identifiers to recalculate.
+	 *
+	 * @return void
+	 */
+	public static function recalculate_tournament_results( array $tournament_ids ) {
+		global $wpdb;
+
+		if ( empty( $tournament_ids ) ) {
+			return;
+		}
+
+		$normalized = array();
+		foreach ( $tournament_ids as $tournament_id ) {
+			$tournament_id = absint( $tournament_id );
+			if ( $tournament_id > 0 ) {
+				$normalized[ $tournament_id ] = $tournament_id;
+			}
+		}
+
+		if ( empty( $normalized ) ) {
+			return;
+		}
+
+		$hunts_tbl   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		$winners_tbl = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+		$results_tbl = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
+
+		foreach ( $normalized as $tournament_id ) {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT hw.user_id, COUNT(*) AS wins, MAX(COALESCE(hw.created_at, h.closed_at, h.updated_at, h.created_at)) AS last_win_date\n"
+					. "FROM {$winners_tbl} hw\n"
+					. "INNER JOIN {$hunts_tbl} h ON h.id = hw.hunt_id\n"
+					. "WHERE h.tournament_id = %d\n"
+					. "GROUP BY hw.user_id",
+					$tournament_id
+				)
+			);
+
+			if ( null === $rows && $wpdb->last_error ) {
+				bhg_log( sprintf( 'Failed to fetch recalculated standings for tournament #%d: %s', $tournament_id, $wpdb->last_error ) );
+				continue;
+			}
+
+			$deleted = $wpdb->delete( $results_tbl, array( 'tournament_id' => $tournament_id ), array( '%d' ) );
+			if ( false === $deleted ) {
+				bhg_log( sprintf( 'Failed to clear existing standings for tournament #%d: %s', $tournament_id, $wpdb->last_error ) );
+				continue;
+			}
+
+			if ( empty( $rows ) ) {
+				continue;
+			}
+
+			foreach ( $rows as $row ) {
+				$wins    = isset( $row->wins ) ? (int) $row->wins : 0;
+				$user_id = isset( $row->user_id ) ? (int) $row->user_id : 0;
+
+				if ( $wins <= 0 || $user_id <= 0 ) {
+					continue;
+				}
+
+				$last_win = ! empty( $row->last_win_date ) ? $row->last_win_date : current_time( 'mysql' );
+
+				$inserted = $wpdb->insert(
+					$results_tbl,
+					array(
+						'tournament_id' => $tournament_id,
+						'user_id'       => $user_id,
+						'wins'          => $wins,
+						'last_win_date' => $last_win,
+					),
+					array( '%d', '%d', '%d', '%s' )
+				);
+
+				if ( false === $inserted ) {
+					bhg_log( sprintf( 'Failed to store recalculated standings for tournament #%1$d and user #%2$d: %3$s', $tournament_id, $user_id, $wpdb->last_error ) );
+				}
+			}
+		}
+	}
 }
