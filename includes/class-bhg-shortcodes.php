@@ -896,22 +896,32 @@ $wpdb->usermeta,
                                 $params[] = '%' . $wpdb->esc_like( $search ) . '%';
                         }
 
-			$direction_map = array(
-	  'asc'  => 'ASC',
-	  'desc' => 'DESC',
-			);
-			$direction_key = strtolower( sanitize_key( $a['order'] ) );
-			$direction     = $direction_map[ $direction_key ] ?? 'DESC';
+                        $direction_map = array(
+                                'asc'  => 'ASC',
+                                'desc' => 'DESC',
+                        );
+                        $default_direction_key = strtolower( sanitize_key( $a['order'] ) );
+                        if ( ! isset( $direction_map[ $default_direction_key ] ) ) {
+                                $default_direction_key = 'desc';
+                        }
+                        $order_request_key = strtolower( $order_request );
+                        $direction_key     = isset( $direction_map[ $order_request_key ] ) ? $order_request_key : $default_direction_key;
+                        $direction         = $direction_map[ $direction_key ];
 
                         $orderby_map = array(
-          'guess'      => 'g.guess',
-          'hunt'       => $has_created_at ? 'h.created_at' : 'h.id',
-          'final'      => 'h.final_balance',
-          'time'       => 'g.created_at',
-          'difference' => 'difference',
+                                'guess'      => 'g.guess',
+                                'hunt'       => $has_created_at ? 'h.created_at' : 'h.id',
+                                'final'      => 'h.final_balance',
+                                'time'       => 'g.created_at',
+                                'difference' => 'difference',
                         );
-                        $orderby_key = sanitize_key( $a['orderby'] );
-                        $orderby     = isset( $orderby_map[ $orderby_key ] ) ? $orderby_map[ $orderby_key ] : $orderby_map['hunt'];
+                        $default_orderby_key = sanitize_key( $a['orderby'] );
+                        if ( ! isset( $orderby_map[ $default_orderby_key ] ) ) {
+                                $default_orderby_key = 'hunt';
+                        }
+                        $orderby_request_key = sanitize_key( $orderby_request );
+                        $orderby_key         = isset( $orderby_map[ $orderby_request_key ] ) ? $orderby_request_key : $default_orderby_key;
+                        $orderby             = $orderby_map[ $orderby_key ];
 
                         if ( 'difference' === $orderby_key ) {
                                 $order_sql = sprintf(
