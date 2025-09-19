@@ -1034,7 +1034,7 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 			if ( false !== strpos( $tbl, 'bhg_translations' ) || false !== strpos( $tbl, 'bhg_affiliate_websites' ) ) {
 					continue; // keep; upsert below.
 			}
-						$wpdb->delete( $tbl, '1=1' );
+$wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery
 		}
 
 		// Seed affiliate websites (idempotent upsert by slug).
