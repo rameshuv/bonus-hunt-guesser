@@ -182,40 +182,39 @@ $current   = $view_type . '-' . $item_id;
                                 <option value="all_time" <?php selected( $timeframe, 'all_time' ); ?>><?php echo esc_html( bhg_t( 'all_time', 'All Time' ) ); ?></option>
                         </select>
         </div>
-        <?php if ( empty( $rows ) ) : ?>
-                <p><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></p>
-        <?php endif; ?>
-        <table class="widefat striped">
-                        <thead>
-                                        <tr>
-                                                        <?php foreach ( $columns as $label ) : ?>
-                                                                        <th><?php echo esc_html( $label ); ?></th>
-                                                        <?php endforeach; ?>
-                                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php if ( ! empty( $rows ) ) : ?>
-                                <?php
-                                $pos = 1;
-                                foreach ( (array) $rows as $r ) :
-                                        $is_winner = $pos <= $wcount;
-                                        ?>
-                                        <tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
-                                                        <td><?php echo (int) $pos; ?></td>
-                                                        <td><?php echo esc_html( $r->display_name ); ?></td>
-                                                        <?php if ( 'tournament' === $view_type ) : ?>
-                                                                <td><?php echo (int) $r->wins; ?></td>
-                                                        <?php else : ?>
-                                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-                                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
-                                                        <?php endif; ?>
-                                        </tr>
-                                        <?php
-                                        ++$pos;
-                                endforeach;
-                                ?>
-                        <?php endif; ?>
-                        </tbody>
-        </table>
+	<?php if ( empty( $rows ) ) : ?>
+		<p><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></p>
+	<?php else : ?>
+		<table class="widefat striped">
+			<thead>
+				<tr>
+					<?php foreach ( $columns as $label ) : ?>
+						<th><?php echo esc_html( $label ); ?></th>
+					<?php endforeach; ?>
+				</tr>
+			</thead>
+			<tbody>
+			<?php
+			$pos = 1;
+			foreach ( (array) $rows as $r ) :
+				$is_winner = $pos <= $wcount;
+				?>
+				<tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
+					<td><?php echo (int) $pos; ?></td>
+					<td><?php echo esc_html( $r->display_name ); ?></td>
+					<?php if ( 'tournament' === $view_type ) : ?>
+						<td><?php echo (int) $r->wins; ?></td>
+					<?php else : ?>
+						<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
+						<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+					<?php endif; ?>
+				</tr>
+				<?php
+				++$pos;
+			endforeach;
+				?>
+			</tbody>
+		</table>
+	<?php endif; ?>
 </div>
 
