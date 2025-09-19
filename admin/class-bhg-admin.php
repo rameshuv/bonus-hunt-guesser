@@ -655,9 +655,10 @@ class BHG_Admin {
 				'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
 				'updated_at'        => current_time( 'mysql' ),
 			);
-			if ( ! in_array( $data['status'], array( 'active', 'inactive' ), true ) ) {
-				$data['status'] = 'active';
-			}
+                        $allowed_statuses = array( 'active', 'archived' );
+                        if ( ! in_array( $data['status'], $allowed_statuses, true ) ) {
+                                $data['status'] = 'active';
+                        }
 			try {
 					$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
 				if ( $id > 0 ) {
