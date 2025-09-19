@@ -83,7 +83,7 @@ if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
 $hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
 $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline">
 	<?php
 	echo esc_html( bhg_t( 'menu_tournaments', 'Tournaments' ) );

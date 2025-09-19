@@ -84,7 +84,7 @@ if ( 'hunt' === $view_type && ! $item_id ) {
 
 if ( 'tournament' === $view_type ) {
 	if ( empty( $tournament ) ) {
-			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'tournament_not_found', 'Tournament not found' ) ) . '</h1></div>';
+                    echo '<div class="wrap bhg-wrap"><h1>' . esc_html( bhg_t( 'tournament_not_found', 'Tournament not found' ) ) . '</h1></div>';
 			return;
 	}
         $rows         = $wpdb->get_results(
@@ -102,7 +102,7 @@ if ( 'tournament' === $view_type ) {
 	);
 } else {
 	if ( empty( $hunt ) ) {
-			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
+                    echo '<div class="wrap bhg-wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
 			return;
 	}
         $has_final_balance = isset( $hunt->final_balance ) && '' !== $hunt->final_balance && null !== $hunt->final_balance;
@@ -167,7 +167,7 @@ $all_tours = $wpdb->get_results(
 );
 $current   = $view_type . '-' . $item_id;
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $result_title ) ); ?></h1>
         <div style="margin:1em 0;">
                         <select id="bhg-results-select">
