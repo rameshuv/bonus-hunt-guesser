@@ -73,6 +73,9 @@ if ( $search_term ) {
 		);
 }
 $base_url = remove_query_arg( array( 'paged' ) );
+$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$linked_hunts = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
 ?>
 <div class="wrap">
 	<h1 class="wp-heading-inline">
@@ -297,24 +300,39 @@ endif;
 </label></th>
 		<td><input id="bhg_t_end" type="date" name="end_date" value="<?php echo esc_attr( $row->end_date ?? '' ); ?>" /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_status">
-		<?php
-		echo esc_html( bhg_t( 'sc_status', 'Status' ) );
-		?>
-</label></th>
-		<td>
-			<?php
-			$st  = array( 'active', 'archived' );
-			$cur = $row->status ?? 'active';
-			?>
-			<select id="bhg_t_status" name="status">
-			<?php foreach ( $st as $v ) : ?>
-				<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
-			<?php endforeach; ?>
-			</select>
-		</td>
-		</tr>
+                <tr>
+                <th><label for="bhg_t_status">
+                <?php
+                echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+                ?>
+                </label></th>
+                <td>
+                        <?php
+                        $st  = array( 'active', 'archived' );
+                        $cur = $row->status ?? 'active';
+                        ?>
+                        <select id="bhg_t_status" name="status">
+                        <?php foreach ( $st as $v ) : ?>
+                                <option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
+                        <?php endforeach; ?>
+                        </select>
+                </td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_hunts">
+                <?php
+                echo esc_html( bhg_t( 'connected_bonus_hunts', 'Connected Bonus Hunts' ) );
+                ?>
+                </label></th>
+                <td>
+                        <select id="bhg_t_hunts" name="hunt_ids[]" multiple="multiple" size="5">
+                        <?php foreach ( $all_hunts as $hunt_option ) : ?>
+                                <option value="<?php echo esc_attr( (int) $hunt_option->id ); ?>" <?php selected( in_array( (int) $hunt_option->id, $linked_hunts, true ) ); ?>><?php echo esc_html( $hunt_option->title ); ?></option>
+                        <?php endforeach; ?>
+                        </select>
+                        <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
+                </td>
+                </tr>
 	</table>
 	<?php submit_button( $row ? bhg_t( 'update_tournament', 'Update Tournament' ) : bhg_t( 'create_tournament', 'Create Tournament' ) ); ?>
 	</form>

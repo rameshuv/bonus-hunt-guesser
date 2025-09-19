@@ -30,6 +30,10 @@ $affs = $wpdb->get_results(
 );
 $sel  = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 
+$t_table              = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+$tournaments          = $wpdb->get_results( "SELECT id, title FROM {$t_table} ORDER BY title ASC" );
+$selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+
 $paged    = max( 1, absint( wp_unslash( $_GET['ppaged'] ?? '' ) ) );
 $per_page = 30;
 $data     = bhg_get_hunt_participants( $id, $paged, $per_page );
@@ -72,19 +76,30 @@ $base     = remove_query_arg( 'ppaged' );
 					<th scope="row"><label for="bhg_prizes"><?php echo esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ); ?></label></th>
 					<td><textarea class="large-text" rows="3" id="bhg_prizes" name="prizes"><?php echo esc_textarea( $hunt->prizes ); ?></textarea></td>
 				</tr>
-				<tr>
-					<th scope="row"><label for="bhg_affiliate"><?php echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) ); ?></label></th>
-					<td>
-						<select id="bhg_affiliate" name="affiliate_site_id">
-							<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
-							<?php foreach ( $affs as $a ) : ?>
-								<option value="<?php echo (int) $a->id; ?>" <?php selected( $sel, (int) $a->id ); ?>>
-									<?php echo esc_html( $a->name ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-					</td>
-				</tr>
+                                <tr>
+                                        <th scope="row"><label for="bhg_affiliate"><?php echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) ); ?></label></th>
+                                        <td>
+                                                <select id="bhg_affiliate" name="affiliate_site_id">
+                                                        <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                                        <?php foreach ( $affs as $a ) : ?>
+                                                                <option value="<?php echo (int) $a->id; ?>" <?php selected( $sel, (int) $a->id ); ?>>
+                                                                        <?php echo esc_html( $a->name ); ?>
+                                                                </option>
+                                                        <?php endforeach; ?>
+                                                </select>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <th scope="row"><label for="bhg_tournament_select"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
+                                        <td>
+                                                <select id="bhg_tournament_select" name="tournament_ids[]" multiple="multiple" size="5">
+                                                        <?php foreach ( $tournaments as $tournament ) : ?>
+                                                                <option value="<?php echo (int) $tournament->id; ?>" <?php selected( in_array( (int) $tournament->id, $selected_tournaments, true ) ); ?>><?php echo esc_html( $tournament->title ); ?></option>
+                                                        <?php endforeach; ?>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
+                                        </td>
+                                </tr>
 				<tr>
 					<th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
 									<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ? $hunt->winners_count : 3 ); ?>"></td>

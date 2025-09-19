@@ -259,7 +259,15 @@ class BHG_Admin {
 		$num_bonuses           = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
 		$prizes                = isset( $_POST['prizes'] ) ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
 		$affiliate_site        = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
-		$tournament_id         = isset( $_POST['tournament_id'] ) ? bhg_sanitize_tournament_id( wp_unslash( $_POST['tournament_id'] ) ) : 0;
+$tournament_ids_input = isset( $_POST['tournament_ids'] ) ? wp_unslash( $_POST['tournament_ids'] ) : array();
+$tournament_ids       = bhg_sanitize_tournament_ids( $tournament_ids_input );
+if ( empty( $tournament_ids ) && isset( $_POST['tournament_id'] ) ) {
+$legacy = bhg_sanitize_tournament_id( wp_unslash( $_POST['tournament_id'] ) );
+if ( $legacy > 0 ) {
+$tournament_ids = array( $legacy );
+}
+}
+$primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
 		$winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
 		$guessing_enabled      = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
 				$final_balance = ( isset( $_POST['final_balance'] ) && '' !== $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
@@ -268,13 +276,13 @@ class BHG_Admin {
 			$status = 'open';
 		}
 
-				$data = array(
-					'title'             => $title,
-					'starting_balance'  => $starting,
-					'num_bonuses'       => $num_bonuses,
-					'prizes'            => $prizes,
-					'affiliate_site_id' => $affiliate_site,
-					'tournament_id'     => $tournament_id,
+$data = array(
+'title'             => $title,
+'starting_balance'  => $starting,
+'num_bonuses'       => $num_bonuses,
+'prizes'            => $prizes,
+'affiliate_site_id' => $affiliate_site,
+'tournament_id'     => $primary_tournament_id,
 					'winners_count'     => $winners_count,
 					'guessing_enabled'  => $guessing_enabled,
 				);
@@ -292,12 +300,12 @@ class BHG_Admin {
 				$format[]           = '%s';
 				$format[]           = '%s';
                                 $previous_status = null;
-                                if ( $id ) {
-                                        $existing_row = $wpdb->get_row(
-                                                $wpdb->prepare(
-                                                        'SELECT status FROM ' . $hunts_table . ' WHERE id = %d',
-                                                        (int) $id
-                                                )
+if ( $id ) {
+$existing_row = $wpdb->get_row(
+$wpdb->prepare(
+'SELECT status FROM ' . $hunts_table . ' WHERE id = %d',
+(int) $id
+)
                                         );
 
                                         if ( $existing_row && isset( $existing_row->status ) ) {
@@ -305,12 +313,16 @@ class BHG_Admin {
                                         }
 
                                         $wpdb->update( $hunts_table, $data, array( 'id' => $id ), $format, array( '%d' ) );
-                                } else {
-                                        $data['created_at'] = current_time( 'mysql' );
-                                        $format[]           = '%s';
-                                        $wpdb->insert( $hunts_table, $data, $format );
-                                        $id = (int) $wpdb->insert_id;
-                                }
+} else {
+$data['created_at'] = current_time( 'mysql' );
+$format[]           = '%s';
+$wpdb->insert( $hunts_table, $data, $format );
+$id = (int) $wpdb->insert_id;
+}
+
+if ( function_exists( 'bhg_set_hunt_tournaments' ) && $id > 0 ) {
+bhg_set_hunt_tournaments( $id, $tournament_ids );
+}
 
                                 $should_close = (
                                         'closed' === $status
@@ -455,12 +467,20 @@ class BHG_Admin {
 		$winner_map    = array();
 
 		if ( $hunt_id ) {
-			$hunt_row = $wpdb->get_row(
-				$wpdb->prepare(
-					'SELECT tournament_id FROM ' . $hunts_table . ' WHERE id = %d',
-					(int) $hunt_id
-				)
-			);
+$hunt_row = $wpdb->get_row(
+$wpdb->prepare(
+'SELECT tournament_id FROM ' . $hunts_table . ' WHERE id = %d',
+(int) $hunt_id
+)
+);
+$tournament_ids = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( $hunt_id ) : array();
+if ( empty( $tournament_ids ) && $hunt_row && isset( $hunt_row->tournament_id ) ) {
+$legacy_id = (int) $hunt_row->tournament_id;
+if ( $legacy_id > 0 ) {
+$tournament_ids = array( $legacy_id );
+}
+}
+$tournament_ids = array_map( 'intval', array_unique( $tournament_ids ) );
 			$winners  = $wpdb->get_results(
 				$wpdb->prepare(
 					'SELECT * FROM ' . $winners_table . ' WHERE hunt_id = %d',
@@ -468,30 +488,29 @@ class BHG_Admin {
 				)
 			);
 
-			$default_tournament_id = $hunt_row && isset( $hunt_row->tournament_id ) ? (int) $hunt_row->tournament_id : 0;
 
-			if ( ! empty( $winners ) ) {
-				foreach ( $winners as $winner ) {
-					$user_id              = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
-					$winner_tournament_id = isset( $winner->tournament_id ) ? (int) $winner->tournament_id : 0;
+                        if ( ! empty( $winners ) && ! empty( $tournament_ids ) ) {
+                                foreach ( $tournament_ids as $tournament_id ) {
+                                        foreach ( $winners as $winner ) {
+                                                $user_id = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
 
-					if ( ! $winner_tournament_id ) {
-						$winner_tournament_id = $default_tournament_id;
-					}
+                                                if ( $user_id <= 0 ) {
+                                                        continue;
+                                                }
 
-					if ( $winner_tournament_id > 0 && $user_id > 0 ) {
-						if ( ! isset( $winner_map[ $winner_tournament_id ] ) ) {
-							$winner_map[ $winner_tournament_id ] = array();
-						}
+                                                if ( ! isset( $winner_map[ $tournament_id ] ) ) {
+                                                        $winner_map[ $tournament_id ] = array();
+                                                }
 
-						$winner_map[ $winner_tournament_id ][] = $user_id;
-					}
-				}
-			}
+                                                $winner_map[ $tournament_id ][] = $user_id;
+                                        }
+                                }
+                        }
 
-			$wpdb->delete( $hunts_table, array( 'id' => $hunt_id ), array( '%d' ) );
-			$wpdb->delete( $guesses_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
-			$wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
+$wpdb->delete( $hunts_table, array( 'id' => $hunt_id ), array( '%d' ) );
+$wpdb->delete( $guesses_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
+$wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
+$wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_id' => $hunt_id ), array( '%d' ) );
 
 			if ( ! empty( $winner_map ) ) {
 				foreach ( $winner_map as $tournament_id => $user_ids ) {
@@ -658,6 +677,17 @@ class BHG_Admin {
 		global $wpdb;
                 $t                     = $wpdb->prefix . 'bhg_tournaments';
                 $id                    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+                $hunt_ids_input        = isset( $_POST['hunt_ids'] ) ? wp_unslash( $_POST['hunt_ids'] ) : array();
+                $hunt_ids              = array();
+                if ( is_array( $hunt_ids_input ) ) {
+                        foreach ( $hunt_ids_input as $hunt_id ) {
+                                $hunt_id = absint( $hunt_id );
+                                if ( $hunt_id > 0 ) {
+                                        $hunt_ids[ $hunt_id ] = $hunt_id;
+                                }
+                        }
+                }
+                $hunt_ids = array_values( $hunt_ids );
                         $participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_key( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
                 if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
                                 $participants_mode = 'winners';
@@ -702,19 +732,26 @@ class BHG_Admin {
                                 $resolved_type = $this->infer_tournament_type( $start_date, $end_date );
                         }
 
-                        $data['type'] = $resolved_type;
-                        try {
-                                        $format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
-                                if ( $id > 0 ) {
-						$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
-				} else {
-						$data['created_at'] = current_time( 'mysql' );
-						$format[]           = '%s';
-						$wpdb->insert( $t, $data, $format );
-				}
-									wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
-					exit;
-			} catch ( Throwable $e ) {
+$data['type'] = $resolved_type;
+try {
+$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+if ( $id > 0 ) {
+$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
+$saved_id = $id;
+} else {
+$data['created_at'] = current_time( 'mysql' );
+$format[]           = '%s';
+$wpdb->insert( $t, $data, $format );
+$saved_id = (int) $wpdb->insert_id;
+}
+
+if ( function_exists( 'bhg_set_tournament_hunts' ) && $saved_id > 0 ) {
+bhg_set_tournament_hunts( $saved_id, $hunt_ids );
+}
+
+wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+exit;
+} catch ( Throwable $e ) {
 				if ( function_exists( 'error_log' ) ) {
 					error_log( '[BHG] tournament save error: ' . $e->getMessage() );
 				}
@@ -738,11 +775,12 @@ class BHG_Admin {
 					global $wpdb;
 					$table = $wpdb->prefix . 'bhg_tournaments';
 					$id    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
-		if ( $id ) {
-						$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-												wp_safe_redirect( add_query_arg( 'bhg_msg', 't_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
-						exit;
-		}
+if ( $id ) {
+$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
+$wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'tournament_id' => $id ), array( '%d' ) );
+wp_safe_redirect( add_query_arg( 'bhg_msg', 't_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+exit;
+}
 											wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 					exit;
 	}
