@@ -656,30 +656,56 @@ class BHG_Admin {
 			exit;
 		}
 		global $wpdb;
-		$t                     = $wpdb->prefix . 'bhg_tournaments';
-		$id                    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
-			$participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_key( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
-		if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
-				$participants_mode = 'winners';
-		}
+                $t                     = $wpdb->prefix . 'bhg_tournaments';
+                $id                    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+                        $participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_key( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
+                if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
+                                $participants_mode = 'winners';
+                }
 
-			$data = array(
-				'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
-				'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
-				'type'              => isset( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : 'weekly',
-				'participants_mode' => $participants_mode,
-				'start_date'        => isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : null,
-				'end_date'          => isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : null,
-				'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
-				'updated_at'        => current_time( 'mysql' ),
-			);
+                        $allowed_types  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+                        $raw_start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
+                        $raw_end_date   = isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : '';
+
+                        $start_date = '' !== $raw_start_date ? $raw_start_date : null;
+                        $end_date   = '' !== $raw_end_date ? $raw_end_date : null;
+
+                        $data = array(
+                                'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+                                'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
+                                'participants_mode' => $participants_mode,
+                                'start_date'        => $start_date,
+                                'end_date'          => $end_date,
+                                'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
+                                'updated_at'        => current_time( 'mysql' ),
+                        );
                         $allowed_statuses = array( 'active', 'archived' );
                         if ( ! in_array( $data['status'], $allowed_statuses, true ) ) {
                                 $data['status'] = 'active';
                         }
-			try {
-					$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
-				if ( $id > 0 ) {
+                        $existing_type = '';
+                        if ( $id > 0 ) {
+                                        // db call ok; table name from prefix.
+                                        $existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT type FROM {$t} WHERE id = %d", $id ) );
+                                        if ( $existing_row && isset( $existing_row->type ) ) {
+                                                $existing_type = sanitize_key( (string) $existing_row->type );
+                                        }
+                        }
+
+                        $posted_type = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
+
+                        if ( in_array( $posted_type, $allowed_types, true ) ) {
+                                $resolved_type = $posted_type;
+                        } elseif ( in_array( $existing_type, $allowed_types, true ) ) {
+                                $resolved_type = $existing_type;
+                        } else {
+                                $resolved_type = $this->infer_tournament_type( $start_date, $end_date );
+                        }
+
+                        $data['type'] = $resolved_type;
+                        try {
+                                        $format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+                                if ( $id > 0 ) {
 						$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
 				} else {
 						$data['created_at'] = current_time( 'mysql' );
@@ -724,10 +750,10 @@ class BHG_Admin {
 		/**
 		 * Close a tournament by setting its status to closed.
 		 */
-	public function handle_close_tournament() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-		}
+        public function handle_close_tournament() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                                wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
 
 			check_admin_referer( 'bhg_tournament_close', 'bhg_tournament_close_nonce' );
 
@@ -748,15 +774,71 @@ class BHG_Admin {
 					);
 		}
 
-			wp_safe_redirect( add_query_arg( 'bhg_msg', 't_closed', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
-			exit;
-	}
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 't_closed', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                        exit;
+        }
 
-		/**
-		 * Save or update an affiliate website record.
-		 */
-	public function handle_save_affiliate() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+                /**
+                 * Infer a tournament type based on provided dates or plugin defaults.
+                 *
+                 * @param string|null $start_date Start date in Y-m-d format or null.
+                 * @param string|null $end_date   End date in Y-m-d format or null.
+                 * @return string Resolved tournament type slug.
+                 */
+        private function infer_tournament_type( $start_date, $end_date ) {
+                        $allowed = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+                        $settings = get_option( 'bhg_plugin_settings', array() );
+                        $default  = isset( $settings['default_tournament_period'] ) ? sanitize_key( $settings['default_tournament_period'] ) : 'monthly';
+                        if ( ! in_array( $default, $allowed, true ) ) {
+                                $default = 'monthly';
+                        }
+
+                        $start_date = is_string( $start_date ) ? trim( $start_date ) : ( is_null( $start_date ) ? '' : trim( (string) $start_date ) );
+                        $end_date   = is_string( $end_date ) ? trim( $end_date ) : ( is_null( $end_date ) ? '' : trim( (string) $end_date ) );
+
+                        if ( '' === $start_date || '' === $end_date ) {
+                                return $default;
+                        }
+
+                        try {
+                                $start = new DateTimeImmutable( $start_date );
+                                $end   = new DateTimeImmutable( $end_date );
+                        } catch ( Exception $e ) {
+                                return $default;
+                        }
+
+                        if ( $end < $start ) {
+                                $tmp   = $start;
+                                $start = $end;
+                                $end   = $tmp;
+                        }
+
+                        $days = (int) $end->diff( $start )->format( '%a' ) + 1;
+
+                        if ( $days <= 10 ) {
+                                return 'weekly';
+                        }
+
+                        if ( $days <= 45 ) {
+                                return 'monthly';
+                        }
+
+                        if ( $days <= 120 ) {
+                                return 'quarterly';
+                        }
+
+                        if ( $days <= 400 ) {
+                                return 'yearly';
+                        }
+
+                        return 'alltime';
+        }
+
+                /**
+                 * Save or update an affiliate website record.
+                 */
+        public function handle_save_affiliate() {
+                if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
 				check_admin_referer( 'bhg_save_affiliate', 'bhg_save_affiliate_nonce' );
