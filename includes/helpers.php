@@ -615,6 +615,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'remove_this_guess'                            => 'Remove this guess?',
 			'reset_reseed_demo'                            => 'Reset & Reseed Demo',
 			'reset_reseed_demo_data'                       => 'Reset & Reseed Demo Data',
+			'demo_data_reset_complete'                     => 'Demo data was reset and reseeded.',
+			'demo_data_reset_failed'                       => 'Demo data reset failed.',
 			'results_for'                                  => 'Results for ',
 			'results_for_s'                                => 'Results for %s',
 			'role'                                         => 'Role',

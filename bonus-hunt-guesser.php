@@ -213,6 +213,7 @@ spl_autoload_register(
 
 		$class_map = array(
 			'BHG_Admin'                  => 'admin/class-bhg-admin.php',
+			'BHG_Demo'                   => 'admin/class-bhg-demo.php',
 			'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
 			'BHG_Logger'                 => 'includes/class-bhg-logger.php',
 			'BHG_Utils'                  => 'includes/class-bhg-utils.php',
@@ -382,6 +383,10 @@ function bhg_init_plugin() {
 
 		// Initialize components.
 	if ( is_admin() ) {
+		if ( class_exists( 'BHG_Demo' ) ) {
+			BHG_Demo::instance();
+		}
+
 		if ( class_exists( 'BHG_Admin' ) ) {
 			new BHG_Admin();
 		}

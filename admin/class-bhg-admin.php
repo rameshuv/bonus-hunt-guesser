@@ -75,10 +75,14 @@ class BHG_Admin {
 			array( $this, 'bhg_tools_page' )
 		);
 
-		// NOTE: By default, WordPress adds a submenu item that duplicates the
-		// top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
-		// call removed this submenu, but it also inadvertently removed our
-		// custom “Dashboard” submenu. Removing the call ensures the Dashboard
+		if ( class_exists( 'BHG_Demo' ) ) {
+			BHG_Demo::instance()->register_menu( $slug, $cap );
+		}
+
+                // NOTE: By default, WordPress adds a submenu item that duplicates the
+                // top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
+                // call removed this submenu, but it also inadvertently removed our
+                // custom “Dashboard” submenu. Removing the call ensures the Dashboard
 		// item remains visible under the "Bonus Hunt" menu.
 	}
 
@@ -1057,8 +1061,10 @@ exit;
                        ),
 			'nonce'         => bhg_t( 'security_check_failed_please_retry', 'Security check failed. Please retry.' ),
 			'noaccess'      => bhg_t( 'you_do_not_have_permission_to_do_that', 'You do not have permission to do that.' ),
-			'tools_success' => bhg_t( 'tools_action_completed', 'Tools action completed.' ),
-		);
+                        'tools_success' => bhg_t( 'tools_action_completed', 'Tools action completed.' ),
+                        'demo_reset_ok' => bhg_t( 'demo_data_reset_complete', 'Demo data was reset and reseeded.' ),
+                        'demo_reset_error' => bhg_t( 'demo_data_reset_failed', 'Demo data reset failed.' ),
+                );
 		$class = ( strpos( $msg, 'error' ) !== false || 'nonce' === $msg || 'noaccess' === $msg ) ? 'notice notice-error' : 'notice notice-success';
 		$text  = isset( $map[ $msg ] ) ? $map[ $msg ] : esc_html( $msg );
 		echo '<div class="' . esc_attr( $class ) . '"><p>' . esc_html( $text ) . '</p></div>';
