@@ -86,8 +86,8 @@ $hunts = $wpdb->get_results( $hunts_query );
 		$total       = (int) $wpdb->get_var( $count_query );
 	$base_url        = remove_query_arg( array( 'paged' ) );
 	$sort_base       = remove_query_arg( array( 'paged', 'orderby', 'order' ) );
-	?>
-<div class="wrap">
+?>
+<div class="wrap bhg-wrap">
 <h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ); ?></h1>
 <a href="<?php echo esc_url( add_query_arg( array( 'view' => 'add' ) ) ); ?>" class="page-title-action"><?php echo esc_html( bhg_t( 'add_new', 'Add New' ) ); ?></a>
 
@@ -319,8 +319,8 @@ if ( 'close' === $view ) :
 	if ( ! $hunt || 'open' !== $hunt->status ) :
 		echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt_2', 'Invalid hunt.' ) ) . '</p></div>';
 	else :
-		?>
-<div class="wrap">
+                ?>
+<div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'close_bonus_hunt', 'Close Bonus Hunt' ) ); ?> <?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-400 bhg-margin-top-small">
 								<?php wp_nonce_field( 'bhg_close_hunt', 'bhg_close_hunt_nonce' ); ?>
@@ -345,8 +345,8 @@ endif;
 <?php
 /** ADD VIEW */
 if ( 'add' === $view ) :
-	?>
-<div class="wrap">
+        ?>
+<div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'add_new_bonus_hunt', 'Add New Bonus Hunt' ) ); ?></h1>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
 								<?php wp_nonce_field( 'bhg_save_hunt', 'bhg_save_hunt_nonce' ); ?>
@@ -469,8 +469,8 @@ if ( 'edit' === $view ) :
 										$id
 									)
 								);
-	?>
-<div class="wrap">
+        ?>
+<div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'edit_bonus_hunt', 'Edit Bonus Hunt' ) ); ?> <?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
 
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
