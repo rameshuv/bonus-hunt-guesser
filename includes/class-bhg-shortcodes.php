@@ -780,7 +780,8 @@ $wpdb->usermeta,
                 $fields_arr = array( 'hunt', 'guess', 'final' );
         }
 
-        $need_site = in_array( 'site', $fields_arr, true );
+        $need_site  = in_array( 'site', $fields_arr, true );
+        $need_users = in_array( 'user', $fields_arr, true );
 
                         $paged           = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
                         $search          = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
@@ -793,14 +794,19 @@ $wpdb->usermeta,
 
                         $g  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
                         $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
-			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
+                        $w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                        $um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
+                        $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
 			if ( ! $g || ! $h ) {
                 return '';
         }
-			if ( $need_site && ! $w ) {
-                return '';
-        }
+                        if ( $need_site && ! $w ) {
+                                return '';
+                        }
+
+                        if ( $need_users && ! $u ) {
+                                return '';
+                        }
 
 			// Ensure hunts table has created_at column. If missing, inform admin to run upgrades manually.
 	$has_created_at = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$h} LIKE %s", 'created_at' ) );
@@ -942,12 +948,20 @@ $wpdb->usermeta,
                 $select_joins[] = "LEFT JOIN {$w} w ON w.id = h.affiliate_site_id";
         }
 
+        if ( $need_users ) {
+                $count_joins[]  = "LEFT JOIN {$u} u ON u.ID = g.user_id";
+                $select_joins[] = "LEFT JOIN {$u} u ON u.ID = g.user_id";
+        }
+
 			$select_join_sql = $select_joins ? ' ' . implode( ' ', $select_joins ) . ' ' : ' ';
 			$where_sql       = implode( ' AND ', $where );
 
         $sql = 'SELECT g.guess, g.created_at, g.user_id, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(g.guess - h.final_balance) END AS difference';
         if ( $need_site ) {
                 $sql .= ', w.name AS site_name';
+        }
+        if ( $need_users ) {
+                $sql .= ', u.display_name AS user_display_name, u.user_login AS user_login';
         }
         $sql .= " FROM {$g} g{$select_join_sql}WHERE {$where_sql}{$order_sql} LIMIT %d OFFSET %d";
         $params[] = $limit;
@@ -997,6 +1011,9 @@ $wpdb->usermeta,
 
         echo '<table class="bhg-user-guesses"><thead><tr>';
         echo '<th><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
+        if ( $need_users ) {
+                echo '<th>' . esc_html( bhg_t( 'label_user', 'User' ) ) . '</th>';
+        }
         echo '<th><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
         if ( $need_site ) {
                 echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
@@ -1008,12 +1025,24 @@ $wpdb->usermeta,
                         foreach ( $rows as $row ) {
                                 echo '<tr>';
                 echo '<td>' . esc_html( $row->title ) . '</td>';
-                $guess_cell = esc_html( bhg_format_currency( (float) $row->guess ) );
-                if ( $show_aff ) {
-                        $dot        = bhg_render_affiliate_dot( (int) $row->user_id, (int) $row->affiliate_site_id );
-                        $guess_cell = $dot . $guess_cell;
+                if ( $need_users ) {
+                        $user_display = '';
+                        if ( isset( $row->user_display_name ) && '' !== (string) $row->user_display_name ) {
+                                $user_display = (string) $row->user_display_name;
+                        } elseif ( isset( $row->user_login ) && '' !== (string) $row->user_login ) {
+                                $user_display = (string) $row->user_login;
+                        } else {
+                                $user_display = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+                        }
+
+                        $user_cell = '';
+                        if ( $show_aff ) {
+                                $user_cell .= bhg_render_affiliate_dot( (int) $row->user_id, (int) $row->affiliate_site_id ) . ' ';
+                        }
+                        $user_cell .= '<span class="bhg-user-name">' . esc_html( $user_display ) . '</span>';
+                        echo '<td>' . wp_kses_post( $user_cell ) . '</td>';
                 }
-                echo '<td>' . wp_kses_post( $guess_cell ) . '</td>';
+                echo '<td>' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
                 if ( $need_site ) {
                         echo '<td>' . esc_html( $row->site_name ? $row->site_name : bhg_t( 'label_emdash', '—' ) ) . '</td>';
                 }
