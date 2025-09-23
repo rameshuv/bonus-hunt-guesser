@@ -37,20 +37,21 @@ class BHG_Bonus_Hunts {
 
 		foreach ( (array) $hunts as $h ) {
 			$winners_count       = max( 1, (int) $h->winners_count );
-                                                $winners = $wpdb->get_results(
-                                                        $wpdb->prepare(
-                                                                "SELECT g.user_id, u.display_name, g.guess,
-                                                                                                                ABS(g.guess - %f) AS diff
-                                                                                                FROM {$guesses_table} g
-                                                                                                LEFT JOIN {$users_table} u ON u.ID = g.user_id
-                                                                                                WHERE g.hunt_id = %d
-                                                                                                ORDER BY diff ASC, g.id ASC
-                                                                                                LIMIT %d",
-                                                                $h->final_balance,
-                                                                $h->id,
-                                                                $winners_count
-                                                        )
-                                                );
+                        $winners = $wpdb->get_results(
+                                $wpdb->prepare(
+                                        "SELECT g.user_id, u.display_name, g.guess,
+                                                (%f - g.guess) AS diff
+                                        FROM {$guesses_table} g
+                                        LEFT JOIN {$users_table} u ON u.ID = g.user_id
+                                        WHERE g.hunt_id = %d
+                                        ORDER BY ABS(%f - g.guess) ASC, g.id ASC
+                                        LIMIT %d",
+                                        $h->final_balance,
+                                        $h->id,
+                                        $h->final_balance,
+                                        $winners_count
+                                )
+                        );
 
 			$out[] = array(
 				'hunt'    => $h,
@@ -98,13 +99,14 @@ class BHG_Bonus_Hunts {
 		if ( null !== $hunt->final_balance ) {
                                                   return $wpdb->get_results(
                                                           $wpdb->prepare(
-                                                                  "SELECT g.*, u.display_name, ABS(g.guess - %f) AS diff
-                                                                                                  FROM {$guesses_table} g
-                                                                                                  LEFT JOIN {$users_table} u ON u.ID = g.user_id
-                                                                                                  WHERE g.hunt_id = %d
-                                                                                                  ORDER BY diff ASC, g.id ASC",
+                                                                  "SELECT g.*, u.display_name, (%f - g.guess) AS diff
+                                                                          FROM {$guesses_table} g
+                                                                          LEFT JOIN {$users_table} u ON u.ID = g.user_id
+                                                                          WHERE g.hunt_id = %d
+                                                                          ORDER BY ABS(%f - g.guess) ASC, g.id ASC",
                                                                   $hunt->final_balance,
-                                                                  $hunt_id
+                                                                  $hunt_id,
+                                                                  $hunt->final_balance
                                                           )
                                                   );
 		}

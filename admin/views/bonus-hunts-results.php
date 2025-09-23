@@ -109,9 +109,10 @@ if ( 'tournament' === $view_type ) {
         if ( $has_final_balance ) {
                 $rows = $wpdb->get_results(
                         $wpdb->prepare(
-                                "SELECT g.guess, u.display_name, ABS(g.guess - %f) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC",
+                                "SELECT g.guess, u.display_name, (%f - g.guess) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY ABS(%f - g.guess) ASC, g.id ASC",
                                 (float) $hunt->final_balance,
-                                $item_id
+                                $item_id,
+                                (float) $hunt->final_balance
                         )
                 );
         } else {
