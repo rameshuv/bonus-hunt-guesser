@@ -1436,9 +1436,9 @@ $wpdb->usermeta,
 					 * @return string HTML output.
 					 */
                 public function leaderboards_shortcode( $atts ) {
-                        $a = shortcode_atts(
-                                array(
-                                        'fields'     => 'pos,user,wins',
+                       $a = shortcode_atts(
+                               array(
+                                       'fields'     => 'pos,user,wins,avg_hunt,avg_tournament',
                                         'ranking'    => 10,
                                         'timeline'   => '',
                                         'orderby'    => 'wins',
@@ -1467,8 +1467,8 @@ $wpdb->usermeta,
                                 }
                         }
                         $fields_arr = array_values( array_unique( $normalized ) );
-                        if ( empty( $fields_arr ) ) {
-                                $fields_arr = array( 'pos', 'user', 'wins' );
+                       if ( empty( $fields_arr ) ) {
+                               $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament' );
                         }
 
                         global $wpdb;
