@@ -1439,11 +1439,10 @@ $wpdb->usermeta,
                        $a = shortcode_atts(
                                array(
                                        'fields'     => 'pos,user,wins,avg_hunt,avg_tournament',
-                                        'ranking'    => 10,
+                                        'ranking'    => 1,
                                         'timeline'   => '',
                                         'orderby'    => 'wins',
                                         'order'      => 'DESC',
-                                        'paged'      => 1,
                                         'search'     => '',
                                         'tournament' => '',
                                         'bonushunt'  => '',
@@ -1473,7 +1472,6 @@ $wpdb->usermeta,
 
                         global $wpdb;
 
-                        $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
                         $search = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
 
                         $attr_timeline = sanitize_key( $a['timeline'] );
@@ -1510,8 +1508,8 @@ $wpdb->usermeta,
 
                         $timeline_filter = ( 'all_time' === $timeline ) ? '' : $timeline;
 
-                        $limit  = max( 1, (int) $a['ranking'] );
-                        $offset   = ( $paged - 1 ) * $limit;
+                        $limit  = min( 10, max( 1, (int) $a['ranking'] ) );
+                        $offset = 0;
 
                         $orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
                         $order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
@@ -2065,49 +2063,8 @@ $wpdb->usermeta,
 			}
                         echo '</tbody></table>';
 
-                        $pagination_args = array(
-                                'bhg_orderby' => $orderby_key,
-                                'bhg_order'   => $direction_key,
-                        );
-                        if ( '' !== $search ) {
-                                $pagination_args['bhg_search'] = $search;
-                        }
-                        if ( $tournament_id > 0 ) {
-                                $pagination_args['bhg_tournament'] = $tournament_id;
-                        }
-                        if ( $hunt_id > 0 ) {
-                                $pagination_args['bhg_hunt'] = $hunt_id;
-                        }
-                        if ( '' !== $aff_filter ) {
-                                $pagination_args['bhg_aff'] = $aff_filter;
-                        }
-                        if ( $website_id > 0 ) {
-                                $pagination_args['bhg_site'] = $website_id;
-                        }
-                        if ( '' !== $timeline ) {
-                                $pagination_args['bhg_timeline'] = $timeline;
-                        }
-
-                        $pagination = paginate_links(
-                                array(
-                                        'base'     => add_query_arg( 'bhg_paged', '%#%', $base_url ),
-                                        'format'   => '',
-                                        'current'  => $paged,
-                                        'total'    => max( 1, $pages ),
-                                        'add_args' => array_filter(
-                                                $pagination_args,
-                                                function ( $value ) {
-                                                        return '' !== $value && null !== $value;
-                                                }
-                                        ),
-                                )
-                        );
-                        if ( $pagination ) {
-                                echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
-                        }
-
                         return ob_get_clean();
-		}
+                }
 
 					/**
 					 * Lists tournaments or shows tournament details.

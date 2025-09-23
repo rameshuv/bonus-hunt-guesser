@@ -18,7 +18,7 @@ List bonus hunts.
 Display overall wins leaderboard.
 
 - `fields`: comma-separated list of columns to render. Allowed values: `pos`, `user`, `wins`, `avg_hunt`, `avg_tournament`, `aff`, `site`, `hunt`, `tournament`. Defaults to `pos`, `user`, `wins`, `avg_hunt`, `avg_tournament`.
-- `per_page`: number of rows to display (default `50`).
+- `ranking`: number of top rows to display. Accepts values from `1` to `10` (default `1`).
 - `timeline`: limit results to `day`, `week`, `month`, `year`, or the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`.
 
 ### `[bhg_tournaments]`
