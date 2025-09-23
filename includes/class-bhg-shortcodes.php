@@ -191,16 +191,23 @@ $wpdb->usermeta,
 
 			       $cache_key = 'bhg_active_hunts';
 			       $hunts     = wp_cache_get( $cache_key, 'bhg' );
-		       if ( false === $hunts ) {
-			       $hunts = $wpdb->get_results(
-				       $wpdb->prepare(
-		      /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above. */
-					       "SELECT * FROM {$hunts_table} WHERE status = %s ORDER BY created_at DESC",
-					       'open'
-				       )
-			       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			       wp_cache_set( $cache_key, $hunts, 'bhg', 300 );
-		       }
+                       if ( false === $hunts ) {
+                               $aff_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+
+                               if ( $aff_table ) {
+                                       $sql = "SELECT h.*, aff.name AS affiliate_site_name FROM {$hunts_table} h LEFT JOIN {$aff_table} aff ON aff.id = h.affiliate_site_id WHERE h.status = %s ORDER BY h.created_at DESC"; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names sanitized above.
+                               } else {
+                                       $sql = "SELECT * FROM {$hunts_table} WHERE status = %s ORDER BY created_at DESC"; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above.
+                               }
+
+                               $hunts = $wpdb->get_results(
+                                       $wpdb->prepare(
+                                               $sql,
+                                               'open'
+                                       )
+                               ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                               wp_cache_set( $cache_key, $hunts, 'bhg', 300 );
+                       }
 
 		       if ( empty( $hunts ) ) {
 			       return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
@@ -334,11 +341,39 @@ $wpdb->usermeta,
 		       echo '<div class="bhg-hunt-card">';
 		       echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
 		       echo '<ul class="bhg-hunt-meta">';
-		       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
-		       echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
-		       if ( ! empty( $selected_hunt->prizes ) ) {
-			       echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
-		       }
+                       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
+                       echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
+
+                       $opened_at = isset( $selected_hunt->created_at ) ? (string) $selected_hunt->created_at : '';
+                       if ( '' !== $opened_at && '0000-00-00 00:00:00' !== $opened_at ) {
+                               $opened_label = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $opened_at, true );
+                               echo '<li><strong>' . esc_html( bhg_t( 'label_opened', 'Opened' ) ) . ':</strong> ' . esc_html( $opened_label ) . '</li>';
+                       }
+
+                       $closed_at      = isset( $selected_hunt->closed_at ) ? (string) $selected_hunt->closed_at : '';
+                       $closed_display = '-';
+                       if ( '' !== $closed_at && '0000-00-00 00:00:00' !== $closed_at ) {
+                               $closed_display = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $closed_at, true );
+                       }
+                       echo '<li><strong>' . esc_html( bhg_t( 'label_closed', 'Closed' ) ) . ':</strong> ' . esc_html( $closed_display ) . '</li>';
+
+                       $affiliate_name = isset( $selected_hunt->affiliate_site_name ) ? $selected_hunt->affiliate_site_name : '';
+                       if ( '' === $affiliate_name && isset( $selected_hunt->affiliate_site_id ) && (int) $selected_hunt->affiliate_site_id > 0 ) {
+                               $sites_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                               if ( $sites_table ) {
+                                       $affiliate_name = $wpdb->get_var(
+                                               $wpdb->prepare(
+                                                       "SELECT name FROM {$sites_table} WHERE id = %d",
+                                                       (int) $selected_hunt->affiliate_site_id
+                                               )
+                                       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                               }
+                       }
+                       $affiliate_display = '' !== $affiliate_name ? $affiliate_name : '-';
+                       echo '<li><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> ' . esc_html( $affiliate_display ) . '</li>';
+                       if ( ! empty( $selected_hunt->prizes ) ) {
+                               echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
+                       }
 		       if ( $has_final ) {
 			       echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $final_balance ) ) . '</li>';
 		       }
