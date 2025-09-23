@@ -55,6 +55,12 @@ final class CloseHuntTest extends TestCase {
         $this->assertCount( 3, $this->wpdb->hunt_winners );
         $this->assertSame( 3, count( $this->collectTournamentWins( $tournament_id ) ) );
 
+        $expected_diffs = array( 0.0, -2.5, 5.0 );
+        foreach ( $expected_diffs as $index => $expected_diff ) {
+            $this->assertArrayHasKey( 'diff', $this->wpdb->hunt_winners[ $index ] );
+            $this->assertEqualsWithDelta( $expected_diff, (float) $this->wpdb->hunt_winners[ $index ]['diff'], 0.00001 );
+        }
+
         $second_call_winners = BHG_Models::close_hunt( $hunt_id, 1000.00 );
 
         $this->assertCount( 3, $this->wpdb->hunt_winners );

@@ -60,9 +60,15 @@ class MockWPDB {
 
     public function get_results( $query ) {
         if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_guesses' ) ) {
-            $hunt_id       = $this->match_int( '/WHERE hunt_id = (\d+)/', $query );
-            $limit         = $this->match_int( '/LIMIT (\d+)/', $query );
-            $final_balance = $this->match_float( '/ABS\(guess - ([0-9\.\-]+)\)/', $query );
+            $hunt_id = $this->match_int( '/WHERE hunt_id = (\d+)/', $query );
+            $limit   = $this->match_int( '/LIMIT (\d+)/', $query );
+
+            $final_balance = 0.0;
+            if ( preg_match( '/\(\s*([0-9\.\-]+)\s*-\s*guess\s*\)\s+AS\s+diff/i', $query, $matches ) ) {
+                $final_balance = (float) $matches[1];
+            } elseif ( preg_match( '/ABS\(\s*guess\s*-\s*([0-9\.\-]+)\s*\)/i', $query, $matches ) ) {
+                $final_balance = (float) $matches[1];
+            }
 
             $filtered = array();
             foreach ( $this->guesses as $guess ) {
@@ -70,23 +76,24 @@ class MockWPDB {
                     continue;
                 }
 
-                $diff        = abs( (float) $guess['guess'] - $final_balance );
-                $filtered[] = (object) array(
-                    'user_id' => (int) $guess['user_id'],
-                    'guess'   => (float) $guess['guess'],
-                    'diff'    => $diff,
-                    'id'      => (int) $guess['id'],
+                $diff_signed = $final_balance - (float) $guess['guess'];
+                $filtered[]  = (object) array(
+                    'user_id'  => (int) $guess['user_id'],
+                    'guess'    => (float) $guess['guess'],
+                    'diff'     => $diff_signed,
+                    'abs_diff' => abs( $diff_signed ),
+                    'id'       => (int) $guess['id'],
                 );
             }
 
             usort(
                 $filtered,
                 static function ( $a, $b ) {
-                    if ( $a->diff === $b->diff ) {
+                    if ( $a->abs_diff === $b->abs_diff ) {
                         return $a->id <=> $b->id;
                     }
 
-                    return ( $a->diff < $b->diff ) ? -1 : 1;
+                    return ( $a->abs_diff < $b->abs_diff ) ? -1 : 1;
                 }
             );
 
@@ -95,7 +102,7 @@ class MockWPDB {
             }
 
             foreach ( $filtered as $row ) {
-                unset( $row->id );
+                unset( $row->id, $row->abs_diff );
             }
 
             return $filtered;
