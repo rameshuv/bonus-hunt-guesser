@@ -952,7 +952,7 @@ $wpdb->usermeta,
 			}
 
         // Timeline handling (explicit range).
-                        $timeline = sanitize_key( $a['timeline'] );
+                        $timeline = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : sanitize_key( $a['timeline'] );
                         $range    = $this->get_timeline_range( $timeline );
                         if ( $range ) {
                                 $where[]  = 'g.created_at BETWEEN %s AND %s';
@@ -1082,11 +1082,42 @@ $wpdb->usermeta,
           echo '<form method="get" class="bhg-search-form">';
           foreach ( $_GET as $raw_key => $v ) {
                   $key = sanitize_key( wp_unslash( $raw_key ) );
-                  if ( 'bhg_search' === $key ) {
+                  if ( in_array( $key, array( 'bhg_search', 'bhg_timeline' ), true ) ) {
                           continue;
                   }
-                  echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
+                  $value = is_array( $v ) ? reset( $v ) : $v;
+                  echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( sanitize_text_field( wp_unslash( $value ) ) ) . '">';
           }
+          echo '<label class="bhg-timeline-filter">';
+          echo '<span>' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . '</span> ';
+          echo '<select name="bhg_timeline">';
+          $timeline_options = array(
+                  'all_time'  => bhg_t( 'label_all_time', 'All-Time' ),
+                  'this_week' => bhg_t( 'label_this_week', 'This Week' ),
+                  'this_month'=> bhg_t( 'label_this_month', 'This Month' ),
+                  'this_year' => bhg_t( 'label_this_year', 'This Year' ),
+                  'last_year' => bhg_t( 'label_last_year', 'Last Year' ),
+          );
+          $selected_timeline = $timeline;
+          if ( '' === $selected_timeline ) {
+                  $selected_timeline = 'all_time';
+          }
+          if ( ! array_key_exists( $selected_timeline, $timeline_options ) ) {
+                  $alias_map = array(
+                          'week'      => 'this_week',
+                          'month'     => 'this_month',
+                          'year'      => 'this_year',
+                          'alltime'   => 'all_time',
+                  );
+                  if ( isset( $alias_map[ $selected_timeline ] ) ) {
+                          $selected_timeline = $alias_map[ $selected_timeline ];
+                  }
+          }
+          foreach ( $timeline_options as $key => $label ) {
+                  echo '<option value="' . esc_attr( $key ) . '"' . selected( $selected_timeline, $key, false ) . '>' . esc_html( $label ) . '</option>';
+          }
+          echo '</select>';
+          echo '</label>';
           echo '<input type="text" name="bhg_search" value="' . esc_attr( $search ) . '">';
           echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
           echo '</form>';
@@ -1145,6 +1176,7 @@ $wpdb->usermeta,
                                           'bhg_orderby' => $orderby_key,
                                           'bhg_order'   => $direction_key,
                                           'bhg_search'  => $search,
+                                          'bhg_timeline'=> $timeline,
                                   )
                           ),
                   )
