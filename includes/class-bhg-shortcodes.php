@@ -256,11 +256,11 @@ $wpdb->usermeta,
 		       $has_final     = null !== $final_balance;
 
 		       if ( $has_final ) {
-			       $sql = sprintf(
-				       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, ABS(g.guess - %%f) AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY diff ASC, g.id ASC LIMIT %%d OFFSET %%d',
-				       $guesses_table,
-				       $users_table
-			       );
+                               $sql = sprintf(
+                                       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, (%%f - g.guess) AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC, g.id ASC LIMIT %%d OFFSET %%d',
+                                       $guesses_table,
+                                       $users_table
+                               );
 			       $rows = $wpdb->get_results(
 				       $wpdb->prepare(
 					       $sql,
@@ -271,11 +271,11 @@ $wpdb->usermeta,
 				       )
 			       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		       } else {
-			       $sql = sprintf(
-				       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, NULL AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY g.guess ASC, g.id ASC LIMIT %%d OFFSET %%d',
-				       $guesses_table,
-				       $users_table
-			       );
+                               $sql = sprintf(
+                                       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, NULL AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY g.created_at ASC, g.id ASC LIMIT %%d OFFSET %%d',
+                                       $guesses_table,
+                                       $users_table
+                               );
 			       $rows = $wpdb->get_results(
 				       $wpdb->prepare(
 					       $sql,
