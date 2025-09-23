@@ -2394,9 +2394,15 @@ $wpdb->usermeta,
                                array(),
                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
                        );
-                       $user        = wp_get_current_user();
-                       $user_id     = $user->ID;
-                       $real_name   = trim( $user->get( 'first_name' ) . ' ' . $user->get( 'last_name' ) );
+                      $user        = wp_get_current_user();
+                      $user_id     = $user->ID;
+                      $real_name   = trim( (string) get_user_meta( $user_id, 'bhg_real_name', true ) );
+                      if ( '' === $real_name ) {
+                              $real_name = trim( $user->get( 'first_name' ) . ' ' . $user->get( 'last_name' ) );
+                      }
+                      if ( '' === $real_name ) {
+                              $real_name = (string) $user->display_name;
+                      }
                        $username    = $user->user_login;
                        $email       = $user->user_email;
                        $is_affiliate = (int) get_user_meta( $user_id, 'bhg_is_affiliate', true );
