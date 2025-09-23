@@ -117,7 +117,7 @@ class BHG_Bonus_Hunts {
                                                                                   FROM {$guesses_table} g
                                                                                   LEFT JOIN {$users_table} u ON u.ID = g.user_id
                                                                                   WHERE g.hunt_id = %d
-                                                                                  ORDER BY g.id ASC",
+                                                                                  ORDER BY g.created_at ASC, g.id ASC",
                                                                   $hunt_id
                                                           )
                                                   );
