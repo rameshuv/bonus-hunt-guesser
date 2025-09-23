@@ -971,7 +971,7 @@ $wpdb->usermeta,
                 }
         } elseif ( 'difference' === $orderby_key ) {
                 $order_sql = sprintf(
-                        ' ORDER BY CASE WHEN h.final_balance IS NULL THEN 1 ELSE 0 END ASC, CASE WHEN h.final_balance IS NULL THEN g.created_at END %1$s, difference %1$s',
+                        ' ORDER BY CASE WHEN h.final_balance IS NULL THEN 1 ELSE 0 END ASC, CASE WHEN h.final_balance IS NULL THEN g.created_at END %1$s, ABS(h.final_balance - g.guess) %1$s',
                         $direction
                 );
         } else {
@@ -996,7 +996,7 @@ $wpdb->usermeta,
 			$select_join_sql = $select_joins ? ' ' . implode( ' ', $select_joins ) . ' ' : ' ';
 			$where_sql       = implode( ' AND ', $where );
 
-        $sql = 'SELECT g.guess, g.created_at, g.user_id, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(g.guess - h.final_balance) END AS difference';
+        $sql = 'SELECT g.guess, g.created_at, g.user_id, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN (h.final_balance - g.guess) END AS difference';
         if ( $need_site ) {
                 $sql .= ', w.name AS site_name';
         }
