@@ -1065,73 +1065,134 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 		}
 
 		// Seed hunts.
-				$hunts_tbl = esc_sql( "{$p}bhg_bonus_hunts" );
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $hunts_tbl ) ) === $hunts_tbl ) {
-			$now = current_time( 'mysql', 1 );
+                                $hunts_tbl = esc_sql( "{$p}bhg_bonus_hunts" );
+                if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $hunts_tbl ) ) === $hunts_tbl ) {
+                        $now          = current_time( 'mysql', 1 );
+                        $users_table  = esc_sql( $wpdb->users );
+                        $winners_tbl  = esc_sql( "{$p}bhg_hunt_winners" );
+                        $guesses_tbl  = esc_sql( "{$p}bhg_guesses" );
+                        $users        = $wpdb->get_col( "SELECT ID FROM {$users_table} ORDER BY ID ASC LIMIT 5" );
+                        if ( empty( $users ) ) {
+                                $users = array( 1 );
+                        }
+                        $open_winners_limit   = 3;
+                        $closed_winners_limit = 3;
 
-			// Open hunt.
-			$wpdb->insert(
-				$hunts_tbl,
-				array(
-					'title'             => __( 'Bonus Hunt – Demo Open', 'bonus-hunt-guesser' ),
-					'starting_balance'  => 2000.00,
-					'num_bonuses'       => 10,
-					'prizes'            => __( 'Gift card + swag', 'bonus-hunt-guesser' ),
-					'status'            => 'open',
-					'affiliate_site_id' => (int) $wpdb->get_var(
-						'SELECT id FROM ' . esc_sql( "{$p}bhg_affiliate_websites" ) . ' ORDER BY id ASC LIMIT 1'
-					),
-					'created_at'        => $now,
-					'updated_at'        => $now,
-				),
-				array( '%s', '%f', '%d', '%s', '%s', '%d', '%s', '%s' )
-			);
-			$open_id = (int) $wpdb->insert_id;
+                        // Open hunt.
+                        $wpdb->insert(
+                                $hunts_tbl,
+                                array(
+                                        'title'             => __( 'Bonus Hunt – Demo Open', 'bonus-hunt-guesser' ),
+                                       'starting_balance'  => 2000.00,
+                                        'num_bonuses'       => 10,
+                                        'prizes'            => __( 'Gift card + swag', 'bonus-hunt-guesser' ),
+                                        'status'            => 'open',
+                                        'winners_count'     => $open_winners_limit,
+                                        'affiliate_site_id' => (int) $wpdb->get_var(
+                                                'SELECT id FROM ' . esc_sql( "{$p}bhg_affiliate_websites" ) . ' ORDER BY id ASC LIMIT 1'
+                                        ),
+                                        'created_at'        => $now,
+                                        'updated_at'        => $now,
+                                ),
+                                array( '%s', '%f', '%d', '%s', '%s', '%d', '%d', '%s', '%s' )
+                        );
+                        $open_id = (int) $wpdb->insert_id;
 
-			// Closed hunt with winner.
-			$wpdb->insert(
-				$hunts_tbl,
-				array(
-					'title'            => __( 'Bonus Hunt – Demo Closed', 'bonus-hunt-guesser' ),
-					'starting_balance' => 1500.00,
-					'num_bonuses'      => 8,
-					'prizes'           => __( 'T-shirt', 'bonus-hunt-guesser' ),
-					'status'           => 'closed',
-					'final_balance'    => 1875.50,
-					'winner_user_id'   => 1,
-					'winner_diff'      => 12.50,
-					'closed_at'        => gmdate( 'Y-m-d H:i:s', time() - 86400 ),
-					'created_at'       => $now,
-					'updated_at'       => $now,
-				),
-				array( '%s', '%f', '%d', '%s', '%s', '%f', '%d', '%f', '%s', '%s', '%s' )
-			);
+                        // Closed hunt.
+                        $final_balance = 1875.50;
+                        $closed_at     = gmdate( 'Y-m-d H:i:s', time() - 86400 );
+                        $wpdb->insert(
+                                $hunts_tbl,
+                                array(
+                                        'title'            => __( 'Bonus Hunt – Demo Closed', 'bonus-hunt-guesser' ),
+                                        'starting_balance' => 1500.00,
+                                        'num_bonuses'      => 8,
+                                        'prizes'           => __( 'T-shirt', 'bonus-hunt-guesser' ),
+                                        'status'           => 'closed',
+                                        'final_balance'    => $final_balance,
+                                        'winners_count'    => $closed_winners_limit,
+                                        'closed_at'        => $closed_at,
+                                        'created_at'       => $now,
+                                        'updated_at'       => $now,
+                                ),
+                                array( '%s', '%f', '%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s' )
+                        );
+                        $closed_id = (int) $wpdb->insert_id;
 
-				// Seed guesses for open hunt.
-										$g_tbl       = esc_sql( "{$p}bhg_guesses" );
-										$users_table = esc_sql( $wpdb->users );
-										$users       = $wpdb->get_col( "SELECT ID FROM {$users_table} ORDER BY ID ASC LIMIT 5" );
-			if ( empty( $users ) ) {
-				$users = array( 1 );
-			}
-			$val = 2100.00;
-			foreach ( $users as $uid ) {
-				$wpdb->insert(
-					$g_tbl,
-					array(
-						'hunt_id'    => $open_id,
-						'user_id'    => (int) $uid,
-						'guess'      => $val,
-						'created_at' => $now,
-						'updated_at' => $now,
-					),
-					array( '%d', '%d', '%f', '%s', '%s' )
-				);
-				$val += 23.45;
-			}
-		}
+                        // Seed guesses for open hunt.
+                        $val = 2100.00;
+                        foreach ( $users as $uid ) {
+                                $wpdb->insert(
+                                        $guesses_tbl,
+                                        array(
+                                                'hunt_id'    => $open_id,
+                                                'user_id'    => (int) $uid,
+                                                'guess'      => $val,
+                                                'created_at' => $now,
+                                                'updated_at' => $now,
+                                        ),
+                                        array( '%d', '%d', '%f', '%s', '%s' )
+                                );
+                                $val += 23.45;
+                        }
 
-		// Tournaments + results based on closed hunts.
+                        // Seed guesses for closed hunt.
+                        $closed_guesses      = array( 1863.40, 1889.20, 1876.10, 1854.75, 1895.60 );
+                        $last_closed_guess   = $closed_guesses[ array_key_last( $closed_guesses ) ];
+                        $idx                 = 0;
+                        foreach ( $users as $uid ) {
+                                $guess_value = isset( $closed_guesses[ $idx ] ) ? $closed_guesses[ $idx ] : $last_closed_guess;
+                                $wpdb->insert(
+                                        $guesses_tbl,
+                                        array(
+                                                'hunt_id'    => $closed_id,
+                                                'user_id'    => (int) $uid,
+                                                'guess'      => (float) $guess_value,
+                                                'created_at' => $now,
+                                                'updated_at' => $now,
+                                        ),
+                                        array( '%d', '%d', '%f', '%s', '%s' )
+                                );
+                                ++$idx;
+                        }
+
+                        // Populate winners for closed hunt.
+                        if ( $closed_id > 0 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $winners_tbl ) ) === $winners_tbl ) {
+                                $limit = max( 1, min( $closed_winners_limit, count( $users ) ) );
+                                $winners_sql = $wpdb->prepare(
+                                        "SELECT user_id, guess, (%f - guess) AS diff FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC LIMIT %d",
+                                        $final_balance,
+                                        $closed_id,
+                                        $final_balance,
+                                        $limit
+                                );
+                                $winner_rows = $wpdb->get_results( $winners_sql );
+
+                                $position = 1;
+                                foreach ( (array) $winner_rows as $winner ) {
+                                        $user_id = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
+                                        if ( $user_id <= 0 ) {
+                                                continue;
+                                        }
+
+                                        $wpdb->insert(
+                                                $winners_tbl,
+                                                array(
+                                                        'hunt_id'    => $closed_id,
+                                                        'user_id'    => $user_id,
+                                                        'position'   => $position,
+                                                        'guess'      => isset( $winner->guess ) ? (float) $winner->guess : 0.0,
+                                                        'diff'       => isset( $winner->diff ) ? (float) $winner->diff : 0.0,
+                                                        'created_at' => $now,
+                                                ),
+                                                array( '%d', '%d', '%d', '%f', '%f', '%s' )
+                                        );
+                                        ++$position;
+                                }
+                        }
+                }
+
+                // Tournaments + results based on closed hunts.
 				$t_tbl = esc_sql( "{$p}bhg_tournaments" );
 				$r_tbl = esc_sql( "{$p}bhg_tournament_results" );
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $t_tbl ) ) === $t_tbl ) {
@@ -1140,8 +1201,11 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						$wpdb->delete( $r_tbl, '1=1' );
 			}
 
-								$closed = $wpdb->get_results( "SELECT winner_user_id, closed_at FROM {$hunts_tbl} WHERE status='closed' AND winner_user_id IS NOT NULL" );
-			foreach ( $closed as $row ) {
+                                                               $winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
+                                                               $closed      = $wpdb->get_results(
+                                                                       "SELECT h.closed_at, w.user_id FROM {$hunts_tbl} h INNER JOIN {$winners_tbl} w ON w.hunt_id = h.id WHERE h.status='closed'"
+                                                               );
+                       foreach ( $closed as $row ) {
 				$ts        = $row->closed_at ? strtotime( $row->closed_at ) : time();
 				$iso_year  = gmdate( 'o', $ts );
 				$week      = str_pad( gmdate( 'W', $ts ), 2, '0', STR_PAD_LEFT );
@@ -1190,7 +1254,10 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						return (int) $wpdb->insert_id;
 				};
 
-						$uid = (int) $row->winner_user_id;
+                                               $uid = isset( $row->user_id ) ? (int) $row->user_id : 0;
+                                               if ( $uid <= 0 ) {
+                                                       continue;
+                                               }
 				foreach ( array(
 					$ensure( 'weekly', $week_key ),
 					$ensure( 'monthly', $month_key ),
