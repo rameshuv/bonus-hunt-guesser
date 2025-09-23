@@ -10,6 +10,7 @@ class MockWPDB {
     public $hunt_winners = array();
     public $tournament_results = array();
     public $hunt_tournaments = array();
+    public $tournaments = array();
 
     private $winner_auto_increment = 0;
     private $tournament_auto_increment = 0;
@@ -41,6 +42,15 @@ class MockWPDB {
                     if ( (int) $row['tournament_id'] === $tournament_id && (int) $row['user_id'] === $user_id ) {
                         return (object) $row;
                     }
+                }
+            }
+        }
+
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournaments' ) ) {
+            if ( preg_match( '/WHERE id = (\d+)/', $query, $matches ) ) {
+                $id = (int) $matches[1];
+                if ( isset( $this->tournaments[ $id ] ) ) {
+                    return (object) $this->tournaments[ $id ];
                 }
             }
         }
@@ -91,6 +101,80 @@ class MockWPDB {
             return $filtered;
         }
 
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournaments' ) ) {
+            $ids = array();
+            if ( preg_match( '/WHERE id IN \(([^\)]+)\)/', $query, $matches ) ) {
+                $ids = array_map( 'intval', preg_split( '/,\s*/', $matches[1] ) );
+            } elseif ( preg_match( '/WHERE id = (\d+)/', $query, $match ) ) {
+                $ids = array( (int) $match[1] );
+            }
+
+            $results = array();
+            foreach ( $ids as $id ) {
+                if ( isset( $this->tournaments[ $id ] ) ) {
+                    $results[] = (object) $this->tournaments[ $id ];
+                }
+            }
+
+            return $results;
+        }
+
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_winners' ) && false !== strpos( $query, 'bhg_tournaments' ) ) {
+            $tournament_id = $this->match_int( '/t\.id = (\d+)/', $query );
+            if ( 0 === $tournament_id ) {
+                $tournament_id = $this->match_int( '/WHERE t.id = (\d+)/', $query );
+            }
+
+            $results = array();
+            foreach ( $this->hunt_winners as $winner ) {
+                $hunt_id = (int) $winner['hunt_id'];
+
+                $assigned = array();
+                foreach ( $this->hunt_tournaments as $map ) {
+                    if ( (int) $map['hunt_id'] === $hunt_id ) {
+                        $assigned[] = (int) $map['tournament_id'];
+                    }
+                }
+
+                if ( empty( $assigned ) && isset( $this->bonus_hunts[ $hunt_id ]['tournament_id'] ) ) {
+                    $assigned[] = (int) $this->bonus_hunts[ $hunt_id ]['tournament_id'];
+                }
+
+                if ( ! in_array( $tournament_id, $assigned, true ) ) {
+                    continue;
+                }
+
+                $tournament = $this->tournaments[ $tournament_id ] ?? array();
+                $mode       = $tournament['participants_mode'] ?? 'winners';
+                $hunt       = $this->bonus_hunts[ $hunt_id ] ?? array();
+                $winners    = isset( $hunt['winners_count'] ) ? (int) $hunt['winners_count'] : 0;
+
+                $event_date = $winner['created_at'] ?? null;
+                if ( ! $event_date && isset( $hunt['closed_at'] ) ) {
+                    $event_date = $hunt['closed_at'];
+                }
+                if ( ! $event_date && isset( $hunt['updated_at'] ) ) {
+                    $event_date = $hunt['updated_at'];
+                }
+                if ( ! $event_date && isset( $hunt['created_at'] ) ) {
+                    $event_date = $hunt['created_at'];
+                }
+                if ( ! $event_date ) {
+                    $event_date = '2024-01-01 00:00:00';
+                }
+
+                $results[] = (object) array(
+                    'user_id'           => (int) $winner['user_id'],
+                    'position'          => (int) $winner['position'],
+                    'participants_mode' => $mode,
+                    'winners_count'     => $winners,
+                    'event_date'        => $event_date,
+                );
+            }
+
+            return $results;
+        }
+
         if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_winners' ) ) {
             $hunt_id = $this->match_int( '/WHERE hunt_id = (\d+)/', $query );
 
@@ -98,7 +182,8 @@ class MockWPDB {
             foreach ( $this->hunt_winners as $winner ) {
                 if ( (int) $winner['hunt_id'] === $hunt_id ) {
                     $results[] = (object) array(
-                        'user_id' => (int) $winner['user_id'],
+                        'user_id'  => (int) $winner['user_id'],
+                        'position' => isset( $winner['position'] ) ? (int) $winner['position'] : 0,
                     );
                 }
             }
@@ -215,6 +300,22 @@ class MockWPDB {
                         $this->tournament_results,
                         static function ( $row ) use ( $id ) {
                             return (int) $row['id'] !== $id;
+                        }
+                    )
+                );
+
+                return $before - count( $this->tournament_results );
+            }
+
+            if ( isset( $where['tournament_id'] ) ) {
+                $target = (int) $where['tournament_id'];
+                $before = count( $this->tournament_results );
+
+                $this->tournament_results = array_values(
+                    array_filter(
+                        $this->tournament_results,
+                        static function ( $row ) use ( $target ) {
+                            return (int) $row['tournament_id'] !== $target;
                         }
                     )
                 );
