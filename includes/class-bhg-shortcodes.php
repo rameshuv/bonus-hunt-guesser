@@ -1473,10 +1473,44 @@ $wpdb->usermeta,
 
                         global $wpdb;
 
-                        $paged    = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
-                        $search   = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                        $timeline = sanitize_key( $a['timeline'] );
-                        $limit    = max( 1, (int) $a['ranking'] );
+                        $paged  = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
+                        $search = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
+
+                        $attr_timeline = sanitize_key( $a['timeline'] );
+                        if ( '' === $attr_timeline ) {
+                                $attr_timeline = 'all_time';
+                        }
+
+                        $timeline_request = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
+                        $timeline         = '' !== $timeline_request ? $timeline_request : $attr_timeline;
+
+                        $timeline_aliases = array(
+                                'day'          => 'day',
+                                'today'        => 'day',
+                                'this_day'     => 'day',
+                                'week'         => 'week',
+                                'this_week'    => 'week',
+                                'weekly'       => 'week',
+                                'month'        => 'month',
+                                'this_month'   => 'month',
+                                'monthly'      => 'month',
+                                'year'         => 'year',
+                                'this_year'    => 'year',
+                                'yearly'       => 'year',
+                                'quarter'      => 'quarter',
+                                'this_quarter' => 'quarter',
+                                'quarterly'    => 'quarter',
+                                'last_year'    => 'last_year',
+                                'all_time'     => 'all_time',
+                                'alltime'      => 'all_time',
+                        );
+                        if ( isset( $timeline_aliases[ $timeline ] ) ) {
+                                $timeline = $timeline_aliases[ $timeline ];
+                        }
+
+                        $timeline_filter = ( 'all_time' === $timeline ) ? '' : $timeline;
+
+                        $limit  = max( 1, (int) $a['ranking'] );
                         $offset   = ( $paged - 1 ) * $limit;
 
                         $orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
@@ -1677,7 +1711,7 @@ $wpdb->usermeta,
                         // Optional timeline filter.
                         $prep_where = array();
                         $where      = array();
-                        $range      = $this->get_timeline_range( $timeline );
+                        $range      = $this->get_timeline_range( $timeline_filter );
                         if ( $range ) {
                                 $where[]      = 'COALESCE(hw.created_at, h.closed_at, h.created_at) BETWEEN %s AND %s';
                                 $prep_where[] = $range['start'];
@@ -1858,7 +1892,7 @@ $wpdb->usermeta,
                         if ( '' === $search ) {
                                 $base_url = remove_query_arg( 'bhg_search', $base_url );
                         }
-                        $toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search, $tournament_id, $hunt_id, $aff_filter, $website_id ) {
+                        $toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search, $tournament_id, $hunt_id, $aff_filter, $website_id, $timeline ) {
                                 $dir  = ( $orderby_key === $field && 'asc' === $direction_key ) ? 'desc' : 'asc';
                                 $args = array(
                                         'bhg_orderby' => $field,
@@ -1879,6 +1913,9 @@ $wpdb->usermeta,
                                 if ( $website_id > 0 ) {
                                         $args['bhg_site'] = $website_id;
                                 }
+                                if ( '' !== $timeline ) {
+                                        $args['bhg_timeline'] = $timeline;
+                                }
                                 return add_query_arg( $args, $base_url );
                         };
 
@@ -1893,13 +1930,34 @@ $wpdb->usermeta,
                         echo '<form method="get" class="bhg-search-form">';
                         foreach ( $_GET as $raw_key => $v ) {
                                 $key = sanitize_key( wp_unslash( $raw_key ) );
-                                if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_hunt', 'bhg_site', 'bhg_aff' ), true ) ) {
+                                if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_hunt', 'bhg_site', 'bhg_aff', 'bhg_timeline' ), true ) ) {
                                         continue;
                                 }
                                 echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
                         }
 
                         echo '<div class="bhg-filter-controls">';
+
+                        $timeline_options = array(
+                                'all_time'  => bhg_t( 'option_timeline_all_time', 'All-Time' ),
+                                'day'       => bhg_t( 'option_timeline_today', 'Today' ),
+                                'week'      => bhg_t( 'option_timeline_this_week', 'This Week' ),
+                                'month'     => bhg_t( 'option_timeline_this_month', 'This Month' ),
+                                'quarter'   => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+                                'year'      => bhg_t( 'option_timeline_this_year', 'This Year' ),
+                                'last_year' => bhg_t( 'option_timeline_last_year', 'Last Year' ),
+                        );
+
+                        if ( '' !== $timeline && ! isset( $timeline_options[ $timeline ] ) ) {
+                                $timeline_options[ $timeline ] = ucwords( str_replace( '_', ' ', $timeline ) );
+                        }
+
+                        echo '<label class="bhg-filter-label">' . esc_html( bhg_t( 'label_filter_timeline', 'Timeline' ) );
+                        echo '<select name="bhg_timeline" class="bhg-filter-select">';
+                        foreach ( $timeline_options as $value => $label ) {
+                                echo '<option value="' . esc_attr( $value ) . '"' . selected( $timeline, $value, false ) . '>' . esc_html( $label ) . '</option>';
+                        }
+                        echo '</select></label>';
 
                         if ( ! empty( $tournaments ) ) {
                                 echo '<label class="bhg-filter-label">' . esc_html( bhg_t( 'label_filter_tournament', 'Tournament' ) );
@@ -2025,6 +2083,9 @@ $wpdb->usermeta,
                         }
                         if ( $website_id > 0 ) {
                                 $pagination_args['bhg_site'] = $website_id;
+                        }
+                        if ( '' !== $timeline ) {
+                                $pagination_args['bhg_timeline'] = $timeline;
                         }
 
                         $pagination = paginate_links(
