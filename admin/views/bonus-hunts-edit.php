@@ -53,10 +53,15 @@ $base     = remove_query_arg( 'ppaged' );
 		?>
 		<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'edit_bonus_hunt', 'Edit Bonus Hunt' ) ); ?> <?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
 
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
-								<?php wp_nonce_field( 'bhg_save_hunt', 'bhg_save_hunt_nonce' ); ?>
-				<input type="hidden" name="action" value="bhg_save_hunt" />
-		<input type="hidden" name="id" value="<?php echo (int) $hunt->id; ?>" />
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900 bhg-margin-top-small">
+                                                                <?php wp_nonce_field( 'bhg_save_hunt', 'bhg_save_hunt_nonce' ); ?>
+                                <input type="hidden" name="action" value="bhg_save_hunt" />
+                <input type="hidden" name="id" value="<?php echo (int) $hunt->id; ?>" />
+
+                <?php
+                $prize_rows      = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
+                $selected_prizes = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( $hunt->id ) : array();
+                ?>
 
 		<table class="form-table" role="presentation">
 			<tbody>
@@ -98,6 +103,17 @@ $base     = remove_query_arg( 'ppaged' );
                                                         <?php endforeach; ?>
                                                 </select>
                                                 <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <th scope="row"><label for="bhg_prize_ids_edit"><?php echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) ); ?></label></th>
+                                        <td>
+                                                <select id="bhg_prize_ids_edit" name="prize_ids[]" multiple="multiple" size="5">
+                                                        <?php foreach ( $prize_rows as $prize_row ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( in_array( (int) $prize_row->id, $selected_prizes, true ) ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
+                                                        <?php endforeach; ?>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_prizes_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.' ) ); ?></p>
                                         </td>
                                 </tr>
 				<tr>

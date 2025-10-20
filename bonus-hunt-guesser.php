@@ -104,38 +104,37 @@ if ( ! function_exists( 'bhg_parse_amount' ) ) {
 }
 
 if ( ! function_exists( 'bhg_sanitize_tournament_id' ) ) {
-
-/**
- * Sanitize a tournament ID value.
- *
- * @param mixed $tid Raw tournament ID.
- * @return int Sanitized ID.
- */
-function bhg_sanitize_tournament_id( $tid ) {
-return max( 0, absint( $tid ) );
-}
+        /**
+         * Sanitize a tournament ID value.
+         *
+         * @param mixed $tid Raw tournament ID.
+         * @return int Sanitized ID.
+         */
+        function bhg_sanitize_tournament_id( $tid ) {
+                return max( 0, absint( $tid ) );
+        }
 }
 
 if ( ! function_exists( 'bhg_sanitize_tournament_ids' ) ) {
-/**
- * Sanitize a list of tournament IDs.
- *
- * @param mixed $ids Raw IDs or array of IDs.
- * @return int[] Sanitized, unique IDs.
- */
-function bhg_sanitize_tournament_ids( $ids ) {
-$ids        = is_array( $ids ) ? $ids : array( $ids );
-$normalized = array();
+        /**
+         * Sanitize a list of tournament IDs.
+         *
+         * @param mixed $ids Raw IDs or array of IDs.
+         * @return int[] Sanitized, unique IDs.
+         */
+        function bhg_sanitize_tournament_ids( $ids ) {
+                $ids        = is_array( $ids ) ? $ids : array( $ids );
+                $normalized = array();
 
-foreach ( $ids as $id ) {
-$id = bhg_sanitize_tournament_id( $id );
-if ( $id > 0 ) {
-$normalized[ $id ] = $id;
-}
-}
+                foreach ( $ids as $id ) {
+                        $id = bhg_sanitize_tournament_id( $id );
+                        if ( $id > 0 ) {
+                                $normalized[ $id ] = $id;
+                        }
+                }
 
-return array_values( $normalized );
-}
+                return array_values( $normalized );
+        }
 }
 
 // Ensure canonical DB class is loaded.
@@ -156,17 +155,17 @@ define( 'BHG_TABLE_PREFIX', 'bhg_' );
  * @return void
  */
 function bhg_create_tables() {
-	if ( ! class_exists( 'BHG_DB' ) ) {
-			return;
-	}
+        if ( ! class_exists( 'BHG_DB' ) ) {
+                return;
+        }
 
-	try {
-			( new BHG_DB() )->create_tables();
-	} catch ( Throwable $e ) {
-		if ( function_exists( 'do_action' ) ) {
-				do_action( 'bhg_db_error', $e );
-		}
-	}
+        try {
+                ( new BHG_DB() )->create_tables();
+        } catch ( Throwable $e ) {
+                if ( function_exists( 'do_action' ) ) {
+                        do_action( 'bhg_db_error', $e );
+                }
+        }
 }
 
 // Check and create tables if needed.
@@ -176,10 +175,10 @@ function bhg_create_tables() {
  * @return void
  */
 function bhg_check_tables() {
-	if ( ! get_option( 'bhg_tables_created' ) ) {
-					bhg_create_tables();
-					update_option( 'bhg_tables_created', true );
-	}
+        if ( ! get_option( 'bhg_tables_created' ) ) {
+                bhg_create_tables();
+                update_option( 'bhg_tables_created', true );
+        }
 }
 
 /**
@@ -191,46 +190,47 @@ function bhg_check_tables() {
  * @return void
  */
 function bhg_maybe_run_migrations() {
-	if ( ! class_exists( 'BHG_DB' ) ) {
-			return;
-	}
+        if ( ! class_exists( 'BHG_DB' ) ) {
+                return;
+        }
 
-		$migrated = get_option( 'bhg_last_migrated_version', '' );
-	if ( version_compare( $migrated, BHG_VERSION, '<' ) ) {
-			BHG_DB::migrate();
-			update_option( 'bhg_last_migrated_version', BHG_VERSION );
-	}
+        $migrated = get_option( 'bhg_last_migrated_version', '' );
+        if ( version_compare( $migrated, BHG_VERSION, '<' ) ) {
+                BHG_DB::migrate();
+                update_option( 'bhg_last_migrated_version', BHG_VERSION );
+        }
 }
 
 add_action( 'plugins_loaded', 'bhg_maybe_run_migrations', 0 );
 
 // Autoloader for plugin classes.
 spl_autoload_register(
-	function ( $class_name ) {
-		if ( 0 !== strpos( $class_name, 'BHG_' ) ) {
-						return;
-		}
+        function ( $class_name ) {
+                if ( 0 !== strpos( $class_name, 'BHG_' ) ) {
+                        return;
+                }
 
-		$class_map = array(
-			'BHG_Admin'                  => 'admin/class-bhg-admin.php',
-			'BHG_Demo'                   => 'admin/class-bhg-demo.php',
-			'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
-			'BHG_Logger'                 => 'includes/class-bhg-logger.php',
-			'BHG_Utils'                  => 'includes/class-bhg-utils.php',
-			'BHG_Models'                 => 'includes/class-bhg-models.php',
-			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
-			'BHG_Ads'                    => 'includes/class-bhg-ads.php',
-			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
-			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
-		);
+                $class_map = array(
+                        'BHG_Admin'                  => 'admin/class-bhg-admin.php',
+                        'BHG_Demo'                   => 'admin/class-bhg-demo.php',
+                        'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
+                        'BHG_Logger'                 => 'includes/class-bhg-logger.php',
+                        'BHG_Utils'                  => 'includes/class-bhg-utils.php',
+                        'BHG_Models'                 => 'includes/class-bhg-models.php',
+                        'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
+                        'BHG_Ads'                    => 'includes/class-bhg-ads.php',
+                        'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
+                        'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
+                        'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
+                );
 
-		if ( isset( $class_map[ $class_name ] ) ) {
-				$file_path = BHG_PLUGIN_DIR . $class_map[ $class_name ];
-			if ( file_exists( $file_path ) ) {
-				require_once $file_path;
-			}
-		}
-	}
+                if ( isset( $class_map[ $class_name ] ) ) {
+                        $file_path = BHG_PLUGIN_DIR . $class_map[ $class_name ];
+                        if ( file_exists( $file_path ) ) {
+                                require_once $file_path;
+                        }
+                }
+        }
 );
 
 // Include helper functions.
@@ -246,11 +246,11 @@ add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
  * @return void
  */
 function bhg_maybe_seed_translations() {
-		bhg_seed_default_translations_if_empty();
-		$stored_version = get_option( 'bhg_version' );
-	if ( BHG_VERSION !== $stored_version ) {
-			update_option( 'bhg_version', BHG_VERSION );
-	}
+        bhg_seed_default_translations_if_empty();
+        $stored_version = get_option( 'bhg_version' );
+        if ( BHG_VERSION !== $stored_version ) {
+                update_option( 'bhg_version', BHG_VERSION );
+        }
 }
 
 // Activation hook: create tables and set default options.
