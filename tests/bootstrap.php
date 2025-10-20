@@ -146,4 +146,4 @@ if ( ! class_exists( 'BHG_DB' ) ) {
 // phpcs:enable Universal.Files.SeparateFunctionsFromOO.Mixed,Generic.Files.OneObjectStructurePerFile.MultipleFound
 
 require_once __DIR__ . '/../includes/class-bhg-models.php';
-require_once __DIR__ . '/support/class-mock-wpdb.php';
+require_once __DIR__ . '/support/class-mockwpdb.php';
