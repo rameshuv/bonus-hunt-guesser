@@ -66,101 +66,108 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 												<header class="bhg-card-header">
 																<h2 id="bhg-dashboard-latest-title" class="bhg-card-title"><?php echo esc_html( bhg_t( 'label_latest_hunts', 'Latest Hunts' ) ); ?></h2>
 												</header>
-												<div class="bhg-card-content">
-																<?php if ( ! empty( $hunts ) && is_array( $hunts ) ) : ?>
-																<table class="bhg-dashboard-table bhg-latest-hunts-table">
-																		<thead>
-																				<tr>
-																						<th><?php echo esc_html( bhg_t( 'label_bonushunt', 'Bonushunt' ) ); ?></th>
-																						<th><?php echo esc_html( bhg_t( 'label_all_winners', 'All Winners' ) ); ?></th>
-																						<th><?php echo esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ); ?></th>
-																						<th><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></th>
-																						<th><?php echo esc_html( bhg_t( 'label_closed_at', 'Closed At' ) ); ?></th>
-																				</tr>
-																		</thead>
-																		<tbody>
-																		<?php foreach ( $hunts as $h ) : ?>
-																			<?php
-																			$hunt_id       = isset( $h->id ) ? (int) $h->id : 0;
-																			$winners_count = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
-																			$winners       = array();
+                                                                                                <div class="bhg-card-content">
+                                                                                                                               <?php if ( ! empty( $hunts ) && is_array( $hunts ) ) : ?>
+                                                                                                                               <div class="bhg-latest-hunts-list">
+                                                                                                                               <?php foreach ( $hunts as $h ) : ?>
+                                                                                                                               <?php
+                                                                                                                               $hunt_id        = isset( $h->id ) ? (int) $h->id : 0;
+                                                                                                                               $winners_count  = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
+                                                                                                                               $winners_limit  = $winners_count > 0 ? $winners_count : 25;
+                                                                                                                               $hunt_title     = isset( $h->title ) ? (string) $h->title : '';
+                                                                                                                               $start_balance  = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
+                                                                                                                               $final_balance  = isset( $h->final_balance ) ? $h->final_balance : null;
+                                                                                                                               $closed_at      = isset( $h->closed_at ) ? (string) $h->closed_at : '';
+                                                                                                                               $winners        = array();
 
-																			if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
-																					$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_count );
-																				if ( ! is_array( $winners ) ) {
-																					$winners = array();
-																				}
-																			}
+                                                                                                                               if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
+                                                                                                                               $winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_limit );
+                                                                                                                               if ( ! is_array( $winners ) ) {
+                                                                                                                               $winners = array();
+                                                                                                                               }
+                                                                                                                               }
 
-																			$hunt_title  = isset( $h->title ) ? (string) $h->title : '';
-																			$start       = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
-																			$winners_out = '';
+                                                                                                                               $highlight_count = $winners_count > 0 ? min( $winners_count, count( $winners ) ) : min( 3, count( $winners ) );
+                                                                                                                               $highlight_count = max( 0, $highlight_count );
 
-																			if ( ! empty( $winners ) ) {
-																					$out = array();
-																				foreach ( $winners as $w ) {
-																					$user_id = isset( $w->user_id ) ? (int) $w->user_id : 0;
-																					$guess   = isset( $w->guess ) ? (float) $w->guess : 0.0;
-																					$diff    = isset( $w->diff ) ? (float) $w->diff : 0.0;
+                                                                                                                               $closed_text = bhg_t( 'label_emdash', '—' );
+                                                                                                                               if ( ! empty( $closed_at ) ) {
+                                                                                                                               $ts = strtotime( $closed_at );
+                                                                                                                               $closed_text = false !== $ts
+                                                                                                                               ? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $ts )
+                                                                                                                               : $closed_at;
+                                                                                                                               }
+                                                                                                                               ?>
+                                                                                                                               <article class="bhg-latest-hunt">
+                                                                                                                               <header class="bhg-latest-hunt-header">
+                                                                                                                               <h3 class="bhg-latest-hunt-title"><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></h3>
+                                                                                                                               <ul class="bhg-latest-hunt-meta">
+                                                                                                                               <li><span class="bhg-meta-label"><?php echo esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ); ?></span><span class="bhg-meta-value"><?php echo esc_html( bhg_format_currency( $start_balance ) ); ?></span></li>
+                                                                                                                               <li><span class="bhg-meta-label"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></span><span class="bhg-meta-value"><?php echo null !== $final_balance ? esc_html( bhg_format_currency( (float) $final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></span></li>
+                                                                                                                               <li><span class="bhg-meta-label"><?php echo esc_html( bhg_t( 'label_closed_at', 'Closed At' ) ); ?></span><span class="bhg-meta-value"><?php echo esc_html( $closed_text ); ?></span></li>
+                                                                                                                               </ul>
+                                                                                                                               </header>
 
-																					$u  = $user_id ? get_userdata( $user_id ) : false;
-																					$nm = $u ? $u->user_login : sprintf(
-																						/* translators: %d: user ID. */
-																						esc_html( bhg_t( 'label_user_number', 'User #%d' ) ),
-																						$user_id
-																					);
+                                                                                                                               <?php if ( ! empty( $winners ) ) : ?>
+                                                                                                                               <table class="bhg-dashboard-table bhg-winners-table">
+                                                                                                                               <thead>
+                                                                                                                               <tr>
+                                                                                                                               <th scope="col"><?php echo esc_html( bhg_t( 'label_position', 'Position' ) ); ?></th>
+                                                                                                                               <th scope="col"><?php echo esc_html( bhg_t( 'label_username', 'Username' ) ); ?></th>
+                                                                                                                               <th scope="col"><?php echo esc_html( bhg_t( 'label_guess', 'Guess' ) ); ?></th>
+                                                                                                                               <th scope="col"><?php echo esc_html( bhg_t( 'label_difference', 'Difference' ) ); ?></th>
+                                                                                                                               </tr>
+                                                                                                                               </thead>
+                                                                                                                               <tbody>
+                                                                                                                               <?php foreach ( $winners as $index => $winner ) : ?>
+                                                                                                                               <?php
+                                                                                                                               $position   = $index + 1;
+                                                                                                                               $user_id    = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
+                                                                                                                               $guess      = isset( $winner->guess ) ? (float) $winner->guess : 0.0;
+                                                                                                                               $diff       = isset( $winner->diff ) ? (float) abs( $winner->diff ) : 0.0;
+                                                                                                                               $user_data  = $user_id ? get_userdata( $user_id ) : false;
+                                                                                                                               $user_label = $user_data ? $user_data->user_login : sprintf(
+                                                                                                                               /* translators: %d: user ID. */
+                                                                                                                               bhg_t( 'label_user_number', 'User #%d' ),
+                                                                                                                               $user_id
+                                                                                                                               );
+                                                                                                                               $user_label = (string) $user_label;
+                                                                                                                               $user_link  = $user_id ? get_edit_user_link( $user_id ) : '';
 
-																					$out[] = sprintf(
-																						'%1$s %2$s %3$s (%4$s %5$s)',
-																						esc_html( $nm ),
-																						esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ),
-																						esc_html( bhg_format_currency( $guess ) ),
-																						esc_html( bhg_t( 'label_diff', 'diff' ) ),
-																						esc_html( bhg_format_currency( $diff ) )
-																					);
-																				}
-																				$winners_out = implode( ' • ', $out );
-																			} else {
-																					$winners_out = bhg_t( 'no_winners_yet', 'No winners yet' );
-																			}
+                                                                                                                               $row_classes = array();
+                                                                                                                               if ( $highlight_count > 0 && $position <= $highlight_count ) {
+                                                                                                                               $row_classes[] = 'bhg-winner-row';
+                                                                                                                               }
 
-																			?>
-																				<tr>
-																						<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
-																						<td><?php echo esc_html( $winners_out ); ?></td>
-																																<td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
-																						<td>
-																						<?php
-																						if ( isset( $h->final_balance ) && null !== $h->final_balance ) {
-																																echo esc_html( bhg_format_currency( (float) $h->final_balance ) );
-																						} else {
-																								echo esc_html( bhg_t( 'label_emdash', '—' ) );
-																						}
-																						?>
-																						</td>
-																						<td>
-																						<?php
-																						if ( ! empty( $h->closed_at ) ) {
-																								$ts = strtotime( (string) $h->closed_at );
-																								echo esc_html(
-																									false !== $ts
-																												? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $ts )
-																												: (string) $h->closed_at
-																								);
-																						} else {
-																								echo esc_html( bhg_t( 'label_emdash', '—' ) );
-																						}
-																						?>
-																						</td>
-																				</tr>
-																		<?php endforeach; ?>
-																		</tbody>
-																</table>
-																<?php else : ?>
-																<p><?php echo esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ); ?></p>
-																<?php endif; ?>
-																<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts' ) ); ?>" class="button button-primary bhg-dashboard-button"><?php echo esc_html( bhg_t( 'view_all_hunts', 'View All Hunts' ) ); ?></a></p>
-												</div>
+                                                                                                                               $row_class_attr = ! empty( $row_classes ) ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+                                                                                                                               ?>
+                                                                                                                               <tr<?php echo $row_class_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                                                                                                               >
+                                                                                                                               <td><?php echo (int) $position; ?></td>
+                                                                                                                               <td>
+                                                                                                                               <?php if ( $user_link ) : ?>
+                                                                                                                               <a href="<?php echo esc_url( $user_link ); ?>"><?php echo esc_html( $user_label ); ?></a>
+                                                                                                                               <?php else : ?>
+                                                                                                                               <?php echo esc_html( $user_label ); ?>
+                                                                                                                               <?php endif; ?>
+                                                                                                                               </td>
+                                                                                                                               <td><?php echo esc_html( bhg_format_currency( $guess ) ); ?></td>
+                                                                                                                               <td><?php echo esc_html( bhg_format_currency( $diff ) ); ?></td>
+                                                                                                                               </tr>
+                                                                                                                               <?php endforeach; ?>
+                                                                                                                               </tbody>
+                                                                                                                               </table>
+                                                                                                                               <?php else : ?>
+                                                                                                                               <p class="bhg-empty-state"><?php echo esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) ); ?></p>
+                                                                                                                               <?php endif; ?>
+                                                                                                                               </article>
+                                                                                                                               <?php endforeach; ?>
+                                                                                                                               </div>
+                                                                                                                               <?php else : ?>
+                                                                                                                               <p><?php echo esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ); ?></p>
+                                                                                                                               <?php endif; ?>
+                                                                                                                               <p><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts' ) ); ?>" class="button button-primary bhg-dashboard-button"><?php echo esc_html( bhg_t( 'view_all_hunts', 'View All Hunts' ) ); ?></a></p>
+                                                                                                </div>
 								</section>
 				</main>
 </div>
