@@ -219,7 +219,8 @@ spl_autoload_register(
 			'BHG_Utils'                  => 'includes/class-bhg-utils.php',
 			'BHG_Models'                 => 'includes/class-bhg-models.php',
 			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
-			'BHG_Ads'                    => 'includes/class-bhg-ads.php',
+                        'BHG_Ads'                    => 'includes/class-bhg-ads.php',
+                        'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
 			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
 			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
 		);

@@ -60,6 +60,8 @@ class BHG_DB {
 $aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
 $winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
 $hunt_tours_table   = $wpdb->prefix . 'bhg_hunt_tournaments';
+$prizes_table       = $wpdb->prefix . 'bhg_prizes';
+$hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
 
 		$sql = array();
 
@@ -98,13 +100,16 @@ KEY tournament_id (tournament_id)
                 ) {$charset_collate};";
 
 		// Tournaments.
-                $sql[] = "CREATE TABLE `{$tours_table}` (
+                                $sql[] = "CREATE TABLE `{$tours_table}` (
                                                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                                 title VARCHAR(190) NOT NULL,
                                                 description TEXT NULL,
                                                 type VARCHAR(20) NOT NULL,
                                                 participants_mode VARCHAR(20) NOT NULL DEFAULT 'winners',
                                                 hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual',
+                                                prizes TEXT NULL,
+                                                affiliate_site_id BIGINT UNSIGNED NULL,
+                                                affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1,
                                                 start_date DATE NULL,
                                                 end_date DATE NULL,
                                                 status VARCHAR(20) NOT NULL DEFAULT 'active',
@@ -171,6 +176,40 @@ $sql[] = "CREATE TABLE `{$winners_table}` (
                                    KEY user_id (user_id)
                    ) {$charset_collate};";
 
+// Prizes table.
+$sql[] = "CREATE TABLE `{$prizes_table}` (
+                                   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                   title VARCHAR(190) NOT NULL,
+                                   description TEXT NULL,
+                                   category VARCHAR(40) NOT NULL DEFAULT 'various',
+                                   image_small BIGINT UNSIGNED NULL,
+                                   image_medium BIGINT UNSIGNED NULL,
+                                   image_large BIGINT UNSIGNED NULL,
+                                   css_border VARCHAR(100) NULL,
+                                   css_border_color VARCHAR(40) NULL,
+                                   css_padding VARCHAR(60) NULL,
+                                   css_margin VARCHAR(60) NULL,
+                                   css_background VARCHAR(40) NULL,
+                                   active TINYINT(1) NOT NULL DEFAULT 1,
+                                   created_at DATETIME NULL,
+                                   updated_at DATETIME NULL,
+                                   PRIMARY KEY  (id),
+                                   KEY category (category),
+                                   KEY active (active)
+                   ) {$charset_collate};";
+
+// Hunt prize map.
+$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
+                                   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                   hunt_id BIGINT UNSIGNED NOT NULL,
+                                   prize_id BIGINT UNSIGNED NOT NULL,
+                                   created_at DATETIME NULL,
+                                   PRIMARY KEY  (id),
+                                   UNIQUE KEY hunt_prize (hunt_id, prize_id),
+                                   KEY hunt_id (hunt_id),
+                                   KEY prize_id (prize_id)
+                   ) {$charset_collate};";
+
 // Hunt to tournament mapping.
 $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -225,16 +264,19 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 			}
 
 												// Tournaments: make sure common columns exist.
-			$tneed = array(
-				'title'             => 'ADD COLUMN title VARCHAR(190) NOT NULL',
-				'description'       => 'ADD COLUMN description TEXT NULL',
-				'type'              => 'ADD COLUMN type VARCHAR(20) NOT NULL',
-                                'participants_mode' => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
-                                'hunt_link_mode'    => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
-				'start_date'        => 'ADD COLUMN start_date DATE NULL',
-				'end_date'          => 'ADD COLUMN end_date DATE NULL',
-				'status'            => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'active\'',
-			);
+                        $tneed = array(
+                                'title'               => 'ADD COLUMN title VARCHAR(190) NOT NULL',
+                                'description'         => 'ADD COLUMN description TEXT NULL',
+                                'type'                => 'ADD COLUMN type VARCHAR(20) NOT NULL',
+                                'participants_mode'   => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
+                                'hunt_link_mode'      => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
+                                'prizes'              => 'ADD COLUMN prizes TEXT NULL',
+                                'affiliate_site_id'   => 'ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL',
+                                'affiliate_url_visible' => 'ADD COLUMN affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1',
+                                'start_date'          => 'ADD COLUMN start_date DATE NULL',
+                                'end_date'            => 'ADD COLUMN end_date DATE NULL',
+                                'status'              => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'active\'',
+                        );
 			foreach ( $tneed as $c => $alter ) {
 				if ( ! $this->column_exists( $tours_table, $c ) ) {
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared

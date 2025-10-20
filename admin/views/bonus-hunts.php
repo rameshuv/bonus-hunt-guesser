@@ -392,18 +392,18 @@ if ( 'add' === $view ) :
 			</select>
 			</td>
 				</tr>
-				<tr>
-						<th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
-						<td>
-												<?php
-												$t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-												if ( ! in_array( $t_table, $allowed_tables, true ) ) {
-																		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
-												}
-												// db call ok; no-cache ok.
-												$tours = $wpdb->get_results(
-													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
-												);
+                                <tr>
+                                                <th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
+                                                <td>
+                                                                                                <?php
+                                                                                                $t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+                                                                                                if ( ! in_array( $t_table, $allowed_tables, true ) ) {
+                                                                                                                               wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+                                                                                                }
+                                                                                                // db call ok; no-cache ok.
+                                                                                                $tours = $wpdb->get_results(
+                                                                                                        "SELECT id, title FROM {$t_table} ORDER BY title ASC"
+                                                                                                );
                                                                                                 $selected_tournaments = array();
                                                                                                 ?>
                                                 <select id="bhg_tournament" name="tournament_ids[]" multiple="multiple" size="5">
@@ -412,8 +412,23 @@ if ( 'add' === $view ) :
                                                                 <?php endforeach; ?>
                                                 </select>
                                                 <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
-						</td>
-				</tr>
+                                                </td>
+                                </tr>
+                                <tr>
+                                                <th scope="row"><label for="bhg_prize_ids"><?php echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) ); ?></label></th>
+                                                <td>
+                                                                                                <?php
+                                                                                                $prize_rows = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
+                                                                                                $selected_prizes = array();
+                                                                                                ?>
+                                                <select id="bhg_prize_ids" name="prize_ids[]" multiple="multiple" size="5">
+                                                                <?php foreach ( $prize_rows as $prize_row ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( in_array( (int) $prize_row->id, $selected_prizes, true ) ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
+                                                                <?php endforeach; ?>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_prizes_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.' ) ); ?></p>
+                                                </td>
+                                </tr>
 <tr>
 <th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
 <td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="3"></td>
@@ -531,6 +546,8 @@ if ( 'edit' === $view ) :
 													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
 												);
                                                                                                 $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+                                                                                                $prize_rows          = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
+                                                                                                $selected_prizes     = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( (int) $hunt->id ) : array();
                                                                                                 ?>
                                                 <select id="bhg_tournament" name="tournament_ids[]" multiple="multiple" size="5">
                                                                 <?php foreach ( $tours as $t ) : ?>
@@ -538,8 +555,19 @@ if ( 'edit' === $view ) :
                                                                 <?php endforeach; ?>
                                                 </select>
                                                 <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
-						</td>
-				</tr>
+                                                </td>
+                                </tr>
+                                <tr>
+                                                <th scope="row"><label for="bhg_prize_ids_edit"><?php echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) ); ?></label></th>
+                                                <td>
+                                                <select id="bhg_prize_ids_edit" name="prize_ids[]" multiple="multiple" size="5">
+                                                                <?php foreach ( $prize_rows as $prize_row ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( in_array( (int) $prize_row->id, $selected_prizes, true ) ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
+                                                                <?php endforeach; ?>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_prizes_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.' ) ); ?></p>
+                                                </td>
+                                </tr>
 <tr>
 <th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
 <td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ? $hunt->winners_count : 3 ); ?>"></td>
