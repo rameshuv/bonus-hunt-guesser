@@ -172,6 +172,37 @@
     color: #1e293b;
 }
 
+.bhg-prize-layout-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.bhg-prize-layout-toggle button {
+    border: 1px solid #cbd5f5;
+    background-color: #f8fafc;
+    color: #1e293b;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.bhg-prize-layout-toggle button.active,
+.bhg-prize-layout-toggle button:hover,
+.bhg-prize-layout-toggle button:focus {
+    background-color: var(--bhg-accent-color, #2563eb);
+    border-color: var(--bhg-accent-color, #2563eb);
+    color: #fff;
+    outline: none;
+}
+
+.bhg-prize-layout-view[hidden] {
+    display: none;
+}
+
 .bhg-prizes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

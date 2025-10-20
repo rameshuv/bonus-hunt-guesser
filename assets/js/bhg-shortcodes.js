@@ -92,4 +92,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
         updateCarousel(0);
     });
+
+    document.querySelectorAll('.bhg-prize-layout-toggle').forEach(function (toggle) {
+        var buttons = toggle.querySelectorAll('button[data-layout]');
+        if (!buttons.length) {
+            return;
+        }
+
+        var block = toggle.closest('.bhg-prizes-block');
+        if (!block) {
+            return;
+        }
+
+        var views = block.querySelectorAll('.bhg-prize-layout-view');
+
+        buttons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var targetLayout = button.getAttribute('data-layout');
+                if (!targetLayout) {
+                    return;
+                }
+
+                buttons.forEach(function (btn) {
+                    var isActive = btn === button;
+                    btn.classList.toggle('active', isActive);
+                    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                });
+
+                views.forEach(function (view) {
+                    var matches = view.getAttribute('data-layout') === targetLayout;
+                    if (matches) {
+                        view.removeAttribute('hidden');
+                        view.classList.add('is-active');
+                    } else {
+                        view.setAttribute('hidden', 'hidden');
+                        view.classList.remove('is-active');
+                    }
+                });
+
+                block.classList.remove('bhg-prizes-layout-grid', 'bhg-prizes-layout-carousel');
+                block.classList.add('bhg-prizes-layout-' + targetLayout);
+            });
+        });
+    });
 });

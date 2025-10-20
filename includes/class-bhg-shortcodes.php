@@ -160,11 +160,11 @@ $wpdb->usermeta,
          * @param string $layout Layout keyword.
          * @return string
          */
-        private function normalize_prize_layout( $layout ) {
-                $layout = strtolower( (string) $layout );
+       private function normalize_prize_layout( $layout ) {
+               $layout = strtolower( (string) $layout );
 
-                return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
-        }
+               return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
+       }
 
         /**
          * Normalize prize card size keyword.
@@ -186,54 +186,115 @@ $wpdb->usermeta,
          * @param string $size   Image size keyword.
          * @return string
          */
-        private function render_prize_section( $prizes, $layout, $size ) {
-                if ( empty( $prizes ) || ! class_exists( 'BHG_Prizes' ) ) {
-                        return '';
-                }
+       private function render_prize_section( $prizes, $layout, $size, $allow_toggle = false ) {
+               if ( empty( $prizes ) || ! class_exists( 'BHG_Prizes' ) ) {
+                       return '';
+               }
 
-                $layout = $this->normalize_prize_layout( $layout );
-                $size   = $this->normalize_prize_size( $size );
+               $default_layout = $this->normalize_prize_layout( $layout );
+               $size           = $this->normalize_prize_size( $size );
+               $allow_toggle   = (bool) $allow_toggle;
 
-                ob_start();
-                echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
-                echo '<h4 class="bhg-prizes-title">' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . '</h4>';
+               $block_classes = array(
+                       'bhg-prizes-block',
+                       'bhg-prizes-layout-' . $default_layout,
+                       'size-' . $size,
+               );
 
-                if ( 'carousel' === $layout ) {
-                        $count    = count( $prizes );
-                        $show_nav = $count > 1;
-                        echo '<div class="bhg-prize-carousel" data-count="' . (int) $count . '">';
-                        if ( $show_nav ) {
-                                echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '">&#10094;</button>';
-                        }
-                        echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
-                        foreach ( $prizes as $prize ) {
-                                echo $this->render_prize_card( $prize, $size );
-                        }
-                        echo '</div></div>';
-                        if ( $show_nav ) {
-                                echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '">&#10095;</button>';
-                        }
-                        if ( $count > 1 ) {
-                                echo '<div class="bhg-prize-dots">';
-                                for ( $i = 0; $i < $count; $i++ ) {
-                                        $active = 0 === $i ? ' active' : '';
-                                        echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
-                                }
-                                echo '</div>';
-                        }
-                        echo '</div>';
-                } else {
-                        echo '<div class="bhg-prizes-grid">';
-                        foreach ( $prizes as $prize ) {
-                                echo $this->render_prize_card( $prize, $size );
-                        }
-                        echo '</div>';
-                }
+               if ( $allow_toggle ) {
+                       $block_classes[] = 'bhg-prizes-has-toggle';
+               }
 
-                echo '</div>';
+               ob_start();
+               echo '<div class="' . esc_attr( implode( ' ', array_unique( $block_classes ) ) ) . '" data-default-layout="' . esc_attr( $default_layout ) . '">';
+               echo '<h4 class="bhg-prizes-title">' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . '</h4>';
 
-                return ob_get_clean();
-        }
+               if ( $allow_toggle ) {
+                       $grid_active      = ( 'grid' === $default_layout );
+                       $carousel_active  = ! $grid_active;
+                       $toggle_aria_label = bhg_t( 'label_prize_layout', 'Choose prize layout' );
+
+                       echo '<div class="bhg-prize-layout-toggle" role="group" aria-label="' . esc_attr( $toggle_aria_label ) . '">';
+                       echo '<button type="button" class="' . ( $grid_active ? 'active' : '' ) . '" data-layout="grid" aria-pressed="' . ( $grid_active ? 'true' : 'false' ) . '">' . esc_html( bhg_t( 'label_grid_view', 'Grid view' ) ) . '</button>';
+                       echo '<button type="button" class="' . ( $carousel_active ? 'active' : '' ) . '" data-layout="carousel" aria-pressed="' . ( $carousel_active ? 'true' : 'false' ) . '">' . esc_html( bhg_t( 'label_carousel_view', 'Carousel view' ) ) . '</button>';
+                       echo '</div>';
+
+                       echo '<div class="bhg-prize-layout-view' . ( $grid_active ? ' is-active' : '' ) . '" data-layout="grid"' . ( $grid_active ? '' : ' hidden' ) . '>';
+                       echo $this->render_prize_grid_markup( $prizes, $size );
+                       echo '</div>';
+
+                       echo '<div class="bhg-prize-layout-view' . ( $carousel_active ? ' is-active' : '' ) . '" data-layout="carousel"' . ( $carousel_active ? '' : ' hidden' ) . '>';
+                       echo $this->render_prize_carousel_markup( $prizes, $size );
+                       echo '</div>';
+               } else {
+                       if ( 'carousel' === $default_layout ) {
+                               echo $this->render_prize_carousel_markup( $prizes, $size );
+                       } else {
+                               echo $this->render_prize_grid_markup( $prizes, $size );
+                       }
+               }
+
+               echo '</div>';
+
+               return ob_get_clean();
+       }
+
+       /**
+        * Render prizes in grid format.
+        *
+        * @param array  $prizes Prize rows.
+        * @param string $size   Image size keyword.
+        * @return string
+        */
+       private function render_prize_grid_markup( $prizes, $size ) {
+               ob_start();
+
+               echo '<div class="bhg-prizes-grid">';
+               foreach ( $prizes as $prize ) {
+                       echo $this->render_prize_card( $prize, $size );
+               }
+               echo '</div>';
+
+               return ob_get_clean();
+       }
+
+       /**
+        * Render prizes in carousel format.
+        *
+        * @param array  $prizes Prize rows.
+        * @param string $size   Image size keyword.
+        * @return string
+        */
+       private function render_prize_carousel_markup( $prizes, $size ) {
+               $count    = count( $prizes );
+               $show_nav = $count > 1;
+
+               ob_start();
+
+               echo '<div class="bhg-prize-carousel" data-count="' . (int) $count . '">';
+               if ( $show_nav ) {
+                       echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '">&#10094;</button>';
+               }
+               echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
+               foreach ( $prizes as $prize ) {
+                       echo $this->render_prize_card( $prize, $size );
+               }
+               echo '</div></div>';
+               if ( $show_nav ) {
+                       echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '">&#10095;</button>';
+               }
+               if ( $count > 1 ) {
+                       echo '<div class="bhg-prize-dots">';
+                       for ( $i = 0; $i < $count; $i++ ) {
+                               $active = 0 === $i ? ' active' : '';
+                               echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
+                       }
+                       echo '</div>';
+               }
+               echo '</div>';
+
+               return ob_get_clean();
+       }
 
         /**
          * Render a single prize card.
@@ -299,17 +360,19 @@ $wpdb->usermeta,
 			 * @return string HTML output.
 			 */
                public function active_hunt_shortcode( $atts ) {
-                        $atts = shortcode_atts(
-                                array(
-                                        'prize_layout' => 'grid',
-                                        'prize_size'   => 'medium',
-                                ),
-                                $atts,
-                                'bhg_active_hunt'
-                        );
+                       $atts = shortcode_atts(
+                               array(
+                                       'prize_layout' => 'grid',
+                                       'prize_size'   => 'medium',
+                                       'prize_toggle' => 'yes',
+                               ),
+                               $atts,
+                               'bhg_active_hunt'
+                       );
 
-                        $prize_layout = $this->normalize_prize_layout( isset( $atts['prize_layout'] ) ? $atts['prize_layout'] : 'grid' );
-                        $prize_size   = $this->normalize_prize_size( isset( $atts['prize_size'] ) ? $atts['prize_size'] : 'medium' );
+                       $prize_layout      = $this->normalize_prize_layout( isset( $atts['prize_layout'] ) ? $atts['prize_layout'] : 'grid' );
+                       $prize_size        = $this->normalize_prize_size( isset( $atts['prize_size'] ) ? $atts['prize_size'] : 'medium' );
+                       $allow_prize_toggle = in_array( strtolower( (string) $atts['prize_toggle'] ), array( 'yes', 'true', '1', 'on' ), true );
 
 			       global $wpdb;
 			       $hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
@@ -514,7 +577,7 @@ $wpdb->usermeta,
                        echo '</ul>';
 
                        if ( ! empty( $hunt_prizes ) ) {
-                               echo $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size );
+                               echo $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size, $allow_prize_toggle );
                        }
                        echo '</div>';
 
@@ -2545,16 +2608,17 @@ $wpdb->usermeta,
                                 return '';
                         }
 
-                        $atts = shortcode_atts(
-                                array(
-                                        'category' => '',
-                                        'design'   => 'grid',
-                                        'size'     => 'medium',
-                                        'active'   => 'yes',
-                                ),
-                                $atts,
-                                'bhg_prizes'
-                        );
+                       $atts = shortcode_atts(
+                               array(
+                                       'category' => '',
+                                       'design'   => 'grid',
+                                       'size'     => 'medium',
+                                       'active'   => 'yes',
+                                       'toggle'   => 'no',
+                               ),
+                               $atts,
+                               'bhg_prizes'
+                       );
 
                         $args = array();
 
@@ -2568,8 +2632,9 @@ $wpdb->usermeta,
                                 $args['active'] = in_array( $active, array( 'yes', '1' ), true ) ? 1 : 0;
                         }
 
-                        $layout = $this->normalize_prize_layout( isset( $atts['design'] ) ? $atts['design'] : 'grid' );
-                        $size   = $this->normalize_prize_size( isset( $atts['size'] ) ? $atts['size'] : 'medium' );
+                       $layout        = $this->normalize_prize_layout( isset( $atts['design'] ) ? $atts['design'] : 'grid' );
+                       $size          = $this->normalize_prize_size( isset( $atts['size'] ) ? $atts['size'] : 'medium' );
+                       $allow_toggle  = in_array( strtolower( (string) $atts['toggle'] ), array( 'yes', 'true', '1', 'on' ), true );
 
                         $prizes = BHG_Prizes::get_prizes( $args );
 
@@ -2577,7 +2642,7 @@ $wpdb->usermeta,
                                 return '<div class="bhg-prizes-shortcode"><p>' . esc_html( bhg_t( 'no_prizes_yet', 'No prizes found.' ) ) . '</p></div>';
                         }
 
-                        $content = $this->render_prize_section( $prizes, $layout, $size );
+                       $content = $this->render_prize_section( $prizes, $layout, $size, $allow_toggle );
 
                         if ( '' === $content ) {
                                 return '';
