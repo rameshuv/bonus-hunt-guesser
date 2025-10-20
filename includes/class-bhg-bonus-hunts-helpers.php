@@ -234,7 +234,7 @@ if ( ! function_exists( 'bhg_get_latest_closed_hunts' ) ) {
 }
 
 if ( ! function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
-	function bhg_get_top_winners_for_hunt( $hunt_id, $winners_limit = 3 ) {
+        function bhg_get_top_winners_for_hunt( $hunt_id, $winners_limit = 3 ) {
 				global $wpdb;
 				$t_g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
 				$t_h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
@@ -243,13 +243,15 @@ if ( ! function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
 		if ( ! $hunt || null === $hunt->final_balance ) {
 				return array();
 		}
-		if ( $winners_limit ) {
-				$limit = (int) $winners_limit;
-		} elseif ( $hunt->winners_count ) {
-				$limit = (int) $hunt->winners_count;
-		} else {
-				$limit = 3;
-		}
+                if ( $winners_limit ) {
+                                $limit = (int) $winners_limit;
+                } elseif ( $hunt->winners_count ) {
+                                $limit = (int) $hunt->winners_count;
+                } else {
+                                $limit = 3;
+                }
+
+                $limit = max( 1, min( $limit, 25 ) );
 
                 $sql = $wpdb->prepare(
                         sprintf(
