@@ -33,10 +33,11 @@ $command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $phpcs_binary ) 
 passthru( $command, $exit_code ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_passthru
 
 if ( 0 !== $exit_code ) {
-	fwrite( // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
-		STDERR,
-		'PHP_CodeSniffer detected existing coding standard issues; exiting with success so legacy violations do not block the workflow.' . PHP_EOL
-	);
+        fwrite( // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+                STDERR,
+                'PHP_CodeSniffer detected coding standard issues. Please address them before re-running the command.' . PHP_EOL
+        );
 }
 
-exit( 0 );
+exit( $exit_code );
+
