@@ -205,7 +205,7 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 <a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
 								<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
 </a>
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
 								<?php wp_nonce_field( 'bhg_tournament_close', 'bhg_tournament_close_nonce' ); ?>
 								<input type="hidden" name="action" value="bhg_tournament_close" />
 								<input type="hidden" name="tournament_id" value="<?php echo esc_attr( (int) $r->id ); ?>" />
@@ -216,7 +216,7 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 </a>
 </td>
 <td>
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
 				<?php wp_nonce_field( 'bhg_tournament_delete_action', 'bhg_tournament_delete_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_tournament_delete" />
 <input type="hidden" name="id" value="<?php echo esc_attr( (int) $r->id ); ?>" />

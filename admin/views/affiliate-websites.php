@@ -37,10 +37,11 @@ $rows = $wpdb->get_results(
 );
 ?>
 <div class="wrap bhg-wrap">
-		<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_affiliates', 'Affiliate Websites' ) ); ?></h1>
+        <h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_affiliates', 'Affiliate Websites' ) ); ?></h1>
 
-	<h2 style="margin-top:1em"><?php echo esc_html( bhg_t( 'all_affiliate_websites', 'All Affiliate Websites' ) ); ?></h2>
-	<table class="widefat striped">
+        <h2 class="bhg-section-heading"><?php echo esc_html( bhg_t( 'all_affiliate_websites', 'All Affiliate Websites' ) ); ?></h2>
+        <div class="bhg-table-card">
+        <table class="widefat striped">
 	<thead>
 		<tr>
 		<th>
@@ -105,7 +106,7 @@ $rows = $wpdb->get_results(
                                 echo esc_html( bhg_t( 'button_edit', 'Edit' ) );
                                 ?>
                         </a>
-                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_affiliate', 'Delete this affiliate website?' ) ); ?>');">
+                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_affiliate', 'Delete this affiliate website?' ) ); ?>');">
                                                         <?php wp_nonce_field( 'bhg_delete_affiliate', 'bhg_delete_affiliate_nonce' ); ?>
                                 <input type="hidden" name="action" value="bhg_delete_affiliate">
                                 <input type="hidden" name="id" value="<?php echo (int) $r->id; ?>">
@@ -122,49 +123,50 @@ $rows = $wpdb->get_results(
 endif;
 		?>
 	</tbody>
-	</table>
+        </table>
+        </div>
 
-		<h2 style="margin-top:2em"><?php echo $row ? esc_html( bhg_t( 'edit_affiliate', 'Edit Affiliate Website' ) ) : esc_html( bhg_t( 'add_affiliate', 'Add Affiliate Website' ) ); ?></h2>
-	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
+        <h2 class="bhg-section-heading"><?php echo $row ? esc_html( bhg_t( 'edit_affiliate', 'Edit Affiliate Website' ) ) : esc_html( bhg_t( 'add_affiliate', 'Add Affiliate Website' ) ); ?></h2>
+        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-form-card">
 				<?php wp_nonce_field( 'bhg_save_affiliate', 'bhg_save_affiliate_nonce' ); ?>
 		<input type="hidden" name="action" value="bhg_save_affiliate">
 	<?php
 	if ( $row ) :
 		?>
 		<input type="hidden" name="id" value="<?php echo (int) $row->id; ?>"><?php endif; ?>
-	<table class="form-table">
-		<tr>
-				<th><label for="aff_name">
+        <table class="form-table" role="presentation">
+                <tr>
+                                <th scope="row"><label for="aff_name">
 				<?php
 				echo esc_html( bhg_t( 'name', 'Name' ) );
 				?>
 </label></th>
-				<td><input class="regular-text" id="aff_name" name="name" value="<?php echo esc_attr( $row->name ?? '' ); ?>" required></td>
+                                <td><input class="regular-text bhg-input" id="aff_name" name="name" value="<?php echo esc_attr( $row->name ?? '' ); ?>" required></td>
 				</tr>
 				<tr>
-				<th><label for="aff_slug">
+                                <th scope="row"><label for="aff_slug">
 				<?php
 				echo esc_html( bhg_t( 'slug', 'Slug' ) );
 				?>
 </label></th>
-				<td><input class="regular-text" id="aff_slug" name="slug" value="<?php echo esc_attr( $row->slug ?? '' ); ?>" required></td>
+                                <td><input class="regular-text bhg-input" id="aff_slug" name="slug" value="<?php echo esc_attr( $row->slug ?? '' ); ?>" required></td>
 				</tr>
 		<tr>
-		<th><label for="aff_url">
+                <th scope="row"><label for="aff_url">
 		<?php
 		echo esc_html( bhg_t( 'url', 'URL' ) );
 		?>
 </label></th>
-		<td><input class="regular-text" id="aff_url" name="url" value="<?php echo esc_attr( $row->url ?? '' ); ?>" placeholder="https://example.com"></td>
+                <td><input class="regular-text bhg-input" id="aff_url" name="url" value="<?php echo esc_attr( $row->url ?? '' ); ?>" placeholder="https://example.com"></td>
 		</tr>
 		<tr>
-		<th><label for="aff_status">
+                <th scope="row"><label for="aff_status">
 		<?php
 		echo esc_html( bhg_t( 'sc_status', 'Status' ) );
 		?>
 </label></th>
 		<td>
-			<select id="aff_status" name="status">
+                        <select id="aff_status" name="status" class="bhg-select">
 			<?php
 			$opts = array( 'active', 'inactive' );
 			$cur  = $row->status ?? 'active'; foreach ( $opts as $o ) :
@@ -174,7 +176,9 @@ endif;
 			</select>
 		</td>
 		</tr>
-	</table>
-		<?php submit_button( $row ? bhg_t( 'update_affiliate', 'Update Affiliate Website' ) : bhg_t( 'create_affiliate', 'Create Affiliate Website' ) ); ?>
-	</form>
+        </table>
+        <div class="bhg-form-actions">
+                <?php submit_button( $row ? bhg_t( 'update_affiliate', 'Update Affiliate Website' ) : bhg_t( 'create_affiliate', 'Create Affiliate Website' ) ); ?>
+        </div>
+        </form>
 </div>

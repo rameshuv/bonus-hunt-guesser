@@ -28,8 +28,8 @@ if ( ! defined( 'ABSPATH' ) ) {
         $tournaments = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$tournaments_table}" );
 	?>
 
-	<div class="card" style="max-width:900px;padding:16px;margin-top:12px;">
-		<h2><?php echo esc_html( bhg_t( 'diagnostics', 'Diagnostics' ) ); ?></h2>
+        <div class="bhg-card bhg-form-card">
+                <h2 class="bhg-card__title bhg-subheading"><?php echo esc_html( bhg_t( 'diagnostics', 'Diagnostics' ) ); ?></h2>
 		<?php if ( ( $hunts + $guesses + $users + $ads + $tournaments ) > 0 ) : ?>
 			<ul>
 				<li><?php echo esc_html( bhg_t( 'hunts', 'Hunts:' ) ); ?> <?php echo esc_html( number_format_i18n( $hunts ) ); ?></li>

@@ -35,7 +35,7 @@ if ( 'db_cleanup' === $db_action && ! empty( $cleanup_request ) ) {
 }
 
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 <h1><?php echo esc_html( bhg_t( 'database', 'Database' ) ); ?></h1>
 <?php if ( ! empty( $cleanup_completed ) ) : ?>
 <div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'database_cleanup_completed', 'Database cleanup completed. All plugin tables are now empty.' ) ); ?></p></div>

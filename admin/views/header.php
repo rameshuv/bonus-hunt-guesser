@@ -224,7 +224,7 @@ if ( isset( $_GET['message'] ) ) { // phpcs:ignore WordPress.Security.NonceVerif
 									echo esc_html( bhg_t( 'button_edit', 'Edit' ) );
 									?>
 								</a>
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
 						<?php wp_nonce_field( 'bhg_delete_bonus_hunt', 'bhg_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_delete_bonus_hunt" />
 <input type="hidden" name="id" value="<?php echo esc_attr( $hunt->id ); ?>" />

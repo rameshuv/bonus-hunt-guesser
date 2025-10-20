@@ -13,23 +13,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="wrap bhg-wrap">
 	<h1><?php echo esc_html( bhg_t( 'demo_tools', 'Demo Tools' ) ); ?></h1>
 
-	<p class="description" style="max-width:800px;">
-		<?php echo esc_html( bhg_t( 'this_will_delete_all_demo_data_and_pages_then_recreate_fresh_demo_content', 'This will delete all demo data and pages, then recreate fresh demo content.' ) ); ?>
-	</p>
+        <p class="description bhg-description--constrained">
+                <?php echo esc_html( bhg_t( 'this_will_delete_all_demo_data_and_pages_then_recreate_fresh_demo_content', 'This will delete all demo data and pages, then recreate fresh demo content.' ) ); ?>
+        </p>
 
-	<div class="card" style="max-width:780px;padding:16px;margin-top:16px;">
-		<h2><?php echo esc_html( bhg_t( 'summary', 'Summary' ) ); ?></h2>
-		<p><?php echo esc_html( bhg_t( 'note_this_will_remove_any_demo_data_and_reset_tables_to_their_initial_state', 'Note: This will remove any demo data and reset tables to their initial state.' ) ); ?></p>
+        <div class="bhg-card bhg-form-card">
+                <h2 class="bhg-card__title bhg-subheading"><?php echo esc_html( bhg_t( 'summary', 'Summary' ) ); ?></h2>
+                <p><?php echo esc_html( bhg_t( 'note_this_will_remove_any_demo_data_and_reset_tables_to_their_initial_state', 'Note: This will remove any demo data and reset tables to their initial state.' ) ); ?></p>
 
-		<?php if ( ! empty( $counts ) ) : ?>
-			<table class="widefat striped" style="max-width:100%;">
-				<thead>
-					<tr>
-						<th scope="col"><?php echo esc_html( bhg_t( 'table_name', 'Table Name' ) ); ?></th>
-						<th scope="col" style="width:140px;">
-							<?php echo esc_html( bhg_t( 'rows', 'Rows' ) ); ?>
-						</th>
-					</tr>
+                <?php if ( ! empty( $counts ) ) : ?>
+                        <table class="widefat striped">
+                                <thead>
+                                        <tr>
+                                                <th scope="col"><?php echo esc_html( bhg_t( 'table_name', 'Table Name' ) ); ?></th>
+                                                <th scope="col" class="bhg-col-narrow">
+                                                        <?php echo esc_html( bhg_t( 'rows', 'Rows' ) ); ?>
+                                                </th>
+                                        </tr>
 				</thead>
 				<tbody>
 					<?php foreach ( $counts as $info ) : ?>
@@ -51,9 +51,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php endif; ?>
 	</div>
 
-	<form method="post" action="<?php echo esc_url( $action_url ); ?>" style="margin-top:24px;">
-		<input type="hidden" name="action" value="bhg_demo_reset" />
-		<?php
+        <form method="post" action="<?php echo esc_url( $action_url ); ?>" class="bhg-form-card bhg-form-card--narrow">
+                <input type="hidden" name="action" value="bhg_demo_reset" />
+                <?php
 		if ( class_exists( 'BHG_Utils' ) ) {
 			BHG_Utils::nonce_field( 'bhg_demo_reset' );
 		} else {
@@ -65,16 +65,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php echo esc_html( bhg_t( 'reset_reseed_demo', 'Reset & Reseed Demo' ) ); ?>
 		</p>
 
-		<?php
-		submit_button(
-			bhg_t( 'reset_reseed_demo_data', 'Reset & Reseed Demo Data' ),
-			'primary',
-			'submit',
-			false,
-			array(
-				'onclick' => "return confirm('" . esc_js( bhg_t( 'are_you_sure', 'Are you sure?' ) ) . "');",
-			)
-		);
-		?>
-	</form>
+                <div class="bhg-form-actions">
+                        <?php
+                        submit_button(
+                                bhg_t( 'reset_reseed_demo_data', 'Reset & Reseed Demo Data' ),
+                                'primary',
+                                'submit',
+                                false,
+                                array(
+                                        'onclick' => "return confirm('" . esc_js( bhg_t( 'are_you_sure', 'Are you sure?' ) ) . "');",
+                                )
+                        );
+                        ?>
+                </div>
+        </form>
 </div>

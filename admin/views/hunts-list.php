@@ -33,7 +33,7 @@ $total = (int) $wpdb->get_var(
 $pages = max( 1, (int) ceil( $total / $per_page ) );
 
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 	<h1>
 	<?php
 	echo esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) );

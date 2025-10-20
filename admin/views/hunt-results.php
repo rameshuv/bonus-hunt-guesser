@@ -36,7 +36,7 @@ if ( ! $hunt ) {
 $rows          = bhg_get_all_ranked_guesses( $hunt_id );
 $winners_count = (int) ( $hunt->winners_count ?? 3 );
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
         <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title ) ); ?></h1>
         <?php if ( ! empty( $rows ) ) : ?>
         <table class="widefat striped">
@@ -65,7 +65,7 @@ $winners_count = (int) ( $hunt->winners_count ?? 3 );
                         $u         = get_userdata( (int) $r->user_id );
                         $name      = $u ? $u->user_login : ( '#' . $r->user_id );
                         ?>
-                <tr<?php echo $highlight ? ' style="background:#e6ffed;"' : ''; ?>>
+                <tr<?php echo $highlight ? ' class="bhg-row-highlight"' : ''; ?>>
                         <td><?php echo (int) $i; ?></td>
                         <td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $r->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
                         <td><?php echo esc_html( number_format_i18n( (float) $r->guess, 2 ) ); ?></td>

@@ -39,12 +39,12 @@ $rows     = $data['rows'];
 $total    = (int) $data['total'];
 $pages    = max( 1, (int) ceil( $total / $per_page ) );
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 	<h1><?php echo esc_html( sprintf( bhg_t( 'edit_hunt_s', 'Edit Hunt — %s' ), $hunt->title ) ); ?></h1>
 
 	<!-- Your existing edit form for the hunt would be above this line -->
 
-	<h2 style="margin-top:2em;">
+        <h2 class="bhg-section-heading">
 	<?php
 	echo esc_html( bhg_t( 'participants', 'Participants' ) );
 	?>
@@ -56,7 +56,8 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 		?>
 		</p>
 
-	<table class="widefat striped">
+        <div class="bhg-table-card">
+        <table class="widefat striped">
 	<thead>
 		<tr>
 		<th>
@@ -93,7 +94,7 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 			<td><?php echo esc_html( number_format_i18n( (float) $r->guess, 2 ) ); ?></td>
 					<td><?php echo $r->created_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->created_at ) ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 			<td>
-			<form method="post" style="display:inline">
+                        <form method="post" class="bhg-inline-form">
 				<?php wp_nonce_field( 'bhg_remove_guess_action', 'bhg_remove_guess_nonce' ); ?>
 				<input type="hidden" name="guess_id" value="<?php echo (int) $r->id; ?>">
 				<button type="submit" name="bhg_remove_guess" class="button button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'remove_this_guess', 'Remove this guess?' ) ); ?>');">
@@ -112,7 +113,8 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 </td></tr>
 		<?php endif; ?>
 	</tbody>
-	</table>
+        </table>
+        </div>
 
 	<?php if ( $pages > 1 ) : ?>
 	<div class="tablenav">
