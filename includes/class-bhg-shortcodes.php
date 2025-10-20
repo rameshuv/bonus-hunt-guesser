@@ -161,9 +161,18 @@ $wpdb->usermeta,
          * @return string
          */
        private function normalize_prize_layout( $layout ) {
-               $layout = strtolower( (string) $layout );
+               $layout    = strtolower( trim( (string) $layout ) );
+               $collapsed = preg_replace( '/[^a-z]/', '', $layout );
 
-               return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
+               if ( in_array( $collapsed, array( 'carousel', 'caroussel', 'slider' ), true ) ) {
+                       return 'carousel';
+               }
+
+               if ( in_array( $collapsed, array( 'grid', 'gridlist', 'gridview', 'list' ), true ) ) {
+                       return 'grid';
+               }
+
+               return 'grid';
        }
 
         /**
@@ -195,6 +204,20 @@ $wpdb->usermeta,
                $size           = $this->normalize_prize_size( $size );
                $allow_toggle   = (bool) $allow_toggle;
 
+               wp_enqueue_style(
+                       'bhg-shortcodes',
+                       ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                       array(),
+                       defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+               );
+               wp_enqueue_script(
+                       'bhg-shortcodes-js',
+                       ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/js/bhg-shortcodes.js',
+                       array(),
+                       defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
+                       true
+               );
+
                $block_classes = array(
                        'bhg-prizes-block',
                        'bhg-prizes-layout-' . $default_layout,
@@ -215,7 +238,7 @@ $wpdb->usermeta,
                        $toggle_aria_label = bhg_t( 'label_prize_layout', 'Choose prize layout' );
 
                        echo '<div class="bhg-prize-layout-toggle" role="group" aria-label="' . esc_attr( $toggle_aria_label ) . '">';
-                       echo '<button type="button" class="' . ( $grid_active ? 'active' : '' ) . '" data-layout="grid" aria-pressed="' . ( $grid_active ? 'true' : 'false' ) . '">' . esc_html( bhg_t( 'label_grid_view', 'Grid view' ) ) . '</button>';
+                       echo '<button type="button" class="' . ( $grid_active ? 'active' : '' ) . '" data-layout="grid" aria-pressed="' . ( $grid_active ? 'true' : 'false' ) . '">' . esc_html( bhg_t( 'label_grid_view', 'Grid list' ) ) . '</button>';
                        echo '<button type="button" class="' . ( $carousel_active ? 'active' : '' ) . '" data-layout="carousel" aria-pressed="' . ( $carousel_active ? 'true' : 'false' ) . '">' . esc_html( bhg_t( 'label_carousel_view', 'Carousel view' ) ) . '</button>';
                        echo '</div>';
 
