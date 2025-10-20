@@ -643,12 +643,12 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
-		check_admin_referer( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' );
+                $hunt_id = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+                check_admin_referer( 'bhg_toggle_guessing_' . $hunt_id, 'bhg_toggle_guessing_nonce' );
 
-		global $wpdb;
-				$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-			$hunt_id         = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
-		$new_state           = isset( $_POST['guessing_enabled'] ) ? absint( wp_unslash( $_POST['guessing_enabled'] ) ) : 0;
+                global $wpdb;
+                                $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                        $new_state   = isset( $_POST['guessing_enabled'] ) ? absint( wp_unslash( $_POST['guessing_enabled'] ) ) : 0;
 
 		if ( $hunt_id ) {
 			$wpdb->update(
