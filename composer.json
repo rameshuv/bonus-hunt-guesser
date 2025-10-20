@@ -8,8 +8,8 @@
         "phpunit/phpunit": "^9.6"
     },
     "scripts": {
-        "phpcs": "vendor/bin/phpcs --standard=phpcs.xml",
-        "phpcbf": "vendor/bin/phpcbf --standard=phpcs.xml"
+        "phpcs": "@php vendor/bin/phpcs --standard=phpcs.xml",
+        "phpcbf": "@php vendor/bin/phpcbf --standard=phpcs.xml"
     },
     "config": {
         "allow-plugins": {
