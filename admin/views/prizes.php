@@ -85,9 +85,14 @@ $prizes = BHG_Prizes::get_prizes();
                                                                         'image_medium' => bhg_t( 'image_medium', 'Medium' ),
                                                                         'image_large'  => bhg_t( 'image_large', 'Big' ),
                                                                 );
-                                                                foreach ( $image_fields as $field => $label ) :
-                                                                        $attachment_id = $prize ? absint( $prize->$field ) : 0;
-                                                                        $image_url     = $attachment_id ? wp_get_attachment_image_url( $attachment_id, 'thumbnail' ) : '';
+                                                                ?>
+                                                                <p class="description"><?php echo esc_html( bhg_t( 'prize_images_required_note', 'Upload one image for each size. All sizes are required.' ) ); ?></p>
+                                                                <?php foreach ( $image_fields as $field => $label ) :
+                                                                        $attachment_id = 0;
+                                                                        if ( $prize ) {
+                                                                                $attachment_id = BHG_Prizes::sanitize_image_id( $prize->$field );
+                                                                        }
+                                                                        $image_url = $attachment_id ? wp_get_attachment_image_url( $attachment_id, 'thumbnail' ) : '';
                                                                         ?>
                                                                         <div class="bhg-prize-image-field">
                                                                                 <label for="bhg_<?php echo esc_attr( $field ); ?>"><?php echo esc_html( $label ); ?></label>
@@ -103,7 +108,7 @@ $prizes = BHG_Prizes::get_prizes();
                                                                                                 <button type="button" class="button bhg-select-media" data-target="bhg_<?php echo esc_attr( $field ); ?>"><?php echo esc_html( bhg_t( 'select_image', 'Select Image' ) ); ?></button>
                                                                                                 <button type="button" class="button bhg-clear-media" data-target="bhg_<?php echo esc_attr( $field ); ?>"><?php echo esc_html( bhg_t( 'clear', 'Clear' ) ); ?></button>
                                                                                         </div>
-                                                                                        <input type="hidden" id="bhg_<?php echo esc_attr( $field ); ?>" name="<?php echo esc_attr( $field ); ?>" value="<?php echo esc_attr( $attachment_id ); ?>" />
+                                                                                        <input type="hidden" id="bhg_<?php echo esc_attr( $field ); ?>" name="<?php echo esc_attr( $field ); ?>" value="<?php echo esc_attr( $attachment_id ); ?>" data-required="1" />
                                                                                 </div>
                                                                         </div>
                                                                 <?php endforeach; ?>
@@ -177,8 +182,8 @@ $prizes = BHG_Prizes::get_prizes();
                                                                 <td>
                                                                         <?php
                                                                         $thumbs = array();
-                                                                        foreach ( array( 'image_small', 'image_medium', 'image_large' ) as $field ) {
-                                                                                $attachment_id = absint( $row->$field );
+                                                                        foreach ( array( 'small', 'medium', 'big' ) as $size_key ) {
+                                                                                $attachment_id = BHG_Prizes::get_image_id( $row, $size_key );
                                                                                 if ( ! $attachment_id ) {
                                                                                         continue;
                                                                                 }
