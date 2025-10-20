@@ -201,6 +201,80 @@ flex: 1;
     text-align: center;
 }
 
+/* Prizes layout */
+.bhg-prizes-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    margin-top: 24px;
+}
+
+@media (max-width: 960px) {
+    .bhg-prizes-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.bhg-prize-form,
+.bhg-prize-list {
+    background: #fff;
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 6px;
+    padding: 24px;
+}
+
+.bhg-prize-list table img {
+    max-width: 50px;
+    height: auto;
+    margin-right: 4px;
+    border-radius: 4px;
+}
+
+.bhg-prize-image-field {
+    margin-bottom: 16px;
+}
+
+.bhg-media-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bhg-media-preview {
+    width: 80px;
+    height: 80px;
+    border: 1px dashed var(--bhg-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9fafb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bhg-media-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bhg-media-placeholder {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+    padding: 4px;
+}
+
+.bhg-media-buttons .button {
+    margin-right: 4px;
+}
+
+.bhg-prize-list .inline-block {
+    display: inline-block;
+    margin-left: 4px;
+}
+
 .bhg-summary-table td {
     font-size: 16px;
     font-weight: 600;

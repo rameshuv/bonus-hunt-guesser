@@ -34,8 +34,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				// Addons.
 				add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
 				add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
-				add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
-				add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
+                                add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
+                                add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
+                                add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
 
 				// Legacy/aliases.
 				add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
@@ -153,6 +154,123 @@ $wpdb->usermeta,
                 );
         }
 
+        /**
+         * Normalize prize layout keyword.
+         *
+         * @param string $layout Layout keyword.
+         * @return string
+         */
+        private function normalize_prize_layout( $layout ) {
+                $layout = strtolower( (string) $layout );
+
+                return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
+        }
+
+        /**
+         * Normalize prize card size keyword.
+         *
+         * @param string $size Size keyword.
+         * @return string
+         */
+        private function normalize_prize_size( $size ) {
+                $size = strtolower( (string) $size );
+
+                return in_array( $size, array( 'small', 'medium', 'big' ), true ) ? $size : 'medium';
+        }
+
+        /**
+         * Render prizes section markup.
+         *
+         * @param array  $prizes Prize rows.
+         * @param string $layout Layout keyword.
+         * @param string $size   Image size keyword.
+         * @return string
+         */
+        private function render_prize_section( $prizes, $layout, $size ) {
+                if ( empty( $prizes ) || ! class_exists( 'BHG_Prizes' ) ) {
+                        return '';
+                }
+
+                $layout = $this->normalize_prize_layout( $layout );
+                $size   = $this->normalize_prize_size( $size );
+
+                ob_start();
+                echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
+                echo '<h4 class="bhg-prizes-title">' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . '</h4>';
+
+                if ( 'carousel' === $layout ) {
+                        $count    = count( $prizes );
+                        $show_nav = $count > 1;
+                        echo '<div class="bhg-prize-carousel" data-count="' . (int) $count . '">';
+                        if ( $show_nav ) {
+                                echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '">&#10094;</button>';
+                        }
+                        echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
+                        foreach ( $prizes as $prize ) {
+                                echo $this->render_prize_card( $prize, $size );
+                        }
+                        echo '</div></div>';
+                        if ( $show_nav ) {
+                                echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '">&#10095;</button>';
+                        }
+                        if ( $count > 1 ) {
+                                echo '<div class="bhg-prize-dots">';
+                                for ( $i = 0; $i < $count; $i++ ) {
+                                        $active = 0 === $i ? ' active' : '';
+                                        echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
+                                }
+                                echo '</div>';
+                        }
+                        echo '</div>';
+                } else {
+                        echo '<div class="bhg-prizes-grid">';
+                        foreach ( $prizes as $prize ) {
+                                echo $this->render_prize_card( $prize, $size );
+                        }
+                        echo '</div>';
+                }
+
+                echo '</div>';
+
+                return ob_get_clean();
+        }
+
+        /**
+         * Render a single prize card.
+         *
+         * @param object $prize Prize row.
+         * @param string $size  Image size keyword.
+         * @return string
+         */
+        private function render_prize_card( $prize, $size ) {
+                if ( ! class_exists( 'BHG_Prizes' ) ) {
+                        return '';
+                }
+
+                $style_attr = BHG_Prizes::build_style_attr( $prize );
+                $image_url  = BHG_Prizes::get_image_url( $prize, $size );
+                $category   = isset( $prize->category ) ? (string) $prize->category : '';
+
+                ob_start();
+                echo '<div class="bhg-prize-card"' . $style_attr . '>';
+                if ( $image_url ) {
+                        echo '<div class="bhg-prize-image"><img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $prize->title ) . '"></div>';
+                }
+                echo '<div class="bhg-prize-body">';
+                echo '<h5 class="bhg-prize-title">' . esc_html( $prize->title ) . '</h5>';
+                if ( $category ) {
+                        echo '<div class="bhg-prize-category">' . esc_html( ucwords( str_replace( '_', ' ', $category ) ) ) . '</div>';
+                }
+                if ( ! empty( $prize->description ) ) {
+                        $description = wp_kses_post( wpautop( $prize->description ) );
+                        echo '<div class="bhg-prize-description">' . $description . '</div>';
+                }
+                echo '</div>';
+                echo '</div>';
+
+                return ob_get_clean();
+        }
+
 
                                         /**
                                          * Minimal login hint used by some themes.
@@ -160,10 +278,10 @@ $wpdb->usermeta,
                                          * @param array $atts Shortcode attributes. Unused.
                                          * @return string HTML output.
                                          */
-                public function login_hint_shortcode( $atts = array() ) {
-				unset( $atts ); // Parameter unused but kept for shortcode signature.
+        public function login_hint_shortcode( $atts = array() ) {
+                unset( $atts ); // Parameter unused but kept for shortcode signature.
 
-			if ( is_user_logged_in() ) {
+                if ( is_user_logged_in() ) {
 								return '';
 			}
 				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
@@ -180,8 +298,18 @@ $wpdb->usermeta,
 			 * @param array $atts Shortcode attributes.
 			 * @return string HTML output.
 			 */
-	       public function active_hunt_shortcode( $atts ) {
-			       unset( $atts ); // Parameter unused but kept for shortcode signature.
+               public function active_hunt_shortcode( $atts ) {
+                        $atts = shortcode_atts(
+                                array(
+                                        'prize_layout' => 'grid',
+                                        'prize_size'   => 'medium',
+                                ),
+                                $atts,
+                                'bhg_active_hunt'
+                        );
+
+                        $prize_layout = $this->normalize_prize_layout( isset( $atts['prize_layout'] ) ? $atts['prize_layout'] : 'grid' );
+                        $prize_size   = $this->normalize_prize_size( isset( $atts['prize_size'] ) ? $atts['prize_size'] : 'medium' );
 
 			       global $wpdb;
 			       $hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
@@ -210,8 +338,8 @@ $wpdb->usermeta,
                        }
 
 		       if ( empty( $hunts ) ) {
-			       return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
-		       }
+                       return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
+                       }
 
 		       $hunts_map = array();
 		       foreach ( $hunts as $hunt ) {
@@ -232,7 +360,12 @@ $wpdb->usermeta,
 			       return '';
 		       }
 
-		       $selected_hunt = $hunts_map[ $selected_hunt_id ];
+                       $selected_hunt = $hunts_map[ $selected_hunt_id ];
+
+                       $hunt_prizes = array();
+                       if ( class_exists( 'BHG_Prizes' ) ) {
+                               $hunt_prizes = BHG_Prizes::get_prizes_for_hunt( $selected_hunt_id, array( 'active_only' => true ) );
+                       }
 
                        $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 30 );
                        if ( $per_page <= 0 ) {
@@ -325,8 +458,9 @@ $wpdb->usermeta,
 						       continue;
 					       }
 					       echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( sanitize_text_field( $value ) ) . '">';
-				       }
-			       }
+                }
+        }
+
 			       echo '<label for="bhg-hunt-select">' . esc_html( bhg_t( 'label_choose_hunt', 'Choose a hunt:' ) ) . '</label>';
 			       echo '<select id="bhg-hunt-select" class="bhg-hunt-select" name="bhg_hunt">';
 			       foreach ( $hunts as $hunt ) {
@@ -340,7 +474,7 @@ $wpdb->usermeta,
 
 		       echo '<div class="bhg-hunt-card">';
 		       echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
-		       echo '<ul class="bhg-hunt-meta">';
+                       echo '<ul class="bhg-hunt-meta">';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
 
@@ -374,11 +508,15 @@ $wpdb->usermeta,
                        if ( ! empty( $selected_hunt->prizes ) ) {
                                echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
                        }
-		       if ( $has_final ) {
-			       echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $final_balance ) ) . '</li>';
-		       }
-		       echo '</ul>';
-		       echo '</div>';
+                       if ( $has_final ) {
+                               echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $final_balance ) ) . '</li>';
+                       }
+                       echo '</ul>';
+
+                       if ( ! empty( $hunt_prizes ) ) {
+                               echo $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size );
+                       }
+                       echo '</div>';
 
 		       echo '<div class="bhg-table-wrapper">';
 		       if ( empty( $rows ) ) {
@@ -413,11 +551,11 @@ $wpdb->usermeta,
 		       }
 		       echo '</div>';
 
-		       if ( $total_pages > 1 ) {
-			       $pagination_links = paginate_links(
-				       array(
-					       'base'      => esc_url_raw( add_query_arg( array( 'bhg_hunt_page' => '%#%', 'bhg_hunt' => $selected_hunt_id ) ) ),
-					       'format'    => '',
+                       if ( $total_pages > 1 ) {
+                               $pagination_links = paginate_links(
+                                       array(
+                                               'base'      => esc_url_raw( add_query_arg( array( 'bhg_hunt_page' => '%#%', 'bhg_hunt' => $selected_hunt_id ) ) ),
+                                               'format'    => '',
 					       'current'   => $current_page,
 					       'total'     => $total_pages,
 					       'type'      => 'array',
@@ -2395,6 +2533,58 @@ $wpdb->usermeta,
 
                        return ob_get_clean();
                }
+
+                /**
+                 * Render standalone prizes shortcode.
+                 *
+                 * @param array $atts Shortcode attributes.
+                 * @return string
+                 */
+                public function prizes_shortcode( $atts ) {
+                        if ( ! class_exists( 'BHG_Prizes' ) ) {
+                                return '';
+                        }
+
+                        $atts = shortcode_atts(
+                                array(
+                                        'category' => '',
+                                        'design'   => 'grid',
+                                        'size'     => 'medium',
+                                        'active'   => 'yes',
+                                ),
+                                $atts,
+                                'bhg_prizes'
+                        );
+
+                        $args = array();
+
+                        $category = isset( $atts['category'] ) ? sanitize_key( $atts['category'] ) : '';
+                        if ( $category && in_array( $category, BHG_Prizes::get_categories(), true ) ) {
+                                $args['category'] = $category;
+                        }
+
+                        $active = isset( $atts['active'] ) ? strtolower( (string) $atts['active'] ) : 'yes';
+                        if ( in_array( $active, array( 'yes', 'no', '1', '0' ), true ) ) {
+                                $args['active'] = in_array( $active, array( 'yes', '1' ), true ) ? 1 : 0;
+                        }
+
+                        $layout = $this->normalize_prize_layout( isset( $atts['design'] ) ? $atts['design'] : 'grid' );
+                        $size   = $this->normalize_prize_size( isset( $atts['size'] ) ? $atts['size'] : 'medium' );
+
+                        $prizes = BHG_Prizes::get_prizes( $args );
+
+                        if ( empty( $prizes ) ) {
+                                return '<div class="bhg-prizes-shortcode"><p>' . esc_html( bhg_t( 'no_prizes_yet', 'No prizes found.' ) ) . '</p></div>';
+                        }
+
+                        $content = $this->render_prize_section( $prizes, $layout, $size );
+
+                        if ( '' === $content ) {
+                                return '';
+                        }
+
+                        return '<div class="bhg-prizes-shortcode">' . $content . '</div>';
+                }
 
 					/**
 					 * Minimal winners widget: latest closed hunts.

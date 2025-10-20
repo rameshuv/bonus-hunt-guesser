@@ -29,4 +29,67 @@ document.addEventListener('DOMContentLoaded', function () {
             huntSelect.form.submit();
         });
     }
+
+    document.querySelectorAll('.bhg-prize-carousel').forEach(function (carousel) {
+        var track = carousel.querySelector('.bhg-prize-track');
+        if (!track) {
+            return;
+        }
+
+        var cards = track.querySelectorAll('.bhg-prize-card');
+        if (!cards.length) {
+            return;
+        }
+
+        var dots = carousel.querySelectorAll('.bhg-prize-dot');
+        var prevButton = carousel.querySelector('.bhg-prize-prev');
+        var nextButton = carousel.querySelector('.bhg-prize-next');
+        var currentIndex = 0;
+
+        function updateCarousel(index) {
+            if (!track) {
+                return;
+            }
+            currentIndex = index;
+            track.style.transform = 'translateX(' + (-100 * currentIndex) + '%)';
+            dots.forEach(function (dot, dotIndex) {
+                if (dotIndex === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        if (prevButton) {
+            prevButton.addEventListener('click', function () {
+                var newIndex = currentIndex - 1;
+                if (newIndex < 0) {
+                    newIndex = cards.length - 1;
+                }
+                updateCarousel(newIndex);
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener('click', function () {
+                var newIndex = currentIndex + 1;
+                if (newIndex >= cards.length) {
+                    newIndex = 0;
+                }
+                updateCarousel(newIndex);
+            });
+        }
+
+        dots.forEach(function (dot) {
+            dot.addEventListener('click', function () {
+                var targetIndex = parseInt(dot.getAttribute('data-index'), 10);
+                if (!isNaN(targetIndex)) {
+                    updateCarousel(targetIndex);
+                }
+            });
+        });
+
+        updateCarousel(0);
+    });
 });
