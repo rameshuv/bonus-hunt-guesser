@@ -371,7 +371,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_shortcode'                              => 'Shortcode',
 			'label_timeline_colon'                         => 'Timeline:',
 			'label_user_hash'                              => 'user#%d',
-			'label_emdash'                                 => '—',
+                        'label_emdash'                                 => '–',
                         'placeholder_enter_guess'                      => 'Enter your guess',
                         'placeholder_custom_value'                     => 'Custom value',
                         'select_multiple_tournaments_hint'             => 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.',

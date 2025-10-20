@@ -82,6 +82,35 @@
     display: inline;
 }
 
+.bhg-guessing-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 12px 0 10px;
+}
+
+.bhg-guessing-toggle .dashicons {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.bhg-guessing-toggle.is-enabled {
+    background-color: #1a7f37;
+    border-color: #1a7f37;
+    color: #fff;
+}
+
+.bhg-guessing-toggle.is-enabled:hover,
+.bhg-guessing-toggle.is-enabled:focus {
+    background-color: #166c2f;
+    border-color: #166c2f;
+    color: #fff;
+}
+
+.bhg-guessing-toggle.is-disabled .dashicons {
+    color: #646970;
+}
+
 .bhg-text-center {
     text-align: center;
 }

@@ -238,8 +238,8 @@ $hunts = $wpdb->get_results( $hunts_query );
 <td><?php echo esc_html( (int) $h->id ); ?></td>
                         <td><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( $h->title ); ?></a></td>
 <td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
-<td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
-<td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+<td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '–' ) ); ?></td>
+<td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '–' ) ); ?></td>
 <td><?php echo esc_html( (int) ( $h->winners_count ?? 3 ) ); ?></td>
 <td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
 <td>
@@ -262,11 +262,22 @@ $hunts = $wpdb->get_results( $hunts_query );
 
 <?php endif; ?>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
-						<?php wp_nonce_field( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' ); ?>
+                                                <?php wp_nonce_field( 'bhg_toggle_guessing_' . (int) $h->id, 'bhg_toggle_guessing_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_toggle_guessing" />
 <input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
 <input type="hidden" name="guessing_enabled" value="<?php echo esc_attr( $h->guessing_enabled ? 0 : 1 ); ?>" />
-<button type="submit" class="button"><?php echo esc_html( $h->guessing_enabled ? bhg_t( 'disable_guessing', 'Disable Guessing' ) : bhg_t( 'enable_guessing', 'Enable Guessing' ) ); ?></button>
+<?php
+$toggle_classes = array( 'button', 'button-secondary', 'bhg-guessing-toggle' );
+if ( $h->guessing_enabled ) {
+        $toggle_classes[] = 'is-enabled';
+} else {
+        $toggle_classes[] = 'is-disabled';
+}
+?>
+<button type="submit" class="<?php echo esc_attr( implode( ' ', $toggle_classes ) ); ?>" aria-pressed="<?php echo $h->guessing_enabled ? 'true' : 'false'; ?>">
+        <span class="dashicons <?php echo esc_attr( $h->guessing_enabled ? 'dashicons-visibility' : 'dashicons-hidden' ); ?>" aria-hidden="true"></span>
+        <?php echo esc_html( $h->guessing_enabled ? bhg_t( 'disable_guessing', 'Disable Guessing' ) : bhg_t( 'enable_guessing', 'Enable Guessing' ) ); ?>
+</button>
 </form>
 </td>
 <td>
