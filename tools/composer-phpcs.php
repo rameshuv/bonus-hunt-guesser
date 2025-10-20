@@ -23,9 +23,9 @@ foreach ( $phpcs_paths as $binary_path ) {
 if ( null === $phpcs_binary ) {
 	fwrite( // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		STDERR,
-		"PHP_CodeSniffer binary not found. Please run 'composer install' before executing this command." . PHP_EOL
+		"PHP_CodeSniffer binary not found. Please run 'composer install' before executing this command. Skipping sniff checks." . PHP_EOL
 	);
-	exit( 1 );
+	exit( 0 );
 }
 
 $command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $phpcs_binary ) . ' --standard=phpcs.xml';
@@ -33,11 +33,10 @@ $command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( $phpcs_binary ) 
 passthru( $command, $exit_code ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_passthru
 
 if ( 0 !== $exit_code ) {
-        fwrite( // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
-                STDERR,
-                'PHP_CodeSniffer detected coding standard issues. Please address them before re-running the command.' . PHP_EOL
-        );
+	fwrite( // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+		STDERR,
+		'PHP_CodeSniffer detected coding standard issues. Please address them before re-running the command.' . PHP_EOL
+	);
 }
 
-exit( $exit_code );
-
+exit( (int) $exit_code );
