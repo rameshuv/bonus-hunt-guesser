@@ -55,13 +55,34 @@ class BHG_DB {
 				$guesses_table      = $wpdb->prefix . 'bhg_guesses';
 				$tours_table        = $wpdb->prefix . 'bhg_tournaments';
 				$tres_table         = $wpdb->prefix . 'bhg_tournament_results';
-				$ads_table          = $wpdb->prefix . 'bhg_ads';
-				$trans_table        = $wpdb->prefix . 'bhg_translations';
-$aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
-$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
-$hunt_tours_table   = $wpdb->prefix . 'bhg_hunt_tournaments';
-$prizes_table       = $wpdb->prefix . 'bhg_prizes';
-$hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
+                                $ads_table          = $wpdb->prefix . 'bhg_ads';
+                                $trans_table        = $wpdb->prefix . 'bhg_translations';
+                                $aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
+                                $winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
+                                $hunt_tours_table   = $wpdb->prefix . 'bhg_tournaments_hunts';
+                                $legacy_hunt_tours  = $wpdb->prefix . 'bhg_hunt_tournaments';
+
+                                // Ensure legacy hunt to tournament map table is renamed if still present.
+                                if ( $this->table_exists( $legacy_hunt_tours ) && ! $this->table_exists( $hunt_tours_table ) ) {
+                                                $legacy = esc_sql( $legacy_hunt_tours );
+                                                $new    = esc_sql( $hunt_tours_table );
+                                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                                $wpdb->query( "ALTER TABLE `{$legacy}` RENAME TO `{$new}`" );
+                                }
+
+                                if ( $this->table_exists( $hunt_tours_table ) ) {
+                                                $table = esc_sql( $hunt_tours_table );
+                                                if ( $this->index_exists( $hunt_tours_table, 'hunt_tournament' ) ) {
+                                                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                                                $wpdb->query( "ALTER TABLE `{$table}` DROP INDEX hunt_tournament" );
+                                                }
+                                                if ( ! $this->index_exists( $hunt_tours_table, 'tournament_hunt' ) ) {
+                                                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                                                $wpdb->query( "ALTER TABLE `{$table}` ADD UNIQUE KEY tournament_hunt (hunt_id, tournament_id)" );
+                                                }
+                                }
+                                $prizes_table       = $wpdb->prefix . 'bhg_prizes';
+                                $hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
 
 		$sql = array();
 
@@ -217,7 +238,7 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                                    tournament_id BIGINT UNSIGNED NOT NULL,
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
-                                   UNIQUE KEY hunt_tournament (hunt_id, tournament_id),
+                                   UNIQUE KEY tournament_hunt (hunt_id, tournament_id),
                                    KEY tournament_id (tournament_id),
                                    KEY hunt_id (hunt_id)
                    ) {$charset_collate};";
