@@ -48,17 +48,21 @@ class BHG_Admin {
 		$cap  = 'manage_options';
 		$slug = 'bhg';
 
-		add_menu_page(
-			bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
-			bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
-			$cap,
-			$slug,
-			array( $this, 'dashboard' ),
-			'dashicons-awards',
-			55
-		);
+                add_menu_page(
+                        bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
+                        bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
+                        $cap,
+                        $slug,
+                        array( $this, 'dashboard' ),
+                        'dashicons-awards',
+                        55
+                );
 
-		add_submenu_page( $slug, bhg_t( 'menu_dashboard', 'Dashboard' ), bhg_t( 'menu_dashboard', 'Dashboard' ), $cap, $slug, array( $this, 'dashboard' ) );
+                // Rename the default submenu entry (added automatically by WordPress) to "Dashboard".
+                global $submenu;
+                if ( isset( $submenu[ $slug ][0] ) ) {
+                        $submenu[ $slug ][0][0] = bhg_t( 'menu_dashboard', 'Dashboard' );
+                }
 				add_submenu_page( $slug, bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), $cap, 'bhg-bonus-hunts', array( $this, 'bonus_hunts' ) );
 				add_submenu_page( $slug, bhg_t( 'menu_prizes', 'Prizes' ), bhg_t( 'menu_prizes', 'Prizes' ), $cap, 'bhg-prizes', array( $this, 'prizes' ) );
 				add_submenu_page( $slug, bhg_t( 'button_results', 'Results' ), bhg_t( 'button_results', 'Results' ), $cap, 'bhg-bonus-hunts-results', array( $this, 'bonus_hunts_results' ) );
@@ -82,11 +86,10 @@ class BHG_Admin {
 			BHG_Demo::instance()->register_menu( $slug, $cap );
 		}
 
-				// NOTE: By default, WordPress adds a submenu item that duplicates the
-				// top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
-				// call removed this submenu, but it also inadvertently removed our
-				// custom “Dashboard” submenu. Removing the call ensures the Dashboard
-		// item remains visible under the "Bonus Hunt" menu.
+                // NOTE: WordPress automatically adds a submenu item that duplicates the
+                // top-level "Bonus Hunt" menu entry. We keep that default item and
+                // rename it to "Dashboard" above so the sidebar matches the customer's
+                // preferred wording without removing any submenu pages.
 	}
 
 		/**
