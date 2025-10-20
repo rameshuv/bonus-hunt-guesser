@@ -32,7 +32,7 @@ final class CloseHuntTest extends TestCase {
             'created_at'     => '2024-01-01 00:00:00',
         );
 
-        $this->wpdb->hunt_tournaments[] = array(
+        $this->wpdb->tournaments_hunts[] = array(
             'hunt_id'       => $hunt_id,
             'tournament_id' => $tournament_id,
         );
@@ -92,7 +92,7 @@ final class CloseHuntTest extends TestCase {
             'created_at'    => '2024-01-01 00:00:00',
         );
 
-        $this->wpdb->hunt_tournaments[] = array(
+        $this->wpdb->tournaments_hunts[] = array(
             'hunt_id'       => $hunt_id,
             'tournament_id' => $tournament_id,
         );
@@ -139,11 +139,11 @@ final class CloseHuntTest extends TestCase {
             'created_at'    => '2024-01-01 00:00:00',
         );
 
-        $this->wpdb->hunt_tournaments[] = array(
+        $this->wpdb->tournaments_hunts[] = array(
             'hunt_id'       => $hunt_id,
             'tournament_id' => $winners_tournament,
         );
-        $this->wpdb->hunt_tournaments[] = array(
+        $this->wpdb->tournaments_hunts[] = array(
             'hunt_id'       => $hunt_id,
             'tournament_id' => $all_tournament,
         );

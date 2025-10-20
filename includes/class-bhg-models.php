@@ -312,11 +312,11 @@ if ( ! empty( $tournament_ids ) ) {
 			return;
 		}
 
-$hunts_tbl    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$winners_tbl  = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
-$results_tbl  = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
-$relation_tbl = esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' );
-$tours_tbl   = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+                $hunts_tbl    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                $winners_tbl  = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+                $results_tbl  = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
+                $relation_tbl = esc_sql( $wpdb->prefix . 'bhg_tournaments_hunts' );
+                $tours_tbl    = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 
 		foreach ( $normalized as $tournament_id ) {
 			$query = "

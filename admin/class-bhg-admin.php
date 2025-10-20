@@ -595,7 +595,7 @@ $tournament_ids = array_map( 'intval', array_unique( $tournament_ids ) );
 $wpdb->delete( $hunts_table, array( 'id' => $hunt_id ), array( '%d' ) );
 $wpdb->delete( $guesses_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
 $wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
-$wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_id' => $hunt_id ), array( '%d' ) );
+        $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_tournaments_hunts' ), array( 'hunt_id' => $hunt_id ), array( '%d' ) );
 
 			if ( ! empty( $winner_map ) ) {
 				foreach ( $winner_map as $tournament_id => $user_ids ) {
@@ -873,7 +873,6 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                                 $hunt_link_mode = 'manual';
                         }
 
-                        $allowed_types  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
                         $raw_start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
                         $raw_end_date   = isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : '';
 
@@ -894,32 +893,11 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                         if ( ! in_array( $data['status'], $allowed_statuses, true ) ) {
                                 $data['status'] = 'active';
                         }
-                        $existing_type = '';
-                        if ( $id > 0 ) {
-                                        // db call ok; table name from prefix.
-                                        $existing_row = $wpdb->get_row( $wpdb->prepare( "SELECT type FROM {$t} WHERE id = %d", $id ) );
-                                        if ( $existing_row && isset( $existing_row->type ) ) {
-                                                $existing_type = sanitize_key( (string) $existing_row->type );
-                                        }
-                        }
-
-                        $posted_type = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
-
-                        if ( in_array( $posted_type, $allowed_types, true ) ) {
-                                $resolved_type = $posted_type;
-                        } elseif ( in_array( $existing_type, $allowed_types, true ) ) {
-                                $resolved_type = $existing_type;
-                        } else {
-                                $resolved_type = $this->infer_tournament_type( $start_date, $end_date );
-                        }
-
-$data['type'] = $resolved_type;
-
 if ( 'auto' === $hunt_link_mode ) {
         $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
 }
 try {
-$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
 if ( $id > 0 ) {
 $wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
 $saved_id = $id;
@@ -962,7 +940,7 @@ exit;
 					$id    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
 if ( $id ) {
 $wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-$wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'tournament_id' => $id ), array( '%d' ) );
+        $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_tournaments_hunts' ), array( 'tournament_id' => $id ), array( '%d' ) );
 wp_safe_redirect( add_query_arg( 'bhg_msg', 't_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 exit;
 }
@@ -1001,63 +979,7 @@ exit;
                         exit;
         }
 
-                /**
-                 * Infer a tournament type based on provided dates or plugin defaults.
-                 *
-                 * @param string|null $start_date Start date in Y-m-d format or null.
-                 * @param string|null $end_date   End date in Y-m-d format or null.
-                 * @return string Resolved tournament type slug.
-                 */
-        private function infer_tournament_type( $start_date, $end_date ) {
-                        $allowed = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
-                        $settings = get_option( 'bhg_plugin_settings', array() );
-                        $default  = isset( $settings['default_tournament_period'] ) ? sanitize_key( $settings['default_tournament_period'] ) : 'monthly';
-                        if ( ! in_array( $default, $allowed, true ) ) {
-                                $default = 'monthly';
-                        }
-
-                        $start_date = is_string( $start_date ) ? trim( $start_date ) : ( is_null( $start_date ) ? '' : trim( (string) $start_date ) );
-                        $end_date   = is_string( $end_date ) ? trim( $end_date ) : ( is_null( $end_date ) ? '' : trim( (string) $end_date ) );
-
-                        if ( '' === $start_date || '' === $end_date ) {
-                                return $default;
-                        }
-
-                        try {
-                                $start = new DateTimeImmutable( $start_date );
-                                $end   = new DateTimeImmutable( $end_date );
-                        } catch ( Exception $e ) {
-                                return $default;
-                        }
-
-                        if ( $end < $start ) {
-                                $tmp   = $start;
-                                $start = $end;
-                                $end   = $tmp;
-                        }
-
-                        $days = (int) $end->diff( $start )->format( '%a' ) + 1;
-
-                        if ( $days <= 10 ) {
-                                return 'weekly';
-                        }
-
-                        if ( $days <= 45 ) {
-                                return 'monthly';
-                        }
-
-                        if ( $days <= 120 ) {
-                                return 'quarterly';
-                        }
-
-                        if ( $days <= 400 ) {
-                                return 'yearly';
-                        }
-
-                        return 'alltime';
-        }
-
-        /**
+                        /**
          * Retrieve hunt IDs that fall within the provided tournament date range.
          *
          * Uses the hunt's closed, updated, or created timestamp (in that order) for comparisons.

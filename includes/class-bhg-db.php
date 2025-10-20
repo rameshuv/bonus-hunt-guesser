@@ -44,46 +44,55 @@ class BHG_DB {
 	 *
 	 * @return void
 	 */
-	public function create_tables() {
-		global $wpdb;
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        public function create_tables() {
+                global $wpdb;
+                require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-				$charset_collate = $wpdb->get_charset_collate();
+                $charset_collate = $wpdb->get_charset_collate();
 
-				// Raw table names without backticks.
-				$hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts';
-				$guesses_table      = $wpdb->prefix . 'bhg_guesses';
-				$tours_table        = $wpdb->prefix . 'bhg_tournaments';
-				$tres_table         = $wpdb->prefix . 'bhg_tournament_results';
-				$ads_table          = $wpdb->prefix . 'bhg_ads';
-				$trans_table        = $wpdb->prefix . 'bhg_translations';
-$aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
-$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
-$hunt_tours_table   = $wpdb->prefix . 'bhg_hunt_tournaments';
-$prizes_table       = $wpdb->prefix . 'bhg_prizes';
-$hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
+                // Raw table names without backticks.
+                $hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts';
+                $guesses_table      = $wpdb->prefix . 'bhg_guesses';
+                $tours_table        = $wpdb->prefix . 'bhg_tournaments';
+                $tres_table         = $wpdb->prefix . 'bhg_tournament_results';
+                $ads_table          = $wpdb->prefix . 'bhg_ads';
+                $trans_table        = $wpdb->prefix . 'bhg_translations';
+                $aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
+                $winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
+                $hunt_tours_table   = $wpdb->prefix . 'bhg_tournaments_hunts';
+                $legacy_hunt_tours  = $wpdb->prefix . 'bhg_hunt_tournaments';
+                $prizes_table       = $wpdb->prefix . 'bhg_prizes';
+                $hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
+
+                if ( $this->table_exists( $legacy_hunt_tours ) && ! $this->table_exists( $hunt_tours_table ) ) {
+                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                        $wpdb->query( "RENAME TABLE `{$legacy_hunt_tours}` TO `{$hunt_tours_table}`" );
+                }
 
 		$sql = array();
 
-				// Bonus Hunts.
-				$sql[] = "CREATE TABLE `{$hunts_table}` (
-id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-title VARCHAR(190) NOT NULL,
-starting_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-num_bonuses INT UNSIGNED NOT NULL DEFAULT 0,
-prizes TEXT NULL,
-affiliate_site_id BIGINT UNSIGNED NULL,
-tournament_id BIGINT UNSIGNED NULL,
-winners_count INT UNSIGNED NOT NULL DEFAULT 3,
-guessing_enabled TINYINT(1) NOT NULL DEFAULT 1,
-final_balance DECIMAL(12,2) NULL,
-status VARCHAR(20) NOT NULL DEFAULT 'open',
-created_at DATETIME NULL,
-updated_at DATETIME NULL,
-closed_at DATETIME NULL,
-PRIMARY KEY  (id),
-KEY status (status),
-KEY tournament_id (tournament_id)
+                // Bonus Hunts.
+                $sql[] = "CREATE TABLE `{$hunts_table}` (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    title VARCHAR(190) NOT NULL,
+    starting_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    num_bonuses INT UNSIGNED NOT NULL DEFAULT 0,
+    prizes TEXT NULL,
+    affiliate_site_id BIGINT UNSIGNED NULL,
+    affiliate_id BIGINT UNSIGNED NULL,
+    tournament_id BIGINT UNSIGNED NULL,
+    winners_count INT UNSIGNED NOT NULL DEFAULT 3,
+    guessing_enabled TINYINT(1) NOT NULL DEFAULT 1,
+    final_balance DECIMAL(12,2) NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'open',
+    created_at DATETIME NULL,
+    updated_at DATETIME NULL,
+    closed_at DATETIME NULL,
+    PRIMARY KEY  (id),
+    KEY title (title),
+    KEY status (status),
+    KEY affiliate_id (affiliate_id),
+    KEY tournament_id (tournament_id)
 ) {$charset_collate};";
 
 		// Guesses table includes updated_at for tracking edits.
@@ -99,16 +108,16 @@ KEY tournament_id (tournament_id)
                         KEY user_id (user_id)
                 ) {$charset_collate};";
 
-		// Tournaments.
-                                $sql[] = "CREATE TABLE `{$tours_table}` (
+                // Tournaments.
+                $sql[] = "CREATE TABLE `{$tours_table}` (
                                                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                                 title VARCHAR(190) NOT NULL,
                                                 description TEXT NULL,
-                                                type VARCHAR(20) NOT NULL,
                                                 participants_mode VARCHAR(20) NOT NULL DEFAULT 'winners',
                                                 hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual',
                                                 prizes TEXT NULL,
                                                 affiliate_site_id BIGINT UNSIGNED NULL,
+                                                affiliate_website VARCHAR(255) NULL,
                                                 affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1,
                                                 start_date DATE NULL,
                                                 end_date DATE NULL,
@@ -116,7 +125,8 @@ KEY tournament_id (tournament_id)
                                                 created_at DATETIME NULL,
                                                 updated_at DATETIME NULL,
                                                 PRIMARY KEY  (id),
-                                                KEY type (type),
+                                                KEY title (title),
+                                                KEY affiliate_website (affiliate_website),
                                                 KEY status (status)
                                 ) {$charset_collate};";
 
@@ -162,8 +172,8 @@ KEY tournament_id (tournament_id)
 					   UNIQUE KEY slug_unique (slug)
 			   ) {$charset_collate};";
 
-// Hunt Winners.
-$sql[] = "CREATE TABLE `{$winners_table}` (
+                // Hunt Winners.
+                $sql[] = "CREATE TABLE `{$winners_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    user_id BIGINT UNSIGNED NOT NULL,
@@ -198,8 +208,8 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
                                    KEY active (active)
                    ) {$charset_collate};";
 
-// Hunt prize map.
-$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
+                // Hunt prize map.
+                $sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    prize_id BIGINT UNSIGNED NOT NULL,
@@ -210,14 +220,14 @@ $sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
                                    KEY prize_id (prize_id)
                    ) {$charset_collate};";
 
-// Hunt to tournament mapping.
-$sql[] = "CREATE TABLE `{$hunt_tours_table}` (
+                // Hunt to tournament mapping.
+                $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    tournament_id BIGINT UNSIGNED NOT NULL,
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
-                                   UNIQUE KEY hunt_tournament (hunt_id, tournament_id),
+                                   UNIQUE KEY tournament_hunt (tournament_id, hunt_id),
                                    KEY tournament_id (tournament_id),
                                    KEY hunt_id (hunt_id)
                    ) {$charset_collate};";
@@ -232,24 +242,35 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 				// Idempotent ensure for columns/indexes.
 		try {
 						// Hunts: winners_count, affiliate_site_id, tournament_id.
-			$need = array(
-				'winners_count'     => 'ADD COLUMN winners_count INT UNSIGNED NOT NULL DEFAULT 3',
-				'affiliate_site_id' => 'ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL',
-				'tournament_id'     => 'ADD COLUMN tournament_id BIGINT UNSIGNED NULL',
-				'guessing_enabled'  => 'ADD COLUMN guessing_enabled TINYINT(1) NOT NULL DEFAULT 1',
-				'final_balance'     => 'ADD COLUMN final_balance DECIMAL(12,2) NULL',
-				'status'            => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'open\'',
-			);
-			foreach ( $need as $c => $alter ) {
-				if ( ! $this->column_exists( $hunts_table, $c ) ) {
+                        $need = array(
+                                'winners_count'     => 'ADD COLUMN winners_count INT UNSIGNED NOT NULL DEFAULT 3',
+                                'affiliate_site_id' => 'ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL',
+                                'affiliate_id'      => 'ADD COLUMN affiliate_id BIGINT UNSIGNED NULL',
+                                'tournament_id'     => 'ADD COLUMN tournament_id BIGINT UNSIGNED NULL',
+                                'guessing_enabled'  => 'ADD COLUMN guessing_enabled TINYINT(1) NOT NULL DEFAULT 1',
+                                'final_balance'     => 'ADD COLUMN final_balance DECIMAL(12,2) NULL',
+                                'status'            => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'open\'',
+                        );
+                        foreach ( $need as $c => $alter ) {
+                                if ( ! $this->column_exists( $hunts_table, $c ) ) {
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 								$wpdb->query( "ALTER TABLE `{$hunts_table}` {$alter}" );
 				}
 			}
-			if ( ! $this->index_exists( $hunts_table, 'tournament_id' ) ) {
-							// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-							$wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY tournament_id (tournament_id)" );
-			}
+                        if ( ! $this->index_exists( $hunts_table, 'title' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY title (title)" );
+                        }
+
+                        if ( ! $this->index_exists( $hunts_table, 'affiliate_id' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY affiliate_id (affiliate_id)" );
+                        }
+
+                        if ( ! $this->index_exists( $hunts_table, 'tournament_id' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY tournament_id (tournament_id)" );
+                        }
 
 			// Guesses columns.
 			$gneed = array(
@@ -265,26 +286,46 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 
 												// Tournaments: make sure common columns exist.
                         $tneed = array(
-                                'title'               => 'ADD COLUMN title VARCHAR(190) NOT NULL',
-                                'description'         => 'ADD COLUMN description TEXT NULL',
-                                'type'                => 'ADD COLUMN type VARCHAR(20) NOT NULL',
-                                'participants_mode'   => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
-                                'hunt_link_mode'      => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
-                                'prizes'              => 'ADD COLUMN prizes TEXT NULL',
-                                'affiliate_site_id'   => 'ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL',
+                                'title'                 => 'ADD COLUMN title VARCHAR(190) NOT NULL',
+                                'description'           => 'ADD COLUMN description TEXT NULL',
+                                'participants_mode'     => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
+                                'hunt_link_mode'        => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
+                                'prizes'                => 'ADD COLUMN prizes TEXT NULL',
+                                'affiliate_site_id'     => 'ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL',
+                                'affiliate_website'     => 'ADD COLUMN affiliate_website VARCHAR(255) NULL',
                                 'affiliate_url_visible' => 'ADD COLUMN affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1',
-                                'start_date'          => 'ADD COLUMN start_date DATE NULL',
-                                'end_date'            => 'ADD COLUMN end_date DATE NULL',
-                                'status'              => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'active\'',
+                                'start_date'            => 'ADD COLUMN start_date DATE NULL',
+                                'end_date'              => 'ADD COLUMN end_date DATE NULL',
+                                'status'                => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'active\'',
                         );
-			foreach ( $tneed as $c => $alter ) {
-				if ( ! $this->column_exists( $tours_table, $c ) ) {
+                        foreach ( $tneed as $c => $alter ) {
+                                if ( ! $this->column_exists( $tours_table, $c ) ) {
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 								$wpdb->query( "ALTER TABLE `{$tours_table}` {$alter}" );
 				}
 			}
 
-												// Tournament results columns.
+                        if ( $this->index_exists( $tours_table, 'type' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$tours_table}` DROP INDEX type" );
+                        }
+
+                        if ( $this->column_exists( $tours_table, 'type' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$tours_table}` DROP COLUMN type" );
+                        }
+
+                        if ( ! $this->index_exists( $tours_table, 'title' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$tours_table}` ADD KEY title (title)" );
+                        }
+
+                        if ( ! $this->index_exists( $tours_table, 'affiliate_website' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$tours_table}` ADD KEY affiliate_website (affiliate_website)" );
+                        }
+
+                        // Tournament results columns.
 			$trrneed = array(
 				'tournament_id' => 'ADD COLUMN tournament_id BIGINT UNSIGNED NOT NULL',
 				'user_id'       => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
@@ -417,9 +458,14 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                                         }
                                 }
 
-                                if ( ! $this->index_exists( $hunt_tours_table, 'hunt_tournament' ) ) {
+                                if ( $this->index_exists( $hunt_tours_table, 'hunt_tournament' ) ) {
                                                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-                                                $wpdb->query( "ALTER TABLE `{$hunt_tours_table}` ADD UNIQUE KEY hunt_tournament (hunt_id, tournament_id)" );
+                                                $wpdb->query( "ALTER TABLE `{$hunt_tours_table}` DROP INDEX hunt_tournament" );
+                                }
+
+                                if ( ! $this->index_exists( $hunt_tours_table, 'tournament_hunt' ) ) {
+                                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                                $wpdb->query( "ALTER TABLE `{$hunt_tours_table}` ADD UNIQUE KEY tournament_hunt (tournament_id, hunt_id)" );
                                 }
 
                                 if ( ! $this->index_exists( $hunt_tours_table, 'tournament_id' ) ) {

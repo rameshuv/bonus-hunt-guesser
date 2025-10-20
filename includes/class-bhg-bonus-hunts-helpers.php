@@ -31,7 +31,7 @@ function bhg_get_hunt_tournament_ids( $hunt_id ) {
 global $wpdb;
 
 $hunt_id     = absint( $hunt_id );
-$relation_tbl = $wpdb->prefix . 'bhg_hunt_tournaments';
+$relation_tbl = $wpdb->prefix . 'bhg_tournaments_hunts';
 $hunts_tbl    = $wpdb->prefix . 'bhg_bonus_hunts';
 
 if ( $hunt_id <= 0 ) {
@@ -67,7 +67,7 @@ function bhg_get_tournament_hunt_ids( $tournament_id ) {
 global $wpdb;
 
 $tournament_id = absint( $tournament_id );
-$table         = $wpdb->prefix . 'bhg_hunt_tournaments';
+$table         = $wpdb->prefix . 'bhg_tournaments_hunts';
 
 if ( $tournament_id <= 0 ) {
 return array();
@@ -121,7 +121,7 @@ if ( $hunt_id <= 0 ) {
 return;
 }
 
-$table     = $wpdb->prefix . 'bhg_hunt_tournaments';
+$table     = $wpdb->prefix . 'bhg_tournaments_hunts';
 $new_ids   = bhg_normalize_int_list( $tournament_ids );
 $current   = bhg_get_hunt_tournament_ids( $hunt_id );
 $to_add    = array_diff( $new_ids, $current );
@@ -166,7 +166,7 @@ if ( $tournament_id <= 0 ) {
 return;
 }
 
-$table       = $wpdb->prefix . 'bhg_hunt_tournaments';
+$table       = $wpdb->prefix . 'bhg_tournaments_hunts';
 $new_hunts   = bhg_normalize_int_list( $hunt_ids );
 $current     = bhg_get_tournament_hunt_ids( $tournament_id );
 $to_add      = array_diff( $new_hunts, $current );

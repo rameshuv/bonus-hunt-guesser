@@ -59,7 +59,7 @@ $wpdb->prefix . 'bhg_tournaments',
 $wpdb->prefix . 'bhg_tournament_results',
 $wpdb->prefix . 'bhg_affiliate_websites',
 $wpdb->prefix . 'bhg_hunt_winners',
-$wpdb->prefix . 'bhg_hunt_tournaments',
+$wpdb->prefix . 'bhg_tournaments_hunts',
 $wpdb->users,
 $wpdb->usermeta,
 );
@@ -1682,7 +1682,7 @@ $wpdb->usermeta,
 
                         $tournaments_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
                         $hunts_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $hunt_map_table    = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $hunt_map_table    = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
                         $sites_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 
                         if ( $tournaments_table ) {
@@ -1883,7 +1883,7 @@ $wpdb->usermeta,
 			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
                         $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
 			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
 			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
                         if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um || ! $ht ) {
                                 return '';
@@ -2231,12 +2231,12 @@ $wpdb->usermeta,
 				}
 
 					// db call ok; no-cache ok.
-										$tournament = $wpdb->get_row(
-											$wpdb->prepare(
-												"SELECT id, type, start_date, end_date, status FROM {$t} WHERE id = %d",
-												$details_id
-											)
-										);
+                                                                                $tournament = $wpdb->get_row(
+                                                                                        $wpdb->prepare(
+                                                                                                "SELECT id, title, start_date, end_date, status FROM {$t} WHERE id = %d",
+                                                                                                $details_id
+                                                                                        )
+                                                                                );
 				if ( ! $tournament ) {
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
@@ -2282,7 +2282,8 @@ $wpdb->usermeta,
 					ob_start();
 					echo '<div class="bhg-tournament-details">';
 					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
-					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
+                                        $heading = $tournament->title ? $tournament->title : bhg_t( 'label_tournament', 'Tournament' );
+                                        echo '<h3>' . esc_html( $heading ) . '</h3>';
 					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
 					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
 									$status_key = strtolower( (string) $tournament->status );
@@ -2363,7 +2364,6 @@ $wpdb->usermeta,
                                'start_date' => 'start_date',
                                'end_date'   => 'end_date',
                                'status'     => 'status',
-                               'type'       => 'type',
                        );
                        $orderby_column = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'start_date';
                        $order_param    = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
@@ -2377,17 +2377,14 @@ $wpdb->usermeta,
                                $params[] = $status;
                        }
 
-                                           // Accept either explicit time window or tournament type.
-                       if ( in_array( $timeline, array( 'weekly', 'monthly', 'yearly', 'quarterly', 'alltime' ), true ) ) {
-                               $where[]  = 'type = %s';
-                               $params[] = $timeline;
-                       } else {
-                               $range = $this->get_timeline_range( $timeline );
-                               if ( $range ) {
-                                       $where[]  = 'created_at BETWEEN %s AND %s';
-                                       $params[] = $range['start'];
-                                       $params[] = $range['end'];
-                               }
+                       // Accept explicit time window or derive range from timeline keyword.
+                       $range = $this->get_timeline_range( $timeline );
+                       if ( $range ) {
+                               $range_start = substr( $range['start'], 0, 10 );
+                               $range_end   = substr( $range['end'], 0, 10 );
+                               $where[]     = '( (start_date IS NULL OR start_date <= %s) AND (end_date IS NULL OR end_date >= %s) )';
+                               $params[]    = $range_end;
+                               $params[]    = $range_start;
                        }
 
                        if ( $website > 0 ) {
@@ -2744,60 +2741,65 @@ $wpdb->usermeta,
 			$current_year  = wp_date( 'Y', $now_ts );
 
 			$periods = array(
-				'overall' => array(
-					'label' => esc_html( bhg_t( 'label_overall', 'Overall' ) ),
-					'type'  => '',
-					'start' => '',
-					'end'   => '',
-				),
-				'monthly' => array(
-					'label' => esc_html( bhg_t( 'label_monthly', 'Monthly' ) ),
-					'type'  => 'monthly',
-					'start' => $current_month . '-01',
-					'end'   => wp_date( 'Y-m-t', strtotime( $current_month . '-01', $now_ts ) ),
-				),
-				'yearly'  => array(
-					'label' => esc_html( bhg_t( 'label_yearly', 'Yearly' ) ),
-					'type'  => 'yearly',
-					'start' => $current_year . '-01-01',
-					'end'   => $current_year . '-12-31',
-				),
-				'alltime' => array(
-					'label' => esc_html( bhg_t( 'label_all_time', 'All-Time' ) ),
-					'type'  => 'alltime',
-					'start' => '',
-					'end'   => '',
-				),
+                                'overall' => array(
+                                        'label' => esc_html( bhg_t( 'label_overall', 'Overall' ) ),
+                                        'start' => '',
+                                        'end'   => '',
+                                ),
+                                'monthly' => array(
+                                        'label' => esc_html( bhg_t( 'label_monthly', 'Monthly' ) ),
+                                        'start' => $current_month . '-01',
+                                        'end'   => wp_date( 'Y-m-t', strtotime( $current_month . '-01', $now_ts ) ),
+                                ),
+                                'yearly'  => array(
+                                        'label' => esc_html( bhg_t( 'label_yearly', 'Yearly' ) ),
+                                        'start' => $current_year . '-01-01',
+                                        'end'   => $current_year . '-12-31',
+                                ),
+                                'alltime' => array(
+                                        'label' => esc_html( bhg_t( 'label_all_time', 'All-Time' ) ),
+                                        'start' => '',
+                                        'end'   => '',
+                                ),
 			);
 
 			$results = array();
+			
+
 			foreach ( $periods as $key => $info ) {
-				if ( $info['type'] ) {
-					$where  = 't.type = %s';
-					$params = array( $info['type'] );
-					if ( ! empty( $info['start'] ) && ! empty( $info['end'] ) ) {
-						$where   .= ' AND t.start_date >= %s AND t.end_date <= %s';
-						$params[] = $info['start'];
-						$params[] = $info['end'];
-					}
-										$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
-										. " FROM {$wins_tbl} r"
-										. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
-										. " INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id"
-										. ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
-										// db call ok; no-cache ok.
-																				$sql = $wpdb->prepare( $sql, ...$params );
-										$sql                                        .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
-																		$results[ $key ] = $wpdb->get_results( $sql );
-				} else {
-						$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
-						. " FROM {$wins_tbl} r"
-						. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
-						. ' GROUP BY u.ID, u.user_login';
-						// db call ok; no-cache ok.
-						$sql .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
-																$results[ $key ] = $wpdb->get_results( $sql );
+				$where_clauses = array();
+				$params        = array();
+
+				if ( ! empty( $info['start'] ) && ! empty( $info['end'] ) ) {
+					$where_clauses[] = 't.start_date IS NOT NULL';
+					$where_clauses[] = 't.end_date IS NOT NULL';
+					$where_clauses[] = 't.start_date >= %s';
+					$where_clauses[] = 't.end_date <= %s';
+					$params[]        = $info['start'];
+					$params[]        = $info['end'];
+				} elseif ( 'alltime' === $key ) {
+					$where_clauses[] = '(t.start_date IS NULL OR t.start_date = "0000-00-00")';
+					$where_clauses[] = '(t.end_date IS NULL OR t.end_date = "0000-00-00")';
 				}
+
+				$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
+					. " FROM {$wins_tbl} r"
+					. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
+					. " INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id";
+
+				if ( ! empty( $where_clauses ) ) {
+					$sql .= ' WHERE ' . implode( ' AND ', $where_clauses );
+				}
+
+				$sql .= "
+			                                GROUP BY u.ID, u.user_login";
+
+				if ( ! empty( $params ) ) {
+					$sql = $wpdb->prepare( $sql, ...$params );
+				}
+
+				$sql               .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+				$results[ $key ] = $wpdb->get_results( $sql );
 			}
 
 						$hunts_tbl = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );

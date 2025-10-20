@@ -1262,8 +1262,7 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 					}
 
 																				$sql = $wpdb->prepare(
-																					"SELECT id FROM {$t_tbl} WHERE type=%s AND start_date=%s AND end_date=%s",
-																					$type,
+																					"SELECT id FROM {$t_tbl} WHERE start_date=%s AND end_date=%s",
 																					$start,
 																					$end
 																				);
@@ -1271,17 +1270,20 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 					if ( $id ) {
 						return (int) $id;
 					}
+						$title = ucfirst( $type ) . ' ' . $period;
 						$wpdb->insert(
 							$t_tbl,
 							array(
-								'type'       => $type,
-								'start_date' => $start,
-								'end_date'   => $end,
-								'status'     => 'active',
-								'created_at' => $now,
-								'updated_at' => $now,
+								'title'             => $title,
+								'participants_mode' => 'winners',
+								'hunt_link_mode'    => 'auto',
+								'start_date'        => $start,
+								'end_date'          => $end,
+								'status'            => 'active',
+								'created_at'        => $now,
+								'updated_at'        => $now,
 							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s' )
+							array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
 						);
 						return (int) $wpdb->insert_id;
 				};
