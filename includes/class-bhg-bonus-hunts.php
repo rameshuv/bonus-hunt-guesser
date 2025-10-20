@@ -36,7 +36,7 @@ class BHG_Bonus_Hunts {
 		$out = array();
 
 		foreach ( (array) $hunts as $h ) {
-			$winners_count       = max( 1, (int) $h->winners_count );
+                        $winners_count       = min( 25, max( 1, (int) $h->winners_count ) );
                         $winners = $wpdb->get_results(
                                 $wpdb->prepare(
                                         "SELECT g.user_id, u.display_name, g.guess,

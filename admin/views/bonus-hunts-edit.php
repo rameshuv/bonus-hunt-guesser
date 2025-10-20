@@ -118,7 +118,7 @@ $base     = remove_query_arg( 'ppaged' );
                                 </tr>
 				<tr>
 					<th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
-									<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ? $hunt->winners_count : 3 ); ?>"></td>
+                                                                        <td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( min( 25, max( 1, $hunt->winners_count ? (int) $hunt->winners_count : 3 ) ) ); ?>"></td>
 				</tr>
 				<tr>
 					<th scope="row"><label for="bhg_final"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></label></th>
@@ -150,7 +150,7 @@ $base     = remove_query_arg( 'ppaged' );
 		?>
 		</p>
 
-	<table class="widefat striped">
+        <table class="widefat fixed striped bhg-participants-table">
 		<thead>
 			<tr>
 				<th>
@@ -188,31 +188,19 @@ $base     = remove_query_arg( 'ppaged' );
 					$u                        = get_userdata( (int) $r->user_id );
 										$name = $u ? $u->display_name : sprintf( esc_html( bhg_t( 'label_user_hash', 'user#%d' ) ), (int) $r->user_id );
 					?>
-				<tr>
-					<td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $r->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
-					<td><?php echo esc_html( number_format_i18n( (float) $r->guess, 2 ) ); ?></td>
-										<td><?php echo $r->created_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->created_at ) ) ) : esc_html( bhg_t( 'label_dash', '-' ) ); ?></td>
-										<td>
-												<?php
-																								$delete_url = wp_nonce_url(
-																									add_query_arg(
-																										array(
-																											'action'   => 'bhg_delete_guess',
-																											'guess_id' => (int) $r->id,
-																										),
-																										admin_url( 'admin-post.php' )
-																									),
-																									'bhg_delete_guess',
-																									'bhg_delete_guess_nonce'
-																								);
-												?>
-												<a href="<?php echo esc_url( $delete_url ); ?>" class="button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');">
-												<?php
-												echo esc_html( bhg_t( 'remove', 'Remove' ) );
-												?>
-</a>
-										</td>
-								</tr>
+                                <tr>
+                                        <td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $r->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
+                                        <td><?php echo esc_html( number_format_i18n( (float) $r->guess, 2 ) ); ?></td>
+                                                                                <td><?php echo $r->created_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->created_at ) ) ) : esc_html( bhg_t( 'label_dash', '-' ) ); ?></td>
+                                                                                <td>
+                                                                                                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form bhg-confirm-form" data-confirm-message="<?php echo esc_attr( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>">
+                                                                                                        <?php wp_nonce_field( 'bhg_delete_guess', 'bhg_delete_guess_nonce' ); ?>
+                                                                                                        <input type="hidden" name="action" value="bhg_delete_guess" />
+                                                                                                        <input type="hidden" name="guess_id" value="<?php echo esc_attr( (int) $r->id ); ?>" />
+                                                                                                        <button type="submit" class="button-link-delete"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
+                                                                                                </form>
+                                                                                </td>
+                                                                </tr>
 							<?php
 			endforeach;
 endif;
@@ -220,11 +208,11 @@ endif;
 		</tbody>
 	</table>
 
-	<?php if ( $pages > 1 ) : ?>
-		<div class="tablenav">
-			<div class="tablenav-pages">
-				<?php
-				echo paginate_links(
+        <?php if ( $pages > 1 ) : ?>
+                <div class="tablenav">
+                        <div class="tablenav-pages">
+                                <?php
+                                echo paginate_links(
 					array(
 						'base'      => add_query_arg( 'ppaged', '%#%', $base ),
 						'format'    => '',
@@ -235,7 +223,19 @@ endif;
 					)
 				);
 				?>
-			</div>
-		</div>
-	<?php endif; ?>
+                        </div>
+                </div>
+        <?php endif; ?>
+
+        <div id="bhg-confirm-modal" class="bhg-modal" hidden>
+                <div class="bhg-modal__overlay" data-bhg-dismiss></div>
+                <div class="bhg-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="bhg-confirm-modal-title">
+                        <h2 id="bhg-confirm-modal-title"><?php echo esc_html( bhg_t( 'confirm_action', 'Confirm Action' ) ); ?></h2>
+                        <p id="bhg-confirm-modal-message" class="bhg-modal__message"></p>
+                        <div class="bhg-modal__actions">
+                                <button type="button" class="button button-secondary" data-bhg-dismiss><?php echo esc_html( bhg_t( 'button_cancel', 'Cancel' ) ); ?></button>
+                                <button type="button" class="button button-primary" data-bhg-confirm><?php echo esc_html( bhg_t( 'button_confirm', 'Confirm' ) ); ?></button>
+                        </div>
+                </div>
+        </div>
 </div>

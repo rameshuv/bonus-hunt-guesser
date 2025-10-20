@@ -120,10 +120,10 @@ $hunts = $wpdb->get_results( $hunts_query );
        <div class="notice notice-error is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_close_failed', 'Failed to close the hunt.' ) ); ?></p></div>
        <?php endif; ?>
 
-<table class="widefat striped bhg-margin-top-small">
+<table class="widefat fixed striped bhg-margin-top-small bhg-hunts-table">
 <thead>
 <tr>
-<th><a href="
+<th class="column-id"><a href="
 	<?php
 	echo esc_url(
                 add_query_arg(
@@ -136,7 +136,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'id', 'ID' ) ); ?></a></th>
-<th><a href="
+<th class="column-title"><a href="
 	<?php
 	echo esc_url(
                 add_query_arg(
@@ -149,7 +149,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_title', 'Title' ) ); ?></a></th>
-<th><a href="
+<th class="column-balance"><a href="
 	<?php
 	echo esc_url(
                 add_query_arg(
@@ -162,7 +162,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ); ?></a></th>
-<th><a href="
+<th class="column-final-balance column-balance"><a href="
 	<?php
 	echo esc_url(
                 add_query_arg(
@@ -175,7 +175,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></a></th>
-<th><a href="
+<th class="column-affiliate"><a href="
 	<?php
 	echo esc_url(
                 add_query_arg(
@@ -188,7 +188,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'affiliate', 'Affiliate' ) ); ?></a></th>
-<th><a href="
+<th class="column-winners"><a href="
 	<?php
 	echo esc_url(
                 add_query_arg(
@@ -201,7 +201,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></a></th>
-<th><a href="
+<th class="column-status"><a href="
 	<?php
 	echo esc_url(
                 add_query_arg(
@@ -214,8 +214,8 @@ $hunts = $wpdb->get_results( $hunts_query );
 	);
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) ); ?></a></th>
-<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
-<th><?php echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) ); ?></th>
+<th class="column-actions"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+<th class="column-delete"><?php echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) ); ?></th>
 </tr>
 </thead>
 		<tbody>
@@ -235,43 +235,51 @@ $hunts = $wpdb->get_results( $hunts_query );
                                                 );
                                                 ?>
                 <tr>
-<td><?php echo esc_html( (int) $h->id ); ?></td>
-                        <td><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( $h->title ); ?></a></td>
-<td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
-<td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
-<td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
-<td><?php echo esc_html( (int) ( $h->winners_count ?? 3 ) ); ?></td>
-<td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
-<td>
+<td class="column-id"><?php echo esc_html( (int) $h->id ); ?></td>
+                        <td class="column-primary column-title">
+                                <strong><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( $h->title ); ?></a></strong>
+                                <?php
+                                $results_url = admin_url( 'admin.php?page=bhg-bonus-hunts-results&id=' . (int) $h->id );
+                                $close_url   = add_query_arg(
+                                        array(
+                                                'view' => 'close',
+                                                'id'   => (int) $h->id,
+                                        )
+                                );
+                                ?>
+                                <div class="row-actions">
+                                        <span class="edit"><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a></span>
+                                        <?php if ( 'closed' === $h->status && null !== $h->final_balance ) : ?>
+                                                <span class="view"><a href="<?php echo esc_url( $results_url ); ?>"><?php echo esc_html( bhg_t( 'view_results', 'View Results' ) ); ?></a></span>
+                                        <?php elseif ( 'open' === $h->status ) : ?>
+                                                <span class="close"><a href="<?php echo esc_url( $close_url ); ?>"><?php echo esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ); ?></a></span>
+                                        <?php endif; ?>
+                                </div>
+                        </td>
+<td class="column-balance"><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
+<td class="column-final-balance column-balance"><?php echo ( 'closed' === $h->status && null !== $h->final_balance ) ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_endash', '–' ) ); ?></td>
+<td class="column-affiliate"><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_endash', '–' ) ); ?></td>
+<td class="column-winners"><?php echo esc_html( min( 25, max( 1, (int) ( $h->winners_count ?? 3 ) ) ) ); ?></td>
+<td class="column-status"><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
+<td class="column-actions">
 <a class="button" href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
                                                 <?php if ( 'open' === $h->status ) : ?>
-<a class="button" href="
-							<?php
-							echo esc_url(
-								add_query_arg(
-									array(
-										'view' => 'close',
-										'id'   => (int) $h->id,
-									)
-								)
-							);
-							?>
-"><?php echo esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ); ?></a>
-<?php elseif ( null !== $h->final_balance ) : ?>
-<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts-results&id=' . (int) $h->id ) ); ?>"><?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?></a>
+<a class="button" href="<?php echo esc_url( $close_url ); ?>"><?php echo esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ); ?></a>
+<?php elseif ( 'closed' === $h->status && null !== $h->final_balance ) : ?>
+<a class="button" href="<?php echo esc_url( $results_url ); ?>"><?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?></a>
 
 <?php endif; ?>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
-						<?php wp_nonce_field( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' ); ?>
+                                                <?php wp_nonce_field( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_toggle_guessing" />
 <input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
 <input type="hidden" name="guessing_enabled" value="<?php echo esc_attr( $h->guessing_enabled ? 0 : 1 ); ?>" />
 <button type="submit" class="button"><?php echo esc_html( $h->guessing_enabled ? bhg_t( 'disable_guessing', 'Disable Guessing' ) : bhg_t( 'enable_guessing', 'Enable Guessing' ) ); ?></button>
 </form>
 </td>
-<td>
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_hunt', 'Delete this hunt?' ) ); ?>');" class="bhg-inline-form">
-						<?php wp_nonce_field( 'bhg_delete_hunt', 'bhg_delete_hunt_nonce' ); ?>
+<td class="column-delete">
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form bhg-confirm-form" data-confirm-message="<?php echo esc_attr( bhg_t( 'delete_this_hunt', 'Delete this hunt?' ) ); ?>">
+                                                <?php wp_nonce_field( 'bhg_delete_hunt', 'bhg_delete_hunt_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_delete_hunt" />
 <input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
 <button type="submit" class="button-link-delete"><?php echo esc_html( bhg_t( 'delete', 'Delete' ) ); ?></button>
@@ -570,7 +578,7 @@ if ( 'edit' === $view ) :
                                 </tr>
 <tr>
 <th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
-<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ? $hunt->winners_count : 3 ); ?>"></td>
+<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( min( 25, max( 1, $hunt->winners_count ? (int) $hunt->winners_count : 3 ) ) ); ?>"></td>
 </tr>
 <tr>
 <th scope="row"><label for="bhg_guessing_enabled"><?php echo esc_html( bhg_t( 'guessing_enabled', 'Guessing Enabled' ) ); ?></label></th>
