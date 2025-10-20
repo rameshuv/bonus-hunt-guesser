@@ -1,9 +1,14 @@
 /* Global color variables */
 :root {
     --bhg-accent-color: #2271b1;
-    --bhg-border-color: #e5e7eb;
+    --bhg-accent-color-dark: #135e96;
+    --bhg-border-color: #dcdcde;
+    --bhg-border-color-strong: #8c8f94;
     --bhg-card-bg: #ffffff;
+    --bhg-surface-muted: #f6f7f7;
     --bhg-spacing: 16px;
+    --bhg-spacing-small: 8px;
+    --bhg-spacing-large: 24px;
     --bhg-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 }
 
@@ -48,13 +53,174 @@
 /* BHG admin input borders per customer requirement */
 .bhg-wrap input[type="text"],
 .bhg-wrap input[type="number"],
+.bhg-wrap input[type="email"],
 .bhg-wrap input[type="url"],
+.bhg-wrap input[type="password"],
 .bhg-wrap textarea,
 .bhg-wrap select {
-    border: 1px solid #ccd0d4;
+    border: 1px solid var(--bhg-border-color);
     border-radius: 4px;
     padding: 6px 8px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,.04);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff;
+    font-family: inherit;
+}
+
+.bhg-wrap input[type="text"]:focus,
+.bhg-wrap input[type="number"]:focus,
+.bhg-wrap input[type="email"]:focus,
+.bhg-wrap input[type="url"]:focus,
+.bhg-wrap input[type="password"]:focus,
+.bhg-wrap textarea:focus,
+.bhg-wrap select:focus,
+.bhg-input:focus,
+.bhg-select:focus,
+.bhg-textarea:focus {
+    border-color: var(--bhg-accent-color);
+    box-shadow: 0 0 0 1px var(--bhg-accent-color);
+    outline: 2px solid transparent;
+    outline-offset: 0;
+}
+
+.bhg-input,
+.bhg-select,
+.bhg-textarea {
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 4px;
+    padding: 6px 8px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.bhg-input--border-strong {
+    border-color: var(--bhg-border-color-strong);
+}
+
+.bhg-input--inline {
+    width: auto;
+}
+
+.bhg-button {
+    background-color: var(--bhg-accent-color);
+    border-color: var(--bhg-accent-color);
+    color: #fff;
+}
+
+.bhg-button:hover,
+.bhg-button:focus {
+    background-color: var(--bhg-accent-color-dark);
+    border-color: var(--bhg-accent-color-dark);
+    color: #fff;
+}
+
+.bhg-section-heading,
+.bhg-wrap .bhg-section-heading {
+    margin-top: var(--bhg-spacing-large);
+    margin-bottom: var(--bhg-spacing);
+    font-size: 1.25rem;
+    line-height: 1.3;
+    color: #1d2327;
+}
+
+.bhg-subheading {
+    margin-top: var(--bhg-spacing);
+    margin-bottom: var(--bhg-spacing-small);
+    font-size: 1rem;
+    color: #2c3338;
+    font-weight: 600;
+}
+
+.bhg-card,
+.bhg-form-card {
+    background-color: var(--bhg-card-bg);
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 6px;
+    padding: calc(var(--bhg-spacing) * 0.75) var(--bhg-spacing);
+    box-shadow: 0 1px 2px rgba(30, 35, 40, 0.08);
+    margin-top: var(--bhg-spacing);
+}
+
+.bhg-card__title {
+    margin-top: 0;
+    margin-bottom: var(--bhg-spacing-small);
+}
+
+.bhg-card--muted {
+    background-color: var(--bhg-surface-muted);
+}
+
+.bhg-form-card {
+    max-width: 860px;
+}
+
+.bhg-form-card--narrow {
+    max-width: 480px;
+}
+
+.bhg-description--constrained {
+    max-width: 800px;
+}
+
+.bhg-col-narrow {
+    width: 140px;
+}
+
+.bhg-form-actions {
+    margin-top: calc(var(--bhg-spacing) * 0.75);
+}
+
+.bhg-wrap .form-table th,
+.bhg-wrap .form-table td {
+    padding: 12px 16px;
+}
+
+.bhg-wrap .form-table th {
+    width: 220px;
+    vertical-align: top;
+    font-weight: 600;
+    color: #2c3338;
+}
+
+.bhg-wrap .form-table td {
+    vertical-align: middle;
+}
+
+.bhg-wrap .form-table .description,
+.bhg-field-description {
+    margin-top: 6px;
+    color: #50575e;
+}
+
+.bhg-table-card {
+    margin-top: var(--bhg-spacing);
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 6px;
+    background-color: var(--bhg-card-bg);
+    overflow: hidden;
+}
+
+.bhg-table-card__body {
+    padding: 0 var(--bhg-spacing);
+}
+
+.bhg-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bhg-spacing);
+}
+
+.bhg-stack--small {
+    gap: var(--bhg-spacing-small);
+}
+
+.bhg-spacer-block {
+    margin: var(--bhg-spacing) 0;
+}
+
+.bhg-row-highlight {
+    background-color: #e6ffed;
 }
 
 .bhg-winner-row {

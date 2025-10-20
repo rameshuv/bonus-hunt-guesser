@@ -170,7 +170,7 @@ $current   = $view_type . '-' . $item_id;
 ?>
 <div class="wrap bhg-wrap">
 <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $result_title ) ); ?></h1>
-        <div style="margin:1em 0;">
+        <div class="bhg-spacer-block">
                         <select id="bhg-results-select">
                         <?php foreach ( (array) $all_hunts as $h ) : ?>
                                                         <?php $val = 'hunt-' . (int) $h->id; ?>

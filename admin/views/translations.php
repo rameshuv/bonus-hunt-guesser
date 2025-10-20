@@ -149,7 +149,7 @@ if ( $rows ) {
 	unset( $items );
 }
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 	<h1><?php echo esc_html( bhg_t( 'menu_translations', 'Translations' ) ); ?></h1>
 
 	<?php if ( ! empty( $notice ) ) : ?>

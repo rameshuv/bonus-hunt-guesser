@@ -35,9 +35,9 @@ $ads = $wpdb->get_results(
 );
 ?>
 <div class="wrap bhg-wrap">
-	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_advertising', 'Advertising' ) ); ?></h1>
+        <h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_advertising', 'Advertising' ) ); ?></h1>
 
-		<h2 style="margin-top:1em"><?php echo esc_html( bhg_t( 'existing_ads', 'Existing Ads' ) ); ?></h2>
+        <h2 class="bhg-section-heading"><?php echo esc_html( bhg_t( 'existing_ads', 'Existing Ads' ) ); ?></h2>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<?php wp_nonce_field( 'bhg_delete_ad', 'bhg_delete_ad_nonce' ); ?>
 				<input type="hidden" name="action" value="bhg_delete_ad">
@@ -52,7 +52,8 @@ $ads = $wpdb->get_results(
 						</div>
 				</div>
 
-				<table class="widefat striped">
+                                <div class="bhg-table-card">
+                                <table class="widefat striped">
 				<thead>
 		<tr>
 						<td id="cb" class="check-column"><input type="checkbox" onclick="document.querySelectorAll('.bhg-ad-checkbox').forEach(function(cb){cb.checked=this.checked;}.bind(this));" /></td>
@@ -110,11 +111,12 @@ $ads = $wpdb->get_results(
 														endforeach;
 												endif;
 												?>
-								</tbody>
-								</table>
-				</form>
+                                                                </tbody>
+                                                                </table>
+                                </div>
+                                </form>
 
-	<h2 style="margin-top:2em"><?php echo $edit_id ? esc_html( bhg_t( 'edit_ad', 'Edit Ad' ) ) : esc_html( bhg_t( 'add_ad', 'Add Ad' ) ); ?></h2>
+        <h2 class="bhg-section-heading"><?php echo $edit_id ? esc_html( bhg_t( 'edit_ad', 'Edit Ad' ) ) : esc_html( bhg_t( 'add_ad', 'Add Ad' ) ); ?></h2>
 	<?php
 		$ad = null;
 	if ( $edit_id ) {
@@ -124,7 +126,7 @@ $ads = $wpdb->get_results(
 		);
 	}
 	?>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="max-width:800px">
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-form-card">
 				<?php wp_nonce_field( 'bhg_save_ad', 'bhg_save_ad_nonce' ); ?>
 				<input type="hidden" name="action" value="bhg_save_ad">
 	<?php if ( $ad ) : ?>
@@ -135,7 +137,7 @@ $ads = $wpdb->get_results(
 		<tbody>
 		<tr>
 			<th scope="row"><label for="bhg_ad_title"><?php echo esc_html( bhg_t( 'sc_title', 'Title' ) ); ?></label></th>
-			<td><input class="regular-text" id="bhg_ad_title" name="title" value="<?php echo esc_attr( $ad ? ( $ad->title ?? '' ) : '' ); ?>"></td>
+                        <td><input class="regular-text bhg-input" id="bhg_ad_title" name="title" value="<?php echo esc_attr( $ad ? ( $ad->title ?? '' ) : '' ); ?>"></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="bhg_ad_content"><?php echo esc_html( bhg_t( 'content', 'Content' ) ); ?></label></th>
@@ -143,12 +145,12 @@ $ads = $wpdb->get_results(
 		</tr>
 		<tr>
 			<th scope="row"><label for="bhg_ad_link"><?php echo esc_html( bhg_t( 'link_url_optional', 'Link URL (optional)' ) ); ?></label></th>
-			<td><input class="regular-text" id="bhg_ad_link" name="link_url" value="<?php echo esc_attr( $ad ? ( $ad->link_url ?? '' ) : '' ); ?>"></td>
+                        <td><input class="regular-text bhg-input" id="bhg_ad_link" name="link_url" value="<?php echo esc_attr( $ad ? ( $ad->link_url ?? '' ) : '' ); ?>"></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="bhg_ad_place"><?php echo esc_html( bhg_t( 'placement', 'Placement' ) ); ?></label></th>
 			<td>
-			<select id="bhg_ad_place" name="placement">
+                        <select id="bhg_ad_place" name="placement" class="bhg-select">
 				<?php
 				$placement_opts   = BHG_Ads::get_allowed_placements();
 				$placement_labels = array(
@@ -170,7 +172,7 @@ $ads = $wpdb->get_results(
 		<tr>
 			<th scope="row"><label for="bhg_ad_vis"><?php echo esc_html( bhg_t( 'label_visible_to', 'Visible To' ) ); ?></label></th>
 			<td>
-			<select id="bhg_ad_vis" name="visible_to">
+                        <select id="bhg_ad_vis" name="visible_to" class="bhg-select">
 				<?php
 				$visible_opts   = array( 'all', 'guests', 'logged_in', 'affiliates', 'non_affiliates' );
 				$visible_labels = array(
@@ -191,14 +193,16 @@ $ads = $wpdb->get_results(
 		</tr>
 		<tr>
 			<th scope="row"><label for="bhg_ad_targets"><?php echo esc_html( bhg_t( 'target_page_slugs', 'Target Page Slugs' ) ); ?></label></th>
-			<td><input class="regular-text" id="bhg_ad_targets" name="target_pages" value="<?php echo esc_attr( $ad ? ( $ad->target_pages ?? '' ) : '' ); ?>" placeholder="page-slug-1,page-slug-2"></td>
+                        <td><input class="regular-text bhg-input" id="bhg_ad_targets" name="target_pages" value="<?php echo esc_attr( $ad ? ( $ad->target_pages ?? '' ) : '' ); ?>" placeholder="page-slug-1,page-slug-2"></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="bhg_ad_active"><?php echo esc_html( bhg_t( 'label_active', 'Active' ) ); ?></label></th>
 			<td><input type="checkbox" id="bhg_ad_active" name="active" value="1" <?php checked( $ad ? ( $ad->active ?? 1 ) : 1, 1 ); ?>></td>
 		</tr>
 		</tbody>
-	</table>
-	<?php submit_button( $ad ? bhg_t( 'update_ad', 'Update Ad' ) : bhg_t( 'create_ad', 'Create Ad' ) ); ?>
-	</form>
+        </table>
+        <div class="bhg-form-actions">
+                <?php submit_button( $ad ? bhg_t( 'update_ad', 'Update Ad' ) : bhg_t( 'create_ad', 'Create Ad' ) ); ?>
+        </div>
+        </form>
 </div>

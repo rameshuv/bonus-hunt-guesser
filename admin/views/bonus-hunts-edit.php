@@ -42,7 +42,7 @@ $total    = (int) $data['total'];
 $pages    = max( 1, (int) ceil( $total / $per_page ) );
 $base     = remove_query_arg( 'ppaged' );
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 		<?php
 		$message = isset( $_GET['message'] ) ? sanitize_text_field( wp_unslash( $_GET['message'] ) ) : '';
 		if ( 'guess_deleted' === $message ) {

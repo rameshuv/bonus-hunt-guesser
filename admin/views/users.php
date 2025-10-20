@@ -34,7 +34,7 @@ $total      = $user_query->get_total();
 
 $base_url = remove_query_arg( array( 'paged' ) );
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'menu_users', 'Users' ) ); ?></h1>
 
 		<form method="get" class="bhg-margin-top-small">

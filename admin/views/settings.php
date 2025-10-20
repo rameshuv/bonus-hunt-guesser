@@ -19,7 +19,7 @@ $settings = get_option( 'bhg_plugin_settings', array() );
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
 ?>
-<div class="wrap">
+<div class="wrap bhg-wrap">
 <h1><?php echo esc_html( bhg_t( 'bonus_hunt_guesser_settings', 'Bonus Hunt Guesser Settings' ) ); ?></h1>
 
 <?php if ( 'saved' === $message ) : ?>
