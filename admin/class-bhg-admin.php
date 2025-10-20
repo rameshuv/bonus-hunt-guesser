@@ -671,35 +671,37 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
 		 * Handle deletion of advertising entries.
 		 */
 	public function handle_delete_ad() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+			if ( ! current_user_can( 'manage_options' ) ) {
 				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-		}
-			check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
-						global $wpdb;
-						$ads_table = esc_sql( $wpdb->prefix . 'bhg_ads' );
-			$ad_id                 = isset( $_POST['ad_id'] ) ? absint( wp_unslash( $_POST['ad_id'] ) ) : 0;
-			$bulk_action           = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
-			$bulk_ad_ids           = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
+			}
 
-		if ( $ad_id ) {
-                        $wpdb->query(
-                                $wpdb->prepare(
-                                        'DELETE FROM `' . $ads_table . '` WHERE id = %d',
-                                        $ad_id
-                                )
-                        );
-		} elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
-                        $placeholders = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
-                        $wpdb->query(
-                                $wpdb->prepare(
-                                        'DELETE FROM `' . $ads_table . '` WHERE id IN (' . $placeholders . ')',
-                                        ...$bulk_ad_ids
-                                )
-                        );
-		}
+			check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
+
+			global $wpdb;
+			$ads_table   = esc_sql( $wpdb->prefix . 'bhg_ads' );
+			$ad_id       = isset( $_REQUEST['ad_id'] ) ? absint( wp_unslash( $_REQUEST['ad_id'] ) ) : 0;
+			$bulk_action = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
+			$bulk_ad_ids = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
+
+			if ( $ad_id ) {
+				$wpdb->query(
+					$wpdb->prepare(
+						'DELETE FROM `' . $ads_table . '` WHERE id = %d',
+						$ad_id
+					)
+				);
+			} elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
+				$placeholders = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
+				$wpdb->query(
+					$wpdb->prepare(
+						'DELETE FROM `' . $ads_table . '` WHERE id IN (' . $placeholders . ')',
+						...$bulk_ad_ids
+					)
+				);
+			}
 
 			$referer = wp_get_referer();
-						wp_safe_redirect( $referer ? $referer : BHG_Utils::admin_url( 'admin.php?page=bhg-ads' ) );
+			wp_safe_redirect( $referer ? $referer : BHG_Utils::admin_url( 'admin.php?page=bhg-ads' ) );
 			exit;
 	}
 
