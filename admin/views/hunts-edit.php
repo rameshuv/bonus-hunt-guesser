@@ -90,7 +90,7 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 				?>
 		<tr>
 			<td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $r->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
-			<td><?php echo esc_html( number_format_i18n( (float) $r->guess, 2 ) ); ?></td>
+                        <td><?php echo esc_html( bhg_format_money( (float) $r->guess ) ); ?></td>
 					<td><?php echo $r->created_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->created_at ) ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 			<td>
 			<form method="post" style="display:inline">

@@ -429,10 +429,10 @@ $id = (int) $wpdb->insert_id;
 																															)
 																														);
 
-						$template = get_option(
-							'bhg_email_template',
-							'Hi {{username}},\nThe Bonus Hunt "{{hunt}}" is closed. Final balance: €{{final}}. Winners: {{winners}}. Thanks for playing!'
-						);
+                                                $template = get_option(
+                                                        'bhg_email_template',
+                                                        'Hi {{username}},\nThe Bonus Hunt "{{hunt}}" is closed. Final balance: {{final}}. Winners: {{winners}}. Thanks for playing!'
+                                                );
 
 																														$hunt_title = (string) $wpdb->get_var(
 																															$wpdb->prepare(
@@ -464,7 +464,7 @@ $id = (int) $wpdb->insert_id;
 											array(
 												'{{username}}' => esc_html( $username ),
 												'{{hunt}}' => esc_html( $hunt_title ),
-												'{{final}}' => number_format( $final_balance, 2 ),
+                                                                                                '{{final}}' => bhg_format_money( (float) $final_balance ),
 												'{{winner}}' => $winner_first,
 												'{{winners}}' => $winner_list,
 											)
