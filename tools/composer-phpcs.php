@@ -5,10 +5,9 @@
  * @package Bonus_Hunt_Guesser
  */
 
-declare(strict_types=1);
-
 $project_root = dirname( __DIR__ );
-$phpcs_paths  = array(
+
+$phpcs_paths = array(
 	$project_root . '/vendor/bin/phpcs',
 	$project_root . '/vendor/squizlabs/php_codesniffer/bin/phpcs',
 );
