@@ -190,6 +190,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'menu_users'                                   => 'Users',
 			'menu_affiliates'                              => 'Affiliate Websites',
                         'menu_advertising'                             => 'Advertising',
+                        'menu_notifications'                           => 'Notifications',
                         'menu_prizes'                                  => 'Prizes',
 			'menu_translations'                            => 'Translations',
 			'menu_settings'                                => 'Settings',
@@ -205,7 +206,24 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'bonus_hunts'                                  => 'Bonus Hunts',
 			'results'                                      => 'Results',
 			'affiliate_websites'                           => 'Affiliate Websites',
-			'advertising'                                  => 'Advertising',
+                        'advertising'                                  => 'Advertising',
+                        'notifications'                               => 'Notifications',
+                        'notifications_page_title'                     => 'Notifications',
+                        'notifications_saved'                          => 'Notifications updated.',
+                        'notifications_description'                    => 'Configure email notifications that are sent when hunts close or tournaments are created.',
+                        'notification_available_placeholders'          => 'Available placeholders:',
+                        'notification_enable_label'                    => 'Enable notification',
+                        'notification_enable_help'                     => 'Send this email when the related event occurs.',
+                        'notification_subject_label'                   => 'Email subject',
+                        'notification_body_label'                      => 'Email content',
+                        'notification_body_help'                       => 'HTML is allowed. Placeholders will be replaced automatically.',
+                        'notification_bcc_label'                       => 'BCC recipients',
+                        'notification_bcc_help'                        => 'Comma-separated email addresses that should receive a copy.',
+                        'winner_notification_heading'                  => 'Winner notifications',
+                        'tournament_notification_heading'              => 'Tournament notifications',
+                        'hunt_notification_heading'                    => 'Bonus hunt notifications',
+                        'save_notifications'                           => 'Save notifications',
+                        'not_applicable'                               => 'N/A',
 			'translations'                                 => 'Translations',
                         'tools'                                        => 'Tools',
                         'info_help_shortcodes'                         => 'Info & Help – Shortcodes',
@@ -891,6 +909,288 @@ function bhg_currency_symbol() {
  */
 function bhg_format_currency( $amount ) {
                 return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+}
+
+if ( ! function_exists( 'bhg_get_notification_defaults' ) ) {
+        /**
+         * Default notification configuration.
+         *
+         * @return array
+         */
+        function bhg_get_notification_defaults() {
+                return array(
+                        'winner'     => array(
+                                'enabled'     => 0,
+                                'title'       => 'Congratulations on your Bonus Hunt win!',
+                                'description' => "Hi {{username}},\n\nYou placed {{position}} in {{hunt}}.\nFinal balance: {{final_balance}}\nYour guess: {{guess}}\nDifference: {{difference}}\n\nThanks for playing!",
+                                'bcc'         => '',
+                        ),
+                        'tournament' => array(
+                                'enabled'     => 0,
+                                'title'       => 'New tournament created: {{tournament}}',
+                                'description' => "A new tournament ({{tournament}}) has been created.\nStart: {{start_date}}\nEnd: {{end_date}}\nManage: {{link}}",
+                                'bcc'         => '',
+                        ),
+                        'hunt'       => array(
+                                'enabled'     => 0,
+                                'title'       => 'New bonus hunt created: {{hunt}}',
+                                'description' => "A new bonus hunt ({{hunt}}) is ready.\nStarting balance: {{starting_balance}}\nBonuses: {{num_bonuses}}\nManage: {{link}}",
+                                'bcc'         => '',
+                        ),
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_notification_settings' ) ) {
+        /**
+         * Retrieve notification settings merged with defaults.
+         *
+         * @return array
+         */
+        function bhg_get_notification_settings() {
+                $settings   = get_option( 'bhg_plugin_settings', array() );
+                $stored     = isset( $settings['notifications'] ) && is_array( $settings['notifications'] ) ? $settings['notifications'] : array();
+                $defaults   = bhg_get_notification_defaults();
+                $resolved   = array();
+
+                foreach ( $defaults as $type => $default_values ) {
+                        $resolved[ $type ] = isset( $stored[ $type ] ) && is_array( $stored[ $type ] ) ? array_merge( $default_values, $stored[ $type ] ) : $default_values;
+                }
+
+                return $resolved;
+        }
+}
+
+if ( ! function_exists( 'bhg_sanitize_email_list' ) ) {
+        /**
+         * Sanitize a comma separated email list.
+         *
+         * @param string $list Raw email list.
+         * @return array
+         */
+        function bhg_sanitize_email_list( $list ) {
+                if ( ! is_string( $list ) || '' === trim( $list ) ) {
+                        return array();
+                }
+
+                $emails = array();
+                $parts  = explode( ',', $list );
+
+                foreach ( $parts as $maybe_email ) {
+                        $clean = sanitize_email( trim( $maybe_email ) );
+                        if ( ! empty( $clean ) ) {
+                                $emails[ $clean ] = $clean;
+                        }
+                }
+
+                return array_values( $emails );
+        }
+}
+
+if ( ! function_exists( 'bhg_prepare_notification_headers' ) ) {
+        /**
+         * Build email headers for notifications.
+         *
+         * @param string $bcc_list Comma separated BCC list.
+         * @return array
+         */
+        function bhg_prepare_notification_headers( $bcc_list ) {
+                $headers    = array();
+                $from_email = BHG_Utils::get_email_from();
+                if ( $from_email ) {
+                        $headers[] = 'From: ' . $from_email;
+                }
+                $headers[] = 'Content-Type: text/html; charset=UTF-8';
+
+                $bcc_emails = bhg_sanitize_email_list( $bcc_list );
+                if ( ! empty( $bcc_emails ) ) {
+                        $headers[] = 'Bcc: ' . implode( ', ', $bcc_emails );
+                }
+
+                return $headers;
+        }
+}
+
+if ( ! function_exists( 'bhg_render_notification_template' ) ) {
+        /**
+         * Replace placeholder tokens in a notification template.
+         *
+         * @param string $template    Raw template text.
+         * @param array  $replacements Replacement map.
+         * @return string
+         */
+        function bhg_render_notification_template( $template, $replacements ) {
+                $template = (string) $template;
+                return strtr( $template, $replacements );
+        }
+}
+
+if ( ! function_exists( 'bhg_send_winner_notifications' ) ) {
+        /**
+         * Send winner notifications when a hunt closes.
+         *
+         * @param int   $hunt_id       Hunt identifier.
+         * @param float $final_balance Final balance of the hunt.
+         * @return void
+         */
+        function bhg_send_winner_notifications( $hunt_id, $final_balance ) {
+                $notifications = bhg_get_notification_settings();
+                $config        = isset( $notifications['winner'] ) ? $notifications['winner'] : array();
+
+                if ( empty( $config['enabled'] ) ) {
+                        return;
+                }
+
+                global $wpdb;
+                $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+
+                $hunt_title = (string) $wpdb->get_var( $wpdb->prepare( "SELECT title FROM {$hunts_table} WHERE id = %d", $hunt_id ) );
+                $rows       = $wpdb->get_results( $wpdb->prepare( "SELECT user_id, position, guess, difference FROM {$winners_table} WHERE hunt_id = %d ORDER BY position ASC", $hunt_id ) );
+
+                if ( empty( $rows ) ) {
+                        return;
+                }
+
+                $defaults       = bhg_get_notification_defaults();
+                $subject_tpl    = isset( $config['title'] ) && '' !== trim( $config['title'] ) ? $config['title'] : $defaults['winner']['title'];
+                $body_tpl       = isset( $config['description'] ) && '' !== trim( $config['description'] ) ? $config['description'] : $defaults['winner']['description'];
+                $final_formatted = bhg_format_currency( $final_balance );
+
+                foreach ( $rows as $row ) {
+                        $user_id = isset( $row->user_id ) ? (int) $row->user_id : 0;
+                        if ( $user_id <= 0 ) {
+                                continue;
+                        }
+
+                        $user = get_userdata( $user_id );
+                        if ( ! $user ) {
+                                continue;
+                        }
+
+                        $display_name = $user->display_name ? $user->display_name : $user->user_login;
+                        $position     = isset( $row->position ) ? (int) $row->position : 0;
+                        $guess        = isset( $row->guess ) ? (float) $row->guess : 0.0;
+                        $difference   = isset( $row->difference ) ? (float) $row->difference : 0.0;
+
+                        $replacements = array(
+                                '{{username}}'      => $display_name,
+                                '{{hunt}}'          => $hunt_title,
+                                '{{position}}'      => (string) $position,
+                                '{{guess}}'         => bhg_format_currency( $guess ),
+                                '{{difference}}'    => bhg_format_currency( abs( $difference ) ),
+                                '{{final_balance}}' => $final_formatted,
+                        );
+
+                        $subject = bhg_render_notification_template( $subject_tpl, $replacements );
+                        $body    = bhg_render_notification_template( $body_tpl, $replacements );
+                        $headers = bhg_prepare_notification_headers( isset( $config['bcc'] ) ? $config['bcc'] : '' );
+
+                        wp_mail( $user->user_email, $subject, wpautop( $body ), $headers );
+                }
+        }
+}
+
+if ( ! function_exists( 'bhg_send_tournament_notification' ) ) {
+        /**
+         * Notify administrators when a tournament is created.
+         *
+         * @param int $tournament_id Tournament identifier.
+         * @return void
+         */
+        function bhg_send_tournament_notification( $tournament_id ) {
+                $notifications = bhg_get_notification_settings();
+                $config        = isset( $notifications['tournament'] ) ? $notifications['tournament'] : array();
+
+                if ( empty( $config['enabled'] ) ) {
+                        return;
+                }
+
+                global $wpdb;
+                $table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+                $row   = $wpdb->get_row( $wpdb->prepare( "SELECT title, start_date, end_date FROM {$table} WHERE id = %d", $tournament_id ) );
+
+                if ( ! $row ) {
+                        return;
+                }
+
+                $defaults    = bhg_get_notification_defaults();
+                $subject_tpl = isset( $config['title'] ) && '' !== trim( $config['title'] ) ? $config['title'] : $defaults['tournament']['title'];
+                $body_tpl    = isset( $config['description'] ) && '' !== trim( $config['description'] ) ? $config['description'] : $defaults['tournament']['description'];
+
+                $start_date = ! empty( $row->start_date ) ? mysql2date( get_option( 'date_format' ), $row->start_date ) : bhg_t( 'not_applicable', 'N/A' );
+                $end_date   = ! empty( $row->end_date ) ? mysql2date( get_option( 'date_format' ), $row->end_date ) : bhg_t( 'not_applicable', 'N/A' );
+                $link       = BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments&action=edit&id=' . (int) $tournament_id );
+
+                $replacements = array(
+                        '{{tournament}}' => isset( $row->title ) ? $row->title : '',
+                        '{{start_date}}' => $start_date,
+                        '{{end_date}}'   => $end_date,
+                        '{{link}}'       => $link,
+                );
+
+                $subject = bhg_render_notification_template( $subject_tpl, $replacements );
+                $body    = bhg_render_notification_template( $body_tpl, $replacements );
+                $headers = bhg_prepare_notification_headers( isset( $config['bcc'] ) ? $config['bcc'] : '' );
+
+                $admin_email = sanitize_email( get_bloginfo( 'admin_email' ) );
+                if ( empty( $admin_email ) ) {
+                        $admin_email = BHG_Utils::get_email_from();
+                }
+
+                if ( $admin_email ) {
+                        wp_mail( $admin_email, $subject, wpautop( $body ), $headers );
+                }
+        }
+}
+
+if ( ! function_exists( 'bhg_send_hunt_notification' ) ) {
+        /**
+         * Notify administrators when a new hunt is created.
+         *
+         * @param int $hunt_id Hunt identifier.
+         * @return void
+         */
+        function bhg_send_hunt_notification( $hunt_id ) {
+                $notifications = bhg_get_notification_settings();
+                $config        = isset( $notifications['hunt'] ) ? $notifications['hunt'] : array();
+
+                if ( empty( $config['enabled'] ) ) {
+                        return;
+                }
+
+                global $wpdb;
+                $table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                $row   = $wpdb->get_row( $wpdb->prepare( "SELECT title, starting_balance, num_bonuses FROM {$table} WHERE id = %d", $hunt_id ) );
+
+                if ( ! $row ) {
+                        return;
+                }
+
+                $defaults    = bhg_get_notification_defaults();
+                $subject_tpl = isset( $config['title'] ) && '' !== trim( $config['title'] ) ? $config['title'] : $defaults['hunt']['title'];
+                $body_tpl    = isset( $config['description'] ) && '' !== trim( $config['description'] ) ? $config['description'] : $defaults['hunt']['description'];
+
+                $replacements = array(
+                        '{{hunt}}'             => isset( $row->title ) ? $row->title : '',
+                        '{{starting_balance}}' => bhg_format_currency( isset( $row->starting_balance ) ? (float) $row->starting_balance : 0 ),
+                        '{{num_bonuses}}'      => isset( $row->num_bonuses ) ? (string) (int) $row->num_bonuses : '0',
+                        '{{link}}'             => BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts&action=edit&id=' . (int) $hunt_id ),
+                );
+
+                $subject = bhg_render_notification_template( $subject_tpl, $replacements );
+                $body    = bhg_render_notification_template( $body_tpl, $replacements );
+                $headers = bhg_prepare_notification_headers( isset( $config['bcc'] ) ? $config['bcc'] : '' );
+
+                $admin_email = sanitize_email( get_bloginfo( 'admin_email' ) );
+                if ( empty( $admin_email ) ) {
+                        $admin_email = BHG_Utils::get_email_from();
+                }
+
+                if ( $admin_email ) {
+                        wp_mail( $admin_email, $subject, wpautop( $body ), $headers );
+                }
+        }
 }
 
 /**
