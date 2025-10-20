@@ -59,6 +59,9 @@ $winners_count = $hunt_row ? (int) $hunt_row->winners_count : 0;
 if ( $winners_count <= 0 ) {
 $winners_count = 1;
 }
+if ( $winners_count > 25 ) {
+$winners_count = 25;
+}
 $tournament_ids = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( $hunt_id ) : array();
 if ( empty( $tournament_ids ) && $hunt_row && ! empty( $hunt_row->tournament_id ) ) {
 $tournament_ids = array( (int) $hunt_row->tournament_id );

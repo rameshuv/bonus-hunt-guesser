@@ -58,7 +58,158 @@
 }
 
 .bhg-winner-row {
-    background-color: #d1fae5;
+    background-color: #e6f7ff;
+}
+
+.bhg-hunts-table .column-id,
+.bhg-hunts-table .column-winners,
+.bhg-hunts-table .column-status,
+.bhg-hunts-table .column-actions,
+.bhg-hunts-table .column-delete {
+    text-align: center;
+}
+
+.bhg-hunts-table .column-balance,
+.bhg-hunts-table .column-final-balance {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.bhg-hunts-table .row-actions {
+    color: #646970;
+    margin-top: 4px;
+}
+
+.bhg-hunts-table .row-actions a {
+    color: inherit;
+}
+
+.bhg-hunts-table .row-actions span:not(:last-child)::after {
+    content: "|";
+    margin: 0 6px;
+    color: #d1d5db;
+}
+
+.bhg-results-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin: 1em 0;
+}
+
+.bhg-results-controls select {
+    min-width: 220px;
+}
+
+.bhg-results-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 1em;
+    font-weight: 500;
+}
+
+.bhg-summary-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+.bhg-summary-item strong {
+    margin-right: 4px;
+}
+
+.bhg-results-note {
+    margin: 0 0 1em;
+    color: #475569;
+    font-style: italic;
+}
+
+.bhg-results-table .column-position {
+    width: 120px;
+}
+
+.bhg-results-table .column-numeric,
+.bhg-results-table .column-guess,
+.bhg-results-table .column-difference,
+.bhg-results-table .column-wins {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.bhg-rank-number {
+    display: inline-block;
+    min-width: 32px;
+    font-weight: 600;
+}
+
+.bhg-winner-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #2271b1;
+    color: #fff;
+    font-size: 11px;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+}
+
+.bhg-participants-table td,
+.bhg-participants-table th {
+    vertical-align: middle;
+}
+
+.bhg-participants-table .column-actions {
+    width: 140px;
+}
+
+.bhg-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+}
+
+.bhg-modal.is-open {
+    display: flex;
+}
+
+.bhg-modal[hidden] {
+    display: none;
+}
+
+.bhg-modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.bhg-modal__dialog {
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    padding: 24px;
+    width: min(92%, 380px);
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45);
+}
+
+.bhg-modal__message {
+    margin-top: 8px;
+    margin-bottom: 0;
+    color: #1f2937;
+}
+
+.bhg-modal__actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
 /* Utility classes */
