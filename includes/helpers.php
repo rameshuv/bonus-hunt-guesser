@@ -207,7 +207,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'affiliate_websites'                           => 'Affiliate Websites',
 			'advertising'                                  => 'Advertising',
 			'translations'                                 => 'Translations',
-			'tools'                                        => 'Tools',
+                        'tools'                                        => 'Tools',
+                        'info_help_shortcodes'                         => 'Info & Help – Shortcodes',
+                        'info_help_shortcodes_description'             => 'Reference for all available shortcodes and their attributes.',
 			'tournament'                                   => 'Tournament',
 			'affiliate'                                    => 'Affiliate',
 
@@ -216,8 +218,21 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_number_bonuses'                         => 'Number of Bonuses',
                         'label_prizes'                                 => 'Prizes',
                         'category'                                     => 'Category',
+                        'label_category'                               => 'Category',
 			'label_submit_guess'                           => 'Submit Guess',
                         'label_guess'                                  => 'Guess',
+                        'label_ranking'                                => 'Ranking',
+                        'label_submitted'                              => 'Submitted',
+                        'label_pending'                                => 'Pending',
+                        'label_prize'                                  => 'Prize',
+                        'label_awarded'                                => 'Awarded',
+                        'label_period'                                 => 'Period',
+                        'label_period_range'                           => '%1$s – %2$s',
+                        'label_updated'                                => 'Updated',
+                        'label_total'                                  => 'Total',
+                        'label_podiums'                                => 'Podiums',
+                        'label_best_rank'                              => 'Best Rank',
+                        'label_average_rank'                           => 'Average Rank',
                         'label_unknown_user'                           => 'Unknown user',
                         'label_username'                               => 'Username',
                         'images'                                       => 'Images',
@@ -244,6 +259,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'prize_updated'                                => 'Prize updated.',
                         'prize_deleted'                                => 'Prize deleted.',
                         'prize_error'                                  => 'Unable to save prize.',
+                        'label_prize_unavailable'                      => 'No prize assigned.',
                         'prize_slide_label'                            => 'Go to prize %d',
                         'confirm_delete_prize'                         => 'Are you sure you want to delete this prize?',
                         'label_position'                               => 'Position',
@@ -294,8 +310,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_profile'                                => 'Profile',
 			'label_start'                                  => 'Start',
 			'label_end'                                    => 'End',
-			'label_status'                                 => 'Status',
-			'label_status_colon'                           => 'Status:',
+                        'label_status'                                 => 'Status',
+                        'label_status_colon'                           => 'Status:',
+                        'status_open'                                  => 'Open',
+                        'status_closed'                                => 'Closed',
 			'label_wins'                                   => 'Wins',
 			'wins'                                         => 'Wins',
 			'label_last_win'                               => 'Last win',
@@ -314,7 +332,17 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_final'                                  => 'Final',
 			'label_user_number'                            => 'User #%d',
 			'label_diff'                                   => 'diff',
-			'label_latest_hunts'                           => 'Latest Hunts',
+                        'label_latest_hunts'                           => 'Latest Hunts',
+                        'user_hunts_heading'                           => 'My Bonus Hunts',
+                        'user_hunts_empty'                             => 'You have not participated in any bonus hunts yet.',
+                        'user_tournaments_heading'                      => 'My Tournaments',
+                        'user_tournaments_empty'                        => 'You have not joined any tournaments yet.',
+                        'user_prizes_heading'                           => 'My Prizes',
+                        'user_prizes_empty'                             => 'You have not won any prizes yet.',
+                        'user_rankings_heading'                         => 'My Rankings',
+                        'user_rankings_empty'                           => 'You do not have any ranking history yet.',
+                        'user_rankings_hunts_heading'                   => 'Bonus Hunts',
+                        'user_rankings_tournaments_heading'             => 'Tournaments',
 			'label_bonushunt'                              => 'Bonushunt',
 			'label_all_winners'                            => 'All Winners',
 			'label_closed_at'                              => 'Closed At',
@@ -338,7 +366,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_diff_short'                             => 'Diff',
 			'label_hash'                                   => '#',
 			'label_not_set'                                => 'Not set',
-			'label_dash'                                   => '-',
+                        'label_dash'                                   => '-',
+                        'label_none'                                   => 'None',
 			'label_untitled'                               => '(untitled)',
 			'label_back_to_tournaments'                    => 'Back to tournaments',
 			'label_last_day'                               => 'Last day',
@@ -364,12 +393,14 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_affiliate_website'                      => 'Affiliate Website',
 			'label_affiliate_websites'                     => 'Affiliate Websites',
 			'label_affiliate_user_title'                   => 'Affiliate User',
-			'guessing_enabled'                             => 'Guessing Enabled',
-			'label_footer'                                 => 'Footer',
-			'label_bottom'                                 => 'Bottom',
-			'label_sidebar'                                => 'Sidebar',
-			'label_shortcode'                              => 'Shortcode',
-			'label_timeline_colon'                         => 'Timeline:',
+                        'guessing_enabled'                             => 'Guessing Enabled',
+                        'label_footer'                                 => 'Footer',
+                        'label_bottom'                                 => 'Bottom',
+                        'label_sidebar'                                => 'Sidebar',
+                        'label_shortcode'                              => 'Shortcode',
+                        'label_attributes'                             => 'Attributes',
+                        'label_description'                            => 'Description',
+                        'label_timeline_colon'                         => 'Timeline:',
 			'label_user_hash'                              => 'user#%d',
 			'label_emdash'                                 => '—',
                         'placeholder_enter_guess'                      => 'Enter your guess',
@@ -379,6 +410,61 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'post_submit_redirect_url'                     => 'Post-submit redirect URL',
                         'post_submit_redirect_description'             => 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.',
                         'post_submit_redirect_placeholder'             => 'https://example.com/thank-you',
+                        'user_dashboard_shortcodes'                    => 'User dashboard shortcodes',
+                        'toggle_shortcode_visibility'                  => 'Show [%s] on frontend profiles',
+                        'user_shortcode_visibility_help'               => 'Uncheck a box to hide the matching shortcode output for logged-in users.',
+                        'design_settings_heading'                      => 'Design & typography',
+                        'design_settings_description'                  => 'Customize colours, spacing, and typography for shortcode blocks. Leave blank to use defaults.',
+                        'design_title_block_background'                => 'Title block background',
+                        'design_title_block_border'                    => 'Title block border',
+                        'design_title_block_radius'                    => 'Title block border radius',
+                        'design_title_block_padding'                   => 'Title block padding',
+                        'design_title_block_margin'                    => 'Title block margin',
+                        'design_title_block_shadow'                    => 'Title block shadow',
+                        'design_h2_font_size'                          => 'H2 font size',
+                        'design_h2_font_weight'                        => 'H2 font weight',
+                        'design_h2_color'                              => 'H2 colour',
+                        'design_h2_padding'                            => 'H2 padding',
+                        'design_h2_margin'                             => 'H2 margin',
+                        'design_h3_font_size'                          => 'H3 font size',
+                        'design_h3_font_weight'                        => 'H3 font weight',
+                        'design_h3_color'                              => 'H3 colour',
+                        'design_h3_padding'                            => 'H3 padding',
+                        'design_h3_margin'                             => 'H3 margin',
+                        'design_description_font_size'                 => 'Description font size',
+                        'design_description_font_weight'               => 'Description font weight',
+                        'design_description_color'                     => 'Description colour',
+                        'design_description_padding'                   => 'Description padding',
+                        'design_description_margin'                    => 'Description margin',
+                        'design_field_font_size'                       => 'Paragraph/span font size',
+                        'design_field_padding'                         => 'Paragraph/span padding',
+                        'design_field_margin'                          => 'Paragraph/span margin',
+
+                        'sc_desc_active_hunt'                          => 'Shows the current active bonus hunt with leaderboard.',
+                        'sc_desc_guess_form'                           => 'Displays the guess submission form. Optional redirect override.',
+                        'sc_desc_user_guesses'                         => 'List guesses for a hunt with affiliate filters.',
+                        'sc_desc_hunts'                                => 'Overview of hunts with filtering and timeline options.',
+                        'sc_desc_tournaments'                          => 'Displays tournaments with filters and pagination.',
+                        'sc_desc_leaderboards'                         => 'Leaderboard of winners with custom columns and filters.',
+                        'sc_desc_prizes'                               => 'Standalone prize listings for prizes manager.',
+                        'sc_desc_advertising'                          => 'Outputs advertising blocks by ID or status.',
+                        'sc_desc_my_bonushunts'                        => 'Logged-in users see hunts they joined and their ranking.',
+                        'sc_desc_my_tournaments'                       => 'Lists tournament participation with wins and ranking.',
+                        'sc_desc_my_prizes'                            => 'Displays all prizes earned by the current user.',
+                        'sc_desc_my_rankings'                          => 'Combined view of hunt and tournament rankings for the user.',
+
+                        'my_bonushunts_heading'                        => 'My Bonus Hunts',
+                        'my_bonushunts_empty'                          => 'You have not joined any bonus hunts yet.',
+                        'my_tournaments_heading'                       => 'My Tournaments',
+                        'my_tournaments_empty'                         => 'You have not joined any tournaments yet.',
+                        'my_prizes_heading'                            => 'My Prizes',
+                        'my_prizes_empty'                              => 'No prizes recorded yet.',
+                        'my_rankings_heading'                          => 'My Rankings',
+                        'my_rankings_bonus_hunts'                      => 'Bonus Hunt Rankings',
+                        'my_rankings_tournaments'                      => 'Tournament Rankings',
+                        'my_rankings_empty'                            => 'No rankings available yet.',
+
+
 
                         // Buttons.
 			'button_save'                                  => 'Save',
@@ -403,7 +489,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'enable_guessing'                              => 'Enable Guessing',
 
 			// Notices / messages.
-			'notice_login_required'                        => 'You must be logged in to guess.',
+                        'notice_login_required'                        => 'You must be logged in to guess.',
+                        'user_dashboard_login_required'                => 'You must be logged in to view this dashboard.',
                         'notice_guess_saved'                           => 'Your guess has been saved.',
                         'notice_guess_updated'                         => 'Your guess has been updated.',
                         'guess_updated'                                => 'Your guess has been updated!',
@@ -803,7 +890,7 @@ function bhg_currency_symbol() {
  * @return string
  */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+                return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
 }
 
 /**
@@ -823,6 +910,178 @@ function bhg_validate_guess( $guess ) {
 
 	$guess = (float) $guess;
 	return ( $guess >= $min_guess && $guess <= $max_guess );
+}
+
+if ( ! function_exists( 'bhg_get_user_shortcode_visibility_defaults' ) ) {
+        /**
+         * Default visibility configuration for user dashboard shortcodes.
+         *
+         * @return array
+         */
+        function bhg_get_user_shortcode_visibility_defaults() {
+                return array(
+                        'my_bonushunts'  => 1,
+                        'my_tournaments' => 1,
+                        'my_prizes'      => 1,
+                        'my_rankings'    => 1,
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_user_shortcode_visibility' ) ) {
+        /**
+         * Retrieve user dashboard shortcode visibility map.
+         *
+         * @return array
+         */
+        function bhg_get_user_shortcode_visibility() {
+                $settings  = get_option( 'bhg_plugin_settings', array() );
+                $stored    = isset( $settings['user_shortcodes'] ) && is_array( $settings['user_shortcodes'] ) ? $settings['user_shortcodes'] : array();
+                $defaults  = bhg_get_user_shortcode_visibility_defaults();
+                $visibility = array();
+
+                foreach ( $defaults as $slug => $default ) {
+                        $value = isset( $stored[ $slug ] ) ? (int) $stored[ $slug ] : (int) $default;
+                        $visibility[ $slug ] = ( 1 === $value );
+                }
+
+                return $visibility;
+        }
+}
+
+if ( ! function_exists( 'bhg_get_design_settings_defaults' ) ) {
+        /**
+         * Default design tokens for shortcode styling.
+         *
+         * @return array
+         */
+        function bhg_get_design_settings_defaults() {
+                return array(
+                        'title_block_background'  => '#ffffff',
+                        'title_block_border'      => '1px solid #e2e8f0',
+                        'title_block_radius'      => '8px',
+                        'title_block_padding'     => '12px',
+                        'title_block_margin'      => '12px 0',
+                        'title_block_shadow'      => '0 1px 2px rgba(0, 0, 0, 0.03)',
+                        'h2_font_size'            => '24px',
+                        'h2_font_weight'          => '700',
+                        'h2_color'                => '#1e293b',
+                        'h2_padding'              => '0',
+                        'h2_margin'               => '0 0 16px',
+                        'h3_font_size'            => '20px',
+                        'h3_font_weight'          => '600',
+                        'h3_color'                => '#1e293b',
+                        'h3_padding'              => '0',
+                        'h3_margin'               => '0 0 12px',
+                        'description_font_size'   => '15px',
+                        'description_font_weight' => '400',
+                        'description_color'       => '#334155',
+                        'description_padding'     => '0',
+                        'description_margin'      => '0 0 12px',
+                        'field_font_size'         => '14px',
+                        'field_padding'           => '0',
+                        'field_margin'            => '0',
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_design_settings' ) ) {
+        /**
+         * Retrieve saved design settings without applying defaults.
+         *
+         * @return array
+         */
+        function bhg_get_design_settings() {
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                $stored   = isset( $settings['design'] ) && is_array( $settings['design'] ) ? $settings['design'] : array();
+                $clean    = array();
+
+                foreach ( bhg_get_design_settings_defaults() as $key => $default ) {
+                        if ( isset( $stored[ $key ] ) ) {
+                                $clean[ $key ] = trim( (string) $stored[ $key ] );
+                        } else {
+                                $clean[ $key ] = '';
+                        }
+                }
+
+                return $clean;
+        }
+}
+
+if ( ! function_exists( 'bhg_generate_design_css_variables' ) ) {
+        /**
+         * Build CSS variable declarations for design settings.
+         *
+         * @return string CSS ready for wp_add_inline_style().
+         */
+        function bhg_generate_design_css_variables() {
+                $defaults = bhg_get_design_settings_defaults();
+                $stored   = bhg_get_design_settings();
+                $map      = array(
+                        'title_block_background'  => '--bhg-title-block-background',
+                        'title_block_border'      => '--bhg-title-block-border',
+                        'title_block_radius'      => '--bhg-title-block-border-radius',
+                        'title_block_padding'     => '--bhg-title-block-padding',
+                        'title_block_margin'      => '--bhg-title-block-margin',
+                        'title_block_shadow'      => '--bhg-title-block-shadow',
+                        'h2_font_size'            => '--bhg-h2-font-size',
+                        'h2_font_weight'          => '--bhg-h2-font-weight',
+                        'h2_color'                => '--bhg-h2-color',
+                        'h2_padding'              => '--bhg-h2-padding',
+                        'h2_margin'               => '--bhg-h2-margin',
+                        'h3_font_size'            => '--bhg-h3-font-size',
+                        'h3_font_weight'          => '--bhg-h3-font-weight',
+                        'h3_color'                => '--bhg-h3-color',
+                        'h3_padding'              => '--bhg-h3-padding',
+                        'h3_margin'               => '--bhg-h3-margin',
+                        'description_font_size'   => '--bhg-body-font-size',
+                        'description_font_weight' => '--bhg-body-font-weight',
+                        'description_color'       => '--bhg-body-color',
+                        'description_padding'     => '--bhg-body-padding',
+                        'description_margin'      => '--bhg-body-margin',
+                        'field_font_size'         => '--bhg-field-font-size',
+                        'field_padding'           => '--bhg-field-padding',
+                        'field_margin'            => '--bhg-field-margin',
+                );
+
+                $has_override = false;
+                foreach ( $defaults as $key => $default ) {
+                        if ( isset( $stored[ $key ] ) ) {
+                                $raw = trim( (string) $stored[ $key ] );
+                                if ( '' !== $raw && $raw !== $default ) {
+                                        $has_override = true;
+                                        break;
+                                }
+                        }
+                }
+
+                if ( ! $has_override ) {
+                        return '';
+                }
+
+                $lines = array();
+                foreach ( $map as $key => $css_var ) {
+                        $raw_value = isset( $stored[ $key ] ) ? trim( (string) $stored[ $key ] ) : '';
+                        if ( '' === $raw_value ) {
+                                $raw_value = $defaults[ $key ];
+                        }
+
+                        $sanitized = preg_replace( '/[^0-9a-zA-Z#\s\.,%()\-\/]/', '', $raw_value );
+                        if ( '' === $sanitized ) {
+                                $sanitized = $defaults[ $key ];
+                        }
+
+                        $lines[] = sprintf( '%s: %s;', $css_var, $sanitized );
+                }
+
+                if ( empty( $lines ) ) {
+                        return '';
+                }
+
+                return ':root{' . implode( '', array_map( static function ( $line ) {
+                        return PHP_EOL . '    ' . $line;
+                }, $lines ) ) . PHP_EOL . '}';
+        }
 }
 
 /**

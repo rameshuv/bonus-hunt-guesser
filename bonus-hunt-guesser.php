@@ -508,20 +508,69 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
         }
 
         if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
-                        $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
+                $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
                 if ( '' === $redirect ) {
-                                $settings['post_submit_redirect'] = '';
+                        $settings['post_submit_redirect'] = '';
                 } else {
-                                $url = esc_url_raw( $redirect );
+                        $url = esc_url_raw( $redirect );
                         if ( ! empty( $url ) ) {
-                                                $settings['post_submit_redirect'] = $url;
+                                $settings['post_submit_redirect'] = $url;
                         }
                 }
         }
 
-                // Save settings.
-                $existing = get_option( 'bhg_plugin_settings', array() );
-                update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+        if ( isset( $_POST['bhg_user_shortcode_visibility'] ) && is_array( $_POST['bhg_user_shortcode_visibility'] ) ) {
+                $visibility_input = wp_unslash( $_POST['bhg_user_shortcode_visibility'] );
+                $allowed_slugs    = array( 'my_bonushunts', 'my_tournaments', 'my_prizes', 'my_rankings' );
+                $visibility       = array();
+
+                foreach ( $allowed_slugs as $slug ) {
+                        $visibility[ $slug ] = isset( $visibility_input[ $slug ] ) ? (int) (bool) $visibility_input[ $slug ] : 0;
+                }
+
+                $settings['user_shortcodes'] = $visibility;
+        }
+
+        if ( isset( $_POST['bhg_design'] ) && is_array( $_POST['bhg_design'] ) ) {
+                $design_input = wp_unslash( $_POST['bhg_design'] );
+                $design_keys  = array(
+                        'title_block_background',
+                        'title_block_border',
+                        'title_block_radius',
+                        'title_block_padding',
+                        'title_block_margin',
+                        'title_block_shadow',
+                        'h2_font_size',
+                        'h2_font_weight',
+                        'h2_color',
+                        'h2_padding',
+                        'h2_margin',
+                        'h3_font_size',
+                        'h3_font_weight',
+                        'h3_color',
+                        'h3_padding',
+                        'h3_margin',
+                        'description_font_size',
+                        'description_font_weight',
+                        'description_color',
+                        'description_padding',
+                        'description_margin',
+                        'field_font_size',
+                        'field_padding',
+                        'field_margin',
+                );
+                $design       = array();
+
+                foreach ( $design_keys as $key ) {
+                        $design[ $key ] = isset( $design_input[ $key ] ) ? sanitize_text_field( $design_input[ $key ] ) : '';
+                }
+
+                $settings['design'] = $design;
+        }
+
+        // Save settings.
+        $existing = get_option( 'bhg_plugin_settings', array() );
+        update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
 				// Redirect back to settings page.
 								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );

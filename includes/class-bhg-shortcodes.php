@@ -17,16 +17,23 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		/**
 		 * Handles shortcode registration and rendering.
 		 */
-	class BHG_Shortcodes {
+        class BHG_Shortcodes {
+
+                        /**
+                         * Whether inline design styles have been enqueued.
+                         *
+                         * @var bool
+                         */
+                private $design_styles_enqueued = false;
 
 			/**
 			 * Registers all shortcodes.
 			 */
-		public function __construct() {
-				// Core shortcodes.
-				add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
-				add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
-				add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+                public function __construct() {
+                                // Core shortcodes.
+                                add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
+                                add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
+                                add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
 				add_shortcode( 'bhg_tournaments', array( $this, 'tournaments_shortcode' ) );
 				add_shortcode( 'bhg_winner_notifications', array( $this, 'winner_notifications_shortcode' ) );
 				add_shortcode( 'bhg_user_profile', array( $this, 'user_profile_shortcode' ) );
@@ -38,11 +45,51 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
                                 add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
 
+                                // User dashboard shortcodes.
+                                add_shortcode( 'bhg_my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
+                                add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
+                                add_shortcode( 'bhg_my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
+                                add_shortcode( 'my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
+                                add_shortcode( 'bhg_my_prizes', array( $this, 'my_prizes_shortcode' ) );
+                                add_shortcode( 'my_prizes', array( $this, 'my_prizes_shortcode' ) );
+                                add_shortcode( 'bhg_my_rankings', array( $this, 'my_rankings_shortcode' ) );
+                                add_shortcode( 'my_rankings', array( $this, 'my_rankings_shortcode' ) );
+
 				// Legacy/aliases.
-				add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
-				add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
-				add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
-		}
+                                add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+                                add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
+                                add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
+                }
+
+                /**
+                 * Enqueue shared shortcode stylesheet and inline design overrides.
+                 *
+                 * @return void
+                 */
+                private function enqueue_shortcodes_style() {
+                        if ( $this->design_styles_enqueued ) {
+                                return;
+                        }
+
+                        $style_handle = 'bhg-shortcodes';
+                        $base_url     = defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', dirname( __FILE__, 2 ) . '/bonus-hunt-guesser.php' );
+
+                        wp_enqueue_style(
+                                $style_handle,
+                                $base_url . 'assets/css/bhg-shortcodes.css',
+                                array(),
+                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                        );
+
+                        if ( function_exists( 'bhg_generate_design_css_variables' ) ) {
+                                $css = bhg_generate_design_css_variables();
+                                if ( $css ) {
+                                        wp_add_inline_style( $style_handle, $css );
+                                }
+                        }
+
+                        $this->design_styles_enqueued = true;
+                }
 		/**
 		 * Validates a database table name against known tables.
 		 *
@@ -276,7 +323,675 @@ $wpdb->usermeta,
         }
 
 
-                                        /**
+                /**
+                 * Determine if a user dashboard shortcode should render.
+                 *
+                 * @param string $slug Shortcode slug.
+                 * @return bool
+                 */
+        		/**
+		 * Determine if a user dashboard shortcode should render.
+		 *
+		 * @param string $slug Shortcode slug.
+		 * @return bool
+		 */
+	private function is_user_shortcode_visible( $slug ) {
+		if ( ! function_exists( 'bhg_get_user_shortcode_visibility' ) ) {
+			return true;
+		}
+
+		$visibility = bhg_get_user_shortcode_visibility();
+
+		return ! isset( $visibility[ $slug ] ) || true === $visibility[ $slug ];
+	}
+
+		/**
+		 * Render login notice for protected dashboard sections.
+		 *
+		 * @return string
+		 */
+	private function render_login_required_message() {
+		return '<p>' . esc_html( bhg_t( 'user_dashboard_login_required', 'You must be logged in to view this dashboard.' ) ) . '</p>';
+	}
+
+		/**
+		 * Fetch hunts joined by a user with ranking data.
+		 *
+		 * @param int $user_id User identifier.
+		 * @return array
+		 */
+	private function get_user_hunt_rows( $user_id ) {
+		global $wpdb;
+
+		$hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		$guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+
+		$sql = $wpdb->prepare(
+			"SELECT h.id, h.title, h.status, h.final_balance, h.winners_count, h.closed_at, h.created_at,
+				g.id AS guess_id, g.guess, g.created_at AS guess_created_at,
+				CASE WHEN h.final_balance IS NULL THEN NULL ELSE ABS(h.final_balance - g.guess) END AS diff,
+				CASE WHEN h.final_balance IS NULL THEN NULL ELSE (
+					1 + (
+						SELECT COUNT(*) FROM {$guesses_table} g2
+						WHERE g2.hunt_id = g.hunt_id
+							AND (
+								ABS(h.final_balance - g2.guess) < ABS(h.final_balance - g.guess)
+								OR (
+									ABS(h.final_balance - g2.guess) = ABS(h.final_balance - g.guess)
+									AND g2.id < g.id
+								)
+							)
+					)
+				) END AS ranking
+			FROM {$guesses_table} g
+			INNER JOIN {$hunts_table} h ON h.id = g.hunt_id
+			WHERE g.user_id = %d
+			ORDER BY h.closed_at IS NULL DESC, h.closed_at DESC, h.id DESC",
+			$user_id
+		);
+
+		$rows = $wpdb->get_results( $sql );
+
+		return is_array( $rows ) ? $rows : array();
+	}
+
+		/**
+		 * Fetch tournaments joined by a user.
+		 *
+		 * @param int $user_id User identifier.
+		 * @return array
+		 */
+	private function get_user_tournament_rows( $user_id ) {
+		global $wpdb;
+
+		$tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+		$results_table     = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
+
+		$sql = $wpdb->prepare(
+			"SELECT t.id, t.title, t.status, t.start_date, t.end_date, t.prizes, t.affiliate_site_id,
+				tr.wins, tr.updated_at,
+				(
+					SELECT COUNT(*) FROM {$results_table} tr2
+					WHERE tr2.tournament_id = tr.tournament_id
+						AND ( tr2.wins > tr.wins OR ( tr2.wins = tr.wins AND tr2.user_id < tr.user_id ) )
+				) + 1 AS ranking
+			FROM {$results_table} tr
+			INNER JOIN {$tournaments_table} t ON t.id = tr.tournament_id
+			WHERE tr.user_id = %d
+			ORDER BY t.end_date IS NULL DESC, t.end_date DESC, t.id DESC",
+			$user_id
+		);
+
+		$rows = $wpdb->get_results( $sql );
+
+		return is_array( $rows ) ? $rows : array();
+	}
+
+		/**
+		 * Retrieve prize assignments for the user's winning hunts.
+		 *
+		 * @param int $user_id User identifier.
+		 * @return array
+		 */
+        private function get_user_prize_rows( $user_id ) {
+                global $wpdb;
+
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+                $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+
+		$sql = $wpdb->prepare(
+			"SELECT w.hunt_id, w.position, w.guess, w.diff, w.created_at,
+				h.title, h.closed_at, h.winners_count
+			FROM {$winners_table} w
+			INNER JOIN {$hunts_table} h ON h.id = w.hunt_id
+			WHERE w.user_id = %d
+			ORDER BY h.closed_at DESC, h.id DESC, w.position ASC",
+			$user_id
+		);
+
+		$rows = $wpdb->get_results( $sql );
+		if ( empty( $rows ) ) {
+			return array();
+		}
+
+		$prize_cache = array();
+
+		if ( class_exists( 'BHG_Prizes' ) ) {
+			foreach ( $rows as $row ) {
+				$hunt_id = (int) $row->hunt_id;
+				if ( ! isset( $prize_cache[ $hunt_id ] ) ) {
+					$prize_cache[ $hunt_id ] = BHG_Prizes::get_prizes_for_hunt( $hunt_id );
+				}
+
+				$prizes = $prize_cache[ $hunt_id ];
+				$index  = max( 0, (int) $row->position - 1 );
+				$row->prize = isset( $prizes[ $index ] ) ? $prizes[ $index ] : null;
+			}
+		} else {
+			foreach ( $rows as $row ) {
+				$row->prize = null;
+			}
+		}
+
+                return $rows;
+        }
+
+        /**
+         * Render the "My Bonus Hunts" dashboard shortcode.
+         *
+         * @param array $atts Shortcode attributes.
+         * @return string
+         */
+        public function my_bonushunts_shortcode( $atts = array() ) {
+                unset( $atts );
+
+                if ( ! $this->is_user_shortcode_visible( 'my_bonushunts' ) ) {
+                        return '';
+                }
+
+                if ( ! is_user_logged_in() ) {
+                        return $this->render_login_required_message();
+                }
+
+                $this->enqueue_shortcodes_style();
+
+                $user_id = get_current_user_id();
+                $rows    = $this->get_user_hunt_rows( $user_id );
+
+                ob_start();
+
+                echo '<div class="bhg-user-dashboard bhg-user-dashboard-hunts">';
+                echo '<h2>' . esc_html( bhg_t( 'user_hunts_heading', 'My Bonus Hunts' ) ) . '</h2>';
+
+                if ( empty( $rows ) ) {
+                        echo '<p>' . esc_html( bhg_t( 'user_hunts_empty', 'You have not participated in any bonus hunts yet.' ) ) . '</p>';
+                        echo '</div>';
+
+                        return ob_get_clean();
+                }
+
+                echo '<div class="bhg-table-wrapper">';
+                echo '<table class="bhg-user-hunts">';
+                echo '<thead><tr>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_bonushunt', 'Bonus Hunt' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_status', 'Status' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_guess', 'Guess' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_ranking', 'Ranking' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_submitted', 'Submitted' ) ) . '</th>';
+                echo '</tr></thead><tbody>';
+
+                foreach ( $rows as $row ) {
+                        $status      = isset( $row->status ) ? strtolower( (string) $row->status ) : '';
+                        $status_map  = array(
+                                'open'   => bhg_t( 'status_open', 'Open' ),
+                                'closed' => bhg_t( 'status_closed', 'Closed' ),
+                        );
+                        $status_text = isset( $status_map[ $status ] ) ? $status_map[ $status ] : ( $status ? ucfirst( $status ) : bhg_t( 'label_emdash', '—' ) );
+
+                        $guess_display = bhg_format_currency( (float) $row->guess );
+                        $diff_display  = bhg_t( 'label_emdash', '—' );
+                        if ( isset( $row->diff ) && null !== $row->diff ) {
+                                $diff_display = bhg_format_currency( (float) $row->diff );
+                        }
+
+                        $ranking         = isset( $row->ranking ) ? (int) $row->ranking : 0;
+                        $ranking_display = $ranking > 0 ? (string) $ranking : bhg_t( 'label_pending', 'Pending' );
+                        $winners_count   = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
+
+                        $row_classes = array();
+                        if ( $ranking > 0 && $winners_count > 0 && $ranking <= $winners_count ) {
+                                $row_classes[] = 'bhg-dashboard-winner';
+                                if ( $ranking <= 3 ) {
+                                        $row_classes[] = 'bhg-dashboard-top-three';
+                                }
+                        }
+
+                        $submitted_at      = isset( $row->guess_created_at ) ? (string) $row->guess_created_at : '';
+                        $submitted_display = bhg_t( 'label_emdash', '—' );
+                        if ( '' !== $submitted_at && '0000-00-00 00:00:00' !== $submitted_at ) {
+                                $submitted_display = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $submitted_at, true );
+                        }
+
+                        $class_attr = empty( $row_classes ) ? '' : ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
+
+                        echo '<tr' . $class_attr . '>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_bonushunt', 'Bonus Hunt' ) ) . '">' . esc_html( $row->title ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_status', 'Status' ) ) . '">' . esc_html( $status_text ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( $guess_display ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( $diff_display ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_ranking', 'Ranking' ) ) . '">' . esc_html( $ranking_display ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_submitted', 'Submitted' ) ) . '">' . esc_html( $submitted_display ) . '</td>';
+                        echo '</tr>';
+                }
+
+                echo '</tbody></table>';
+                echo '</div>';
+                echo '</div>';
+
+                return ob_get_clean();
+        }
+
+        /**
+         * Render the "My Tournaments" dashboard shortcode.
+         *
+         * @param array $atts Shortcode attributes.
+         * @return string
+         */
+        public function my_tournaments_shortcode( $atts = array() ) {
+                unset( $atts );
+
+                if ( ! $this->is_user_shortcode_visible( 'my_tournaments' ) ) {
+                        return '';
+                }
+
+                if ( ! is_user_logged_in() ) {
+                        return $this->render_login_required_message();
+                }
+
+                $this->enqueue_shortcodes_style();
+
+                $user_id = get_current_user_id();
+                $rows    = $this->get_user_tournament_rows( $user_id );
+
+                ob_start();
+
+                echo '<div class="bhg-user-dashboard bhg-user-dashboard-tournaments">';
+                echo '<h2>' . esc_html( bhg_t( 'user_tournaments_heading', 'My Tournaments' ) ) . '</h2>';
+
+                if ( empty( $rows ) ) {
+                        echo '<p>' . esc_html( bhg_t( 'user_tournaments_empty', 'You have not joined any tournaments yet.' ) ) . '</p>';
+                        echo '</div>';
+
+                        return ob_get_clean();
+                }
+
+                echo '<div class="bhg-table-wrapper">';
+                echo '<table class="bhg-user-tournaments">';
+                echo '<thead><tr>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_status', 'Status' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_ranking', 'Ranking' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_wins', 'Wins' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_period', 'Period' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_updated', 'Updated' ) ) . '</th>';
+                echo '</tr></thead><tbody>';
+
+                foreach ( $rows as $row ) {
+                        $status      = isset( $row->status ) ? strtolower( (string) $row->status ) : '';
+                        $status_map  = array(
+                                'open'   => bhg_t( 'status_open', 'Open' ),
+                                'closed' => bhg_t( 'status_closed', 'Closed' ),
+                        );
+                        $status_text = isset( $status_map[ $status ] ) ? $status_map[ $status ] : ( $status ? ucfirst( $status ) : bhg_t( 'label_emdash', '—' ) );
+
+                        $ranking       = isset( $row->ranking ) ? (int) $row->ranking : 0;
+                        $ranking_label = $ranking > 0 ? (string) $ranking : bhg_t( 'label_pending', 'Pending' );
+
+                        $row_classes = array();
+                        if ( $ranking > 0 && $ranking <= 3 ) {
+                                $row_classes[] = 'bhg-dashboard-winner';
+                                $row_classes[] = 'bhg-dashboard-top-three';
+                        }
+
+                        $wins = isset( $row->wins ) ? (int) $row->wins : 0;
+
+                        $start_date = isset( $row->start_date ) ? (string) $row->start_date : '';
+                        $end_date   = isset( $row->end_date ) ? (string) $row->end_date : '';
+
+                        $start_display = '';
+                        if ( '' !== $start_date && '0000-00-00 00:00:00' !== $start_date ) {
+                                $start_display = mysql2date( get_option( 'date_format' ), $start_date, true );
+                        }
+                        $end_display = '';
+                        if ( '' !== $end_date && '0000-00-00 00:00:00' !== $end_date ) {
+                                $end_display = mysql2date( get_option( 'date_format' ), $end_date, true );
+                        }
+
+                        if ( $start_display && $end_display ) {
+                                /* translators: 1: start date, 2: end date */
+                                $period_display = sprintf( bhg_t( 'label_period_range', '%1$s – %2$s' ), $start_display, $end_display );
+                        } elseif ( $start_display ) {
+                                $period_display = $start_display;
+                        } elseif ( $end_display ) {
+                                $period_display = $end_display;
+                        } else {
+                                $period_display = bhg_t( 'label_emdash', '—' );
+                        }
+
+                        $updated_at      = isset( $row->updated_at ) ? (string) $row->updated_at : '';
+                        $updated_display = bhg_t( 'label_emdash', '—' );
+                        if ( '' !== $updated_at && '0000-00-00 00:00:00' !== $updated_at ) {
+                                $updated_display = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $updated_at, true );
+                        }
+
+                        $class_attr = empty( $row_classes ) ? '' : ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
+
+                        echo '<tr' . $class_attr . '>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_tournament', 'Tournament' ) ) . '">' . esc_html( $row->title ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_status', 'Status' ) ) . '">' . esc_html( $status_text ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_ranking', 'Ranking' ) ) . '">' . esc_html( $ranking_label ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Wins' ) ) . '">' . esc_html( $wins ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_period', 'Period' ) ) . '">' . esc_html( $period_display ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_updated', 'Updated' ) ) . '">' . esc_html( $updated_display ) . '</td>';
+                        echo '</tr>';
+                }
+
+                echo '</tbody></table>';
+                echo '</div>';
+                echo '</div>';
+
+                return ob_get_clean();
+        }
+
+        /**
+         * Render the "My Prizes" dashboard shortcode.
+         *
+         * @param array $atts Shortcode attributes.
+         * @return string
+         */
+        public function my_prizes_shortcode( $atts = array() ) {
+                unset( $atts );
+
+                if ( ! $this->is_user_shortcode_visible( 'my_prizes' ) ) {
+                        return '';
+                }
+
+                if ( ! is_user_logged_in() ) {
+                        return $this->render_login_required_message();
+                }
+
+                $this->enqueue_shortcodes_style();
+
+                $user_id = get_current_user_id();
+                $rows    = $this->get_user_prize_rows( $user_id );
+
+                ob_start();
+
+                echo '<div class="bhg-user-dashboard bhg-user-dashboard-prizes">';
+                echo '<h2>' . esc_html( bhg_t( 'user_prizes_heading', 'My Prizes' ) ) . '</h2>';
+
+                if ( empty( $rows ) ) {
+                        echo '<p>' . esc_html( bhg_t( 'user_prizes_empty', 'You have not won any prizes yet.' ) ) . '</p>';
+                        echo '</div>';
+
+                        return ob_get_clean();
+                }
+
+                echo '<div class="bhg-table-wrapper">';
+                echo '<table class="bhg-user-prizes">';
+                echo '<thead><tr>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_bonushunt', 'Bonus Hunt' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_prize', 'Prize' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_guess', 'Guess' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
+                echo '<th scope="col">' . esc_html( bhg_t( 'label_awarded', 'Awarded' ) ) . '</th>';
+                echo '</tr></thead><tbody>';
+
+                foreach ( $rows as $row ) {
+                        $ranking       = isset( $row->position ) ? (int) $row->position : 0;
+                        $ranking_label = $ranking > 0 ? (string) $ranking : bhg_t( 'label_emdash', '—' );
+                        $winners_count = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
+
+                        $row_classes = array();
+                        if ( $ranking > 0 && $winners_count > 0 && $ranking <= $winners_count ) {
+                                $row_classes[] = 'bhg-dashboard-winner';
+                                if ( $ranking <= 3 ) {
+                                        $row_classes[] = 'bhg-dashboard-top-three';
+                                }
+                        }
+
+                        $prize = isset( $row->prize ) ? $row->prize : null;
+                        if ( $prize && isset( $prize->title ) && '' !== $prize->title ) {
+                                $prize_title = $prize->title;
+                                $category    = isset( $prize->category ) ? (string) $prize->category : '';
+                                if ( $category ) {
+                                        $prize_title .= ' (' . ucwords( str_replace( '_', ' ', $category ) ) . ')';
+                                }
+                        } else {
+                                $prize_title = bhg_t( 'label_emdash', '—' );
+                        }
+
+                        $guess_display = bhg_t( 'label_emdash', '—' );
+                        if ( isset( $row->guess ) && null !== $row->guess ) {
+                                $guess_display = bhg_format_currency( (float) $row->guess );
+                        }
+
+                        $diff_display = bhg_t( 'label_emdash', '—' );
+                        if ( isset( $row->diff ) && null !== $row->diff ) {
+                                $diff_display = bhg_format_currency( (float) $row->diff );
+                        }
+
+                        $awarded_at      = isset( $row->created_at ) ? (string) $row->created_at : '';
+                        $awarded_display = bhg_t( 'label_emdash', '—' );
+                        if ( '' !== $awarded_at && '0000-00-00 00:00:00' !== $awarded_at ) {
+                                $awarded_display = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $awarded_at, true );
+                        }
+
+                        $class_attr = empty( $row_classes ) ? '' : ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
+
+                        echo '<tr' . $class_attr . '>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_bonushunt', 'Bonus Hunt' ) ) . '">' . esc_html( $row->title ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . esc_html( $ranking_label ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_prize', 'Prize' ) ) . '">' . esc_html( $prize_title ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( $guess_display ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( $diff_display ) . '</td>';
+                        echo '<td data-label="' . esc_attr( bhg_t( 'label_awarded', 'Awarded' ) ) . '">' . esc_html( $awarded_display ) . '</td>';
+                        echo '</tr>';
+                }
+
+                echo '</tbody></table>';
+                echo '</div>';
+                echo '</div>';
+
+                return ob_get_clean();
+        }
+
+        /**
+         * Render combined ranking overview for hunts and tournaments.
+         *
+         * @param array $atts Shortcode attributes.
+         * @return string
+         */
+        public function my_rankings_shortcode( $atts = array() ) {
+                unset( $atts );
+
+                if ( ! $this->is_user_shortcode_visible( 'my_rankings' ) ) {
+                        return '';
+                }
+
+                if ( ! is_user_logged_in() ) {
+                        return $this->render_login_required_message();
+                }
+
+                $this->enqueue_shortcodes_style();
+
+                $user_id      = get_current_user_id();
+                $hunt_rows    = $this->get_user_hunt_rows( $user_id );
+                $tour_rows    = $this->get_user_tournament_rows( $user_id );
+                $ranked_hunts = array_filter(
+                        $hunt_rows,
+                        static function ( $row ) {
+                                return isset( $row->ranking ) && (int) $row->ranking > 0;
+                        }
+                );
+                $ranked_tours = array_filter(
+                        $tour_rows,
+                        static function ( $row ) {
+                                return isset( $row->ranking ) && (int) $row->ranking > 0;
+                        }
+                );
+
+                ob_start();
+
+                echo '<div class="bhg-user-dashboard bhg-user-dashboard-rankings">';
+                echo '<h2>' . esc_html( bhg_t( 'user_rankings_heading', 'My Rankings' ) ) . '</h2>';
+
+                if ( empty( $ranked_hunts ) && empty( $ranked_tours ) ) {
+                        echo '<p>' . esc_html( bhg_t( 'user_rankings_empty', 'You do not have any ranking history yet.' ) ) . '</p>';
+                        echo '</div>';
+
+                        return ob_get_clean();
+                }
+
+                $hunt_total = count( $hunt_rows );
+                $hunt_wins  = 0;
+                $hunt_best  = 0;
+                $hunt_sum   = 0;
+
+                foreach ( $ranked_hunts as $row ) {
+                        $ranking = (int) $row->ranking;
+                        $hunt_sum += $ranking;
+                        if ( 0 === $hunt_best || $ranking < $hunt_best ) {
+                                $hunt_best = $ranking;
+                        }
+                        $winners_count = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
+                        if ( $winners_count > 0 && $ranking <= $winners_count ) {
+                                $hunt_wins++;
+                        }
+                }
+
+                $hunt_average = $hunt_sum > 0 && count( $ranked_hunts ) > 0 ? $hunt_sum / count( $ranked_hunts ) : 0;
+
+                $tour_total   = count( $tour_rows );
+                $tour_podiums = 0;
+                $tour_best    = 0;
+                $tour_sum     = 0;
+                $tour_wins    = 0;
+
+                foreach ( $ranked_tours as $row ) {
+                        $ranking = (int) $row->ranking;
+                        $tour_sum += $ranking;
+                        if ( 0 === $tour_best || $ranking < $tour_best ) {
+                                $tour_best = $ranking;
+                        }
+                        if ( $ranking <= 3 ) {
+                                $tour_podiums++;
+                        }
+                        $tour_wins += isset( $row->wins ) ? (int) $row->wins : 0;
+                }
+
+                $tour_average = $tour_sum > 0 && count( $ranked_tours ) > 0 ? $tour_sum / count( $ranked_tours ) : 0;
+
+                echo '<div class="bhg-ranking-summary">';
+                echo '<div class="bhg-summary-card">';
+                echo '<h3>' . esc_html( bhg_t( 'user_rankings_hunts_heading', 'Bonus Hunts' ) ) . '</h3>';
+                echo '<ul>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_total', 'Total' ) ) . ':</strong> ' . esc_html( $hunt_total ) . '</li>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_podiums', 'Podiums' ) ) . ':</strong> ' . esc_html( $hunt_wins ) . '</li>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_best_rank', 'Best Rank' ) ) . ':</strong> ' . esc_html( $hunt_best ? $hunt_best : bhg_t( 'label_emdash', '—' ) ) . '</li>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_average_rank', 'Average Rank' ) ) . ':</strong> ' . esc_html( $hunt_average ? number_format_i18n( $hunt_average, 2 ) : bhg_t( 'label_emdash', '—' ) ) . '</li>';
+                echo '</ul>';
+                echo '</div>';
+
+                echo '<div class="bhg-summary-card">';
+                echo '<h3>' . esc_html( bhg_t( 'user_rankings_tournaments_heading', 'Tournaments' ) ) . '</h3>';
+                echo '<ul>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_total', 'Total' ) ) . ':</strong> ' . esc_html( $tour_total ) . '</li>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_podiums', 'Podiums' ) ) . ':</strong> ' . esc_html( $tour_podiums ) . '</li>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_wins', 'Wins' ) ) . ':</strong> ' . esc_html( $tour_wins ) . '</li>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_best_rank', 'Best Rank' ) ) . ':</strong> ' . esc_html( $tour_best ? $tour_best : bhg_t( 'label_emdash', '—' ) ) . '</li>';
+                echo '<li><strong>' . esc_html( bhg_t( 'label_average_rank', 'Average Rank' ) ) . ':</strong> ' . esc_html( $tour_average ? number_format_i18n( $tour_average, 2 ) : bhg_t( 'label_emdash', '—' ) ) . '</li>';
+                echo '</ul>';
+                echo '</div>';
+                echo '</div>';
+
+                if ( ! empty( $ranked_hunts ) ) {
+                        echo '<h3>' . esc_html( bhg_t( 'user_rankings_hunts_heading', 'Bonus Hunts' ) ) . '</h3>';
+                        echo '<div class="bhg-table-wrapper">';
+                        echo '<table class="bhg-user-rankings">';
+                        echo '<thead><tr>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_bonushunt', 'Bonus Hunt' ) ) . '</th>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_ranking', 'Ranking' ) ) . '</th>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_winners', 'Winners' ) ) . '</th>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_closed', 'Closed' ) ) . '</th>';
+                        echo '</tr></thead><tbody>';
+
+                        foreach ( $ranked_hunts as $row ) {
+                                $ranking       = (int) $row->ranking;
+                                $winners_count = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
+                                $row_classes   = array();
+                                if ( $winners_count > 0 && $ranking <= $winners_count ) {
+                                        $row_classes[] = 'bhg-dashboard-winner';
+                                        if ( $ranking <= 3 ) {
+                                                $row_classes[] = 'bhg-dashboard-top-three';
+                                        }
+                                }
+
+                                $diff_display = bhg_t( 'label_emdash', '—' );
+                                if ( isset( $row->diff ) && null !== $row->diff ) {
+                                        $diff_display = bhg_format_currency( (float) $row->diff );
+                                }
+
+                                $closed_at      = isset( $row->closed_at ) ? (string) $row->closed_at : '';
+                                $closed_display = bhg_t( 'label_emdash', '—' );
+                                if ( '' !== $closed_at && '0000-00-00 00:00:00' !== $closed_at ) {
+                                        $closed_display = mysql2date( get_option( 'date_format' ), $closed_at, true );
+                                }
+
+                                $class_attr = empty( $row_classes ) ? '' : ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
+
+                                echo '<tr' . $class_attr . '>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_bonushunt', 'Bonus Hunt' ) ) . '">' . esc_html( $row->title ) . '</td>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_ranking', 'Ranking' ) ) . '">' . esc_html( $ranking ) . '</td>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( $diff_display ) . '</td>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_winners', 'Winners' ) ) . '">' . esc_html( $winners_count ) . '</td>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_closed', 'Closed' ) ) . '">' . esc_html( $closed_display ) . '</td>';
+                                echo '</tr>';
+                        }
+
+                        echo '</tbody></table>';
+                        echo '</div>';
+                }
+
+                if ( ! empty( $ranked_tours ) ) {
+                        echo '<h3>' . esc_html( bhg_t( 'user_rankings_tournaments_heading', 'Tournaments' ) ) . '</h3>';
+                        echo '<div class="bhg-table-wrapper">';
+                        echo '<table class="bhg-user-rankings">';
+                        echo '<thead><tr>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_ranking', 'Ranking' ) ) . '</th>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_wins', 'Wins' ) ) . '</th>';
+                        echo '<th scope="col">' . esc_html( bhg_t( 'label_updated', 'Updated' ) ) . '</th>';
+                        echo '</tr></thead><tbody>';
+
+                        foreach ( $ranked_tours as $row ) {
+                                $ranking     = (int) $row->ranking;
+                                $wins        = isset( $row->wins ) ? (int) $row->wins : 0;
+                                $row_classes = array();
+                                if ( $ranking <= 3 ) {
+                                        $row_classes[] = 'bhg-dashboard-winner';
+                                        $row_classes[] = 'bhg-dashboard-top-three';
+                                }
+
+                                $updated_at      = isset( $row->updated_at ) ? (string) $row->updated_at : '';
+                                $updated_display = bhg_t( 'label_emdash', '—' );
+                                if ( '' !== $updated_at && '0000-00-00 00:00:00' !== $updated_at ) {
+                                        $updated_display = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $updated_at, true );
+                                }
+
+                                $class_attr = empty( $row_classes ) ? '' : ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
+
+                                echo '<tr' . $class_attr . '>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_tournament', 'Tournament' ) ) . '">' . esc_html( $row->title ) . '</td>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_ranking', 'Ranking' ) ) . '">' . esc_html( $ranking ) . '</td>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Wins' ) ) . '">' . esc_html( $wins ) . '</td>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_updated', 'Updated' ) ) . '">' . esc_html( $updated_display ) . '</td>';
+                                echo '</tr>';
+                        }
+
+                        echo '</tbody></table>';
+                        echo '</div>';
+                }
+
+                echo '</div>';
+
+                return ob_get_clean();
+        }
+
+        /**
                                          * Minimal login hint used by some themes.
                                          *
                                          * @param array $atts Shortcode attributes. Unused.
@@ -432,12 +1147,7 @@ $wpdb->usermeta,
 
 		       $total_pages = $total_guesses > 0 ? (int) ceil( $total_guesses / $per_page ) : 1;
 
-			       wp_enqueue_style(
-				       'bhg-shortcodes',
-				       ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				       array(),
-				       defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-			       );
+			       $this->enqueue_shortcodes_style();
 		       wp_enqueue_script(
 			       'bhg-shortcodes-js',
 			       ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/js/bhg-shortcodes.js',
@@ -663,12 +1373,7 @@ $wpdb->usermeta,
                         $redirect_target = ! empty( $settings['post_submit_redirect'] ) ? wp_validate_redirect( $settings['post_submit_redirect'], '' ) : '';
                         $button_label    = $existing_id ? bhg_t( 'button_edit_guess', 'Edit Guess' ) : bhg_t( 'button_submit_guess', 'Submit Guess' );
 
-			wp_enqueue_style(
-				'bhg-shortcodes',
-				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				array(),
-				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-			);
+			$this->enqueue_shortcodes_style();
 
 			ob_start(); ?>
                                                 <form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -849,12 +1554,7 @@ $wpdb->usermeta,
                                                                        return add_query_arg( $args, $base_url );
                                                                };
 
-						wp_enqueue_style(
-							'bhg-shortcodes',
-							( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-							array(),
-							defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-						);
+						$this->enqueue_shortcodes_style();
 
                                                ob_start();
                                                echo '<div class="bhg-leaderboard-wrapper">';
@@ -1213,12 +1913,7 @@ $wpdb->usermeta,
 
         $show_aff = $need_users;
 
-        wp_enqueue_style(
-                'bhg-shortcodes',
-                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-                array(),
-                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-        );
+        $this->enqueue_shortcodes_style();
 
         ob_start();
           echo '<form method="get" class="bhg-search-form">';
@@ -1498,12 +2193,7 @@ $wpdb->usermeta,
 
                         $show_site = $need_site_field;
 
-                        wp_enqueue_style(
-                                'bhg-shortcodes',
-                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-                                array(),
-                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-                        );
+                        $this->enqueue_shortcodes_style();
 
                         ob_start();
                         echo '<form method="get" class="bhg-search-form">';
@@ -2059,12 +2749,7 @@ $wpdb->usermeta,
                                 return add_query_arg( $args, $base_url );
                         };
 
-                        wp_enqueue_style(
-                                'bhg-shortcodes',
-                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-                                array(),
-                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-                        );
+                        $this->enqueue_shortcodes_style();
 
                         ob_start();
                         echo '<form method="get" class="bhg-search-form">';
@@ -2217,12 +2902,7 @@ $wpdb->usermeta,
 		public function tournaments_shortcode( $atts ) {
 			global $wpdb;
 
-			wp_enqueue_style(
-				'bhg-shortcodes',
-				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				array(),
-				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-			);
+			$this->enqueue_shortcodes_style();
 
 				// Details screen.
 				$details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
@@ -2620,12 +3300,7 @@ $wpdb->usermeta,
 				return '<p>' . esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ) . '</p>';
 			}
 
-			wp_enqueue_style(
-				'bhg-shortcodes',
-				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				array(),
-				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-			);
+			$this->enqueue_shortcodes_style();
 
 			ob_start();
 			echo '<div class="bhg-winner-notifications">';
@@ -2667,12 +3342,7 @@ $wpdb->usermeta,
                        if ( ! is_user_logged_in() ) {
                                return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
                        }
-                       wp_enqueue_style(
-                               'bhg-shortcodes',
-                               ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-                               array(),
-                               defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-                       );
+                       $this->enqueue_shortcodes_style();
                       $user        = wp_get_current_user();
                       $user_id     = $user->ID;
                       $real_name   = trim( (string) get_user_meta( $user_id, 'bhg_real_name', true ) );
@@ -2811,12 +3481,7 @@ $wpdb->usermeta,
 						$hunts_sql             = "SELECT id, title FROM {$hunts_tbl} WHERE status = 'closed' ORDER BY created_at DESC LIMIT 50";
 										$hunts = $wpdb->get_results( $hunts_sql );
 
-				wp_enqueue_style(
-					'bhg-shortcodes',
-					( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-					array(),
-					defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-				);
+				$this->enqueue_shortcodes_style();
 			wp_enqueue_script(
 				'bhg-shortcodes-js',
 				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/js/bhg-shortcodes.js',

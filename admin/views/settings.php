@@ -108,6 +108,82 @@ foreach ( $currencies as $key => $label ) :
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
 </td>
 </tr>
+<?php
+$user_shortcode_defaults = array(
+        'my_bonushunts'  => 1,
+        'my_tournaments' => 1,
+        'my_prizes'      => 1,
+        'my_rankings'    => 1,
+);
+$user_visibility       = isset( $settings['user_shortcodes'] ) && is_array( $settings['user_shortcodes'] ) ? $settings['user_shortcodes'] : array();
+$design_settings       = isset( $settings['design'] ) && is_array( $settings['design'] ) ? $settings['design'] : array();
+?>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'user_dashboard_shortcodes', 'User dashboard shortcodes' ) ); ?></th>
+<td>
+        <fieldset>
+        <legend class="screen-reader-text"><?php echo esc_html( bhg_t( 'user_dashboard_shortcodes', 'User dashboard shortcodes' ) ); ?></legend>
+        <?php foreach ( $user_shortcode_defaults as $slug => $default_state ) :
+                $checked = isset( $user_visibility[ $slug ] ) ? (int) $user_visibility[ $slug ] : (int) $default_state;
+                ?>
+                <label style="display:block;margin-bottom:6px;">
+                        <input type="hidden" name="bhg_user_shortcode_visibility[<?php echo esc_attr( $slug ); ?>]" value="0">
+                        <input type="checkbox" name="bhg_user_shortcode_visibility[<?php echo esc_attr( $slug ); ?>]" value="1" <?php checked( 1, $checked ); ?>>
+                        <?php echo esc_html( sprintf( bhg_t( 'toggle_shortcode_visibility', 'Show [%s] on frontend profiles' ), $slug ) ); ?>
+                </label>
+        <?php endforeach; ?>
+        <p class="description"><?php echo esc_html( bhg_t( 'user_shortcode_visibility_help', 'Uncheck a box to hide the matching shortcode output for logged-in users.' ) ); ?></p>
+        </fieldset>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'design_settings_heading', 'Design & typography' ) ); ?></th>
+<td>
+        <fieldset class="bhg-design-settings">
+        <legend class="screen-reader-text"><?php echo esc_html( bhg_t( 'design_settings_heading', 'Design & typography' ) ); ?></legend>
+        <p class="description"><?php echo esc_html( bhg_t( 'design_settings_description', 'Customize colours, spacing, and typography for shortcode blocks. Leave blank to use defaults.' ) ); ?></p>
+        <table class="form-table">
+                <tbody>
+                <?php
+                $design_fields = array(
+                        'title_block_background' => bhg_t( 'design_title_block_background', 'Title block background' ),
+                        'title_block_border'     => bhg_t( 'design_title_block_border', 'Title block border' ),
+                        'title_block_radius'     => bhg_t( 'design_title_block_radius', 'Title block border radius' ),
+                        'title_block_padding'    => bhg_t( 'design_title_block_padding', 'Title block padding' ),
+                        'title_block_margin'     => bhg_t( 'design_title_block_margin', 'Title block margin' ),
+                        'title_block_shadow'     => bhg_t( 'design_title_block_shadow', 'Title block shadow' ),
+                        'h2_font_size'           => bhg_t( 'design_h2_font_size', 'H2 font size' ),
+                        'h2_font_weight'         => bhg_t( 'design_h2_font_weight', 'H2 font weight' ),
+                        'h2_color'               => bhg_t( 'design_h2_color', 'H2 colour' ),
+                        'h2_padding'             => bhg_t( 'design_h2_padding', 'H2 padding' ),
+                        'h2_margin'              => bhg_t( 'design_h2_margin', 'H2 margin' ),
+                        'h3_font_size'           => bhg_t( 'design_h3_font_size', 'H3 font size' ),
+                        'h3_font_weight'         => bhg_t( 'design_h3_font_weight', 'H3 font weight' ),
+                        'h3_color'               => bhg_t( 'design_h3_color', 'H3 colour' ),
+                        'h3_padding'             => bhg_t( 'design_h3_padding', 'H3 padding' ),
+                        'h3_margin'              => bhg_t( 'design_h3_margin', 'H3 margin' ),
+                        'description_font_size'  => bhg_t( 'design_description_font_size', 'Description font size' ),
+                        'description_font_weight'=> bhg_t( 'design_description_font_weight', 'Description font weight' ),
+                        'description_color'      => bhg_t( 'design_description_color', 'Description colour' ),
+                        'description_padding'    => bhg_t( 'design_description_padding', 'Description padding' ),
+                        'description_margin'     => bhg_t( 'design_description_margin', 'Description margin' ),
+                        'field_font_size'        => bhg_t( 'design_field_font_size', 'Paragraph/span font size' ),
+                        'field_padding'          => bhg_t( 'design_field_padding', 'Paragraph/span padding' ),
+                        'field_margin'           => bhg_t( 'design_field_margin', 'Paragraph/span margin' ),
+                );
+                foreach ( $design_fields as $field_key => $label ) :
+                        $value = isset( $design_settings[ $field_key ] ) ? $design_settings[ $field_key ] : '';
+                        ?>
+                        <tr>
+                                <th scope="row"><label for="bhg_design_<?php echo esc_attr( $field_key ); ?>"><?php echo esc_html( $label ); ?></label></th>
+                                <td><input type="text" class="regular-text" id="bhg_design_<?php echo esc_attr( $field_key ); ?>" name="bhg_design[<?php echo esc_attr( $field_key ); ?>]" value="<?php echo esc_attr( $value ); ?>"></td>
+                        </tr>
+                <?php endforeach; ?>
+                </tbody>
+        </table>
+        </fieldset>
+</td>
+</tr>
 </tbody>
 </table>
 

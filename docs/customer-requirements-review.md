@@ -39,7 +39,7 @@ Status | Details
 
 Status | Details
 -------|--------
-❌ | Required shortcodes `my_bonushunts`, `my_tournaments`, `my_prizes`, `my_rankings` are not registered. `includes/class-bhg-shortcodes.php` only provides `bhg_user_profile` and general listing shortcodes. Implementers should add the four shortcodes (and admin visibility toggles) inside this file and expose settings in `admin/views/settings.php` (or dedicated visibility screen).
+✅ | `[my_bonushunts]`, `[my_tournaments]`, `[my_prizes]`, and `[my_rankings]` (with `bhg_` aliases) now render via `includes/class-bhg-shortcodes.php`. Output honours visibility toggles from `admin/views/settings.php`, enqueues shared styling, highlights podium finishes, and surfaces ranking/prize metadata for the logged-in user.
 
 ## 6. CSS/Color Panel
 
@@ -96,10 +96,9 @@ File | Key Issues | Suggested Action
 
 ## Next Steps Summary
 
-1. Implement user dashboard shortcodes in `includes/class-bhg-shortcodes.php` (with visibility settings in `admin/views/settings.php`).
-2. Add global CSS/color panel fields to `admin/views/settings.php` and apply in frontend templates (`assets/css/bhg-shortcodes.css`).
-3. Populate shortcode help in `admin/views/tools.php` to satisfy documentation requirement.
-4. Normalize coding standards across touched PHP files using WordPress rules.
-5. Verify notification defaults and tournament point overrides as noted.
+1. Add global CSS/color panel fields to `admin/views/settings.php` and apply in frontend templates (`assets/css/bhg-shortcodes.css`).
+2. Populate shortcode help in `admin/views/tools.php` to satisfy documentation requirement.
+3. Normalize coding standards across touched PHP files using WordPress rules.
+4. Verify notification defaults and tournament point overrides as noted.
 
 This document should guide further fine-tuning while keeping changes scoped to explicit customer requirements.
