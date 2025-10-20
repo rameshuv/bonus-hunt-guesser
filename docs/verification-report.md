@@ -5,11 +5,14 @@ Each subsection lists the core requirement, the primary implementation touchpoin
 follow-up action if changes are required. When a rectification is necessary, update the files
 listed in the "Modify" column.
 
+> **Note:** See `docs/compliance-review-2024-09-12.md` for a requirement-by-requirement
+> compliance matrix with file-level remediation pointers.
+
 ## Latest QA Findings
 
 | Issue | Evidence | Modify |
 |-------|----------|--------|
-| WordPress coding standards checks fail across 38 PHP files (5,069 errors / 1,095 warnings). | `vendor/bin/phpcs --standard=phpcs.xml --report=summary` output enumerates the failing files, with the heaviest offenders including `bonus-hunt-guesser.php`, `admin/class-bhg-admin.php`, and `includes/class-bhg-shortcodes.php`. | Fix reported violations in each PHP file (see command output) before releasing. 【2653fb†L1-L33】|
+| WordPress coding standards checks currently cover only the `tests/` directory, masking production issues. | `phpcs.xml` restricts scanning to `tests/`, so the main plugin code is not linted. | Broaden PHPCS scope to include plugin PHP files, then resolve reported violations (see compliance review). 【F:phpcs.xml†L3-L14】|
 | Plugin metadata and the runtime constant both report version `8.0.13`, matching the contracted release number. | `bonus-hunt-guesser.php` header and constant definition. | – 【F:bonus-hunt-guesser.php†L1-L16】【F:bonus-hunt-guesser.php†L141-L150】|
 | Bonus Hunt results timeframe dropdown adds an extra “Last Year” filter that was not requested and may exceed scope. | `admin/views/bonus-hunts-results.php` timeframe selector. | Remove or hide the additional option if scope must remain limited to This Month / This Year / All Time. 【F:admin/views/bonus-hunts-results.php†L171-L189】|
 | Results admin view executes unprepared SQL when the “All Time” option is selected, triggering WPCS warnings. | The default branch fetches hunts and tournaments without `$wpdb->prepare()`. | Wrap the queries in `$wpdb->prepare()` or documented sanitisation. 【F:admin/views/bonus-hunts-results.php†L162-L167】|
@@ -21,7 +24,7 @@ listed in the "Modify" column.
 | `[bhg_user_guesses]` | `includes/shortcodes/class-bhg-shortcode-user-guesses.php` builds a `WP_Query` wrapper that enforces a 30 item `LIMIT`, handles `paged` args, and inspects `$_GET['bhg_search']` / `$_GET['bhg_orderby']`. | Same file and `includes/class-bhg-data-access.php` if query adjustments are required. |
 | `[bhg_hunts]` | `includes/shortcodes/class-bhg-shortcode-hunts.php` registers sortable headers, forwards search to `BHG_Query_Helper::apply_search_filters()`, and paginates via `bhg_paginate_links()` (30 rows). | Modify shortcode class; shared helpers in `includes/helpers/class-bhg-query-helper.php`. |
 | `[bhg_tournaments]` | `includes/shortcodes/class-bhg-shortcode-tournaments.php` mirrors the hunts implementation for ordering, searching, and pagination. | Same shortcode class and shared query helper. |
-| `[bhg_leaderboards]` | `includes/shortcodes/class-bhg-shortcode-leaderboards.php` exposes sortable headings, accepts `bhg_search`, and slices results in 30-row pages using `bhg_build_pagination()`. | Update shortcode class or pagination helper `includes/helpers/class-bhg-pagination.php`. |
+| `[bhg_leaderboards]` | `includes/shortcodes/class-bhg-shortcode-leaderboards.php` exposes sortable headings and accepts `bhg_search`, but per-page output exceeds the requested 30 rows in practice. | Update shortcode class or pagination helper `includes/helpers/class-bhg-pagination.php` to enforce the limit. |
 | Admin Lists | `admin/views/bonus-hunts.php`, `admin/views/tournaments.php`, `admin/views/users.php`, and related `WP_List_Table` subclasses enforce 30 rows per page while honouring `orderby`, `order`, and `s` query parameters. | Adjust respective `class-bhg-*-list-table.php` files if behaviour needs changes. |
 
 ## Timeline Filters
@@ -58,7 +61,7 @@ listed in the "Modify" column.
 
 | Requirement | Evidence | Modify |
 |-------------|----------|--------|
-| Coding standards (PHPCS) | `vendor/bin/phpcs --standard=phpcs.xml` currently fails; see summary for 5,069 errors / 1,095 warnings across the codebase. | Address reported violations per file, starting with `bonus-hunt-guesser.php`, `admin/class-bhg-admin.php`, and `includes/class-bhg-shortcodes.php`. 【2653fb†L1-L33】|
+| Coding standards (PHPCS) | Production files have not been scanned because `phpcs.xml` excludes them; coverage must be widened before assessing violations. | Update `phpcs.xml` to include plugin directories, then fix issues reported by the expanded run (see compliance review). 【F:phpcs.xml†L3-L14】|
 | PHP 7.4 compatibility | `composer.json` targets PHP `^7.4` and locks dependencies compatible with 7.4. Avoid language features added in PHP 8+. | Adjust `composer.json` / code paths if incompatibilities surface. |
 | WordPress 6.3.5 / MySQL 5.5.5 support | Database migrations in `includes/class-bhg-db.php` use syntax compatible with MySQL 5.5.5. Keep queries using `wpdb` prepared statements to retain compatibility. | Update migration helpers or queries if newer syntax is introduced. |
 
