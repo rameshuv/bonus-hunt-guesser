@@ -33,12 +33,12 @@ if ( ! function_exists( 'bhg_get_hunt_tournament_ids' ) ) {
     function bhg_get_hunt_tournament_ids( $hunt_id ) {
         global $wpdb;
 
-        if ( ! isset( $wpdb->hunt_tournaments ) ) {
+        if ( ! isset( $wpdb->tournaments_hunts ) ) {
             return array();
         }
 
         $ids = array();
-        foreach ( $wpdb->hunt_tournaments as $map ) {
+        foreach ( $wpdb->tournaments_hunts as $map ) {
             if ( (int) $map['hunt_id'] === (int) $hunt_id ) {
                 $ids[] = (int) $map['tournament_id'];
             }
