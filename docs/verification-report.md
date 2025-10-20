@@ -53,8 +53,15 @@ required. When a rectification is necessary, update the files listed in the "Mod
 | PHP 7.4 compatibility | `composer.json` targets PHP `^7.4` and locks dependencies compatible with 7.4. Avoid language features added in PHP 8+. | Adjust `composer.json` / code paths if incompatibilities surface. |
 | WordPress 6.3.5 / MySQL 5.5.5 support | Database migrations in `includes/class-bhg-db.php` use syntax compatible with MySQL 5.5.5. Keep queries using `wpdb` prepared statements to retain compatibility. | Update migration helpers or queries if newer syntax is introduced. |
 
+## Dependency Installation Status
+
+| Command | Result | Rectification |
+|---------|--------|---------------|
+| `composer install --no-interaction --no-progress` | ⚠️ Succeeds on PHP ≥8.1 but fails on PHP 7.4 because `composer.lock` pins `doctrine/instantiator` `2.0.0`, which requires PHP 8.1+. | Update `composer.lock` (and, if needed, `composer.json`) to require `doctrine/instantiator` `^1.5` and regenerate the lock file under PHP 7.4 before distributing to production. |
+
 ## Additional Notes
 
 * If any verification step fails during QA, refer to the "Modify" column for the exact file to update.
 * Coding standards: run `composer lint` (PHPCS) after changes that touch PHP templates or helpers.
+* Regenerate `composer.lock` with PHP 7.4 compatibility before re-running `composer install` to avoid dependency resolution failures.
 * Database migrations live in `includes/class-bhg-db.php`; adjust there if schema updates are required.
