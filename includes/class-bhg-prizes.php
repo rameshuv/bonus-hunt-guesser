@@ -69,6 +69,47 @@ class BHG_Prizes {
         }
 
         /**
+         * Normalize image size keyword to an internal key.
+         *
+         * @param string $size Raw size keyword.
+         * @return string Normalized keyword.
+         */
+        private static function normalize_size_key( $size ) {
+                $size = sanitize_key( $size );
+
+                if ( 'large' === $size ) {
+                        $size = 'big';
+                }
+
+                return in_array( $size, array( 'small', 'medium', 'big' ), true ) ? $size : 'medium';
+        }
+
+        /**
+         * Ensure an attachment ID references an image.
+         *
+         * @param int $attachment_id Attachment ID.
+         * @return int Sanitized attachment ID or 0 if invalid.
+         */
+        public static function sanitize_image_id( $attachment_id ) {
+                $attachment_id = absint( $attachment_id );
+                if ( $attachment_id <= 0 ) {
+                        return 0;
+                }
+
+                $post = get_post( $attachment_id );
+                if ( ! $post || 'attachment' !== $post->post_type ) {
+                        return 0;
+                }
+
+                $mime_type = get_post_mime_type( $post );
+                if ( $mime_type && 0 !== strpos( $mime_type, 'image/' ) ) {
+                        return 0;
+                }
+
+                return $attachment_id;
+        }
+
+        /**
          * Retrieve a list of prizes.
          *
          * @param array $args Optional query args (category, active, search).
@@ -171,11 +212,15 @@ class BHG_Prizes {
                         'title'        => sanitize_text_field( $data['title'] ),
                         'description'  => wp_kses_post( $data['description'] ),
                         'category'     => $category,
-                        'image_small'  => isset( $data['image_small'] ) ? absint( $data['image_small'] ) : 0,
-                        'image_medium' => isset( $data['image_medium'] ) ? absint( $data['image_medium'] ) : 0,
-                        'image_large'  => isset( $data['image_large'] ) ? absint( $data['image_large'] ) : 0,
+                        'image_small'  => self::sanitize_image_id( isset( $data['image_small'] ) ? $data['image_small'] : 0 ),
+                        'image_medium' => self::sanitize_image_id( isset( $data['image_medium'] ) ? $data['image_medium'] : 0 ),
+                        'image_large'  => self::sanitize_image_id( isset( $data['image_large'] ) ? $data['image_large'] : 0 ),
                         'active'       => ! empty( $data['active'] ) ? 1 : 0,
                 );
+
+                if ( 0 === $row['image_small'] || 0 === $row['image_medium'] || 0 === $row['image_large'] ) {
+                        return false;
+                }
 
                 $css_settings = isset( $data['css_settings'] ) ? $data['css_settings'] : array();
                 $css_settings = self::sanitize_css_settings( $css_settings );
@@ -374,20 +419,9 @@ class BHG_Prizes {
          * @return string
          */
         public static function get_image_url( $prize, $size = 'medium' ) {
-                $size = sanitize_key( $size );
-                $map  = array(
-                        'small'  => 'image_small',
-                        'medium' => 'image_medium',
-                        'big'    => 'image_large',
-                );
+                $size = self::normalize_size_key( $size );
 
-                if ( ! isset( $map[ $size ] ) ) {
-                        $size = 'medium';
-                }
-
-                $field = $map[ $size ];
-                $id    = isset( $prize->$field ) ? absint( $prize->$field ) : 0;
-
+                $id = self::get_image_id( $prize, $size );
                 if ( $id <= 0 ) {
                         return '';
                 }
@@ -397,8 +431,6 @@ class BHG_Prizes {
                         $wp_size = 'thumbnail';
                 } elseif ( 'big' === $size ) {
                         $wp_size = 'large';
-                } else {
-                        $wp_size = $size;
                 }
 
                 $url = wp_get_attachment_image_url( $id, $wp_size );
@@ -407,5 +439,29 @@ class BHG_Prizes {
                 }
 
                 return $url ? esc_url( $url ) : '';
+        }
+
+        /**
+         * Retrieve the attachment ID for a prize image.
+         *
+         * @param object $prize Prize row.
+         * @param string $size  Image size keyword.
+         * @return int Attachment ID or 0 if not available.
+         */
+        public static function get_image_id( $prize, $size = 'medium' ) {
+                if ( ! $prize ) {
+                        return 0;
+                }
+
+                $size  = self::normalize_size_key( $size );
+                $field = array(
+                        'small'  => 'image_small',
+                        'medium' => 'image_medium',
+                        'big'    => 'image_large',
+                )[ $size ];
+
+                $value = isset( $prize->$field ) ? $prize->$field : 0;
+
+                return self::sanitize_image_id( $value );
         }
 }

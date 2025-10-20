@@ -128,8 +128,9 @@ class BHG_Admin {
                                                 'bhg-admin-prizes',
                                                 'BHGPrizesL10n',
                                                 array(
-                                                        'chooseImage' => bhg_t( 'select_image', 'Select Image' ),
-                                                        'noImage'     => bhg_t( 'no_image_selected', 'No image selected' ),
+                                                        'chooseImage'    => bhg_t( 'select_image', 'Select Image' ),
+                                                        'noImage'        => bhg_t( 'no_image_selected', 'No image selected' ),
+                                                        'imagesRequired' => bhg_t( 'prize_images_required', 'Please select an image for every size before saving.' ),
                                                 )
                                         );
                                 }
@@ -772,6 +773,34 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                         'image_large'  => isset( $_POST['image_large'] ) ? absint( wp_unslash( $_POST['image_large'] ) ) : 0,
                 );
 
+                $missing_fields = array();
+                $invalid_fields = array();
+
+                foreach ( $images as $key => $attachment_id ) {
+                        if ( $attachment_id <= 0 ) {
+                                $missing_fields[] = $key;
+                                continue;
+                        }
+
+                        $sanitized_id = BHG_Prizes::sanitize_image_id( $attachment_id );
+                        if ( ! $sanitized_id ) {
+                                $invalid_fields[] = $key;
+                                continue;
+                        }
+
+                        $images[ $key ] = $sanitized_id;
+                }
+
+                if ( ! empty( $missing_fields ) ) {
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'p_images_required', $redirect ) );
+                        exit;
+                }
+
+                if ( ! empty( $invalid_fields ) ) {
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'p_images_invalid', $redirect ) );
+                        exit;
+                }
+
                 $css_settings = array(
                         'border'       => isset( $_POST['css_border'] ) ? wp_unslash( $_POST['css_border'] ) : '',
                         'border_color' => isset( $_POST['css_border_color'] ) ? wp_unslash( $_POST['css_border_color'] ) : '',
@@ -1212,6 +1241,8 @@ exit;
                         'p_updated'      => bhg_t( 'prize_updated', 'Prize updated.' ),
                         'p_deleted'      => bhg_t( 'prize_deleted', 'Prize deleted.' ),
                         'p_error'        => bhg_t( 'prize_error', 'Unable to save prize.' ),
+                        'p_images_required' => bhg_t( 'prize_images_required', 'Please select an image for every size before saving.' ),
+                        'p_images_invalid'  => bhg_t( 'prize_images_invalid', 'Selected files must be image attachments.' ),
                 );
 		$class = ( strpos( $msg, 'error' ) !== false || 'nonce' === $msg || 'noaccess' === $msg ) ? 'notice notice-error' : 'notice notice-success';
 		$text  = isset( $map[ $msg ] ) ? $map[ $msg ] : esc_html( $msg );
