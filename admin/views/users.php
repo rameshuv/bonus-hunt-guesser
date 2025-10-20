@@ -10,9 +10,10 @@ $paged    = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged']
 $per_page = 30;
 $search   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 if ( isset( $_GET['s'] ) ) {
-		check_admin_referer( 'bhg_users_search', 'bhg_users_search_nonce' );
+	check_admin_referer( 'bhg_users_search', 'bhg_users_search_nonce' );
 }
-$allowed_orderby = array( 'user_login', 'display_name', 'user_email' );
+
+$allowed_orderby = array( 'user_login', 'display_name', 'user_email', 'affiliate_status', 'hunts_joined' );
 $orderby         = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'user_login';
 if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
 	$orderby = 'user_login';
@@ -22,15 +23,60 @@ $order = ( isset( $_GET['order'] ) && 'desc' === strtolower( sanitize_key( wp_un
 $args = array(
 	'number'         => $per_page,
 	'offset'         => ( $paged - 1 ) * $per_page,
-	'orderby'        => $orderby,
+	'orderby'        => in_array( $orderby, array( 'affiliate_status', 'hunts_joined' ), true ) ? 'user_login' : $orderby,
 	'order'          => $order,
 	'search'         => $search ? '*' . $search . '*' : '',
-	'search_columns' => array( 'user_login', 'user_email', 'display_name' ),
+	'search_columns' => array( 'user_login', 'user_email' ),
 );
 
 $user_query = new WP_User_Query( $args );
 $users      = $user_query->get_results();
 $total      = $user_query->get_total();
+
+$user_ids         = array();
+$affiliate_status = array();
+foreach ( $users as $user ) {
+	if ( $user instanceof WP_User ) {
+		$user_ids[]                         = (int) $user->ID;
+		$affiliate_status[ (int) $user->ID ] = (int) get_user_meta( $user->ID, 'bhg_is_affiliate', true );
+	}
+}
+
+$hunts_joined = array();
+if ( ! empty( $user_ids ) ) {
+	global $wpdb;
+	$table_name   = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+	$placeholders = implode( ', ', array_fill( 0, count( $user_ids ), '%d' ) );
+	$query        = "SELECT user_id, COUNT(DISTINCT hunt_id) AS total FROM {$table_name} WHERE user_id IN ({$placeholders}) GROUP BY user_id";
+	$results      = $wpdb->get_results( $wpdb->prepare( $query, $user_ids ) );
+	foreach ( (array) $results as $row ) {
+		$hunts_joined[ (int) $row->user_id ] = (int) $row->total;
+	}
+}
+
+if ( in_array( $orderby, array( 'affiliate_status', 'hunts_joined' ), true ) ) {
+	usort(
+		$users,
+		function ( $a, $b ) use ( $orderby, $order, $affiliate_status, $hunts_joined ) {
+			$a_id = $a instanceof WP_User ? (int) $a->ID : 0;
+			$b_id = $b instanceof WP_User ? (int) $b->ID : 0;
+			if ( 'affiliate_status' === $orderby ) {
+				$a_val = isset( $affiliate_status[ $a_id ] ) ? (int) $affiliate_status[ $a_id ] : 0;
+				$b_val = isset( $affiliate_status[ $b_id ] ) ? (int) $affiliate_status[ $b_id ] : 0;
+			} else {
+				$a_val = isset( $hunts_joined[ $a_id ] ) ? (int) $hunts_joined[ $a_id ] : 0;
+				$b_val = isset( $hunts_joined[ $b_id ] ) ? (int) $hunts_joined[ $b_id ] : 0;
+			}
+			if ( $a_val === $b_val ) {
+				return 0;
+			}
+			if ( 'ASC' === $order ) {
+				return ( $a_val < $b_val ) ? -1 : 1;
+			}
+			return ( $a_val > $b_val ) ? -1 : 1;
+		}
+	);
+}
 
 $base_url = remove_query_arg( array( 'paged' ) );
 ?>
@@ -91,30 +137,57 @@ $base_url = remove_query_arg( array( 'paged' ) );
 		);
 		?>
 		"><?php echo esc_html( bhg_t( 'label_email', 'Email' ) ); ?></a></th>
-		<th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
-		</tr>
-	</thead>
-	<tbody>
-		<?php if ( empty( $users ) ) : ?>
-		<tr><td colspan="6"><?php echo esc_html( bhg_t( 'no_users_found', 'No users found.' ) ); ?></td></tr>
-			<?php
-		else :
-			foreach ( $users as $u ) :
-				$form_id   = 'bhg-user-' . (int) $u->ID;
-				$real_name = get_user_meta( $u->ID, 'bhg_real_name', true );
-				$is_aff    = get_user_meta( $u->ID, 'bhg_is_affiliate', true );
-				?>
-		<tr>
-			<td><?php echo esc_html( $u->user_login ); ?></td>
-			<td><?php echo esc_html( $u->display_name ); ?></td>
-			<td><input type="text" name="bhg_real_name" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $real_name ); ?>" /></td>
-			<td><?php echo esc_html( $u->user_email ); ?></td>
-			<td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
-			<td>
-			<form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="bhg_save_user_meta" />
-<input type="hidden" name="user_id" value="<?php echo esc_attr( (int) $u->ID ); ?>" />
+                <th><a href="
+                <?php
+                echo esc_url(
+                        add_query_arg(
+                                array(
+                                        'orderby' => 'affiliate_status',
+                                        'order'   => 'ASC' === $order ? 'desc' : 'asc',
+                                ),
+                                $base_url
+                        )
+                );
+                ?>
+                "><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></a></th>
+                <th><a href="
+                <?php
+                echo esc_url(
+                        add_query_arg(
+                                array(
+                                        'orderby' => 'hunts_joined',
+                                        'order'   => 'ASC' === $order ? 'desc' : 'asc',
+                                ),
+                                $base_url
+                        )
+                );
+                ?>
+                "><?php echo esc_html( bhg_t( 'hunts_joined', 'Hunts Joined' ) ); ?></a></th>
+                <th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                </tr>
+        </thead>
+        <tbody>
+                <?php if ( empty( $users ) ) : ?>
+                <tr><td colspan="7"><?php echo esc_html( bhg_t( 'no_users_found', 'No users found.' ) ); ?></td></tr>
+                        <?php
+                else :
+                        foreach ( $users as $u ) :
+                                $form_id   = 'bhg-user-' . (int) $u->ID;
+                                $real_name = get_user_meta( $u->ID, 'bhg_real_name', true );
+                                $is_aff    = isset( $affiliate_status[ (int) $u->ID ] ) ? $affiliate_status[ (int) $u->ID ] : 0;
+                                $joined    = isset( $hunts_joined[ (int) $u->ID ] ) ? $hunts_joined[ (int) $u->ID ] : 0;
+                                ?>
+                <tr>
+                        <td><?php echo esc_html( $u->user_login ); ?></td>
+                        <td><?php echo esc_html( $u->display_name ); ?></td>
+                        <td><input type="text" name="bhg_real_name" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $real_name ); ?>" /></td>
+                        <td><?php echo esc_html( $u->user_email ); ?></td>
+                        <td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
+                        <td class="bhg-text-center"><?php echo esc_html( $joined ); ?></td>
+                        <td>
+                        <form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                                <input type="hidden" name="action" value="bhg_save_user_meta" />
+                                <input type="hidden" name="user_id" value="<?php echo esc_attr( (int) $u->ID ); ?>" />
 								<?php wp_nonce_field( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' ); ?>
 				<button type="submit" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button>
 			</form>
