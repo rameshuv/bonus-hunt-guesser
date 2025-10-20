@@ -8,6 +8,10 @@
 
 # Changelog
 
+## 8.0.14 — 2025-09-20
+- Bump version to 8.0.14.
+- Raise minimum WordPress requirement to 6.3.0 and declare MySQL 5.5.5 requirement in plugin header.
+
 ## 8.0.11 — 2025-09-14
 - Version bump.
 
