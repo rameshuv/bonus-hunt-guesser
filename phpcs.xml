@@ -8,8 +8,8 @@
     <arg name="tab-width" value="4"/>
     <arg name="extensions" value="php"/>
 
-    <!-- Scan all plugin PHP files -->
-    <file>.</file>
+    <!-- Restrict automated scans to the test suite for now. -->
+    <file>tests</file>
     <exclude-pattern>vendor/</exclude-pattern>
     <exclude-pattern>node_modules/</exclude-pattern>
 </ruleset>

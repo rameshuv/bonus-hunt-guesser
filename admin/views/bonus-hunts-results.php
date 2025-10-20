@@ -20,7 +20,7 @@ $timeframe = isset( $_GET['timeframe'] ) ? sanitize_key( wp_unslash( $_GET['time
 if ( 'all' === $timeframe ) {
         $timeframe = 'all_time';
 }
-if ( ! in_array( $timeframe, array( 'month', 'year', 'last_year', 'all_time' ), true ) ) {
+if ( ! in_array( $timeframe, array( 'month', 'year', 'all_time' ), true ) ) {
         $timeframe = 'month';
 }
 
@@ -39,17 +39,6 @@ if ( 'hunt' === $view_type && ! $item_id ) {
                                 "SELECT * FROM {$hunts_table} WHERE status=%s AND closed_at >= %s ORDER BY closed_at DESC LIMIT 1",
                                 'closed',
                                 $start
-                        )
-                );
-        } elseif ( 'last_year' === $timeframe ) {
-                $start = gmdate( 'Y-01-01 00:00:00', strtotime( '-1 year' ) );
-                $end   = gmdate( 'Y-01-01 00:00:00' );
-                $hunt  = $wpdb->get_row(
-                        $wpdb->prepare(
-                                "SELECT * FROM {$hunts_table} WHERE status=%s AND closed_at >= %s AND closed_at < %s ORDER BY closed_at DESC LIMIT 1",
-                                'closed',
-                                $start,
-                                $end
                         )
                 );
         } elseif ( 'month' === $timeframe ) {
@@ -140,16 +129,6 @@ if ( 'year' === $timeframe ) {
                         $start
                 )
         );
-} elseif ( 'last_year' === $timeframe ) {
-        $start     = gmdate( 'Y-01-01 00:00:00', strtotime( '-1 year' ) );
-        $end       = gmdate( 'Y-01-01 00:00:00' );
-        $all_hunts = $wpdb->get_results(
-                $wpdb->prepare(
-                        "SELECT id, title FROM {$hunts_table} WHERE closed_at >= %s AND closed_at < %s ORDER BY closed_at DESC, id DESC",
-                        $start,
-                        $end
-                )
-        );
 } elseif ( 'month' === $timeframe ) {
         $start     = gmdate( 'Y-m-01 00:00:00' );
         $all_hunts = $wpdb->get_results(
@@ -160,10 +139,12 @@ if ( 'year' === $timeframe ) {
         );
 } else {
         $all_hunts = $wpdb->get_results(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name provided by trusted helper.
                 "SELECT id, title FROM {$hunts_table} ORDER BY closed_at DESC, id DESC"
         );
 }
 $all_tours = $wpdb->get_results(
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name provided by trusted helper.
         "SELECT id, title FROM {$tour_table} ORDER BY id DESC"
 );
 $current   = $view_type . '-' . $item_id;
@@ -184,7 +165,6 @@ $current   = $view_type . '-' . $item_id;
                         <select id="bhg-results-timeframe">
                                 <option value="month" <?php selected( $timeframe, 'month' ); ?>><?php echo esc_html( bhg_t( 'this_month', 'This Month' ) ); ?></option>
                                 <option value="year" <?php selected( $timeframe, 'year' ); ?>><?php echo esc_html( bhg_t( 'this_year', 'This Year' ) ); ?></option>
-                                <option value="last_year" <?php selected( $timeframe, 'last_year' ); ?>><?php echo esc_html( bhg_t( 'label_last_year', 'Last Year' ) ); ?></option>
                                 <option value="all_time" <?php selected( $timeframe, 'all_time' ); ?>><?php echo esc_html( bhg_t( 'all_time', 'All Time' ) ); ?></option>
                         </select>
         </div>

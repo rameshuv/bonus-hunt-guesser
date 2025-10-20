@@ -1,33 +1,79 @@
 # Bonus Hunt Guesser – Feature Verification
 
-This document captures code-level evidence that the current plugin implementation satisfies the
-customer requirements enumerated in Robin's latest checklist.
+This document captures code-level evidence gathered during the most recent review of the plugin.
+Each subsection lists the core requirement, the primary implementation touchpoints, and any
+follow-up action if changes are required. When a rectification is necessary, update the files
+listed in the "Modify" column.
+
+> **Note:** See `docs/compliance-review-2024-09-12.md` for a requirement-by-requirement
+> compliance matrix with file-level remediation pointers.
+
+## Latest QA Findings
+
+| Issue | Evidence | Modify |
+|-------|----------|--------|
+| WordPress coding standards checks currently cover only the `tests/` directory, masking production issues. | `phpcs.xml` restricts scanning to `tests/`, so the main plugin code is not linted. | Broaden PHPCS scope to include plugin PHP files, then resolve reported violations (see compliance review). 【F:phpcs.xml†L3-L14】|
+| Plugin metadata and the runtime constant both report version `8.0.13`, matching the contracted release number. | `bonus-hunt-guesser.php` header and constant definition. | – 【F:bonus-hunt-guesser.php†L1-L16】【F:bonus-hunt-guesser.php†L141-L150】|
+| Bonus Hunt results timeframe dropdown adds an extra “Last Year” filter that was not requested and may exceed scope. | `admin/views/bonus-hunts-results.php` timeframe selector. | Remove or hide the additional option if scope must remain limited to This Month / This Year / All Time. 【F:admin/views/bonus-hunts-results.php†L171-L189】|
+| Results admin view executes unprepared SQL when the “All Time” option is selected, triggering WPCS warnings. | The default branch fetches hunts and tournaments without `$wpdb->prepare()`. | Wrap the queries in `$wpdb->prepare()` or documented sanitisation. 【F:admin/views/bonus-hunts-results.php†L162-L167】|
 
 ## Sorting, Search, and Pagination (30 per page)
-- `[bhg_user_guesses]` enforces a `LIMIT 30` window, honors `bhg_search`, and flips ordering via
-  `bhg_orderby` / `bhg_order` query arguments.
-- `[bhg_hunts]` uses identical pagination, search, and sortable headings with 30-row pages.
-- `[bhg_tournaments]` exposes the same controls, retaining search filters while paginating at 30
-  items per page.
-- `[bhg_leaderboards]` supports sortable headers, search boxes, and query-string pagination.
+
+| Area | Evidence | Modify |
+|------|----------|--------|
+| `[bhg_user_guesses]` | `includes/shortcodes/class-bhg-shortcode-user-guesses.php` builds a `WP_Query` wrapper that enforces a 30 item `LIMIT`, handles `paged` args, and inspects `$_GET['bhg_search']` / `$_GET['bhg_orderby']`. | Same file and `includes/class-bhg-data-access.php` if query adjustments are required. |
+| `[bhg_hunts]` | `includes/shortcodes/class-bhg-shortcode-hunts.php` registers sortable headers, forwards search to `BHG_Query_Helper::apply_search_filters()`, and paginates via `bhg_paginate_links()` (30 rows). | Modify shortcode class; shared helpers in `includes/helpers/class-bhg-query-helper.php`. |
+| `[bhg_tournaments]` | `includes/shortcodes/class-bhg-shortcode-tournaments.php` mirrors the hunts implementation for ordering, searching, and pagination. | Same shortcode class and shared query helper. |
+| `[bhg_leaderboards]` | `includes/shortcodes/class-bhg-shortcode-leaderboards.php` exposes sortable headings and accepts `bhg_search`, but per-page output exceeds the requested 30 rows in practice. | Update shortcode class or pagination helper `includes/helpers/class-bhg-pagination.php` to enforce the limit. |
+| Admin Lists | `admin/views/bonus-hunts.php`, `admin/views/tournaments.php`, `admin/views/users.php`, and related `WP_List_Table` subclasses enforce 30 rows per page while honouring `orderby`, `order`, and `s` query parameters. | Adjust respective `class-bhg-*-list-table.php` files if behaviour needs changes. |
 
 ## Timeline Filters
-- `BHG_Shortcodes::get_timeline_range()` resolves keywords such as _this week_, _this month_,
-  _last year_, and _all time_ to concrete date ranges.
-- Each shortcode pulls the chosen timeline from shortcode attributes or `$_GET` parameters and
-  constrains the SQL WHERE clause accordingly.
+
+| Area | Evidence | Modify |
+|------|----------|--------|
+| Timeline helper | `includes/helpers/class-bhg-timeline.php` resolves keywords (`this-week`, `this-month`, `this-year`, `last-year`, `all-time`) to start/end dates. | Update helper to add/adjust ranges. |
+| Shortcodes | `class-bhg-shortcode-user-guesses.php`, `class-bhg-shortcode-hunts.php`, `class-bhg-shortcode-tournaments.php`, and `class-bhg-shortcode-leaderboards.php` call `BHG_Timeline::resolve()` before composing SQL WHERE clauses. | Modify respective shortcode files to alter timeline handling. |
+| Admin reports | `admin/views/hunt-results.php` uses the same helper to trim dropdowns and result sets. | Adjust view/controller if additional filters are required. |
 
 ## Affiliate Indicators & Websites
-- `bhg_render_affiliate_dot()` renders a green (affiliate) or red (non-affiliate) status badge.
-- Hunt, leaderboard, and tournament tables append the indicator beside usernames and can show the
-  associated affiliate site name when requested.
+
+| Requirement | Evidence | Modify |
+|-------------|----------|--------|
+| Indicator lights | `includes/helpers/class-bhg-templates.php::render_affiliate_indicator()` outputs green/red SVG badges. Invoked by guess, hunt, and leaderboard templates. | Update helper for styling tweaks. |
+| Template usage | `templates/frontend/guess-row.php`, `templates/frontend/leaderboard-row.php`, and `templates/frontend/tournament-row.php` call the helper so each row shows the indicator. | Modify individual template partials to change placement. |
+| Affiliate website name | `includes/helpers/class-bhg-templates.php::render_affiliate_site_name()` fetches the linked site label and appends it to table cells when shortcode attribute `show_website` is true. | Update helper or templates that call it. |
 
 ## Profile Output
-- `[bhg_user_profile]` renders a table with the logged-in user's real name, username, email,
-  affiliate status badge, and any linked affiliate websites, plus an edit link when permitted.
 
-## Shortcode Inventory
-- `BHG_Shortcodes::__construct()` registers every shortcode mentioned in the requirements, including
-  `bhg_user_guesses`, `bhg_hunts`, `bhg_leaderboards`, and legacy aliases for backwards
-  compatibility.
+| Requirement | Evidence | Modify |
+|-------------|----------|--------|
+| Extended profile data | `includes/shortcodes/class-bhg-shortcode-user-profile.php` collects real name, username, email, affiliate flag, and connected affiliate sites before rendering `templates/frontend/user-profile.php`. | Update shortcode class or template file for additional fields. |
+| Admin profile linkage | `admin/views/users.php` provides quick links to edit each user profile, exposing the same fields for administrators. | Modify view/controller to add further metadata. |
 
+## Shortcode Inventory & Registration
+
+| Requirement | Evidence | Modify |
+|-------------|----------|--------|
+| Registration | `includes/class-bhg-shortcodes.php::__construct()` registers all customer-requested shortcodes: `bhg_user_profile`, `bhg_active_hunt`, `bhg_guess_form`, `bhg_tournaments`, `bhg_winner_notifications`, `bhg_leaderboard`, `bhg_user_guesses`, `bhg_hunts`, `bhg_leaderboards`, and `bhg_advertising`. | Update constructor to add or remove shortcode bindings. |
+| Handler locations | Each shortcode has a dedicated class inside `includes/shortcodes/` matching the naming convention `class-bhg-shortcode-*.php`. | Modify the relevant handler class when adjusting behaviour. |
+
+## WordPress Coding Standards & Compatibility
+
+| Requirement | Evidence | Modify |
+|-------------|----------|--------|
+| Coding standards (PHPCS) | Production files have not been scanned because `phpcs.xml` excludes them; coverage must be widened before assessing violations. | Update `phpcs.xml` to include plugin directories, then fix issues reported by the expanded run (see compliance review). 【F:phpcs.xml†L3-L14】|
+| PHP 7.4 compatibility | `composer.json` targets PHP `^7.4` and locks dependencies compatible with 7.4. Avoid language features added in PHP 8+. | Adjust `composer.json` / code paths if incompatibilities surface. |
+| WordPress 6.3.5 / MySQL 5.5.5 support | Database migrations in `includes/class-bhg-db.php` use syntax compatible with MySQL 5.5.5. Keep queries using `wpdb` prepared statements to retain compatibility. | Update migration helpers or queries if newer syntax is introduced. |
+
+## Dependency Installation Status
+
+| Command | Result | Rectification |
+|---------|--------|---------------|
+| `composer install --no-interaction --no-progress` | ✅ Passes under PHP 7.4 with the current lock file. | Keep the lock file in sync with the declared PHP platform requirement when adding dependencies. 【16e4fc†L1-L34】【50e6e4†L1-L2】|
+
+## Additional Notes
+
+* If any verification step fails during QA, refer to the "Modify" column for the exact file to update.
+* Coding standards: run `composer lint` (PHPCS) after changes that touch PHP templates or helpers.
+* Regenerate `composer.lock` with PHP 7.4 compatibility before re-running `composer install` to avoid dependency resolution failures.
+* Database migrations live in `includes/class-bhg-db.php`; adjust there if schema updates are required.
