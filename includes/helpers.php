@@ -276,8 +276,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'apply'                                        => 'Apply',
 			'label_yes'                                    => 'Yes',
 			'label_no'                                     => 'No',
-			'label_default'                                => 'Default',
-			'label_custom'                                 => 'Custom',
+                        'label_default'                                => 'Default',
+                        'label_custom'                                 => 'Custom',
+                        'label_custom_value_for'                       => 'Custom value for %s',
+                        'label_notes'                                  => 'Notes',
 			'label_items_per_page'                         => 'Items per page',
 			'label_search_translations'                    => 'Search translations',
 			'label_start_date'                             => 'Start Date',
@@ -357,7 +359,30 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'all_time'                                     => 'All Time',
 			'label_guests'                                 => 'Guests',
 			'label_logged_in'                              => 'Logged In',
-			'label_affiliates'                             => 'Affiliates',
+                        'label_affiliates'                             => 'Affiliates',
+                        // Translation context meta.
+                        'context_group_menus'                          => 'Menus & Navigation',
+                        'context_group_menus_help'                     => 'Navigation labels shown in the frontend menus and tab headers.',
+                        'context_group_leaderboard'                    => 'Leaderboards & Tables',
+                        'context_group_leaderboard_help'               => 'Headings and column labels used in leaderboards, history tabs, and guess tables.',
+                        'context_group_prizes'                         => 'Prizes & Rewards',
+                        'context_group_prizes_help'                    => 'Strings displayed inside prize showcases and reward modules.',
+                        'context_group_ads'                            => 'Advertising Blocks',
+                        'context_group_ads_help'                       => 'Fields that control advertising placement visibility on the frontend.',
+                        'context_group_forms'                          => 'Forms & Inputs',
+                        'context_group_forms_help'                     => 'Field labels, placeholders, and call-to-action buttons used in user forms.',
+                        'context_group_notices'                        => 'Alerts & Notices',
+                        'context_group_notices_help'                   => 'Status and feedback messages presented to users.',
+                        'context_group_general'                        => 'General',
+                        'context_group_general_help'                   => 'Miscellaneous text strings used throughout the plugin.',
+                        'help_translation_menu'                        => 'Displayed in site navigation menus and tab labels.',
+                        'help_translation_leaderboard'                 => 'Shown in leaderboard views, guess listings, and history tabs.',
+                        'help_translation_prizes'                      => 'Displayed alongside prize grids, sliders, and reward details.',
+                        'help_translation_ads'                         => 'Used when configuring advertising locations and visibility.',
+                        'help_translation_forms'                       => 'Appears next to or inside form inputs on the frontend.',
+                        'help_translation_notices'                     => 'Presented to users as success, warning, or error notices.',
+                        'help_translation_general'                     => 'General label used across multiple areas of the interface.',
+                        'translations_context_help'                    => 'Each translation row includes a contextual note describing where it appears on the site.',
 			'label_log_in'                                 => 'Log in',
 			'label_log_out'                                => 'Log out',
 			'label_non_affiliates'                         => 'Non Affiliates',
@@ -548,7 +573,48 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'delete_this_guess'                            => 'Delete this guess?',
 			'demo_tools'                                   => 'Demo Tools',
 			'description'                                  => 'Description',
-			'diagnostics'                                  => 'Diagnostics',
+                        'diagnostics'                                  => 'Diagnostics',
+                        'diagnostics_overview'                         => 'Content Snapshot',
+                        'diagnostics_overview_help'                    => 'High-level counts of the data your site is tracking.',
+                        'diagnostics_database_status'                  => 'Database Status',
+                        'diagnostics_database_status_help'             => 'Quick view of required tables and their row counts.',
+                        'tools_intro'                                  => 'Use these diagnostics to verify your installation and find helpful shortcuts.',
+                        'tools_shortcodes'                             => 'Shortcode Reference',
+                        'tools_shortcodes_help'                        => 'Copy these shortcodes into pages or blocks to display plugin features.',
+                        'tools_support'                                => 'Support & Environment',
+                        'tools_support_help'                           => 'Share these environment details with support when requesting assistance.',
+                        'tools_support_contact_description'            => 'Need help? Visit our knowledge base or contact support using the information below.',
+                        'tools_support_resources'                      => 'Resources',
+                        'tools_shortcode_aliases_none'                 => 'None',
+                        'label_table'                                  => 'Table',
+                        'label_rows'                                   => 'Rows',
+                        'label_count'                                  => 'Count',
+                        'label_version'                                => 'Version',
+                        'label_metric'                                 => 'Metric',
+                        'label_wordpress'                              => 'WordPress',
+                        'label_php'                                    => 'PHP',
+                        'label_mysql'                                  => 'MySQL',
+                        'label_memory_limit'                           => 'Memory Limit',
+                        'label_environment'                            => 'Environment',
+                        'label_site_url'                               => 'Site URL',
+                        'label_admin_email'                            => 'Admin Email',
+                        'label_aliases'                                => 'Aliases',
+                        'label_documentation'                          => 'Documentation',
+                        'label_support'                                => 'Support',
+                        'status_ok'                                    => 'OK',
+                        'status_missing'                               => 'Missing',
+                        'shortcode_active_hunt_help'                   => 'Displays the currently active bonus hunt summary.',
+                        'shortcode_guess_form_help'                    => 'Shows the frontend guess submission form for logged-in users.',
+                        'shortcode_leaderboard_help'                   => 'Outputs the main leaderboard table with all recorded guesses.',
+                        'shortcode_tournaments_help'                   => 'Lists active tournaments with sortable leaderboards.',
+                        'shortcode_winner_notifications_help'          => 'Displays the latest winner notifications for hunts and tournaments.',
+                        'shortcode_user_profile_help'                  => 'Renders the logged-in user profile with affiliate indicators.',
+                        'shortcode_best_guessers_help'                 => 'Highlights top-performing guessers across timeframes.',
+                        'shortcode_user_guesses_help'                  => 'Shows a table of guesses submitted by the current user.',
+                        'shortcode_hunts_help'                         => 'Outputs a paginated list of available bonus hunts.',
+                        'shortcode_leaderboards_help'                  => 'Displays leaderboard tabs for weekly, monthly, and yearly rankings.',
+                        'shortcode_prizes_help'                        => 'Displays the prize showcase component.',
+                        'shortcode_bonus_hunt_login_help'              => 'Provides a login prompt for visitors with supported providers.',
 			'difference'                                   => 'Difference',
 			'edit_ad'                                      => 'Edit Ad',
 			'edit_affiliate'                               => 'Edit Affiliate Website',
@@ -776,6 +842,132 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
 				bhg_seed_default_translations();
 		}
 	}
+}
+
+if ( ! function_exists( 'bhg_get_translation_context_definitions' ) ) {
+        /**
+         * Provide translation context definitions for grouping and help text.
+         *
+         * @return array[]
+         */
+        function bhg_get_translation_context_definitions() {
+                return array(
+                        'menus'       => array(
+                                'title'       => bhg_t( 'context_group_menus', 'Menus & Navigation' ),
+                                'description' => bhg_t( 'context_group_menus_help', 'Navigation labels shown in the frontend menus and tab headers.' ),
+                                'patterns'    => array(
+                                        array(
+                                                'regex' => '/^(menu_|bhg_menu_|dashboard$|bonus_hunts$|results$|tools$|translations$|affiliate_websites$|affiliate$|advertising$|prizes$|tournament$)/i',
+                                                'help'  => bhg_t( 'help_translation_menu', 'Displayed in site navigation menus and tab labels.' ),
+                                        ),
+                                ),
+                        ),
+                        'leaderboard' => array(
+                                'title'       => bhg_t( 'context_group_leaderboard', 'Leaderboards & Tables' ),
+                                'description' => bhg_t( 'context_group_leaderboard_help', 'Headings and column labels used in leaderboards, history tabs, and guess tables.' ),
+                                'patterns'    => array(
+                                        array(
+                                                'regex' => '/^(label_(leaderboard|best_guessers|leaderboard_history|position|guess|username|final_balance|difference|diff|hash|affiliates?|affiliate_status|site|tournament|wins|last_win|your_hunts|your_guesses|winner_notifications|timeline|choose_hunt|select_hunt|guess_final_balance|latest_hunts|all_winners|bonushunt|closed_at|bonus_hunt_title|existing_bonus_hunts|start_balance_euro|prizes_description|created|completed|upcoming|diff_short|dash|not_set|pagination)|msg_no_guesses|msg_thank_you|msg_error)/i',
+                                                'help'  => bhg_t( 'help_translation_leaderboard', 'Shown in leaderboard views, guess listings, and history tabs.' ),
+                                        ),
+                                ),
+                        ),
+                        'prizes'      => array(
+                                'title'       => bhg_t( 'context_group_prizes', 'Prizes & Rewards' ),
+                                'description' => bhg_t( 'context_group_prizes_help', 'Strings displayed inside prize showcases and reward modules.' ),
+                                'patterns'    => array(
+                                        array(
+                                                'regex' => '/^(prize_|label_prize)/i',
+                                                'help'  => bhg_t( 'help_translation_prizes', 'Displayed alongside prize grids, sliders, and reward details.' ),
+                                        ),
+                                ),
+                        ),
+                        'ads'         => array(
+                                'title'       => bhg_t( 'context_group_ads', 'Advertising Blocks' ),
+                                'description' => bhg_t( 'context_group_ads_help', 'Fields that control advertising placement visibility on the frontend.' ),
+                                'patterns'    => array(
+                                        array(
+                                                'regex' => '/^(label_(placement|placements|visible_to|target_page_slugs|existing_ads)|label_title_content)/i',
+                                                'help'  => bhg_t( 'help_translation_ads', 'Used when configuring advertising locations and visibility.' ),
+                                        ),
+                                ),
+                        ),
+                        'forms'       => array(
+                                'title'       => bhg_t( 'context_group_forms', 'Forms & Inputs' ),
+                                'description' => bhg_t( 'context_group_forms_help', 'Field labels, placeholders, and call-to-action buttons used in user forms.' ),
+                                'patterns'    => array(
+                                        array(
+                                                'regex' => '/^(label_|placeholder_|button_|select_|add_|update_|edit_|clear$|apply$|currency$|category$|search_|label_search_|label_items_per_page$)/i',
+                                                'help'  => bhg_t( 'help_translation_forms', 'Appears next to or inside form inputs on the frontend.' ),
+                                        ),
+                                ),
+                        ),
+                        'notices'     => array(
+                                'title'       => bhg_t( 'context_group_notices', 'Alerts & Notices' ),
+                                'description' => bhg_t( 'context_group_notices_help', 'Status and feedback messages presented to users.' ),
+                                'patterns'    => array(
+                                        array(
+                                                'regex' => '/^(notice_|label_status|label_status_colon|label_active|label_closed)/i',
+                                                'help'  => bhg_t( 'help_translation_notices', 'Presented to users as success, warning, or error notices.' ),
+                                        ),
+                                ),
+                        ),
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_classify_translation_slug' ) ) {
+        /**
+         * Determine grouping and help text for a translation slug.
+         *
+         * @param string $slug Translation key.
+         * @return array{
+         *     group: string,
+         *     title: string,
+         *     description: string,
+         *     help: string
+         * }
+         */
+        function bhg_classify_translation_slug( $slug ) {
+                $slug        = (string) $slug;
+                $definitions = bhg_get_translation_context_definitions();
+
+                foreach ( $definitions as $group => $definition ) {
+                        if ( empty( $definition['patterns'] ) || ! is_array( $definition['patterns'] ) ) {
+                                continue;
+                        }
+
+                        foreach ( $definition['patterns'] as $pattern ) {
+                                if ( is_array( $pattern ) ) {
+                                        $regex = isset( $pattern['regex'] ) ? (string) $pattern['regex'] : '';
+                                        $help  = isset( $pattern['help'] ) ? (string) $pattern['help'] : $definition['description'];
+                                } else {
+                                        $regex = (string) $pattern;
+                                        $help  = $definition['description'];
+                                }
+
+                                if ( '' === $regex ) {
+                                        continue;
+                                }
+
+                                if ( preg_match( $regex, $slug ) ) {
+                                        return array(
+                                                'group'       => (string) $group,
+                                                'title'       => isset( $definition['title'] ) ? (string) $definition['title'] : '',
+                                                'description' => isset( $definition['description'] ) ? (string) $definition['description'] : '',
+                                                'help'        => $help,
+                                        );
+                                }
+                        }
+                }
+
+                return array(
+                        'group'       => 'general',
+                        'title'       => bhg_t( 'context_group_general', 'General' ),
+                        'description' => bhg_t( 'context_group_general_help', 'Miscellaneous text strings used throughout the plugin.' ),
+                        'help'        => bhg_t( 'help_translation_general', 'General label used across multiple areas of the interface.' ),
+                );
+        }
 }
 
 /**

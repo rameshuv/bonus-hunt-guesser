@@ -130,29 +130,62 @@ $pagination  = paginate_links(
 	)
 );
 
-// Group rows by context (prefix before the first underscore).
+// Group rows by contextual classification with inline help text.
 $grouped = array();
 if ( $rows ) {
-	foreach ( $rows as $r ) {
-			list( $context )       = array_pad( explode( '_', $r->slug, 2 ), 2, 'misc' );
-			$grouped[ $context ][] = $r;
-	}
-	ksort( $grouped );
-	foreach ( $grouped as &$items ) {
-		usort(
-			$items,
-			static function ( $a, $b ) {
-								return strcmp( $a->slug, $b->slug );
-			}
-		);
-	}
-	unset( $items );
+        foreach ( $rows as $r ) {
+                $classification = function_exists( 'bhg_classify_translation_slug' ) ? bhg_classify_translation_slug( $r->slug ) : array();
+                $group_key      = isset( $classification['group'] ) && '' !== $classification['group'] ? $classification['group'] : 'general';
+                $group_title    = isset( $classification['title'] ) && '' !== $classification['title'] ? $classification['title'] : ucwords( str_replace( '_', ' ', $group_key ) );
+                $group_desc     = isset( $classification['description'] ) ? (string) $classification['description'] : '';
+                $row_help       = isset( $classification['help'] ) ? (string) $classification['help'] : $group_desc;
+
+                if ( ! isset( $grouped[ $group_key ] ) ) {
+                        $grouped[ $group_key ] = array(
+                                'title'       => $group_title,
+                                'description' => $group_desc,
+                                'rows'        => array(),
+                        );
+                }
+
+                $grouped[ $group_key ]['rows'][] = array(
+                        'row'  => $r,
+                        'help' => $row_help,
+                );
+        }
+
+        uasort(
+                $grouped,
+                static function ( $a, $b ) {
+                        $title_a = isset( $a['title'] ) ? (string) $a['title'] : '';
+                        $title_b = isset( $b['title'] ) ? (string) $b['title'] : '';
+                        return strcmp( $title_a, $title_b );
+                }
+        );
+
+        foreach ( $grouped as &$group_data ) {
+                if ( empty( $group_data['rows'] ) ) {
+                        continue;
+                }
+
+                usort(
+                        $group_data['rows'],
+                        static function ( $a, $b ) {
+                                $slug_a = isset( $a['row']->slug ) ? (string) $a['row']->slug : '';
+                                $slug_b = isset( $b['row']->slug ) ? (string) $b['row']->slug : '';
+                                return strcmp( $slug_a, $slug_b );
+                        }
+                );
+        }
+        unset( $group_data );
 }
 ?>
 <div class="wrap">
-	<h1><?php echo esc_html( bhg_t( 'menu_translations', 'Translations' ) ); ?></h1>
+        <h1><?php echo esc_html( bhg_t( 'menu_translations', 'Translations' ) ); ?></h1>
 
-	<?php if ( ! empty( $notice ) ) : ?>
+        <p class="description"><?php echo esc_html( bhg_t( 'translations_context_help', 'Each translation row includes a contextual note describing where it appears on the site.' ) ); ?></p>
+
+        <?php if ( ! empty( $notice ) ) : ?>
 		<div class="notice notice-success"><p><?php echo esc_html( $notice ); ?></p></div>
 	<?php endif; ?>
 
@@ -199,44 +232,79 @@ if ( $rows ) {
 		<div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
 	<?php endif; ?>
 
-	<?php if ( ! empty( $grouped ) ) : ?>
-		<?php foreach ( $grouped as $context => $items ) : ?>
-			<div class="bhg-translation-group">
-				<h3><?php echo esc_html( ucwords( str_replace( '_', ' ', $context ) ) ); ?></h3>
-				<table class="widefat striped bhg-translations-table">
-					<thead>
-						<tr>
-							<th><?php echo esc_html( bhg_t( 'label_key', 'Key' ) ); ?></th>
-							<th><?php echo esc_html( bhg_t( 'label_default', 'Default' ) ); ?></th>
-							<th><?php echo esc_html( bhg_t( 'label_custom', 'Custom' ) ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php
-						foreach ( $items as $r ) :
-								$row_class = ( '' === $r->text || $r->text === $r->default_text ) ? 'bhg-default-row' : 'bhg-custom-row';
-							?>
-														<tr class="<?php echo esc_attr( $row_class ); ?>">
-																<td><code><?php echo esc_html( $r->slug ); ?></code></td>
-																<td><?php echo esc_html( $r->default_text ); ?></td>
-																<td>
-																		<form method="post" class="bhg-inline-form">
-														<?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
-																				<input type="hidden" name="slug" value="<?php echo esc_attr( $r->slug ); ?>" />
-																				<input type="hidden" name="locale" value="<?php echo esc_attr( $r->locale ); ?>" />
-																				<input type="text" name="text" value="<?php echo esc_attr( $r->text ); ?>" class="regular-text" data-original="<?php echo esc_attr( $r->text ); ?>" placeholder="<?php echo esc_attr( bhg_t( 'placeholder_custom_value', 'Custom value' ) ); ?>" />
-																				<button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_update', 'Update' ) ); ?></button>
-																		</form>
-																</td>
-														</tr>
-												<?php endforeach; ?>
-					</tbody>
-				</table>
-			</div>
-		<?php endforeach; ?>
-	<?php else : ?>
-		<p><?php echo esc_html( bhg_t( 'no_translations_yet', 'No translations yet.' ) ); ?></p>
-	<?php endif; ?>
+        <?php if ( ! empty( $grouped ) ) : ?>
+                <?php foreach ( $grouped as $group_key => $group_data ) : ?>
+                        <?php
+                        $group_title = isset( $group_data['title'] ) ? (string) $group_data['title'] : $group_key;
+                        $group_desc  = isset( $group_data['description'] ) ? (string) $group_data['description'] : '';
+                        $group_id    = sanitize_html_class( $group_key );
+                        if ( '' === $group_id ) {
+                                $group_id = 'bhg-translation-group-' . md5( $group_key );
+                        } else {
+                                $group_id = 'bhg-translation-group-' . $group_id;
+                        }
+                        ?>
+                        <div class="bhg-translation-group" id="<?php echo esc_attr( $group_id ); ?>">
+                                <h3><?php echo esc_html( $group_title ); ?></h3>
+                                <?php if ( '' !== $group_desc ) : ?>
+                                        <p class="description"><?php echo esc_html( $group_desc ); ?></p>
+                                <?php endif; ?>
+                                <table class="widefat striped bhg-translations-table">
+                                        <thead>
+                                                <tr>
+                                                        <th scope="col"><?php echo esc_html( bhg_t( 'label_key', 'Key' ) ); ?></th>
+                                                        <th scope="col"><?php echo esc_html( bhg_t( 'label_default', 'Default' ) ); ?></th>
+                                                        <th scope="col"><?php echo esc_html( bhg_t( 'label_custom', 'Custom' ) ); ?></th>
+                                                        <th scope="col"><?php echo esc_html( bhg_t( 'label_notes', 'Notes' ) ); ?></th>
+                                                </tr>
+                                        </thead>
+                                        <tbody>
+                                                <?php foreach ( $group_data['rows'] as $item ) :
+                                                        $r               = $item['row'];
+                                                        $help_text       = isset( $item['help'] ) ? (string) $item['help'] : '';
+                                                        $current_text    = isset( $r->text ) ? (string) $r->text : '';
+                                                        $row_class       = ( '' === $current_text || $current_text === $r->default_text ) ? 'bhg-default-row' : 'bhg-custom-row';
+                                                        $slug_for_id     = sanitize_html_class( $r->slug );
+                                                        $input_id        = $slug_for_id ? 'bhg-translation-' . $slug_for_id : 'bhg-translation-' . md5( $r->slug );
+                                                        $help_id         = $slug_for_id ? 'bhg-translation-help-' . $slug_for_id : 'bhg-translation-help-' . md5( $r->slug );
+                                                        $locale_value    = isset( $r->locale ) ? (string) $r->locale : get_locale();
+                                                        ?>
+                                                        <tr class="<?php echo esc_attr( trim( $row_class . ' bhg-translation-row' ) ); ?>">
+                                                                <td><code><?php echo esc_html( $r->slug ); ?></code></td>
+                                                                <td><?php echo esc_html( $r->default_text ); ?></td>
+                                                                <td>
+                                                                        <form method="post" class="bhg-inline-form">
+                                                                                <?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
+                                                                                <input type="hidden" name="slug" value="<?php echo esc_attr( $r->slug ); ?>" />
+                                                                                <input type="hidden" name="locale" value="<?php echo esc_attr( $locale_value ); ?>" />
+                                                                                <label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>">
+                                                                                        <?php echo esc_html( sprintf( bhg_t( 'label_custom_value_for', 'Custom value for %s' ), $r->slug ) ); ?>
+                                                                                </label>
+                                                                                <input
+                                                                                        type="text"
+                                                                                        id="<?php echo esc_attr( $input_id ); ?>"
+                                                                                        name="text"
+                                                                                        value="<?php echo esc_attr( $current_text ); ?>"
+                                                                                        class="regular-text"
+                                                                                        data-original="<?php echo esc_attr( $current_text ); ?>"
+                                                                                        placeholder="<?php echo esc_attr( bhg_t( 'placeholder_custom_value', 'Custom value' ) ); ?>"
+                                                                                        aria-describedby="<?php echo esc_attr( $help_id ); ?>"
+                                                                                />
+                                                                                <button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_update', 'Update' ) ); ?></button>
+                                                                        </form>
+                                                                </td>
+                                                                <td class="bhg-translation-help" id="<?php echo esc_attr( $help_id ); ?>">
+                                                                        <span class="description"><?php echo esc_html( $help_text ); ?></span>
+                                                                </td>
+                                                        </tr>
+                                                <?php endforeach; ?>
+                                        </tbody>
+                                </table>
+                        </div>
+                <?php endforeach; ?>
+        <?php else : ?>
+                <p><?php echo esc_html( bhg_t( 'no_translations_yet', 'No translations yet.' ) ); ?></p>
+        <?php endif; ?>
 
 	<?php if ( $pagination ) : ?>
 		<div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
@@ -258,15 +326,3 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 });
 </script>
-
-<style>
-.bhg-modified-row {
-		background-color: #fff3cd;
-		border-left: 4px solid #d97706;
-}
-.bhg-custom-row {
-		background-color: #e6ffed;
-		border-left: 4px solid #2f855a;
-}
-</style>
-
