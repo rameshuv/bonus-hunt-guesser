@@ -68,8 +68,8 @@ $winners_count = (int) ( $hunt->winners_count ?? 3 );
                 <tr<?php echo $highlight ? ' style="background:#e6ffed;"' : ''; ?>>
                         <td><?php echo (int) $i; ?></td>
                         <td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $r->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
-                        <td><?php echo esc_html( number_format_i18n( (float) $r->guess, 2 ) ); ?></td>
-                        <td><?php echo esc_html( number_format_i18n( (float) $r->diff, 2 ) ); ?></td>
+                        <td><?php echo esc_html( bhg_format_money( (float) $r->guess ) ); ?></td>
+                        <td><?php echo esc_html( bhg_format_money( (float) $r->diff ) ); ?></td>
                         </tr>
                         <?php
                         ++$i;

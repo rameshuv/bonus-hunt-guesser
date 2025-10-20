@@ -330,7 +330,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'button_apply'                                 => 'Apply',
 			'label_bonus_hunt_title'                       => 'Bonus Hunt Title',
 			'label_existing_bonus_hunts'                   => 'Existing Bonus Hunts',
-			'label_start_balance_euro'                     => 'Starting Balance (€)',
+                        'label_start_balance_euro'                     => 'Starting Balance',
 			'label_prizes_description'                     => 'Prizes Description',
 			'label_created'                                => 'Created',
 			'label_completed'                              => 'Completed',
@@ -572,7 +572,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'exists'                                       => 'Exists',
 			'final_balance_optional'                       => 'Final Balance (optional)',
 			'gift_card_swag'                               => 'Gift card + swag',
-			'guess_must_be_between_0_and_100000'           => 'Guess must be between €0 and €100,000.',
+                        'guess_must_be_between_0_and_100000'           => 'Guess must be between 0 and 100,000.',
 			'guess_must_be_between'                        => 'Guess must be between %1$s and %2$s.',
 			'guess_removed'                                => 'Guess removed.',
 			'guesses'                                      => 'Guesses',
@@ -786,24 +786,44 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
-		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
-		$map      = array(
-			'usd' => '$',
-			'eur' => '€',
-		);
-		$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
-		return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+        $settings = get_option( 'bhg_plugin_settings', array() );
+        $currency = isset( $settings['currency'] ) ? strtolower( (string) $settings['currency'] ) : 'eur';
+        $map      = array(
+                'usd' => '$',
+                'eur' => '€',
+        );
+        $symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : $map['eur'];
+        return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
- * Format an amount as currency using the selected symbol.
+ * Format an amount as money using the selected currency symbol.
  *
  * @param float $amount Amount to format.
  * @return string
  */
-function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+function bhg_format_money( $amount ) {
+        $symbol    = bhg_currency_symbol();
+        $formatted = number_format_i18n( (float) $amount, 2 );
+        $value     = sprintf( '%s%s', $symbol, $formatted );
+        return apply_filters( 'bhg_format_money', $value, $amount, $symbol );
+}
+
+if ( ! function_exists( 'bhg_format_currency' ) ) {
+        /**
+         * Backwards compatibility wrapper for legacy currency formatter.
+         *
+         * @deprecated 1.0.0 Use bhg_format_money() instead.
+         *
+         * @param float $amount Amount to format.
+         * @return string
+         */
+        function bhg_format_currency( $amount ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
+                if ( function_exists( '_deprecated_function' ) ) {
+                        _deprecated_function( __FUNCTION__, '1.0.0', 'bhg_format_money' );
+                }
+                return bhg_format_money( $amount );
+        }
 }
 
 /**

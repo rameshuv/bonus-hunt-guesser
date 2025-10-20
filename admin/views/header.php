@@ -73,7 +73,7 @@ if ( isset( $_GET['message'] ) ) { // phpcs:ignore WordPress.Security.NonceVerif
 </tr>
 <tr>
 <th scope="row"><label for="starting_balance">
-<?php echo esc_html( bhg_t( 'label_start_balance_euro', 'Starting Balance (€)' ) ); ?>
+<?php echo esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ); ?>
 </label></th>
 <td><input type="number" name="starting_balance" id="starting_balance" step="0.01" min="0" value="0" required /></td>
 </tr>
@@ -199,10 +199,10 @@ if ( isset( $_GET['message'] ) ) { // phpcs:ignore WordPress.Security.NonceVerif
 						<tr>
 							<td><?php echo esc_html( $hunt->id ); ?></td>
 							<td><?php echo esc_html( $hunt->title ); ?></td>
-							<td>€<?php echo esc_html( number_format( $hunt->starting_balance, 2 ) ); ?></td>
+                                                        <td><?php echo esc_html( bhg_format_money( (float) $hunt->starting_balance ) ); ?></td>
 							<td>
 								<?php if ( null !== $hunt->final_balance ) : ?>
-									€<?php echo esc_html( number_format( $hunt->final_balance, 2 ) ); ?>
+                                                                        <?php echo esc_html( bhg_format_money( (float) $hunt->final_balance ) ); ?>
 								<?php else : ?>
 									<em>
 									<?php

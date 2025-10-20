@@ -213,8 +213,8 @@ $current   = $view_type . '-' . $item_id;
 					<?php if ( 'tournament' === $view_type ) : ?>
 						<td><?php echo (int) $r->wins; ?></td>
 					<?php else : ?>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+                                            <td><?php echo esc_html( bhg_format_money( (float) $r->guess ) ); ?></td>
+                                            <td><?php echo esc_html( bhg_format_money( (float) $r->diff ) ); ?></td>
 					<?php endif; ?>
 				</tr>
 				<?php
