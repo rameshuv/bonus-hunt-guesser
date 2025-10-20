@@ -1,9 +1,18 @@
 # Bonus Hunt Guesser – Feature Verification
 
-This document captures code-level evidence that the current plugin implementation satisfies the
-customer requirements enumerated in Robin's latest checklist. Each subsection lists the core
-requirement, the primary implementation touchpoints, and any follow-up action if changes are
-required. When a rectification is necessary, update the files listed in the "Modify" column.
+This document captures code-level evidence gathered during the most recent review of the plugin.
+Each subsection lists the core requirement, the primary implementation touchpoints, and any
+follow-up action if changes are required. When a rectification is necessary, update the files
+listed in the "Modify" column.
+
+## Latest QA Findings
+
+| Issue | Evidence | Modify |
+|-------|----------|--------|
+| WordPress coding standards checks fail across 38 PHP files (5,069 errors / 1,095 warnings). | `vendor/bin/phpcs --standard=phpcs.xml --report=summary` output enumerates the failing files, with the heaviest offenders including `bonus-hunt-guesser.php`, `admin/class-bhg-admin.php`, and `includes/class-bhg-shortcodes.php`. | Fix reported violations in each PHP file (see command output) before releasing. 【2653fb†L1-L33】|
+| Plugin header advertises version `8.0.12`, while the customer scope references `8.0.13`; confirm the correct release number before shipping. | `bonus-hunt-guesser.php` plugin header. | Update the header (and changelog) once the intended release version is finalised. 【F:bonus-hunt-guesser.php†L1-L16】|
+| Bonus Hunt results timeframe dropdown adds an extra “Last Year” filter that was not requested and may exceed scope. | `admin/views/bonus-hunts-results.php` timeframe selector. | Remove or hide the additional option if scope must remain limited to This Month / This Year / All Time. 【F:admin/views/bonus-hunts-results.php†L171-L189】|
+| Results admin view executes unprepared SQL when the “All Time” option is selected, triggering WPCS warnings. | The default branch fetches hunts and tournaments without `$wpdb->prepare()`. | Wrap the queries in `$wpdb->prepare()` or documented sanitisation. 【F:admin/views/bonus-hunts-results.php†L162-L167】|
 
 ## Sorting, Search, and Pagination (30 per page)
 
@@ -49,7 +58,7 @@ required. When a rectification is necessary, update the files listed in the "Mod
 
 | Requirement | Evidence | Modify |
 |-------------|----------|--------|
-| Coding standards (PHPCS) | Project ships with `phpcs.xml` and `phpcs.xml.dist` configured for WordPress rulesets. Run `composer lint` or `vendor/bin/phpcs` after changes to ensure compliance. | Update PHPCS config files if rules need tuning; fix violations in the reported PHP files. |
+| Coding standards (PHPCS) | `vendor/bin/phpcs --standard=phpcs.xml` currently fails; see summary for 5,069 errors / 1,095 warnings across the codebase. | Address reported violations per file, starting with `bonus-hunt-guesser.php`, `admin/class-bhg-admin.php`, and `includes/class-bhg-shortcodes.php`. 【2653fb†L1-L33】|
 | PHP 7.4 compatibility | `composer.json` targets PHP `^7.4` and locks dependencies compatible with 7.4. Avoid language features added in PHP 8+. | Adjust `composer.json` / code paths if incompatibilities surface. |
 | WordPress 6.3.5 / MySQL 5.5.5 support | Database migrations in `includes/class-bhg-db.php` use syntax compatible with MySQL 5.5.5. Keep queries using `wpdb` prepared statements to retain compatibility. | Update migration helpers or queries if newer syntax is introduced. |
 
@@ -57,7 +66,7 @@ required. When a rectification is necessary, update the files listed in the "Mod
 
 | Command | Result | Rectification |
 |---------|--------|---------------|
-| `composer install --no-interaction --no-progress` | ⚠️ Succeeds on PHP ≥8.1 but fails on PHP 7.4 because `composer.lock` pins `doctrine/instantiator` `2.0.0`, which requires PHP 8.1+. | Update `composer.lock` (and, if needed, `composer.json`) to require `doctrine/instantiator` `^1.5` and regenerate the lock file under PHP 7.4 before distributing to production. |
+| `composer install --no-interaction --no-progress` | ✅ Passes under PHP 7.4 with the current lock file. | Keep the lock file in sync with the declared PHP platform requirement when adding dependencies. 【16e4fc†L1-L34】【50e6e4†L1-L2】|
 
 ## Additional Notes
 
