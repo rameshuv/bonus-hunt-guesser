@@ -59,7 +59,7 @@ $wpdb->prefix . 'bhg_tournaments',
 $wpdb->prefix . 'bhg_tournament_results',
 $wpdb->prefix . 'bhg_affiliate_websites',
 $wpdb->prefix . 'bhg_hunt_winners',
-$wpdb->prefix . 'bhg_hunt_tournaments',
+$wpdb->prefix . 'bhg_tournaments_hunts',
 $wpdb->users,
 $wpdb->usermeta,
 );
@@ -1682,7 +1682,7 @@ $wpdb->usermeta,
 
                         $tournaments_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
                         $hunts_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $hunt_map_table    = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $hunt_map_table    = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
                         $sites_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 
                         if ( $tournaments_table ) {
@@ -1883,7 +1883,7 @@ $wpdb->usermeta,
 			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
                         $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
 			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
 			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
                         if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um || ! $ht ) {
                                 return '';

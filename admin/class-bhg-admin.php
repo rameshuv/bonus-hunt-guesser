@@ -595,7 +595,7 @@ $tournament_ids = array_map( 'intval', array_unique( $tournament_ids ) );
 $wpdb->delete( $hunts_table, array( 'id' => $hunt_id ), array( '%d' ) );
 $wpdb->delete( $guesses_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
 $wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
-$wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_id' => $hunt_id ), array( '%d' ) );
+$wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_tournaments_hunts' ), array( 'hunt_id' => $hunt_id ), array( '%d' ) );
 
 			if ( ! empty( $winner_map ) ) {
 				foreach ( $winner_map as $tournament_id => $user_ids ) {
@@ -962,7 +962,7 @@ exit;
 					$id    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
 if ( $id ) {
 $wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-$wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'tournament_id' => $id ), array( '%d' ) );
+$wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_tournaments_hunts' ), array( 'tournament_id' => $id ), array( '%d' ) );
 wp_safe_redirect( add_query_arg( 'bhg_msg', 't_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
 exit;
 }
