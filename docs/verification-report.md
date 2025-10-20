@@ -45,6 +45,14 @@ required. When a rectification is necessary, update the files listed in the "Mod
 | Registration | `includes/class-bhg-shortcodes.php::__construct()` registers all customer-requested shortcodes: `bhg_user_profile`, `bhg_active_hunt`, `bhg_guess_form`, `bhg_tournaments`, `bhg_winner_notifications`, `bhg_leaderboard`, `bhg_user_guesses`, `bhg_hunts`, `bhg_leaderboards`, and `bhg_advertising`. | Update constructor to add or remove shortcode bindings. |
 | Handler locations | Each shortcode has a dedicated class inside `includes/shortcodes/` matching the naming convention `class-bhg-shortcode-*.php`. | Modify the relevant handler class when adjusting behaviour. |
 
+## WordPress Coding Standards & Compatibility
+
+| Requirement | Evidence | Modify |
+|-------------|----------|--------|
+| Coding standards (PHPCS) | Project ships with `phpcs.xml` and `phpcs.xml.dist` configured for WordPress rulesets. Run `composer lint` or `vendor/bin/phpcs` after changes to ensure compliance. | Update PHPCS config files if rules need tuning; fix violations in the reported PHP files. |
+| PHP 7.4 compatibility | `composer.json` targets PHP `^7.4` and locks dependencies compatible with 7.4. Avoid language features added in PHP 8+. | Adjust `composer.json` / code paths if incompatibilities surface. |
+| WordPress 6.3.5 / MySQL 5.5.5 support | Database migrations in `includes/class-bhg-db.php` use syntax compatible with MySQL 5.5.5. Keep queries using `wpdb` prepared statements to retain compatibility. | Update migration helpers or queries if newer syntax is introduced. |
+
 ## Additional Notes
 
 * If any verification step fails during QA, refer to the "Modify" column for the exact file to update.

@@ -1,6 +1,15 @@
 # Bonus Hunt Guesser – Customer Requirements Checklist
 
-This checklist consolidates every customer requirement that must be verified or implemented for the Bonus Hunt Guesser plugin. Use it during development and QA to confirm compliance with the agreed scope. Update the status column as work progresses. All file paths are relative to the plugin root.
+This checklist consolidates every customer requirement that must be verified or implemented for the Bonus Hunt Guesser plugin. Use it during development and QA to confirm compliance with the agreed scope. **Do not introduce features beyond the items below; the customer has requested that only the documented requirements are delivered.** Update the status column as work progresses. All file paths are relative to the plugin root.
+
+### Scope Guardrails
+
+| Rule | Action | Key Files / Notes |
+|------|:------:|-------------------|
+| No undocumented enhancements. | [ ] | Before starting work, confirm the task exists in this checklist. If not, log a change request instead of coding. |
+| Follow WordPress coding standards only. | [ ] | Run `composer lint` / `phpcs` against touched files; configuration lives in `phpcs.xml`. |
+| Record rectification touchpoints. | [ ] | When defects are found, note the file to change in the "Key Files / Notes" column for rapid follow-up. |
+
 
 ---
 
