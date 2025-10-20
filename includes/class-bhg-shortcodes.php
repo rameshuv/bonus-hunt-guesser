@@ -163,6 +163,10 @@ $wpdb->usermeta,
         private function normalize_prize_layout( $layout ) {
                 $layout = strtolower( (string) $layout );
 
+                if ( 'caroussel' === $layout ) {
+                        $layout = 'carousel';
+                }
+
                 return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
         }
 
