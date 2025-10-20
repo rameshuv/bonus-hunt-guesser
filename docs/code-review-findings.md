@@ -6,7 +6,7 @@
 
 ## Requirement Alignment
 
-* The plugin header still declares version `8.0.12`, whereas the customer scope references `8.0.13`. Update the header (and changelog) once the correct release number is confirmed. 【F:bonus-hunt-guesser.php†L1-L16】
+* Plugin metadata and the `BHG_VERSION` constant both advertise version `8.0.13`, matching the agreed release identifier. 【F:bonus-hunt-guesser.php†L1-L16】【F:bonus-hunt-guesser.php†L141-L150】
 * The Bonus Hunt results timeframe dropdown currently offers "This Month", "This Year", "Last Year", and "All Time". The customer asked for a reduced set (This Month default, This Year, All Time), so remove the "Last Year" option to stay within scope. 【F:admin/views/bonus-hunts-results.php†L171-L189】
 * When "All Time" is selected, the results admin view runs two unprepared SQL queries (`SELECT id, title FROM {$hunts_table}` and `SELECT id, title FROM {$tour_table}`) that violate WordPress coding standards. Wrap these in `$wpdb->prepare()` or otherwise justify the direct query usage. 【F:admin/views/bonus-hunts-results.php†L162-L167】
 * Currency selection and formatting features are present: the settings screen exposes an EUR/USD dropdown and helpers convert stored amounts into formatted strings. Verify values persist end-to-end before release. 【F:admin/views/settings.php†L16-L115】【F:includes/helpers.php†L780-L805】

@@ -10,7 +10,7 @@ listed in the "Modify" column.
 | Issue | Evidence | Modify |
 |-------|----------|--------|
 | WordPress coding standards checks fail across 38 PHP files (5,069 errors / 1,095 warnings). | `vendor/bin/phpcs --standard=phpcs.xml --report=summary` output enumerates the failing files, with the heaviest offenders including `bonus-hunt-guesser.php`, `admin/class-bhg-admin.php`, and `includes/class-bhg-shortcodes.php`. | Fix reported violations in each PHP file (see command output) before releasing. 【2653fb†L1-L33】|
-| Plugin header advertises version `8.0.12`, while the customer scope references `8.0.13`; confirm the correct release number before shipping. | `bonus-hunt-guesser.php` plugin header. | Update the header (and changelog) once the intended release version is finalised. 【F:bonus-hunt-guesser.php†L1-L16】|
+| Plugin metadata and the runtime constant both report version `8.0.13`, matching the contracted release number. | `bonus-hunt-guesser.php` header and constant definition. | – 【F:bonus-hunt-guesser.php†L1-L16】【F:bonus-hunt-guesser.php†L141-L150】|
 | Bonus Hunt results timeframe dropdown adds an extra “Last Year” filter that was not requested and may exceed scope. | `admin/views/bonus-hunts-results.php` timeframe selector. | Remove or hide the additional option if scope must remain limited to This Month / This Year / All Time. 【F:admin/views/bonus-hunts-results.php†L171-L189】|
 | Results admin view executes unprepared SQL when the “All Time” option is selected, triggering WPCS warnings. | The default branch fetches hunts and tournaments without `$wpdb->prepare()`. | Wrap the queries in `$wpdb->prepare()` or documented sanitisation. 【F:admin/views/bonus-hunts-results.php†L162-L167】|
 

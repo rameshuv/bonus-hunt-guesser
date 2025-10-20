@@ -142,7 +142,7 @@ return array_values( $normalized );
 require_once __DIR__ . '/includes/class-bhg-db.php';
 
 // Define plugin constants.
-define( 'BHG_VERSION', '8.0.12' );
+define( 'BHG_VERSION', '8.0.13' );
 define( 'BHG_MIN_WP', '5.5.5' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
