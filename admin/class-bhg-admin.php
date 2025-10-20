@@ -873,6 +873,9 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                                 $hunt_link_mode = 'manual';
                         }
 
+                        $affiliate_site_id     = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+                        $affiliate_url_visible = isset( $_POST['affiliate_url_visible'] ) ? 1 : 0;
+
                         $allowed_types  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
                         $raw_start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
                         $raw_end_date   = isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : '';
@@ -889,6 +892,8 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                                 'end_date'          => $end_date,
                                 'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
                                 'updated_at'        => current_time( 'mysql' ),
+                                'affiliate_site_id' => $affiliate_site_id,
+                                'affiliate_url_visible' => $affiliate_url_visible,
                         );
                         $allowed_statuses = array( 'active', 'archived' );
                         if ( ! in_array( $data['status'], $allowed_statuses, true ) ) {
@@ -919,7 +924,7 @@ if ( 'auto' === $hunt_link_mode ) {
         $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
 }
 try {
-$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s' );
 if ( $id > 0 ) {
 $wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
 $saved_id = $id;

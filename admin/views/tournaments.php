@@ -13,7 +13,11 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 global $wpdb;
 $table          = $wpdb->prefix . 'bhg_tournaments';
-$allowed_tables = array( $wpdb->prefix . 'bhg_tournaments' );
+$allowed_tables = array(
+        $wpdb->prefix . 'bhg_tournaments',
+        $wpdb->prefix . 'bhg_bonus_hunts',
+        $wpdb->prefix . 'bhg_affiliate_websites',
+);
 if ( ! in_array( $table, $allowed_tables, true ) ) {
 		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
@@ -31,11 +35,13 @@ if ( isset( $_GET['s'] ) ) {
 $orderby_param   = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order_param     = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
 $allowed_orderby = array(
-	'id'         => 'id',
-	'title'      => 'title',
-	'start_date' => 'start_date',
-	'end_date'   => 'end_date',
-	'status'     => 'status',
+        'id'                => 'id',
+        'title'             => 'title',
+        'type'              => 'type',
+        'start_date'        => 'start_date',
+        'end_date'          => 'end_date',
+        'status'            => 'status',
+        'participants_mode' => 'participants_mode',
 );
 $orderby_column  = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'id';
 $order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
@@ -73,15 +79,41 @@ if ( $search_term ) {
 		);
 }
 $base_url = remove_query_arg( array( 'paged' ) );
-$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
-$linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
-$hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
+$hunts_table      = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$all_hunts        = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$linked_hunts     = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$hunt_link_mode   = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
 }
 $hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
 $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
+$aff_table       = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+$affiliate_sites = $wpdb->get_results( "SELECT id, name, url FROM {$aff_table} ORDER BY name ASC" );
+$affiliate_map   = array();
+if ( ! empty( $affiliate_sites ) ) {
+        foreach ( $affiliate_sites as $site ) {
+                $affiliate_map[ (int) $site->id ] = $site;
+        }
+}
+$selected_affiliate_id = $row ? (int) $row->affiliate_site_id : 0;
+if ( $selected_affiliate_id > 0 && ! isset( $affiliate_map[ $selected_affiliate_id ] ) ) {
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above.
+        $extra_site = $wpdb->get_row( $wpdb->prepare( "SELECT id, name, url FROM {$aff_table} WHERE id = %d", $selected_affiliate_id ) );
+        if ( $extra_site ) {
+                $affiliate_sites[]                      = $extra_site;
+                $affiliate_map[ (int) $extra_site->id ] = $extra_site;
+        }
+}
+$selected_affiliate_url = '';
+if ( $selected_affiliate_id > 0 && isset( $affiliate_map[ $selected_affiliate_id ] ) && ! empty( $affiliate_map[ $selected_affiliate_id ]->url ) ) {
+        $selected_affiliate_url = (string) $affiliate_map[ $selected_affiliate_id ]->url;
+}
+$affiliate_url_visible = isset( $row->affiliate_url_visible ) ? (int) $row->affiliate_url_visible : 1;
+$current_type          = isset( $row->type ) ? sanitize_key( (string) $row->type ) : 'monthly';
+if ( ! in_array( $current_type, array( 'monthly', 'quarterly', 'yearly', 'alltime', 'weekly' ), true ) ) {
+        $current_type = 'monthly';
+}
 ?>
 <div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline">
@@ -120,19 +152,32 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 				) . '">' . esc_html( bhg_t( 'id', 'ID' ) ) . '</a>';
 				?>
 				</th>
-				<th>
-				<?php
-				$n = ( 'title' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
-				echo '<a href="' . esc_url(
-					add_query_arg(
-						array(
-							'orderby' => 'title',
-							'order'   => $n,
-						)
-					)
-				) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a>';
-				?>
-				</th>
+                                <th>
+                                <?php
+                                $n = ( 'title' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+                                echo '<a href="' . esc_url(
+                                        add_query_arg(
+                                                array(
+                                                        'orderby' => 'title',
+                                                        'order'   => $n,
+                                                )
+                                        )
+                                ) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a>';
+                                ?>
+                                </th>
+                                <th>
+                                <?php
+                                $n = ( 'type' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+                                echo '<a href="' . esc_url(
+                                        add_query_arg(
+                                                array(
+                                                        'orderby' => 'type',
+                                                        'order'   => $n,
+                                                )
+                                        )
+                                ) . '">' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</a>';
+                                ?>
+                                </th>
 				<th>
 				<?php
 				$n = ( 'start_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
@@ -172,21 +217,26 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 				) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a>';
 				?>
 				</th>
-				<th>
-				<?php
-				echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
-				?>
+                                <th>
+                                <?php
+                                echo esc_html( bhg_t( 'label_actions', 'Actions' ) );
+                                ?>
 </th>
-				<th>
-				<?php
-				echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) );
-				?>
+                                <th>
+                                <?php
+                                echo esc_html( bhg_t( 'label_affiliate_website', 'Affiliate Website' ) );
+                                ?>
+</th>
+                                <th>
+                                <?php
+                                echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) );
+                                ?>
 </th>
 				</tr>
 		</thead>
 		<tbody>
 				<?php if ( empty( $rows ) ) : ?>
-				<tr><td colspan="7"><em>
+                                <tr><td colspan="9"><em>
 						<?php
 						echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
 						?>
@@ -195,15 +245,20 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 		else :
 			foreach ( $rows as $r ) :
 				?>
-		<tr>
+                <tr>
 <td><?php echo esc_html( (int) $r->id ); ?></td>
-			<td><?php echo esc_html( $r->title ); ?></td>
-			<td><?php echo esc_html( $r->start_date ); ?></td>
-						<td><?php echo esc_html( $r->end_date ); ?></td>
+                        <td><?php echo esc_html( $r->title ); ?></td>
+                        <?php
+                        $type_key    = isset( $r->type ) ? sanitize_key( (string) $r->type ) : '';
+                        $type_string = $type_key ? bhg_t( 'label_' . $type_key, ucfirst( $type_key ) ) : bhg_t( 'label_emdash', '—' );
+                        ?>
+                        <td><?php echo esc_html( $type_string ); ?></td>
+                        <td><?php echo esc_html( $r->start_date ); ?></td>
+                                                <td><?php echo esc_html( $r->end_date ); ?></td>
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 <td>
 <a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
-								<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
+                                                                <?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
 </a>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
 								<?php wp_nonce_field( 'bhg_tournament_close', 'bhg_tournament_close_nonce' ); ?>
@@ -215,9 +270,21 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 								<?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?>
 </a>
 </td>
+                        <?php
+                        $affiliate_display = '';
+                        if ( isset( $r->affiliate_site_id ) && (int) $r->affiliate_site_id > 0 && isset( $affiliate_map[ (int) $r->affiliate_site_id ] ) ) {
+                                $affiliate_display = $affiliate_map[ (int) $r->affiliate_site_id ]->name;
+                                if ( isset( $r->affiliate_url_visible ) && (int) $r->affiliate_url_visible === 0 ) {
+                                        $affiliate_display .= ' (' . bhg_t( 'label_hidden', 'Hidden' ) . ')';
+                                }
+                        } elseif ( isset( $r->affiliate_site_id ) && (int) $r->affiliate_site_id > 0 ) {
+                                $affiliate_display = bhg_t( 'label_affiliate_website', 'Affiliate Website' );
+                        }
+                        ?>
+                        <td><?php echo '' !== $affiliate_display ? esc_html( $affiliate_display ) : esc_html( bhg_t( 'none', 'None' ) ); ?></td>
 <td>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
-				<?php wp_nonce_field( 'bhg_tournament_delete_action', 'bhg_tournament_delete_nonce' ); ?>
+                                <?php wp_nonce_field( 'bhg_tournament_delete_action', 'bhg_tournament_delete_nonce' ); ?>
 <input type="hidden" name="action" value="bhg_tournament_delete" />
 <input type="hidden" name="id" value="<?php echo esc_attr( (int) $r->id ); ?>" />
 <button type="submit" class="button button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'are_you_sure', 'Are you sure?' ) ); ?>');"><?php echo esc_html( bhg_t( 'button_delete', 'Delete' ) ); ?></button>
@@ -268,14 +335,39 @@ endif;
 </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
+                <tr>
+                <th><label for="bhg_t_desc">
+                <?php
+                echo esc_html( bhg_t( 'description', 'Description' ) );
+                ?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_type">
+                                <?php
+                                echo esc_html( bhg_t( 'label_type', 'Type' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <?php
+                                                $type_options = array(
+                                                        'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+                                                        'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+                                                        'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+                                                        'alltime'   => bhg_t( 'label_alltime', 'Alltime' ),
+                                                );
+                                                if ( 'weekly' === $current_type && ! isset( $type_options['weekly'] ) ) {
+                                                        $type_options = array( 'weekly' => bhg_t( 'label_weekly', 'Weekly' ) ) + $type_options;
+                                                }
+                                                ?>
+                                                <select id="bhg_t_type" name="type">
+                                                        <?php foreach ( $type_options as $value => $label ) : ?>
+                                                                <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $current_type, $value ); ?>><?php echo esc_html( $label ); ?></option>
+                                                        <?php endforeach; ?>
+                                                </select>
+                                </td>
+                </tr>
 		<tr>
 				<th><label for="bhg_t_pmode">
 				<?php
@@ -298,14 +390,49 @@ endif;
 </label></th>
 		<td><input id="bhg_t_start" type="date" name="start_date" value="<?php echo esc_attr( $row->start_date ?? '' ); ?>" /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_end">
-		<?php
-		echo esc_html( bhg_t( 'label_end_date', 'End Date' ) );
-		?>
+                <tr>
+                <th><label for="bhg_t_end">
+                <?php
+                echo esc_html( bhg_t( 'label_end_date', 'End Date' ) );
+                ?>
 </label></th>
-		<td><input id="bhg_t_end" type="date" name="end_date" value="<?php echo esc_attr( $row->end_date ?? '' ); ?>" /></td>
-		</tr>
+                <td><input id="bhg_t_end" type="date" name="end_date" value="<?php echo esc_attr( $row->end_date ?? '' ); ?>" /></td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_affiliate_site">
+                                <?php
+                                echo esc_html( bhg_t( 'label_affiliate_website', 'Affiliate Website' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <select id="bhg_t_affiliate_site" name="affiliate_site_id">
+                                                        <option value="0" data-url="">
+                                                                <?php echo esc_html( bhg_t( 'none', 'None' ) ); ?>
+                                                        </option>
+                                                        <?php foreach ( $affiliate_sites as $site ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $site->id ); ?>" data-url="<?php echo esc_attr( esc_url_raw( (string) $site->url ) ); ?>" <?php selected( $selected_affiliate_id, (int) $site->id ); ?>>
+                                                                        <?php echo esc_html( $site->name ); ?>
+                                                                </option>
+                                                        <?php endforeach; ?>
+                                                </select>
+                                                <p class="description">
+                                                        <?php echo esc_html( bhg_t( 'affiliate_url_label', 'Affiliate URL:' ) ); ?>
+                                                        <span id="bhg_t_affiliate_url_value" data-empty-text="<?php echo esc_attr( bhg_t( 'no_affiliate_site_selected', 'No affiliate website selected.' ) ); ?>">
+                                                        <?php if ( $selected_affiliate_url ) : ?>
+                                                                <a href="<?php echo esc_url( $selected_affiliate_url ); ?>" target="_blank" rel="noopener">
+                                                                        <?php echo esc_html( $selected_affiliate_url ); ?>
+                                                                </a>
+                                                        <?php else : ?>
+                                                                <?php echo esc_html( bhg_t( 'no_affiliate_site_selected', 'No affiliate website selected.' ) ); ?>
+                                                        <?php endif; ?>
+                                                        </span>
+                                                </p>
+                                                <label>
+                                                        <input type="checkbox" name="affiliate_url_visible" value="1" <?php checked( $affiliate_url_visible, 1 ); ?> />
+                                                        <?php echo esc_html( bhg_t( 'show_affiliate_url', 'Show affiliate URL on frontend' ) ); ?>
+                                                </label>
+                                </td>
+                </tr>
                 <tr>
                 <th><label for="bhg_t_status">
                 <?php
@@ -366,28 +493,57 @@ endif;
         document.addEventListener( 'DOMContentLoaded', function() {
                 var modeInputs = document.querySelectorAll( 'input[name="hunt_link_mode"]' );
                 var huntsRow = document.getElementById( 'bhg_t_hunts_row' );
+                var affiliateSelect = document.getElementById( 'bhg_t_affiliate_site' );
+                var affiliateUrlValue = document.getElementById( 'bhg_t_affiliate_url_value' );
 
-                if ( ! modeInputs.length || ! huntsRow ) {
-                        return;
-                }
-
-                var toggleRow = function() {
-                        var selectedMode = 'manual';
-                        for ( var i = 0; i < modeInputs.length; i++ ) {
-                                if ( modeInputs[ i ].checked ) {
-                                        selectedMode = modeInputs[ i ].value;
-                                        break;
+                if ( modeInputs.length && huntsRow ) {
+                        var toggleRow = function() {
+                                var selectedMode = 'manual';
+                                for ( var i = 0; i < modeInputs.length; i++ ) {
+                                        if ( modeInputs[ i ].checked ) {
+                                                selectedMode = modeInputs[ i ].value;
+                                                break;
+                                        }
                                 }
+
+                                huntsRow.style.display = ( 'auto' === selectedMode ) ? 'none' : '';
+                        };
+
+                        for ( var j = 0; j < modeInputs.length; j++ ) {
+                                modeInputs[ j ].addEventListener( 'change', toggleRow );
                         }
 
-                        huntsRow.style.display = ( 'auto' === selectedMode ) ? 'none' : '';
-                };
-
-                for ( var j = 0; j < modeInputs.length; j++ ) {
-                        modeInputs[ j ].addEventListener( 'change', toggleRow );
+                        toggleRow();
                 }
 
-                toggleRow();
+                if ( affiliateSelect && affiliateUrlValue ) {
+                        var emptyText = affiliateUrlValue.getAttribute( 'data-empty-text' ) || '';
+
+                        var updateAffiliateUrl = function() {
+                                while ( affiliateUrlValue.firstChild ) {
+                                        affiliateUrlValue.removeChild( affiliateUrlValue.firstChild );
+                                }
+
+                                var selectedOption = affiliateSelect.options[ affiliateSelect.selectedIndex ];
+                                if ( selectedOption ) {
+                                        var url = selectedOption.getAttribute( 'data-url' );
+                                        if ( url ) {
+                                                var link = document.createElement( 'a' );
+                                                link.href = url;
+                                                link.target = '_blank';
+                                                link.rel = 'noopener';
+                                                link.appendChild( document.createTextNode( url ) );
+                                                affiliateUrlValue.appendChild( link );
+                                                return;
+                                        }
+                                }
+
+                                affiliateUrlValue.textContent = emptyText;
+                        };
+
+                        affiliateSelect.addEventListener( 'change', updateAffiliateUrl );
+                        updateAffiliateUrl();
+                }
         } );
         </script>
 </div>
