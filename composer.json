@@ -10,7 +10,7 @@
         "phpunit/phpunit": "^9.6"
     },
     "scripts": {
-        "phpcs": "vendor/bin/phpcs --standard=phpcs.xml",
+        "phpcs": "@php tools/composer-phpcs.php",
         "phpcbf": "vendor/bin/phpcbf --standard=phpcs.xml"
     },
     "config": {
