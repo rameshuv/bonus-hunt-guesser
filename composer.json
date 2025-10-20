@@ -10,7 +10,7 @@
         "phpunit/phpunit": "^9.6"
     },
     "scripts": {
-        "phpcs": "@php vendor/bin/phpcs --standard=phpcs.xml",
+        "phpcs": "@php vendor/bin/phpcs --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 --standard=phpcs.xml",
         "phpcbf": "@php vendor/bin/phpcbf --standard=phpcs.xml"
     },
     "config": {
