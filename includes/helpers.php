@@ -362,8 +362,11 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_log_out'                                => 'Log out',
 			'label_non_affiliates'                         => 'Non Affiliates',
 			'label_affiliate_website'                      => 'Affiliate Website',
-			'label_affiliate_websites'                     => 'Affiliate Websites',
+                        'label_affiliate_websites'                     => 'Affiliate Websites',
+                        'label_show_affiliate_url'                     => 'Display affiliate website on frontend',
+                        'label_show_affiliate_url_help'                => 'Show affiliate website information to visitors',
 			'label_affiliate_user_title'                   => 'Affiliate User',
+			'label_unnamed_tournament'                    => 'Untitled tournament',
 			'guessing_enabled'                             => 'Guessing Enabled',
 			'label_footer'                                 => 'Footer',
 			'label_bottom'                                 => 'Bottom',
@@ -843,7 +846,7 @@ function bhg_get_user_display_name( $user_id ) {
 		$is_affiliate = bhg_is_user_affiliate( (int) $user_id );
 
 	if ( $is_affiliate ) {
-			$display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
+			$display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 			'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
 	}
 
 		return wp_kses_post( $display_name );
