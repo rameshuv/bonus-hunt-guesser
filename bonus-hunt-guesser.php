@@ -236,6 +236,7 @@ spl_autoload_register(
 
 // Include helper functions.
 require_once BHG_PLUGIN_DIR . 'includes/helpers.php';
+require_once BHG_PLUGIN_DIR . 'includes/notifications.php';
 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
 
 add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
@@ -509,20 +510,29 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
         }
 
         if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
-                        $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
+                $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
                 if ( '' === $redirect ) {
-                                $settings['post_submit_redirect'] = '';
+                        $settings['post_submit_redirect'] = '';
                 } else {
-                                $url = esc_url_raw( $redirect );
+                        $url = esc_url_raw( $redirect );
                         if ( ! empty( $url ) ) {
-                                                $settings['post_submit_redirect'] = $url;
+                                $settings['post_submit_redirect'] = $url;
                         }
                 }
         }
 
-                // Save settings.
-                $existing = get_option( 'bhg_plugin_settings', array() );
-                update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+        $notifications_input = isset( $_POST['bhg_notifications'] ) ? $_POST['bhg_notifications'] : array();
+        if ( ! is_array( $notifications_input ) ) {
+                $notifications_input = array();
+        }
+
+        if ( function_exists( 'bhg_normalize_notifications_settings' ) ) {
+                $settings['notifications'] = bhg_normalize_notifications_settings( $notifications_input );
+        }
+
+// Save settings.
+$existing = get_option( 'bhg_plugin_settings', array() );
+update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
 				// Redirect back to settings page.
 								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );

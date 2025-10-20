@@ -15,6 +15,27 @@ if ( ! current_user_can( 'manage_options' ) ) {
 
 // Fetch existing settings.
 $settings = get_option( 'bhg_plugin_settings', array() );
+$notifications = function_exists( 'bhg_get_notifications_settings' ) ? bhg_get_notifications_settings() : array();
+$notification_sections = array(
+        'winners'    => array(
+                'label' => bhg_t( 'label_winner_notifications', 'Winner Notifications' ),
+        ),
+        'tournament' => array(
+                'label' => bhg_t( 'label_tournament_notifications', 'Tournament Notifications' ),
+        ),
+        'bonus_hunt' => array(
+                'label' => bhg_t( 'label_bonus_hunt_notifications', 'Bonus Hunt Notifications' ),
+        ),
+);
+$notification_tokens = function_exists( 'bhg_get_notification_tokens' ) ? bhg_get_notification_tokens() : array();
+$notification_token_markup = '';
+if ( ! empty( $notification_tokens ) ) {
+        $codes = array();
+        foreach ( $notification_tokens as $token ) {
+                $codes[] = '<code>' . esc_html( $token ) . '</code>';
+        }
+        $notification_token_markup = implode( ', ', $codes );
+}
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
@@ -108,6 +129,58 @@ foreach ( $currencies as $key => $label ) :
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
 </td>
 </tr>
+<tr>
+<th colspan="2">
+<h2><?php echo esc_html( bhg_t( 'label_notifications', 'Notifications' ) ); ?></h2>
+<?php if ( $notification_token_markup ) : ?>
+<p class="description"><?php echo wp_kses_post( sprintf( bhg_t( 'description_notification_placeholders', 'Available placeholders: %s.' ), $notification_token_markup ) ); ?></p>
+<?php endif; ?>
+</th>
+</tr>
+<?php foreach ( $notification_sections as $section_key => $section_meta ) : ?>
+<?php
+$config = isset( $notifications[ $section_key ] ) && is_array( $notifications[ $section_key ] ) ? $notifications[ $section_key ] : array();
+if ( function_exists( 'bhg_prepare_notification_section' ) ) {
+$config = bhg_prepare_notification_section( $config );
+}
+$enabled           = ! empty( $config['enabled'] );
+$title_value       = isset( $config['title'] ) ? $config['title'] : '';
+$description_value = isset( $config['description'] ) ? $config['description'] : '';
+$bcc_value         = '';
+if ( isset( $config['bcc'] ) && is_array( $config['bcc'] ) ) {
+$bcc_value = implode( ', ', $config['bcc'] );
+}
+$base_id = 'bhg_notifications_' . sanitize_key( $section_key );
+?>
+<tr class="bhg-notification-row">
+<th scope="row"><?php echo esc_html( $section_meta['label'] ); ?></th>
+<td>
+<fieldset>
+<legend class="screen-reader-text"><?php echo esc_html( $section_meta['label'] ); ?></legend>
+<p>
+<input type="hidden" name="bhg_notifications[<?php echo esc_attr( $section_key ); ?>][enabled]" value="0">
+<label for="<?php echo esc_attr( $base_id ); ?>_enabled">
+<input type="checkbox" id="<?php echo esc_attr( $base_id ); ?>_enabled" name="bhg_notifications[<?php echo esc_attr( $section_key ); ?>][enabled]" value="1" <?php checked( $enabled ); ?>>
+<?php echo esc_html( bhg_t( 'label_notification_enable', 'Enable notification' ) ); ?>
+</label>
+</p>
+<p>
+<label for="<?php echo esc_attr( $base_id ); ?>_title"><?php echo esc_html( bhg_t( 'label_notification_title', 'Title' ) ); ?></label><br>
+<input type="text" class="regular-text" id="<?php echo esc_attr( $base_id ); ?>_title" name="bhg_notifications[<?php echo esc_attr( $section_key ); ?>][title]" value="<?php echo esc_attr( $title_value ); ?>">
+</p>
+<p>
+<label for="<?php echo esc_attr( $base_id ); ?>_description"><?php echo esc_html( bhg_t( 'label_notification_description', 'Description (HTML allowed)' ) ); ?></label><br>
+<textarea class="large-text" rows="4" id="<?php echo esc_attr( $base_id ); ?>_description" name="bhg_notifications[<?php echo esc_attr( $section_key ); ?>][description]"><?php echo esc_textarea( $description_value ); ?></textarea>
+</p>
+<p>
+<label for="<?php echo esc_attr( $base_id ); ?>_bcc"><?php echo esc_html( bhg_t( 'label_notification_bcc', 'BCC Recipients' ) ); ?></label><br>
+<input type="text" class="regular-text" id="<?php echo esc_attr( $base_id ); ?>_bcc" name="bhg_notifications[<?php echo esc_attr( $section_key ); ?>][bcc]" value="<?php echo esc_attr( $bcc_value ); ?>">
+<span class="description"><?php echo esc_html( bhg_t( 'description_notification_bcc', 'Comma-separated email addresses.' ) ); ?></span>
+</p>
+</fieldset>
+</td>
+</tr>
+<?php endforeach; ?>
 </tbody>
 </table>
 
