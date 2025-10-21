@@ -57,11 +57,21 @@ class BHG_Ads {
 	 *
 	 * @return bool
 	 */
-	protected static function user_is_affiliate() {
+	protected static function user_is_affiliate( $affiliate_site_id = 0 ) {
 		if ( ! is_user_logged_in() ) {
 			return false;
 		}
+
 		$uid = get_current_user_id();
+
+		if ( $affiliate_site_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
+			return bhg_is_user_affiliate_for_site( $uid, $affiliate_site_id );
+		}
+
+		if ( function_exists( 'bhg_is_user_affiliate' ) ) {
+			return bhg_is_user_affiliate( $uid );
+		}
+
 		return (bool) get_user_meta( $uid, 'bhg_is_affiliate', true );
 	}
 
@@ -72,21 +82,57 @@ class BHG_Ads {
 	 *
 	 * @return bool
 	 */
-	protected static function visibility_ok( $visibility ) {
-		$visibility = is_string( $visibility ) ? strtolower( $visibility ) : 'all';
+	protected static function visibility_ok( $visibility, $context = array() ) {
+		$visibility         = is_string( $visibility ) ? strtolower( $visibility ) : 'all';
+		$affiliate_site_id = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
+
 		switch ( $visibility ) {
 			case 'logged_in':
 				return is_user_logged_in();
 			case 'guests':
 				return ! is_user_logged_in();
 			case 'affiliates':
-				return self::user_is_affiliate();
+				return self::user_is_affiliate( $affiliate_site_id );
 			case 'non_affiliates':
-				return is_user_logged_in() ? ! self::user_is_affiliate() : false;
+				if ( ! is_user_logged_in() ) {
+					return false;
+				}
+				return ! self::user_is_affiliate( $affiliate_site_id );
 			case 'all':
 			default:
 				return true;
 		}
+	}
+
+	/**
+	 * Determine if an ad row should be shown for the current request.
+	 *
+	 * @param object $row     Database row containing ad data.
+	 * @param array  $context Optional context (e.g. affiliate_site_id).
+	 * @return bool
+	 */
+	public static function should_display_row( $row, $context = array() ) {
+		$visibility = isset( $row->visible_to ) ? $row->visible_to : 'all';
+		if ( ! self::visibility_ok( $visibility, $context ) ) {
+			return false;
+		}
+
+		$targets = isset( $row->target_pages ) ? $row->target_pages : '';
+		if ( ! self::page_target_ok( $targets ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Public wrapper for rendering an ad row.
+	 *
+	 * @param object $row Database row containing ad data.
+	 * @return string
+	 */
+	public static function get_row_markup( $row ) {
+		return self::render_ad_row( $row );
 	}
 
 	/**
@@ -136,14 +182,27 @@ class BHG_Ads {
 	 * @return string
 	 */
 	protected static function render_ad_row( $row ) {
-		$msg  = isset( $row->content ) ? $row->content : '';
-		$msg  = wp_kses_post( $msg );
-		$link = isset( $row->link_url ) ? esc_url( $row->link_url ) : '';
+		$content = isset( $row->content ) ? wp_kses_post( $row->content ) : '';
+		if ( '' === $content ) {
+			return '';
+		}
+
+		$placement = isset( $row->placement ) ? sanitize_html_class( $row->placement ) : 'none';
+		$link      = isset( $row->link_url ) ? esc_url( $row->link_url ) : '';
 
 		if ( $link ) {
-			$msg = '<a href="' . $link . '">' . $msg . '</a>';
+			$content = sprintf(
+				'<a class="bhg-ad-link" href="%1$s">%2$s</a>',
+				$link,
+				$content
+			);
 		}
-		return '<div class="bhg-ad bhg-ad-' . esc_attr( $row->placement ) . '">' . $msg . '</div>';
+
+		return sprintf(
+			'<div class="bhg-ad bhg-ad-%1$s">%2$s</div>',
+			esc_attr( $placement ),
+			$content
+		);
 	}
 
 	/**
@@ -154,9 +213,9 @@ class BHG_Ads {
 	 * @return array
 	 */
 	protected static function get_ads_for_placement( $placement = 'footer' ) {
-                global $wpdb;
-                $table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
-                $allowed_tables = array( $table );
+		global $wpdb;
+		$table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
+		$allowed_tables = array( $table );
 		if ( ! in_array( $table, $allowed_tables, true ) ) {
 			return array();
 		}
@@ -166,12 +225,12 @@ class BHG_Ads {
 			return array();
 		}
 
-                return $wpdb->get_results(
-                        $wpdb->prepare(
-                                "SELECT id, content, link_url, placement, visible_to, target_pages FROM {$table} WHERE active = 1 AND placement = %s ORDER BY id DESC",
-                                $placement
-                        )
-                );
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, content, link_url, placement, visible_to, target_pages FROM {$table} WHERE active = 1 AND placement = %s ORDER BY id DESC",
+				$placement
+			)
+		);
 	}
 
 	/**
@@ -187,28 +246,30 @@ class BHG_Ads {
 			return;
 		}
 
-			$placements = array( 'footer', 'bottom' );
+		$placements = array( 'footer', 'bottom' );
 		foreach ( $placements as $place ) {
-				$ads = self::get_ads_for_placement( $place );
+			$ads = self::get_ads_for_placement( $place );
 			if ( empty( $ads ) ) {
-					continue;
+				continue;
 			}
 
-				$out = array();
+			$out = array();
 			foreach ( $ads as $row ) {
-				if ( ! self::visibility_ok( $row->visible_to ) ) {
-						continue;
+				if ( ! self::should_display_row( $row ) ) {
+					continue;
 				}
-				if ( ! self::page_target_ok( $row->target_pages ) ) {
-						continue;
+
+				$markup = self::get_row_markup( $row );
+				if ( '' !== $markup ) {
+					$out[] = $markup;
 				}
-					$out[] = self::render_ad_row( $row );
 			}
 
+			$out = array_filter( $out );
 			if ( ! empty( $out ) ) {
-					echo '<div class="bhg-ads bhg-ads-' . esc_attr( $place ) . '" style="margin:16px 0;text-align:center;">';
-					echo wp_kses_post( implode( "\n", $out ) );
-					echo '</div>';
+				echo '<div class="bhg-ads bhg-ads-' . esc_attr( $place ) . '">';
+				echo implode( "\n", $out );
+				echo '</div>';
 			}
 		}
 	}
@@ -248,19 +309,19 @@ class BHG_Ads {
 
 		$status = strtolower( trim( $a['status'] ) );
 
-                global $wpdb;
-                $table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
-                $allowed_tables = array( $table );
+		global $wpdb;
+		$table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
+		$allowed_tables = array( $table );
 		if ( ! in_array( $table, $allowed_tables, true ) ) {
 				return '';
 		}
 
-                $row = $wpdb->get_row(
-                        $wpdb->prepare(
-                                "SELECT id, content, placement, visible_to, target_pages, active, link_url FROM {$table} WHERE id = %d",
-                                $id
-                        )
-                );
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT id, content, placement, visible_to, target_pages, active, link_url FROM {$table} WHERE id = %d",
+				$id
+			)
+		);
 		if ( ! $row ) {
 			return '';
 		}
