@@ -83,7 +83,158 @@ add_filter(
  * @return bool
  */
 function bhg_is_frontend() {
-	return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+        return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+}
+
+/**
+ * Determine if Nextend Social Login is available.
+ *
+ * Detection relies on class/constant checks to avoid hard dependencies
+ * while remaining compatible with changes in the upstream plugin.
+ *
+ * @return bool
+ */
+function bhg_nextend_is_available() {
+        static $available = null;
+
+        if ( null !== $available ) {
+                return $available;
+        }
+
+        $available = false;
+
+        if ( class_exists( '\\NextendSocialLogin\\NextendSocialLogin', false ) || class_exists( 'NextendSocialLogin', false ) ) {
+                $available = true;
+        } elseif ( defined( 'NEXTEND_SOCIAL_LOGIN_PLUGIN_VERSION' ) || defined( 'NEXTEND_SOCIAL_LOGIN_PLUGIN_BASENAME' ) ) {
+                $available = true;
+        }
+
+        return $available;
+}
+
+/**
+ * Retrieve the configured Nextend provider mapping.
+ *
+ * @return array<string, string> Associative array of provider => Nextend slug.
+ */
+function bhg_get_nextend_provider_map() {
+        $settings = get_option( 'bhg_plugin_settings', array() );
+        $map      = array();
+        $keys     = array( 'google', 'twitch', 'kick' );
+
+        if ( isset( $settings['nextend_providers'] ) && is_array( $settings['nextend_providers'] ) ) {
+                foreach ( $keys as $key ) {
+                        if ( isset( $settings['nextend_providers'][ $key ] ) && is_string( $settings['nextend_providers'][ $key ] ) ) {
+                                $slug = sanitize_key( $settings['nextend_providers'][ $key ] );
+                                if ( '' !== $slug ) {
+                                        $map[ $key ] = $slug;
+                                }
+                        }
+                }
+        }
+
+        /**
+         * Filter the resolved Nextend provider map.
+         *
+         * @param array $map      Sanitized provider map.
+         * @param array $settings Raw plugin settings.
+         */
+        return apply_filters( 'bhg_nextend_provider_map', $map, $settings );
+}
+
+/**
+ * Render Nextend login buttons for the configured providers.
+ *
+ * @param string $redirect Optional redirect URL.
+ * @return string
+ */
+function bhg_render_nextend_login_buttons( $redirect = '' ) {
+        if ( ! bhg_nextend_is_available() ) {
+                return '';
+        }
+
+        if ( ! function_exists( 'shortcode_exists' ) || ! shortcode_exists( 'nextend_social_login' ) ) {
+                return '';
+        }
+
+        $map = bhg_get_nextend_provider_map();
+        if ( empty( $map ) ) {
+                return '';
+        }
+
+        $redirect = '' !== $redirect ? wp_validate_redirect( $redirect, home_url( '/' ) ) : '';
+        $buttons  = array();
+
+        foreach ( $map as $provider ) {
+                $provider       = sanitize_key( $provider );
+                $provider_class = sanitize_html_class( $provider );
+                if ( '' === $provider ) {
+                        continue;
+                }
+
+                $shortcode = '[nextend_social_login provider="' . esc_attr( $provider ) . '"';
+                if ( $redirect ) {
+                        $shortcode .= ' redirect="' . esc_attr( $redirect ) . '"';
+                }
+                $shortcode .= ']';
+
+                $rendered = do_shortcode( $shortcode );
+                if ( $rendered ) {
+                        $buttons[] = '<div class="bhg-nextend-login-button bhg-nextend-' . esc_attr( $provider_class ) . '">' . $rendered . '</div>';
+                }
+        }
+
+        if ( empty( $buttons ) ) {
+                return '';
+        }
+
+        $label  = bhg_t( 'label_or_log_in_with', 'Or log in with:' );
+        $output = '<div class="bhg-nextend-login-wrapper">';
+        $output .= '<p class="bhg-nextend-login-label">' . esc_html( $label ) . '</p>';
+        $output .= '<div class="bhg-nextend-login-buttons">' . implode( '', $buttons ) . '</div>';
+        $output .= '</div>';
+
+        /**
+         * Filter the rendered Nextend login buttons markup.
+         *
+         * @param string $output   HTML output.
+         * @param array  $map      Provider map used to render buttons.
+         * @param string $redirect Redirect URL applied to buttons.
+         */
+        return apply_filters( 'bhg_render_nextend_login_buttons', $output, $map, $redirect );
+}
+
+/**
+ * Render a login prompt with optional Nextend buttons.
+ *
+ * @param string $message_slug   Translation slug for the primary message.
+ * @param string $default_text   Default fallback text for the message.
+ * @param string $redirect       Optional redirect URL for the login link.
+ * @return string
+ */
+function bhg_render_login_prompt( $message_slug, $default_text, $redirect = '' ) {
+        $redirect  = '' !== $redirect ? wp_validate_redirect( $redirect, home_url( '/' ) ) : '';
+        $login_url = wp_login_url( $redirect );
+
+        $output  = '<div class="bhg-login-prompt">';
+        $output .= '<p>' . esc_html( bhg_t( $message_slug, $default_text ) ) . '</p>';
+        $output .= '<p><a class="button button-primary" href="' . esc_url( $login_url ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+
+        $buttons = bhg_render_nextend_login_buttons( $redirect );
+        if ( $buttons ) {
+                $output .= $buttons;
+        }
+
+        $output .= '</div>';
+
+        /**
+         * Filter the rendered login prompt markup.
+         *
+         * @param string $output       HTML output.
+         * @param string $message_slug Translation slug used for the primary message.
+         * @param string $redirect     Redirect URL applied to login links.
+         */
+        return apply_filters( 'bhg_render_login_prompt', $output, $message_slug, $redirect );
 }
 
 if ( ! function_exists( 'bhg_t' ) ) {
@@ -371,14 +522,20 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_shortcode'                              => 'Shortcode',
 			'label_timeline_colon'                         => 'Timeline:',
 			'label_user_hash'                              => 'user#%d',
-			'label_emdash'                                 => '—',
+'label_emdash'                                 => '—',
+'label_or_log_in_with'                         => 'Or log in with:',
                         'placeholder_enter_guess'                      => 'Enter your guess',
                         'placeholder_custom_value'                     => 'Custom value',
                         'select_multiple_tournaments_hint'             => 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.',
                         'select_multiple_prizes_hint'                  => 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.',
                         'post_submit_redirect_url'                     => 'Post-submit redirect URL',
-                        'post_submit_redirect_description'             => 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.',
-                        'post_submit_redirect_placeholder'             => 'https://example.com/thank-you',
+'post_submit_redirect_description'             => 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.',
+'description_nextend_provider_mapping'         => 'Map the Bonus Hunt providers to Nextend Social Login provider slugs. Leave blank to hide the button.',
+'post_submit_redirect_placeholder'             => 'https://example.com/thank-you',
+'label_social_login_integration'               => 'Social Login Integration',
+'label_nextend_google_provider'                => 'Google provider slug',
+'label_nextend_twitch_provider'                => 'Twitch provider slug',
+'label_nextend_kick_provider'                  => 'Kick provider slug',
 
                         // Buttons.
 			'button_save'                                  => 'Save',
@@ -426,7 +583,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'notice_hunt_closed_successfully'              => 'Hunt closed successfully.',
 			'notice_missing_hunt_id'                       => 'Missing hunt id.',
 			'notice_db_update_required'                    => 'Database upgrade required. Please run plugin upgrades.',
-			'notice_no_active_hunt'                        => 'No active bonus hunt found.',
+'notice_no_active_hunt'                        => 'No active bonus hunt found.',
+'notice_nextend_inactive'                      => 'Nextend Social Login plugin is not active. Install and activate it to enable these settings.',
 			'notice_no_results'                            => 'No results available.',
 			'notice_user_removed'                          => 'User removed.',
 			'notice_ad_saved'                              => 'Advertisement saved.',

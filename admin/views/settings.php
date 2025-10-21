@@ -108,6 +108,39 @@ foreach ( $currencies as $key => $label ) :
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
 </td>
 </tr>
+<?php
+$nextend_enabled = function_exists( 'bhg_nextend_is_available' ) ? bhg_nextend_is_available() : false;
+$provider_map    = isset( $settings['nextend_providers'] ) && is_array( $settings['nextend_providers'] ) ? $settings['nextend_providers'] : array();
+$provider_values = array(
+        'google' => isset( $provider_map['google'] ) ? $provider_map['google'] : '',
+        'twitch' => isset( $provider_map['twitch'] ) ? $provider_map['twitch'] : '',
+        'kick'   => isset( $provider_map['kick'] ) ? $provider_map['kick'] : '',
+);
+?>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'label_social_login_integration', 'Social Login Integration' ) ); ?></th>
+<td>
+<?php if ( ! $nextend_enabled ) : ?>
+<p class="description"><?php echo esc_html( bhg_t( 'notice_nextend_inactive', 'Nextend Social Login plugin is not active. Install and activate it to enable these settings.' ) ); ?></p>
+<?php endif; ?>
+<p class="description"><?php echo esc_html( bhg_t( 'description_nextend_provider_mapping', 'Map the Bonus Hunt providers to Nextend Social Login provider slugs. Leave blank to hide the button.' ) ); ?></p>
+<fieldset>
+<legend class="screen-reader-text"><?php echo esc_html( bhg_t( 'label_social_login_integration', 'Social Login Integration' ) ); ?></legend>
+<p>
+<label for="bhg_nextend_provider_google"><?php echo esc_html( bhg_t( 'label_nextend_google_provider', 'Google provider slug' ) ); ?></label><br>
+<input type="text" class="regular-text" id="bhg_nextend_provider_google" name="bhg_nextend_provider_google" value="<?php echo esc_attr( $provider_values['google'] ); ?>" autocomplete="off">
+</p>
+<p>
+<label for="bhg_nextend_provider_twitch"><?php echo esc_html( bhg_t( 'label_nextend_twitch_provider', 'Twitch provider slug' ) ); ?></label><br>
+<input type="text" class="regular-text" id="bhg_nextend_provider_twitch" name="bhg_nextend_provider_twitch" value="<?php echo esc_attr( $provider_values['twitch'] ); ?>" autocomplete="off">
+</p>
+<p>
+<label for="bhg_nextend_provider_kick"><?php echo esc_html( bhg_t( 'label_nextend_kick_provider', 'Kick provider slug' ) ); ?></label><br>
+<input type="text" class="regular-text" id="bhg_nextend_provider_kick" name="bhg_nextend_provider_kick" value="<?php echo esc_attr( $provider_values['kick'] ); ?>" autocomplete="off">
+</p>
+</fieldset>
+</td>
+</tr>
 </tbody>
 </table>
 

@@ -272,20 +272,21 @@ function bhg_activate_plugin() {
 
 				bhg_seed_default_translations_if_empty();
 
-	// Set default options.
-	add_option( 'bhg_version', BHG_VERSION );
-	add_option(
-		'bhg_plugin_settings',
-		array(
-			'allow_guess_changes'       => 'yes',
-			'default_tournament_period' => 'monthly',
-			'min_guess_amount'          => 0,
-			'max_guess_amount'          => 100000,
-			'max_guesses'               => 1,
-			'ads_enabled'               => 1,
-			'email_from'                => get_bloginfo( 'admin_email' ),
-		)
-	);
+        // Set default options.
+        add_option( 'bhg_version', BHG_VERSION );
+        add_option(
+                'bhg_plugin_settings',
+                array(
+                        'allow_guess_changes'       => 'yes',
+                        'default_tournament_period' => 'monthly',
+                        'min_guess_amount'          => 0,
+                        'max_guess_amount'          => 100000,
+                        'max_guesses'               => 1,
+                        'ads_enabled'               => 1,
+                        'email_from'                => get_bloginfo( 'admin_email' ),
+                        'nextend_providers'         => array(),
+                )
+        );
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
@@ -509,15 +510,37 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
         }
 
         if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
-                        $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
+                $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
                 if ( '' === $redirect ) {
-                                $settings['post_submit_redirect'] = '';
+                        $settings['post_submit_redirect'] = '';
                 } else {
-                                $url = esc_url_raw( $redirect );
+                        $url = esc_url_raw( $redirect );
                         if ( ! empty( $url ) ) {
-                                                $settings['post_submit_redirect'] = $url;
+                                $settings['post_submit_redirect'] = $url;
                         }
                 }
+        }
+
+        $nextend_fields = array(
+                'google' => 'bhg_nextend_provider_google',
+                'twitch' => 'bhg_nextend_provider_twitch',
+                'kick'   => 'bhg_nextend_provider_kick',
+        );
+        $nextend_map       = array();
+        $nextend_submitted = false;
+
+        foreach ( $nextend_fields as $provider_key => $field_name ) {
+                if ( array_key_exists( $field_name, $_POST ) ) {
+                        $nextend_submitted = true;
+                        $value             = sanitize_key( wp_unslash( $_POST[ $field_name ] ) );
+                        if ( '' !== $value ) {
+                                $nextend_map[ $provider_key ] = $value;
+                        }
+                }
+        }
+
+        if ( $nextend_submitted ) {
+                $settings['nextend_providers'] = $nextend_map;
         }
 
                 // Save settings.

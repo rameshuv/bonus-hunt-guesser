@@ -22,7 +22,15 @@ if ( ! class_exists( 'BHG_Login_Redirect' ) ) {
                         add_filter( 'login_redirect', array( $this, 'core_login_redirect' ), 10, 3 );
 
                         // Nextend Social Login compatibility if plugin active.
-                        if ( function_exists( 'NextendSocialLogin' ) ) {
+                        $nextend_active = function_exists( 'bhg_nextend_is_available' ) && bhg_nextend_is_available();
+                        if ( ! $nextend_active ) {
+                                $nextend_active = class_exists( '\\NextendSocialLogin\\NextendSocialLogin', false )
+                                        || class_exists( 'NextendSocialLogin', false )
+                                        || defined( 'NEXTEND_SOCIAL_LOGIN_PLUGIN_VERSION' )
+                                        || defined( 'NEXTEND_SOCIAL_LOGIN_PLUGIN_BASENAME' );
+                        }
+
+                        if ( $nextend_active ) {
                                 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-nextend-profile.php';
                                 add_filter( 'nsl_login_redirect', array( $this, 'nextend_redirect' ), 10, 3 );
                                 add_action( 'nsl_register_new_user', array( $this, 'capture_nextend_profile' ), 10, 3 );
