@@ -32,6 +32,12 @@ $user_query = new WP_User_Query( $args );
 $users      = $user_query->get_results();
 $total      = $user_query->get_total();
 
+$affiliate_sites = array();
+if ( class_exists( 'BHG_DB' ) ) {
+	$db              = new BHG_DB();
+	$affiliate_sites = (array) $db->get_affiliate_websites();
+}
+
 $base_url = remove_query_arg( array( 'paged' ) );
 ?>
 <div class="wrap">
@@ -91,7 +97,7 @@ $base_url = remove_query_arg( array( 'paged' ) );
 		);
 		?>
 		"><?php echo esc_html( bhg_t( 'label_email', 'Email' ) ); ?></a></th>
-		<th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
+				<th><?php echo esc_html( bhg_t( 'label_affiliate_status', 'Affiliate Status' ) ); ?></th>
 		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
 		</tr>
 	</thead>
@@ -101,16 +107,44 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			<?php
 		else :
 			foreach ( $users as $u ) :
-				$form_id   = 'bhg-user-' . (int) $u->ID;
-				$real_name = get_user_meta( $u->ID, 'bhg_real_name', true );
-				$is_aff    = get_user_meta( $u->ID, 'bhg_is_affiliate', true );
+					$form_id        = 'bhg-user-' . (int) $u->ID;
+					$real_name      = get_user_meta( $u->ID, 'bhg_real_name', true );
+					$is_aff         = get_user_meta( $u->ID, 'bhg_is_affiliate', true );
+					$user_sites_raw = function_exists( 'bhg_get_user_affiliate_websites' ) ? bhg_get_user_affiliate_websites( (int) $u->ID ) : array();
+					$user_sites     = array_map( 'absint', (array) $user_sites_raw );
 				?>
-		<tr>
-			<td><?php echo esc_html( $u->user_login ); ?></td>
-			<td><?php echo esc_html( $u->display_name ); ?></td>
-			<td><input type="text" name="bhg_real_name" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $real_name ); ?>" /></td>
-			<td><?php echo esc_html( $u->user_email ); ?></td>
-			<td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
+				<tr>
+						<td><?php echo esc_html( $u->user_login ); ?></td>
+						<td><?php echo esc_html( $u->display_name ); ?></td>
+						<td><input type="text" name="bhg_real_name" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $real_name ); ?>" /></td>
+						<td><?php echo esc_html( $u->user_email ); ?></td>
+						<td class="bhg-affiliate-column">
+								<label class="bhg-affiliate-toggle" style="display:block;margin-bottom:4px;">
+										<input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> />
+										<span><?php echo esc_html( bhg_t( 'label_affiliate_global', 'Global' ) ); ?></span>
+								</label>
+								<?php if ( ! empty( $affiliate_sites ) ) : ?>
+								<div class="bhg-affiliate-sites">
+										<?php
+										foreach ( $affiliate_sites as $site ) :
+												$site_id   = isset( $site->id ) ? (int) $site->id : 0;
+												$site_name = isset( $site->name ) ? $site->name : '';
+											if ( $site_id <= 0 || '' === $site_name ) {
+													continue;
+											}
+												$site_checked = in_array( $site_id, $user_sites, true );
+											?>
+												<label class="bhg-affiliate-site-toggle" style="display:block;margin-bottom:2px;">
+														<input type="checkbox" name="bhg_affiliate_sites[]" value="<?php echo esc_attr( $site_id ); ?>" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $site_checked ); ?> />
+														<span><?php echo esc_html( $site_name ); ?></span>
+														<?php if ( isset( $site->status ) && 'active' !== $site->status ) : ?>
+																<span class="description" style="margin-left:6px;">(<?php echo esc_html( ucfirst( sanitize_text_field( $site->status ) ) ); ?>)</span>
+														<?php endif; ?>
+												</label>
+										<?php endforeach; ?>
+								</div>
+								<?php endif; ?>
+						</td>
 			<td>
 			<form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="bhg_save_user_meta" />
