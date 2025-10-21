@@ -298,13 +298,33 @@ endif;
 		<th><label for="bhg_t_desc">
 		<?php
 		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
+                ?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
 		</tr>
 		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
+				<th><label for="bhg_t_type"><?php echo esc_html( bhg_t( 'label_type', 'Type' ) ); ?></label></th>
+				<td>
+					<?php
+					$type_options = array(
+						'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+						'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+						'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+						'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+						'alltime'   => bhg_t( 'alltime', 'All-time' ),
+                                                );
+					$current_type = isset( $row->type ) ? sanitize_key( $row->type ) : '';
+					?>
+					<select id="bhg_t_type" name="type">
+					<?php foreach ( $type_options as $type_key => $type_label ) : ?>
+						<option value="<?php echo esc_attr( $type_key ); ?>" <?php selected( $current_type, $type_key ); ?>><?php echo esc_html( $type_label ); ?></option>
+					<?php endforeach; ?>
+					</select>
+                                </td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_pmode">
+<?php
 				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
 				?>
 				</label></th>

@@ -82,11 +82,15 @@ class BHG_Admin {
 			BHG_Demo::instance()->register_menu( $slug, $cap );
 		}
 
-				// NOTE: By default, WordPress adds a submenu item that duplicates the
-				// top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
-				// call removed this submenu, but it also inadvertently removed our
-				// custom “Dashboard” submenu. Removing the call ensures the Dashboard
-		// item remains visible under the "Bonus Hunt" menu.
+                // NOTE: By default, WordPress adds a submenu item that duplicates the
+                // top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
+                // call removed this submenu, but it also inadvertently removed our
+                // custom “Dashboard” submenu. Removing the call ensures the Dashboard
+                // item remains visible under the "Bonus Hunt" menu.
+                global $submenu;
+                if ( isset( $submenu[ $slug ][0] ) ) {
+                        $submenu[ $slug ][0][0] = bhg_t( 'menu_dashboard', 'Dashboard' );
+                }
 	}
 
 		/**
@@ -337,7 +341,8 @@ class BHG_Admin {
 			}
 		}
 				$primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
-		$winners_count                 = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
+                $raw_winners_count             = isset( $_POST['winners_count'] ) ? absint( wp_unslash( $_POST['winners_count'] ) ) : 3;
+                $winners_count                 = min( 25, max( 1, $raw_winners_count ) );
 		$guessing_enabled              = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
 				$final_balance_raw     = isset( $_POST['final_balance'] ) ? wp_unslash( $_POST['final_balance'] ) : '';
 				$final_balance         = null;
