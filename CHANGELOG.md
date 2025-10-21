@@ -1,4 +1,11 @@
 
+# 8.0.14 — 2025-09-30
+- Align plugin header and constants with v8.0.14 requirements (WordPress 6.3+, MySQL 5.5.5).
+- Added prize column and neutral winner highlighting to hunt results and refreshed dashboard winners layout.
+- Updated tournaments admin to drop legacy type usage, capture affiliate URLs, and focus hunt selectors on current-year data.
+- Updated `[bhg_tournaments]` and leaderboard shortcodes to derive filters from tournament dates instead of the removed `type` column.
+- Refined currency handling and prize assets (new image sizes, spec-compliant categories, improved formatting helpers).
+
 ## [Stage-1] Hygiene & Safety — 2025-09-03
 
 - Standardized sanitization of `$_GET` / query args for leaderboard: `orderby`, `order`, `paged`, `hunt_id`.
