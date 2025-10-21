@@ -243,26 +243,27 @@ if ( ! function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
 		if ( ! $hunt || null === $hunt->final_balance ) {
 				return array();
 		}
-		if ( $winners_limit ) {
-				$limit = (int) $winners_limit;
-		} elseif ( $hunt->winners_count ) {
-				$limit = (int) $hunt->winners_count;
-		} else {
-				$limit = 3;
-		}
+                if ( $winners_limit ) {
+                                $limit = (int) $winners_limit;
+                } elseif ( $hunt->winners_count ) {
+                                $limit = (int) $hunt->winners_count;
+                } else {
+                                $limit = 3;
+                }
+
+                $limit = min( 25, max( 1, $limit ) );
 
                 $sql = $wpdb->prepare(
                         sprintf(
-                                'SELECT g.user_id, g.guess, (%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC LIMIT %%d',
+                                'SELECT g.user_id, g.guess, ABS(%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY diff ASC, g.id ASC LIMIT %%d',
                                 $t_g
                         ),
                         (float) $hunt->final_balance,
                         (int) $hunt_id,
-                        (float) $hunt->final_balance,
                         (int) $limit
                 );
                 return $wpdb->get_results( $sql );
-	}
+        }
 }
 
 if ( ! function_exists( 'bhg_get_all_ranked_guesses' ) ) {
@@ -277,15 +278,14 @@ if ( ! function_exists( 'bhg_get_all_ranked_guesses' ) ) {
 
                 $sql = $wpdb->prepare(
                         sprintf(
-                                'SELECT g.id, g.user_id, g.guess, (%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC',
+                                'SELECT g.id, g.user_id, g.guess, ABS(%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY diff ASC, g.id ASC',
                                 $t_g
                         ),
                         (float) $hunt->final_balance,
-                        (int) $hunt_id,
-                        (float) $hunt->final_balance
+                        (int) $hunt_id
                 );
                 return $wpdb->get_results( $sql );
-	}
+        }
 }
 
 if ( ! function_exists( 'bhg_get_hunt_participants' ) ) {

@@ -109,20 +109,16 @@ if ( 'tournament' === $view_type ) {
         if ( $has_final_balance ) {
                 $rows = $wpdb->get_results(
                         $wpdb->prepare(
-                                "SELECT g.guess, u.display_name, (%f - g.guess) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY ABS(%f - g.guess) ASC, g.id ASC",
+                                "SELECT g.guess, u.display_name, ABS(%f - g.guess) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC",
                                 (float) $hunt->final_balance,
-                                $item_id,
-                                (float) $hunt->final_balance
+                                $item_id
                         )
                 );
         } else {
                 $rows = array();
         }
         $result_title = $hunt->title;
-        $wcount       = (int) $hunt->winners_count;
-	if ( $wcount < 1 ) {
-			$wcount = 3;
-	}
+        $wcount       = min( 25, max( 1, (int) $hunt->winners_count ) );
 	$columns = array(
 		'sc_position' => bhg_t( 'sc_position', 'Position' ),
 		'sc_user'     => bhg_t( 'sc_user', 'User' ),
@@ -214,7 +210,7 @@ $current   = $view_type . '-' . $item_id;
 						<td><?php echo (int) $r->wins; ?></td>
 					<?php else : ?>
 						<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+                                                <td><?php echo esc_html( bhg_format_currency( abs( (float) $r->diff ) ) ); ?></td>
 					<?php endif; ?>
 				</tr>
 				<?php
