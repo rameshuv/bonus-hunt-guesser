@@ -13,8 +13,8 @@
 
 | Requirement | Status | Notes / Required Changes |
 | --- | --- | --- |
-| Remove the legacy `type` column from tournaments and rely on `participants_mode` + date logic. | ❌ | `includes/class-bhg-db.php` still creates and back-fills a `type` column for `bhg_tournaments`; drop the column and associated index handling. |
-| Junction table must be named `wp_bhg_tournaments_hunts` with unique (`tournament_id`,`hunt_id`). | ❌ | Schema currently provisions `bhg_hunt_tournaments`; rename/migrate to the specified table name and uniqueness. |
+| Remove the legacy `type` column from tournaments and rely on `participants_mode` + date logic. | ✅ | `includes/class-bhg-db.php` drops the legacy `type` column/index during migration and no longer creates it for new installs. |
+| Junction table must be named `wp_bhg_tournaments_hunts` with unique (`tournament_id`,`hunt_id`). | ✅ | Schema now provisions `bhg_tournaments_hunts`, migrates rows from `bhg_hunt_tournaments`, and enforces the (`tournament_id`,`hunt_id`) uniqueness constraint. |
 
 ## Settings & Currency
 
@@ -32,26 +32,26 @@
 
 | Requirement | Status | Notes / Required Changes |
 | --- | --- | --- |
-| Multi-select should show only active tournaments to keep the list short. | ❌ | `admin/views/bonus-hunts.php` loads every tournament (`SELECT ... ORDER BY title ASC`); add filtering for active tournaments and consider limiting to current period. |
+| Multi-select should show only active tournaments to keep the list short. | ✅ | `admin/views/bonus-hunts.php` and `admin/views/bonus-hunts-edit.php` now query only active tournaments while always preserving already-linked IDs. |
 
 ## Hunt Results (`bhg-bonus-hunts-results`)
 
 | Requirement | Status | Notes / Required Changes |
 | --- | --- | --- |
-| Include a “Prize” column showing the assigned prize title for winners. | ❌ | `admin/views/bonus-hunts-results.php` builds the column set without any prize data; extend query/output to join prize selections and show the label. |
-| Standardize row colors to grey/white instead of green highlight. | ❌ | CSS `assets/css/admin.css` defines `.bhg-winner-row { background-color: #d1fae5; }`; adjust styling to comply with the grey/white requirement while still differentiating winners (e.g., bold text). |
+| Include a “Prize” column showing the assigned prize title for winners. | ✅ | `admin/views/bonus-hunts-results.php` maps hunt prize selections to each winner row and renders a dedicated “Prize” column. |
+| Standardize row colors to grey/white instead of green highlight. | ✅ | `assets/css/admin.css` keeps the core striped grey/white rows and highlights winners with bold green text only (no background overrides). |
 
 ## Tournaments Admin (`bhg-tournaments`)
 
 | Requirement | Status | Notes / Required Changes |
 | --- | --- | --- |
-| Connected bonus hunts list limited to hunts from the current year plus already linked ones. | ❌ | `admin/views/tournaments.php` fetches all hunts with `SELECT id, title FROM ... ORDER BY title ASC`; update the query/filter logic accordingly. |
+| Connected bonus hunts list limited to hunts from the current year plus already linked ones. | ✅ | `admin/views/tournaments.php` now limits the manual selector to hunts from the current calendar year and any already-associated hunt IDs. |
 
 ## Users Admin (`bhg-users`)
 
 | Requirement | Status | Notes / Required Changes |
 | --- | --- | --- |
-| Profile rows must expose affiliate yes/no toggles per affiliate website. | ❌ | `admin/views/users.php` only handles a single `bhg_is_affiliate` flag; extend data model and UI to iterate over sites from `bhg_affiliate_websites` (and adjust helper output where affiliate lights are rendered). |
+| Profile rows must expose affiliate yes/no toggles per affiliate website. | ✅ | `admin/views/users.php` renders a checkbox list sourced from `bhg_affiliate_websites`, persisting selections via `bhg_affiliate_websites` user meta. |
 
 ## Additional Observations
 

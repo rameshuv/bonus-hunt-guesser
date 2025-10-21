@@ -59,7 +59,7 @@ $wpdb->prefix . 'bhg_tournaments',
 $wpdb->prefix . 'bhg_tournament_results',
 $wpdb->prefix . 'bhg_affiliate_websites',
 $wpdb->prefix . 'bhg_hunt_winners',
-$wpdb->prefix . 'bhg_hunt_tournaments',
+$wpdb->prefix . 'bhg_tournaments_hunts',
 $wpdb->users,
 $wpdb->usermeta,
 );
@@ -1682,7 +1682,7 @@ $wpdb->usermeta,
 
                         $tournaments_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
                         $hunts_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $hunt_map_table    = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $hunt_map_table    = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
                         $sites_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 
                         if ( $tournaments_table ) {
@@ -1883,7 +1883,7 @@ $wpdb->usermeta,
 			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
                         $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
 			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
 			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
                         if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um || ! $ht ) {
                                 return '';
@@ -2231,12 +2231,12 @@ $wpdb->usermeta,
 				}
 
 					// db call ok; no-cache ok.
-										$tournament = $wpdb->get_row(
-											$wpdb->prepare(
-												"SELECT id, type, start_date, end_date, status FROM {$t} WHERE id = %d",
-												$details_id
-											)
-										);
+                                                                                $tournament = $wpdb->get_row(
+                                                                                        $wpdb->prepare(
+                                                                                                "SELECT id, start_date, end_date, status, participants_mode FROM {$t} WHERE id = %d",
+                                                                                                $details_id
+                                                                                        )
+                                                                                );
 				if ( ! $tournament ) {
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
@@ -2282,11 +2282,14 @@ $wpdb->usermeta,
 					ob_start();
 					echo '<div class="bhg-tournament-details">';
 					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
-					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
-					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
-					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
-									$status_key = strtolower( (string) $tournament->status );
-									echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+                                        $start_display = $tournament->start_date ? mysql2date( get_option( 'date_format' ), $tournament->start_date ) : bhg_t( 'label_emdash', '—' );
+                                        $end_display   = $tournament->end_date ? mysql2date( get_option( 'date_format' ), $tournament->end_date ) : bhg_t( 'label_emdash', '—' );
+                                        echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( $start_display ) . ' &nbsp; ';
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( $end_display ) . ' &nbsp; ';
+                                                                        $status_key = strtolower( (string) $tournament->status );
+                                                                        echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+                                        $mode_display = 'winners' === $tournament->participants_mode ? bhg_t( 'winners', 'Winners' ) : bhg_t( 'all', 'All' );
+                                        echo '<p><strong>' . esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) ) . ':</strong> ' . esc_html( $mode_display ) . '</p>';
 
 				if ( ! $rows ) {
 					echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';

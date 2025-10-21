@@ -1293,12 +1293,12 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 				$month_key = gmdate( 'Y-m', $ts );
 				$year_key  = gmdate( 'Y', $ts );
 
-				$ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
-						$now   = current_time( 'mysql', 1 );
-						$start = $now;
-						$end   = $now;
+                                $ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
+                                                $now   = current_time( 'mysql', 1 );
+                                                $start = $now;
+                                                $end   = $now;
 
-					if ( 'weekly' === $type ) {
+                                        if ( 'weekly' === $type ) {
 						$start = gmdate( 'Y-m-d', strtotime( $period . '-1' ) );
 						$end   = gmdate( 'Y-m-d', strtotime( $period . '-7' ) );
 					} elseif ( 'monthly' === $type ) {
@@ -1309,30 +1309,34 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						$end   = $period . '-12-31';
 					}
 
-																				$sql = $wpdb->prepare(
-																					"SELECT id FROM {$t_tbl} WHERE type=%s AND start_date=%s AND end_date=%s",
-																					$type,
-																					$start,
-																					$end
-																				);
-																				$id  = $wpdb->get_var( $sql );
-					if ( $id ) {
-						return (int) $id;
-					}
-						$wpdb->insert(
-							$t_tbl,
-							array(
-								'type'       => $type,
-								'start_date' => $start,
-								'end_date'   => $end,
-								'status'     => 'active',
-								'created_at' => $now,
-								'updated_at' => $now,
-							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s' )
-						);
-						return (int) $wpdb->insert_id;
-				};
+                                $sql = $wpdb->prepare(
+                                                                                                                               "SELECT id FROM {$t_tbl} WHERE start_date=%s AND end_date=%s AND hunt_link_mode=%s",
+                                                                                                                               $start,
+                                                                                                                               $end,
+                                                                                                                               'auto'
+                                                                                                                               );
+                                                                                                                               $id  = $wpdb->get_var( $sql );
+                                        if ( $id ) {
+                                                return (int) $id;
+                                        }
+                                                $title = sprintf( 'Auto %s %s', ucfirst( $type ), $period );
+                                                $wpdb->insert(
+                                                        $t_tbl,
+                                                        array(
+                                                                'title'             => $title,
+                                                                'description'       => '',
+                                                                'participants_mode' => 'winners',
+                                                                'hunt_link_mode'    => 'auto',
+                                                                'start_date'        => $start,
+                                                                'end_date'          => $end,
+                                                                'status'            => 'active',
+                                                                'created_at'        => $now,
+                                                                'updated_at'        => $now,
+                                                        ),
+                                                        array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+                                                );
+                                                return (int) $wpdb->insert_id;
+                                };
 
                                                $uid = isset( $row->user_id ) ? (int) $row->user_id : 0;
                                                if ( $uid <= 0 ) {

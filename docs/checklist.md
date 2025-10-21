@@ -17,8 +17,8 @@ This checklist captures the mandatory deliverables agreed with the customer for 
 
 ## 3. Database Tables
 - [ ] `wp_bhg_bonus_hunts` includes `guessing_enabled` and optional `affiliate_id` columns.
-- [ ] `wp_bhg_tournaments` stores `participants_mode` (`winners`/`all`) and legacy `type` column removed.
-- [ ] Junction table `wp_bhg_tournaments_hunts` created with unique (`tournament_id`, `hunt_id`).
+- [x] `wp_bhg_tournaments` stores `participants_mode` (`winners`/`all`) and legacy `type` column removed.
+- [x] Junction table `wp_bhg_tournaments_hunts` created with unique (`tournament_id`, `hunt_id`).
 - [ ] Database migrations are idempotent and re-runnable.
 
 ## 4. Settings & Currency
@@ -35,7 +35,7 @@ This checklist captures the mandatory deliverables agreed with the customer for 
 - [ ] List table sortable by ID, Title, Start Balance, Final Balance, Status; searchable by ID/Title; paginated (30/pg).
 - [ ] Columns include Affiliate, Start Balance, Final Balance (show “-” when open), Status, Actions, Admin Action (Delete only).
 - [ ] Row actions: Edit, Results, Enable/Disable Guessing (reflects `guessing_enabled`).
-- [ ] Add/Edit form contains: Enable guessing checkbox (default on), Affiliate dropdown (optional), winners count selector (1–25, default 3), multi-select of active tournaments only, and prize selection.
+- [x] Add/Edit form contains: Enable guessing checkbox (default on), Affiliate dropdown (optional), winners count selector (1–25, default 3), multi-select of active tournaments only, and prize selection.
 - [ ] Edit screen shows participant guesses list with ability to remove guesses; usernames link to profile.
 - [ ] Results button opens Hunt Results screen scoped to selected hunt.
 
@@ -43,18 +43,18 @@ This checklist captures the mandatory deliverables agreed with the customer for 
 - [ ] Defaults to latest closed hunt with grey/white alternating rows.
 - [ ] Dropdown filters for hunt and time range (`This Month`, `This Year`, `All Time`).
 - [ ] Winners highlighted consistently irrespective of winner count.
-- [ ] Includes “Prize” column (prize title) and “There are no winners yet” empty state.
+- [x] Includes “Prize” column (prize title) and “There are no winners yet” empty state.
 
 ## 8. Tournaments Admin (`bhg-tournaments`)
 - [ ] List table sortable (ID, Title, Start, End, Status) with search and pagination.
 - [ ] Row actions: Edit, Close, Results (nonce-protected).
 - [ ] Add/Edit form contains Title, Description, Participants Mode (`winners`/`all`), affiliate URL + visibility toggle, and connection settings.
-- [ ] Bonus hunt connection modes: “All in period” (by date overlap) and “Manual select” (multi-select limited to hunts from the current year plus already linked ones).
-- [ ] Type field removed; participants mode respected in calculations; edit/close actions functioning.
+- [x] Bonus hunt connection modes: “All in period” (by date overlap) and “Manual select” (multi-select limited to hunts from the current year plus already linked ones).
+- [x] Type field removed; participants mode respected in calculations; edit/close actions functioning.
 
 ## 9. Users Admin (`bhg-users`)
 - [ ] Table supports search (email/username), sorting, pagination (30/pg).
-- [ ] Profile includes Real Name, Username, Email, affiliate yes/no fields per affiliate site, with links to user profile from hunts.
+- [x] Profile includes Real Name, Username, Email, affiliate yes/no fields per affiliate site, with links to user profile from hunts.
 - [ ] Admin can remove user guesses from the hunt edit screen.
 
 ## 10. Ads Admin (`bhg-ads`)
