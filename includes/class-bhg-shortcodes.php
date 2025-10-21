@@ -367,10 +367,11 @@ $wpdb->usermeta,
                                $hunt_prizes = BHG_Prizes::get_prizes_for_hunt( $selected_hunt_id, array( 'active_only' => true ) );
                        }
 
-                       $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 30 );
-                       if ( $per_page <= 0 ) {
-                               $per_page = 30;
-                       }
+        $default_per_page = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_active_hunt' ) : 30;
+        $per_page         = (int) apply_filters( 'bhg_active_hunt_per_page', $default_per_page );
+        if ( $per_page <= 0 ) {
+                $per_page = $default_per_page;
+        }
 
 		       $current_page = 1;
 		       if ( isset( $_GET['bhg_hunt_page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data.
@@ -724,7 +725,7 @@ $wpdb->usermeta,
 						'order'    => 'ASC',
                                                'fields'   => 'position,user,guess',
                                                'paged'    => 1,
-                                               'per_page' => 30,
+                                               'per_page' => function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_leaderboard' ) : 30,
                                                'search'   => '',
 					),
 					$atts,
@@ -973,8 +974,12 @@ $wpdb->usermeta,
 
         $paged               = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
         $search              = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-        $limit               = 30;
-        $offset              = ( $paged - 1 ) * $limit;
+        $per_page_default    = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_user_guesses' ) : 30;
+        $per_page            = (int) apply_filters( 'bhg_user_guesses_per_page', $per_page_default );
+        if ( $per_page <= 0 ) {
+                $per_page = $per_page_default;
+        }
+        $offset              = ( $paged - 1 ) * $per_page;
         $has_orderby_query   = isset( $_GET['bhg_orderby'] );
         $orderby_request     = $has_orderby_query ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
         $has_order_query     = isset( $_GET['bhg_order'] );
@@ -1368,8 +1373,12 @@ $wpdb->usermeta,
 
                         $paged           = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
                         $search          = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                        $limit           = 30;
-                        $offset          = ( $paged - 1 ) * $limit;
+                        $per_page_default = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_hunts' ) : 30;
+                        $per_page        = (int) apply_filters( 'bhg_hunts_per_page', $per_page_default );
+                        if ( $per_page <= 0 ) {
+                                $per_page = $per_page_default;
+                        }
+                        $offset          = ( $paged - 1 ) * $per_page;
                         $orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
                         $order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
 
@@ -1463,13 +1472,13 @@ $wpdb->usermeta,
                                 $sql .= ' WHERE ' . implode( ' AND ', $where );
                         }
                         $sql     .= $order_sql . ' LIMIT %d OFFSET %d';
-                        $params[] = $limit;
+                        $params[] = $per_page;
                         $params[] = $offset;
 
                         // db call ok; no-cache ok.
                         $sql  = $wpdb->prepare( $sql, ...$params );
                         $rows  = $wpdb->get_results( $sql );
-                        $pages = (int) ceil( $total / $limit );
+                        $pages = (int) ceil( $total / $per_page );
 
                         $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
                         $base_url    = remove_query_arg( array( 'bhg_orderby', 'bhg_order', 'bhg_paged' ), $current_url );
@@ -2356,8 +2365,12 @@ $wpdb->usermeta,
                        $website    = absint( $a['website'] );
                        $paged      = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
                        $search     = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                       $limit      = 30;
-                       $offset     = ( $paged - 1 ) * $limit;
+                       $per_page_default = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_tournaments' ) : 30;
+                       $per_page        = (int) apply_filters( 'bhg_tournaments_per_page', $per_page_default );
+                       if ( $per_page <= 0 ) {
+                               $per_page = $per_page_default;
+                       }
+                       $offset     = ( $paged - 1 ) * $per_page;
 
                        $orderby_param = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
                        $order_param   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
@@ -2409,7 +2422,7 @@ $wpdb->usermeta,
                        $total     = (int) ( $params ? $wpdb->get_var( $wpdb->prepare( $count_sql, ...$params ) ) : $wpdb->get_var( $count_sql ) );
 
                        $sql         = 'SELECT * FROM ' . $t . $where_sql . ' ORDER BY ' . $orderby_column . ' ' . $order_param . ' LIMIT %d OFFSET %d'; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Order by clause sanitized via whitelist.
-                       $query_args  = array_merge( $params, array( $limit, $offset ) );
+                       $query_args  = array_merge( $params, array( $per_page, $offset ) );
                        $rows        = $wpdb->get_results( $wpdb->prepare( $sql, ...$query_args ) ); // db call ok; no-cache ok.
                        if ( ! $rows ) {
                                return '<p>' . esc_html( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ) ) . '</p>';
@@ -2512,7 +2525,7 @@ $wpdb->usermeta,
 
                        echo '</tbody></table>';
 
-                       $pages = (int) ceil( $total / $limit );
+                       $pages = (int) ceil( $total / $per_page );
                        if ( $pages > 1 ) {
                                $pagination = paginate_links(
                                        array(

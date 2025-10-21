@@ -9,7 +9,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 global $wpdb;
 
 $paged    = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
-$per_page = 30;
+$per_page = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'admin_users' ) : 30;
 $search   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 if ( isset( $_GET['s'] ) ) {
 		check_admin_referer( 'bhg_users_search', 'bhg_users_search_nonce' );

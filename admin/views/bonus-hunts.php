@@ -37,9 +37,9 @@ if ( ! in_array( $view, array( 'list', 'add', 'edit', 'close' ), true ) ) {
 
 /** LIST VIEW */
 if ( 'list' === $view ) :
-		$current_page = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
-	$per_page         = 30;
-		$offset       = ( $current_page - 1 ) * $per_page;
+        $current_page = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
+        $per_page     = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'admin_bonus_hunts' ) : 30;
+        $offset       = ( $current_page - 1 ) * $per_page;
 	$search_term      = '';
 	if ( isset( $_GET['s'] ) ) {
 			check_admin_referer( 'bhg_hunts_search', 'bhg_hunts_search_nonce' );

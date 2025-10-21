@@ -48,7 +48,7 @@ $tournaments = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare'
 // db call ok; no-cache ok.
 
 $paged    = max( 1, absint( wp_unslash( $_GET['ppaged'] ?? '' ) ) );
-$per_page = 30;
+$per_page = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'admin_hunt_participants' ) : 30;
 $data     = bhg_get_hunt_participants( $id, $paged, $per_page );
 $rows     = $data['rows'];
 $total    = (int) $data['total'];

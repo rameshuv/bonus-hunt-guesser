@@ -148,6 +148,7 @@ define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'BHG_TABLE_PREFIX', 'bhg_' );
+define( 'BHG_PER_PAGE', 30 );
 
 // Table creation function.
 /**

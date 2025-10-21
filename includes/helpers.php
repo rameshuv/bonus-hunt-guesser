@@ -55,13 +55,37 @@ function bhg_slugify( $text ) {
  * @return string
  */
 function bhg_admin_cap() {
-	return apply_filters( 'bhg_admin_capability', 'manage_options' );
+        return apply_filters( 'bhg_admin_capability', 'manage_options' );
+}
+
+/**
+ * Retrieve the standard per-page amount used for listings.
+ *
+ * Applies the global `bhg_per_page` filter and a contextual
+ * `bhg_per_page_{context}` filter (when a context is provided) so integrators
+ * can adjust pagination limits without editing core files.
+ *
+ * @param string $context Optional context identifier.
+ * @return int Sanitized per-page value (defaults to 30).
+ */
+function bhg_get_per_page( $context = '' ) {
+        $default   = defined( 'BHG_PER_PAGE' ) ? (int) BHG_PER_PAGE : 30;
+        $per_page  = (int) apply_filters( 'bhg_per_page', $default, $context );
+        $ctx_key   = $context ? sanitize_key( $context ) : '';
+        if ( $ctx_key ) {
+                $per_page = (int) apply_filters( "bhg_per_page_{$ctx_key}", $per_page, $ctx_key );
+        }
+        if ( $per_page <= 0 ) {
+                $per_page = $default;
+        }
+
+        return $per_page;
 }
 
 // Smart login redirect back to referring page.
 add_filter(
-	'login_redirect',
-	function ( $redirect_to, $requested_redirect_to, $user ) {
+        'login_redirect',
+        function ( $redirect_to, $requested_redirect_to, $user ) {
 		$r = isset( $_REQUEST['bhg_redirect'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['bhg_redirect'] ) ) : '';
 		if ( ! empty( $r ) ) {
 				$safe      = esc_url_raw( $r );

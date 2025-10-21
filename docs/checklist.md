@@ -13,7 +13,7 @@ This checklist captures the mandatory deliverables agreed with the customer for 
 - [ ] Nonces implemented for create/edit/delete/toggle/close/result operations.
 - [ ] Inputs sanitized (e.g., `sanitize_text_field`, `absint`, `floatval`) and outputs escaped (`esc_html`, `esc_attr`, `esc_url`, `wp_kses_post`).
 - [ ] `$wpdb->prepare()` used for all raw SQL statements.
-- [ ] Admin tables paginated with 30 items per page (`BHG_PER_PAGE` constant or filter).
+- [x] Admin tables paginated with 30 items per page (`BHG_PER_PAGE` constant or filter).
 
 ## 3. Database Tables
 - [ ] `wp_bhg_bonus_hunts` includes `guessing_enabled` and optional `affiliate_id` columns.

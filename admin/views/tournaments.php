@@ -42,7 +42,7 @@ $order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ),
 $order_by_clause = sprintf( '%s %s', $orderby_column, $order_param );
 
 $current_page   = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
-$items_per_page = 30;
+$items_per_page = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'admin_tournaments' ) : 30;
 $offset         = ( $current_page - 1 ) * $items_per_page;
 
 $like_clause = '';
