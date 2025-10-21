@@ -57,8 +57,47 @@
     box-shadow: inset 0 1px 2px rgba(0,0,0,.04);
 }
 
+.bhg-points-fieldset {
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 6px;
+    margin: 0 0 1em;
+    padding: 0.75em;
+}
+
+.bhg-points-fieldset legend {
+    font-weight: 600;
+    padding: 0 0.25em;
+}
+
+.bhg-points-list {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.bhg-points-list label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .bhg-winner-row {
     background-color: #d1fae5;
+}
+
+.bhg-rank-1 {
+    border-left: 4px solid #f59e0b;
+    font-weight: 600;
+}
+
+.bhg-rank-2 {
+    border-left: 4px solid #9ca3af;
+    font-weight: 600;
+}
+
+.bhg-rank-3 {
+    border-left: 4px solid #b45309;
+    font-weight: 600;
 }
 
 /* Utility classes */

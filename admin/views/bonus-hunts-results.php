@@ -89,17 +89,18 @@ if ( 'tournament' === $view_type ) {
 	}
         $rows         = $wpdb->get_results(
                 $wpdb->prepare(
-                        "SELECT r.wins, u.display_name FROM {$tres_table} r JOIN {$users_table} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY r.wins DESC, r.id ASC",
+                        "SELECT r.wins, r.points, u.display_name FROM {$tres_table} r JOIN {$users_table} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY r.points DESC, r.wins DESC, r.id ASC",
                         $item_id
                 )
         );
-	$result_title = $tournament->title;
-	$wcount       = 3;
-	$columns      = array(
-		'sc_position' => bhg_t( 'sc_position', 'Position' ),
-		'sc_user'     => bhg_t( 'sc_user', 'User' ),
-		'wins'        => bhg_t( 'wins', 'Wins' ),
-	);
+        $result_title = $tournament->title;
+        $wcount       = 3;
+        $columns      = array(
+                'sc_position' => bhg_t( 'sc_position', 'Position' ),
+                'sc_user'     => bhg_t( 'sc_user', 'User' ),
+                'points'      => bhg_t( 'label_points', 'Points' ),
+                'wins'        => bhg_t( 'wins', 'Wins' ),
+        );
 } else {
 	if ( empty( $hunt ) ) {
                     echo '<div class="wrap bhg-wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
@@ -123,12 +124,13 @@ if ( 'tournament' === $view_type ) {
 	if ( $wcount < 1 ) {
 			$wcount = 3;
 	}
-	$columns = array(
-		'sc_position' => bhg_t( 'sc_position', 'Position' ),
-		'sc_user'     => bhg_t( 'sc_user', 'User' ),
-		'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
-		'difference'  => bhg_t( 'difference', 'Difference' ),
-	);
+        $columns = array(
+                'sc_position' => bhg_t( 'sc_position', 'Position' ),
+                'sc_user'     => bhg_t( 'sc_user', 'User' ),
+                'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
+                'difference'  => bhg_t( 'difference', 'Difference' ),
+                'points'      => bhg_t( 'label_points', 'Points' ),
+        );
 }
 
 // Gather hunts and tournaments for the selector.
@@ -204,25 +206,42 @@ $current   = $view_type . '-' . $item_id;
 			<tbody>
 			<?php
 			$pos = 1;
-			foreach ( (array) $rows as $r ) :
-				$is_winner = $pos <= $wcount;
-				?>
-				<tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
-					<td><?php echo (int) $pos; ?></td>
-					<td><?php echo esc_html( $r->display_name ); ?></td>
-					<?php if ( 'tournament' === $view_type ) : ?>
-						<td><?php echo (int) $r->wins; ?></td>
-					<?php else : ?>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
-					<?php endif; ?>
-				</tr>
-				<?php
-				++$pos;
-			endforeach;
-				?>
-			</tbody>
-		</table>
+                        foreach ( (array) $rows as $r ) :
+                                $is_winner   = $pos <= $wcount;
+                                $row_classes = array();
+                                if ( $is_winner ) {
+                                        $row_classes[] = 'bhg-winner-row';
+                                }
+                                if ( $pos <= 3 ) {
+                                        $row_classes[] = 'bhg-rank-' . (int) $pos;
+                                }
+                                $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+
+                                $points_display = '';
+                                if ( 'tournament' === $view_type ) {
+                                        $points_display = isset( $r->points ) ? (int) $r->points : 0;
+                                } else {
+                                        $points_display = function_exists( 'bhg_get_points_for_position' ) ? bhg_get_points_for_position( $pos, 'closed' ) : 0;
+                                }
+                                ?>
+                                <tr<?php echo $class_attr; ?>>
+                                        <td><?php echo (int) $pos; ?></td>
+                                        <td><?php echo esc_html( $r->display_name ); ?></td>
+                                        <?php if ( 'tournament' === $view_type ) : ?>
+                                                <td><?php echo (int) $points_display; ?></td>
+                                                <td><?php echo (int) $r->wins; ?></td>
+                                        <?php else : ?>
+                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
+                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+                                                <td><?php echo (int) $points_display; ?></td>
+                                        <?php endif; ?>
+                                </tr>
+                                <?php
+                                ++$pos;
+                        endforeach;
+                                ?>
+                        </tbody>
+                </table>
 	<?php endif; ?>
 </div>
 

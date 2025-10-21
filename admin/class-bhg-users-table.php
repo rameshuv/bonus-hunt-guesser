@@ -30,7 +30,8 @@ class BHG_Users_Table extends WP_List_Table {
 			'email'    => __( 'Email', 'bonus-hunt-guesser' ),
 			'role'     => __( 'Role', 'bonus-hunt-guesser' ),
 			'guesses'  => __( 'Guesses', 'bonus-hunt-guesser' ),
-			'wins'     => __( 'Wins', 'bonus-hunt-guesser' ),
+                        'points'   => __( 'Points', 'bonus-hunt-guesser' ),
+                        'wins'     => __( 'Wins', 'bonus-hunt-guesser' ),
 			'profile'  => __( 'Profile', 'bonus-hunt-guesser' ),
 		);
 	}
@@ -41,7 +42,8 @@ class BHG_Users_Table extends WP_List_Table {
 			'email'    => array( 'email', false ),
 			'role'     => array( 'role', false ),
 			'guesses'  => array( 'guesses', false ),
-			'wins'     => array( 'wins', false ),
+                        'points'   => array( 'points', false ),
+                        'wins'     => array( 'wins', false ),
 		);
 	}
 
@@ -57,8 +59,10 @@ class BHG_Users_Table extends WP_List_Table {
 				return esc_html( $item['role'] );
 			case 'guesses':
 				return (int) $item['guesses'];
-			case 'wins':
-				return (int) $item['wins'];
+                        case 'points':
+                                return (int) $item['points'];
+                        case 'wins':
+                                return (int) $item['wins'];
 			case 'profile':
 				$url = esc_url( admin_url( 'user-edit.php?user_id=' . (int) $item['id'] ) );
 				return '<a class="button" href="' . $url . '">' . esc_html__( 'Edit', 'bonus-hunt-guesser' ) . '</a>';
@@ -75,7 +79,7 @@ class BHG_Users_Table extends WP_List_Table {
 				$search                = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '';
 
 		// Whitelist orderby
-		$allowed = array( 'username', 'email', 'role', 'guesses', 'wins' );
+                $allowed = array( 'username', 'email', 'role', 'guesses', 'points', 'wins' );
 		if ( ! in_array( $orderby, $allowed, true ) ) {
 			$orderby = 'username';
 		}
@@ -112,7 +116,8 @@ class BHG_Users_Table extends WP_List_Table {
 					'email'    => $u->user_email,
 					'role'     => $role,
 					'guesses'  => 0,
-					'wins'     => 0,
+                                        'points'   => 0,
+                                        'wins'     => 0,
 				);
 			}
 		}
@@ -120,7 +125,7 @@ class BHG_Users_Table extends WP_List_Table {
 				global $wpdb;
 		if ( ! empty( $ids ) ) {
 				$g_table = $wpdb->prefix . 'bhg_guesses';
-				$w_table = $wpdb->prefix . 'bhg_tournament_results';
+                                $w_table = $wpdb->prefix . 'bhg_tournament_results';
 
 				// Guesses per user.
 				$placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
@@ -133,23 +138,24 @@ class BHG_Users_Table extends WP_List_Table {
 				}
 			}
 
-				// Wins per user (if table exists).
-				$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $w_table ) );
-			if ( $exists ) {
-							$placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
-							$sql_w        = 'SELECT user_id, SUM(wins) c FROM `' . $w_table . '` WHERE user_id IN (' . $placeholders . ') GROUP BY user_id';
-							$w_counts     = $wpdb->get_results( $wpdb->prepare( $sql_w, $ids ) );
-				foreach ( (array) $w_counts as $row ) {
-						$uid = (int) $row->user_id;
-					if ( isset( $items[ $uid ] ) ) {
-							$items[ $uid ]['wins'] = (int) $row->c;
-					}
-				}
-			}
+                                // Wins and points per user (if table exists).
+                                $exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $w_table ) );
+                        if ( $exists ) {
+                                                        $placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
+                                                        $sql_w        = 'SELECT user_id, SUM(wins) AS total_wins, SUM(points) AS total_points FROM `' . $w_table . '` WHERE user_id IN (' . $placeholders . ') GROUP BY user_id';
+                                                        $w_counts     = $wpdb->get_results( $wpdb->prepare( $sql_w, $ids ) );
+                                foreach ( (array) $w_counts as $row ) {
+                                                $uid = (int) $row->user_id;
+                                        if ( isset( $items[ $uid ] ) ) {
+                                                        $items[ $uid ]['wins']   = isset( $row->total_wins ) ? (int) $row->total_wins : 0;
+                                                        $items[ $uid ]['points'] = isset( $row->total_points ) ? (int) $row->total_points : 0;
+                                        }
+                                }
+                        }
 		}
 
 		// Server-side sort for role/guesses/wins
-		if ( in_array( $orderby, array( 'role', 'guesses', 'wins' ), true ) ) {
+                if ( in_array( $orderby, array( 'role', 'guesses', 'points', 'wins' ), true ) ) {
 			$items = array_values( $items );
 			usort(
 				$items,

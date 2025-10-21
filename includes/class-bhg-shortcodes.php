@@ -880,20 +880,27 @@ $wpdb->usermeta,
 
 												$pos       = $offset + 1;
 												$need_user = in_array( 'user', $fields, true );
-			foreach ( $rows as $r ) {
-				if ( $need_user ) {
-					$site_id                         = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
-											$aff_dot = bhg_render_affiliate_dot( (int) $r->user_id, $site_id );
-											/* translators: %d: user ID. */
-											$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
-				}
+                        foreach ( $rows as $r ) {
+                                if ( $need_user ) {
+                                        $site_id                         = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
+                                                                                        $aff_dot = bhg_render_affiliate_dot( (int) $r->user_id, $site_id );
+                                                                                        /* translators: %d: user ID. */
+                                                                                        $user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
+                                }
 
-				echo '<tr>';
-				foreach ( $fields as $field ) {
-					if ( 'position' === $field ) {
-						echo '<td data-column="position">' . (int) $pos . '</td>';
-					} elseif ( 'user' === $field ) {
-																											echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
+                                $row_classes = array();
+                                if ( $pos <= 3 ) {
+                                        $row_classes[] = 'bhg-rank-' . (int) $pos;
+                                }
+
+                                $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+
+                                echo '<tr' . $class_attr . '>';
+                                foreach ( $fields as $field ) {
+                                        if ( 'position' === $field ) {
+                                                echo '<td data-column="position">' . (int) $pos . '</td>';
+                                        } elseif ( 'user' === $field ) {
+                                                                                                                               echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 					} elseif ( 'guess' === $field ) {
 						echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
 					}
@@ -1579,7 +1586,7 @@ $wpdb->usermeta,
                                        'fields'     => 'pos,user,wins,avg_hunt,avg_tournament',
                                         'ranking'    => 1,
                                         'timeline'   => '',
-                                        'orderby'    => 'wins',
+                                        'orderby'    => 'points',
                                         'order'      => 'DESC',
                                         'search'     => '',
                                         'tournament' => '',
@@ -1592,7 +1599,7 @@ $wpdb->usermeta,
                         );
 
                         $raw_fields     = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
-                        $allowed_fields = array( 'pos', 'user', 'wins', 'avg', 'avg_hunt', 'avg_tournament', 'aff', 'site', 'hunt', 'tournament' );
+                        $allowed_fields = array( 'pos', 'user', 'points', 'wins', 'avg', 'avg_hunt', 'avg_tournament', 'aff', 'site', 'hunt', 'tournament' );
                         $normalized     = array();
                         foreach ( $raw_fields as $field ) {
                                 $key = sanitize_key( $field );
@@ -1605,7 +1612,7 @@ $wpdb->usermeta,
                         }
                         $fields_arr = array_values( array_unique( $normalized ) );
                        if ( empty( $fields_arr ) ) {
-                               $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament' );
+                               $fields_arr = array( 'pos', 'user', 'points', 'wins', 'avg_hunt', 'avg_tournament' );
                         }
 
                         global $wpdb;
@@ -1931,11 +1938,24 @@ $wpdb->usermeta,
                                 return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
                         }
 
+                        $mode_expr         = "COALESCE(t.participants_mode, 'winners')";
+                        $winner_limit_expr = 'CASE WHEN COALESCE(h.winners_count, 0) > 0 THEN h.winners_count ELSE 1 END';
+                        $win_unit_expr     = "CASE WHEN ({$mode_expr} = 'winners' AND (hw.position < 1 OR hw.position > {$winner_limit_expr})) THEN 0 ELSE 1 END";
+                        $points_all_case   = function_exists( 'bhg_build_points_case_sql' ) ? bhg_build_points_case_sql( 'all', 'hw.position' ) : '0';
+                        $points_closed_case = function_exists( 'bhg_build_points_case_sql' ) ? bhg_build_points_case_sql( 'closed', 'hw.position' ) : '0';
+                        $points_unit_expr  = "CASE WHEN ({$mode_expr} = 'winners' AND (hw.position < 1 OR hw.position > {$winner_limit_expr})) THEN 0 ELSE CASE WHEN {$mode_expr} = 'all' THEN {$points_all_case} ELSE {$points_closed_case} END END";
+
                         $select_parts = array(
                                 'hw.user_id',
                                 'u.user_login',
-                                'COUNT(*) AS total_wins',
+                                'SUM(' . $win_unit_expr . ') AS total_wins',
                         );
+
+                        $need_points = in_array( 'points', $fields_arr, true ) || 'points' === $orderby_request;
+
+                        if ( $need_points ) {
+                                $select_parts[] = 'SUM(' . $points_unit_expr . ') AS total_points';
+                        }
 
                         if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
                                 $need_avg_hunt = true;
@@ -2000,6 +2020,7 @@ $wpdb->usermeta,
                         $orderby_key = $orderby_request;
                         $orderby_map = array(
                                 'wins'           => 'total_wins',
+                                'points'         => 'total_points',
                                 'user'           => 'u.user_login',
                                 'avg_hunt'       => 'avg_hunt_pos',
                                 'avg_tournament' => 'avg_tournament_pos',
@@ -2148,6 +2169,8 @@ $wpdb->usermeta,
                                         echo '<th>' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
                                 } elseif ( 'user' === $field ) {
                                         echo '<th><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</a></th>';
+                                } elseif ( 'points' === $field ) {
+                                        echo '<th><a href="' . esc_url( $toggle( 'points' ) ) . '">' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</a></th>';
                                 } elseif ( 'wins' === $field ) {
                                         echo '<th><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( bhg_t( 'label_times_won', 'Times Won' ) ) . '</a></th>';
                                 } elseif ( 'avg_hunt' === $field ) {
@@ -2172,14 +2195,24 @@ $wpdb->usermeta,
                                         $site_id = isset( $row->site_id ) ? (int) $row->site_id : 0;
                                         $aff     = bhg_render_affiliate_dot( (int) $row->user_id, $site_id );
                                 }
-										/* translators: %d: user ID. */
-										$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-										echo '<tr>';
-				foreach ( $fields_arr as $field ) {
-					if ( 'pos' === $field ) {
-						echo '<td>' . (int) $pos . '</td>';
-					} elseif ( 'user' === $field ) {
-						echo '<td>' . esc_html( $user_label ) . '</td>';
+                                                                                /* translators: %d: user ID. */
+                                                                                $user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+                                $row_classes = array();
+                                if ( $pos <= 3 ) {
+                                        $row_classes[] = 'bhg-rank-' . (int) $pos;
+                                }
+
+                                $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+
+                                                                                echo '<tr' . $class_attr . '>';
+                                foreach ( $fields_arr as $field ) {
+                                        if ( 'pos' === $field ) {
+                                                echo '<td>' . (int) $pos . '</td>';
+                                        } elseif ( 'user' === $field ) {
+                                                echo '<td>' . esc_html( $user_label ) . '</td>';
+                                        } elseif ( 'points' === $field ) {
+                                                $points_value = isset( $row->total_points ) ? (int) $row->total_points : 0;
+                                                echo '<td>' . $points_value . '</td>';
                                         } elseif ( 'wins' === $field ) {
                                                 echo '<td>' . (int) $row->total_wins . '</td>';
                                         } elseif ( 'avg_hunt' === $field ) {
@@ -2780,22 +2813,22 @@ $wpdb->usermeta,
 						$params[] = $info['start'];
 						$params[] = $info['end'];
 					}
-										$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
+										$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.points) as total_points, SUM(r.wins) as total_wins'
 										. " FROM {$wins_tbl} r"
 										. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
 										. " INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id"
 										. ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
 										// db call ok; no-cache ok.
 																				$sql = $wpdb->prepare( $sql, ...$params );
-										$sql                                        .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+										$sql                                        .= ' ORDER BY total_points DESC, total_wins DESC, u.user_login ASC LIMIT 50';
 																		$results[ $key ] = $wpdb->get_results( $sql );
 				} else {
-						$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
+						$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.points) as total_points, SUM(r.wins) as total_wins'
 						. " FROM {$wins_tbl} r"
 						. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
 						. ' GROUP BY u.ID, u.user_login';
 						// db call ok; no-cache ok.
-						$sql .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+						$sql .= ' ORDER BY total_points DESC, total_wins DESC, u.user_login ASC LIMIT 50';
 																$results[ $key ] = $wpdb->get_results( $sql );
 				}
 			}
@@ -2849,15 +2882,21 @@ $wpdb->usermeta,
 				if ( ! $rows ) {
 						echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 				} else {
-					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
-						$pos = 1;
-					foreach ( $rows as $r ) {
-							/* translators: %d: user ID. */
-							$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
-							echo '<tr><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
-							++$pos;
-					}
-						echo '</tbody></table>';
+                                        echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
+                                                $pos = 1;
+                                        foreach ( $rows as $r ) {
+                                                        /* translators: %d: user ID. */
+                                                        $user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
+                                                        $row_classes = array();
+                                                        if ( $pos <= 3 ) {
+                                                                $row_classes[] = 'bhg-rank-' . (int) $pos;
+                                                        }
+                                                        $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+                                                        $points_val = isset( $r->total_points ) ? (int) $r->total_points : 0;
+                                                        echo '<tr' . $class_attr . '><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . $points_val . '</td><td>' . (int) $r->total_wins . '</td></tr>';
+                                                        ++$pos;
+                                        }
+                                                echo '</tbody></table>';
 				}
 					echo '</div>';
 			}

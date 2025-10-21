@@ -296,8 +296,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_end'                                    => 'End',
 			'label_status'                                 => 'Status',
 			'label_status_colon'                           => 'Status:',
-			'label_wins'                                   => 'Wins',
-			'wins'                                         => 'Wins',
+                        'label_wins'                                   => 'Wins',
+                        'label_points'                                 => 'Points',
+                        'wins'                                         => 'Wins',
+                        'points'                                       => 'Points',
 			'label_last_win'                               => 'Last win',
 			'label_all'                                    => 'All',
 			'label_weekly'                                 => 'Weekly',
@@ -328,10 +330,16 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'label_select_hunt'                            => 'Select a hunt',
                         'label_guess_final_balance'                    => 'Your guess (final balance):',
                         'button_apply'                                 => 'Apply',
-			'label_bonus_hunt_title'                       => 'Bonus Hunt Title',
-			'label_existing_bonus_hunts'                   => 'Existing Bonus Hunts',
+                        'label_bonus_hunt_title'                       => 'Bonus Hunt Title',
+                        'label_existing_bonus_hunts'                   => 'Existing Bonus Hunts',
 			'label_start_balance_euro'                     => 'Starting Balance (€)',
-			'label_prizes_description'                     => 'Prizes Description',
+                        'label_prizes_description'                     => 'Prizes Description',
+                        'label_points_settings'                        => 'Point Settings',
+                        'label_points_active_hunts'                    => 'Points — Active Hunts',
+                        'label_points_closed_hunts'                    => 'Points — Closed Hunts',
+                        'label_points_all_hunts'                       => 'Points — All Hunts',
+                        'label_points_note'                            => 'Set point values for positions 1–8.',
+                        'label_place_number'                           => 'Place %d',
 			'label_created'                                => 'Created',
 			'label_completed'                              => 'Completed',
 			'label_upcoming'                               => 'Upcoming',
@@ -712,6 +720,139 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'your_guess_has_been_submitted'                => 'Your guess has been submitted!',
 			'httpsyourdomaincom'                           => 'https://yourdomain.com/',
 		);
+	}
+}
+
+if ( ! function_exists( 'bhg_get_default_points_config' ) ) {
+	/**
+	 * Retrieve default point configuration for hunts.
+	 *
+	 * @return array<string, array<int, int>>
+	 */
+	function bhg_get_default_points_config() {
+		$defaults = array(
+			1 => 10,
+			2 => 7,
+			3 => 5,
+			4 => 3,
+			5 => 2,
+			6 => 1,
+			7 => 0,
+			8 => 0,
+		);
+
+		return array(
+			'active' => $defaults,
+			'closed' => $defaults,
+			'all'    => $defaults,
+		);
+	}
+}
+
+if ( ! function_exists( 'bhg_get_points_settings' ) ) {
+	/**
+	 * Retrieve normalized point settings merged with defaults.
+	 *
+	 * @return array<string, array<int, int>>
+	 */
+	function bhg_get_points_settings() {
+		$settings = get_option( 'bhg_plugin_settings', array() );
+		$stored   = isset( $settings['points'] ) && is_array( $settings['points'] ) ? $settings['points'] : array();
+		$defaults = bhg_get_default_points_config();
+		$out      = array();
+
+		foreach ( $defaults as $context => $default_points ) {
+			$raw_values = isset( $stored[ $context ] ) && is_array( $stored[ $context ] ) ? $stored[ $context ] : array();
+			$sanitized  = array();
+
+			foreach ( $raw_values as $place => $value ) {
+				$position = (int) $place;
+				if ( $position < 1 || $position > 8 ) {
+					continue;
+				}
+
+				$sanitized[ $position ] = max( 0, (int) $value );
+			}
+
+			for ( $i = 1; $i <= 8; $i++ ) {
+				if ( ! isset( $sanitized[ $i ] ) ) {
+					$sanitized[ $i ] = isset( $default_points[ $i ] ) ? (int) $default_points[ $i ] : 0;
+				}
+			}
+
+			ksort( $sanitized );
+			$out[ $context ] = $sanitized;
+		}
+
+		return $out;
+	}
+}
+
+if ( ! function_exists( 'bhg_get_points_for_context' ) ) {
+	/**
+	 * Get points array for a specific context.
+	 *
+	 * @param string $context Context key (active|closed|all).
+	 * @return array<int, int>
+	 */
+	function bhg_get_points_for_context( $context ) {
+		$context   = strtolower( sanitize_key( $context ) );
+		$all       = bhg_get_points_settings();
+		$fallbacks = bhg_get_default_points_config();
+
+		if ( isset( $all[ $context ] ) ) {
+			return $all[ $context ];
+		}
+
+		if ( isset( $all['all'] ) ) {
+			return $all['all'];
+		}
+
+		return isset( $fallbacks['all'] ) ? $fallbacks['all'] : array();
+	}
+}
+
+if ( ! function_exists( 'bhg_get_points_for_position' ) ) {
+	/**
+	 * Get the points awarded for a given finishing position.
+	 *
+	 * @param int    $position Finishing position (1-based).
+	 * @param string $context  Context key (active|closed|all).
+	 * @return int Points for the given position.
+	 */
+	function bhg_get_points_for_position( $position, $context = 'all' ) {
+		$position = (int) $position;
+		if ( $position < 1 ) {
+			return 0;
+		}
+
+		$points = bhg_get_points_for_context( $context );
+
+		return isset( $points[ $position ] ) ? (int) $points[ $position ] : 0;
+	}
+}
+
+if ( ! function_exists( 'bhg_build_points_case_sql' ) ) {
+	/**
+	 * Build a SQL CASE expression that maps positions to points.
+	 *
+	 * @param string $context Points context key.
+	 * @param string $field   SQL field name referencing the position column.
+	 * @return string CASE expression returning point totals.
+	 */
+	function bhg_build_points_case_sql( $context, $field ) {
+		$points = bhg_get_points_for_context( $context );
+
+		if ( empty( $points ) ) {
+			return '0';
+		}
+
+		$cases = array();
+		foreach ( $points as $position => $value ) {
+			$cases[] = sprintf( 'WHEN %d THEN %d', (int) $position, (int) $value );
+		}
+
+		return sprintf( 'CASE %s %s ELSE 0 END', $field, implode( ' ', $cases ) );
 	}
 }
 
