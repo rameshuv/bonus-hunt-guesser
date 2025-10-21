@@ -214,6 +214,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			// Form/field labels.
 			'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
+                        'label_prize'                                  => 'Prize',
                         'label_prizes'                                 => 'Prizes',
                         'category'                                     => 'Category',
 			'label_submit_guess'                           => 'Submit Guess',
@@ -887,10 +888,26 @@ if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
 	 * @param int $user_id User ID.
 	 * @return bool
 	 */
-	function bhg_is_user_affiliate( $user_id ) {
-		$val = get_user_meta( (int) $user_id, 'bhg_is_affiliate', true );
-		return ( '1' === $val || 1 === $val || true === $val || 'yes' === $val );
-	}
+        function bhg_is_user_affiliate( $user_id ) {
+                $user_id = (int) $user_id;
+                $val     = get_user_meta( $user_id, 'bhg_is_affiliate', true );
+
+                if ( '1' === $val || 1 === $val || true === $val || 'yes' === $val ) {
+                        return true;
+                }
+
+                if ( function_exists( 'bhg_get_user_affiliate_websites' ) ) {
+                        $sites = bhg_get_user_affiliate_websites( $user_id );
+                        return ! empty( $sites );
+                }
+
+                $sites_meta = get_user_meta( $user_id, 'bhg_affiliate_websites', true );
+                if ( is_array( $sites_meta ) ) {
+                        return ! empty( $sites_meta );
+                }
+
+                return is_string( $sites_meta ) && '' !== $sites_meta;
+        }
 }
 
 if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {

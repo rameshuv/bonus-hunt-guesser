@@ -58,7 +58,15 @@
 }
 
 .bhg-winner-row {
-    background-color: #d1fae5;
+    color: #047857;
+}
+
+.bhg-winner-row td {
+    font-weight: 600;
+}
+
+.bhg-winner-row td a {
+    color: inherit;
 }
 
 /* Utility classes */
@@ -80,6 +88,21 @@
 
 .bhg-inline-form {
     display: inline;
+}
+
+.bhg-affiliate-sites-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+}
+
+.bhg-affiliate-sites-list li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .bhg-text-center {

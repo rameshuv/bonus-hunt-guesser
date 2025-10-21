@@ -78,16 +78,26 @@ class BHG_Admin {
 			array( $this, 'bhg_tools_page' )
 		);
 
-		if ( class_exists( 'BHG_Demo' ) ) {
-			BHG_Demo::instance()->register_menu( $slug, $cap );
-		}
+                if ( class_exists( 'BHG_Demo' ) ) {
+                        BHG_Demo::instance()->register_menu( $slug, $cap );
+                }
 
-                // NOTE: By default, WordPress adds a submenu item that duplicates the
-                // top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
-                // call removed this submenu, but it also inadvertently removed our
-                // custom “Dashboard” submenu. Removing the call ensures the Dashboard
-		// item remains visible under the "Bonus Hunt" menu.
-	}
+                global $submenu;
+
+                if ( isset( $submenu[ $slug ] ) && is_array( $submenu[ $slug ] ) ) {
+                        foreach ( $submenu[ $slug ] as &$submenu_item ) {
+                                if ( isset( $submenu_item[2] ) && $slug === $submenu_item[2] ) {
+                                        $submenu_item[0] = bhg_t( 'menu_dashboard', 'Dashboard' );
+                                        break;
+                                }
+                        }
+                        unset( $submenu_item );
+                }
+
+                // NOTE: WordPress automatically injects a submenu item that mirrors the
+                // top-level label. Renaming it keeps the Dashboard entry visible while
+                // preserving all custom submenus.
+        }
 
 		/**
 		 * Enqueue admin assets on BHG screens.
@@ -1152,10 +1162,45 @@ exit;
 								check_admin_referer( 'bhg_delete_affiliate', 'bhg_delete_affiliate_nonce' );
 				global $wpdb;
 				$table = $wpdb->prefix . 'bhg_affiliate_websites';
-		$id            = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
-		if ( $id ) {
-			$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-		}
+                $id = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+
+                if ( $id ) {
+                        $deleted = $wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
+
+                        if ( $deleted ) {
+                                $user_meta_key = 'bhg_affiliate_websites';
+                                $user_ids      = $wpdb->get_col(
+                                        $wpdb->prepare(
+                                                "SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = %s",
+                                                $user_meta_key
+                                        )
+                                );
+
+                                foreach ( (array) $user_ids as $user_id ) {
+                                        $user_id  = (int) $user_id;
+                                        $site_ids = get_user_meta( $user_id, $user_meta_key, true );
+                                        $site_ids = is_array( $site_ids ) ? array_map( 'absint', $site_ids ) : array();
+                                        if ( empty( $site_ids ) ) {
+                                                continue;
+                                        }
+
+                                        $filtered    = array_values( array_diff( $site_ids, array( $id ) ) );
+                                        $was_pruned = count( $filtered ) !== count( $site_ids );
+
+                                        if ( $was_pruned ) {
+                                                if ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                                                        bhg_set_user_affiliate_websites( $user_id, $filtered );
+                                                } else {
+                                                        update_user_meta( $user_id, $user_meta_key, $filtered );
+                                                }
+
+                                                if ( empty( $filtered ) ) {
+                                                        update_user_meta( $user_id, 'bhg_is_affiliate', 0 );
+                                                }
+                                        }
+                                }
+                        }
+                }
 				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
 		exit;
 	}
@@ -1168,13 +1213,23 @@ exit;
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
 								check_admin_referer( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' );
-		$user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
-		if ( $user_id ) {
-			$real_name    = isset( $_POST['bhg_real_name'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_real_name'] ) ) : '';
-			$is_affiliate = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
-			update_user_meta( $user_id, 'bhg_real_name', $real_name );
-			update_user_meta( $user_id, 'bhg_is_affiliate', $is_affiliate );
-		}
+                $user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
+
+                if ( $user_id ) {
+                        $real_name = isset( $_POST['bhg_real_name'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_real_name'] ) ) : '';
+                        $sites     = isset( $_POST['bhg_affiliate_sites'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['bhg_affiliate_sites'] ) ) : array();
+                        $sites     = array_values( array_filter( $sites ) );
+
+                        update_user_meta( $user_id, 'bhg_real_name', $real_name );
+
+                        if ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                                bhg_set_user_affiliate_websites( $user_id, $sites );
+                        } else {
+                                update_user_meta( $user_id, 'bhg_affiliate_websites', $sites );
+                        }
+
+                        update_user_meta( $user_id, 'bhg_is_affiliate', empty( $sites ) ? 0 : 1 );
+                }
 				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-users' ) );
 		exit;
 	}
