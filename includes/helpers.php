@@ -969,68 +969,143 @@ if ( ! function_exists( 'bhg_cleanup_translation_duplicates' ) ) {
  * @return string
  */
 function bhg_render_ads( $placement = 'footer', $hunt_id = 0 ) {
-		global $wpdb;
-				$tbl          = esc_sql( $wpdb->prefix . 'bhg_ads' );
-				$placement    = sanitize_text_field( $placement );
-				$sql          = $wpdb->prepare(
-					"SELECT content, link_url, visible_to FROM {$tbl} WHERE active=1 AND placement=%s ORDER BY id DESC",
-					$placement
-				);
-				$rows         = $wpdb->get_results( $sql );
-				$hunt_site_id = 0;
-
-	if ( $hunt_id ) {
-					$hunts_tbl    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-					$hunt_site_id = (int) $wpdb->get_var(
-						$wpdb->prepare(
-							"SELECT affiliate_site_id FROM {$hunts_tbl} WHERE id=%d",
-							(int) $hunt_id
-						)
-					);
-	}
-
-	if ( ! $rows ) {
+	$settings    = get_option( 'bhg_plugin_settings', array() );
+	$ads_enabled = isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 1;
+	if ( 1 !== $ads_enabled ) {
 		return '';
 	}
 
-	$out = '<div class="bhg-ads bhg-ads-' . esc_attr( $placement ) . '">';
-	foreach ( $rows as $r ) {
-		$vis  = $r->visible_to ? $r->visible_to : 'all';
-		$show = false;
+	$placement        = sanitize_key( $placement );
+	$allowed_placings = array( 'none', 'footer', 'bottom', 'sidebar', 'shortcode' );
+	if ( class_exists( 'BHG_Ads' ) ) {
+		$allowed_placings = BHG_Ads::get_allowed_placements();
+	}
 
-		if ( 'all' === $vis ) {
-			$show = true;
-		} elseif ( 'guests' === $vis && ! is_user_logged_in() ) {
-			$show = true;
-		} elseif ( 'logged_in' === $vis && is_user_logged_in() ) {
-			$show = true;
-		} elseif ( 'affiliates' === $vis && is_user_logged_in() ) {
-			$uid  = get_current_user_id();
-			$show = $hunt_site_id > 0
-				? bhg_is_user_affiliate_for_site( (int) $uid, (int) $hunt_site_id )
-				: (bool) get_user_meta( (int) $uid, 'bhg_is_affiliate', true );
+	if ( ! in_array( $placement, $allowed_placings, true ) ) {
+		return '';
+	}
+
+	global $wpdb;
+	$tbl = esc_sql( $wpdb->prefix . 'bhg_ads' );
+
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT content, link_url, visible_to, target_pages FROM {$tbl} WHERE active = 1 AND placement = %s ORDER BY id DESC",
+			$placement
+		)
+	);
+
+	if ( empty( $rows ) ) {
+		return '';
+	}
+
+	$hunt_site_id = 0;
+	if ( $hunt_id ) {
+		$hunts_tbl    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		$hunt_site_id = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT affiliate_site_id FROM {$hunts_tbl} WHERE id = %d",
+				(int) $hunt_id
+			)
+		);
+	}
+
+	$ads_output         = array();
+	$placement_class    = sanitize_html_class( $placement );
+	$allowed_visibility = array( 'all', 'guests', 'logged_in', 'affiliates', 'non_affiliates' );
+
+	foreach ( $rows as $row ) {
+		$visibility = isset( $row->visible_to ) ? sanitize_key( $row->visible_to ) : 'all';
+		if ( ! in_array( $visibility, $allowed_visibility, true ) ) {
+			$visibility = 'all';
 		}
 
-		if ( ! $show ) {
+		$should_show = false;
+		switch ( $visibility ) {
+			case 'guests':
+				$should_show = ! is_user_logged_in();
+				break;
+			case 'logged_in':
+				$should_show = is_user_logged_in();
+				break;
+			case 'affiliates':
+				if ( is_user_logged_in() ) {
+					$user_id    = get_current_user_id();
+					$should_show = $hunt_site_id > 0
+						? bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_site_id )
+						: bhg_is_user_affiliate( (int) $user_id );
+				}
+				break;
+			case 'non_affiliates':
+				if ( is_user_logged_in() ) {
+					$user_id = get_current_user_id();
+					$is_aff  = $hunt_site_id > 0
+						? bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_site_id )
+						: bhg_is_user_affiliate( (int) $user_id );
+					$should_show = ! $is_aff;
+				}
+				break;
+			case 'all':
+			default:
+				$should_show = true;
+				break;
+		}
+
+		if ( ! $should_show ) {
 			continue;
 		}
 
-		$msg  = wp_kses_post( $r->content );
-		$link = $r->link_url ? esc_url( $r->link_url ) : '';
+		$target_pages = isset( $row->target_pages ) ? trim( (string) $row->target_pages ) : '';
+		if ( '' !== $target_pages ) {
+			$slugs = array_filter(
+				array_map(
+					'sanitize_title',
+					array_map( 'trim', explode( ',', $target_pages ) )
+				)
+			);
 
-		$out .= '<div class="bhg-ad" style="margin:10px 0;padding:10px;border:1px solid #e2e8f0;border-radius:6px;">';
-		if ( $link ) {
-			$out .= '<a href="' . $link . '">';
+			if ( ! empty( $slugs ) ) {
+				if ( is_singular() ) {
+					$post = get_post();
+					if ( ! $post || ! in_array( $post->post_name, $slugs, true ) ) {
+						continue;
+					}
+				} else {
+					continue;
+				}
+			}
 		}
-		$out .= $msg;
-		if ( $link ) {
-			$out .= '</a>';
+
+		$content = isset( $row->content ) ? wp_kses_post( $row->content ) : '';
+		if ( '' === $content ) {
+			continue;
 		}
-		$out .= '</div>';
+
+		$link = isset( $row->link_url ) ? trim( $row->link_url ) : '';
+		if ( '' !== $link ) {
+			$content = sprintf(
+				'<a class="bhg-ad-link" href="%1$s">%2$s</a>',
+				esc_url( $link ),
+				$content
+			);
+		}
+
+		$ads_output[] = sprintf(
+			'<div class="bhg-ad bhg-ad-%1$s">%2$s</div>',
+			esc_attr( $placement_class ),
+			$content
+		);
 	}
-	$out .= '</div>';
 
-	return $out;
+	if ( empty( $ads_output ) ) {
+		return '';
+	}
+
+	return sprintf(
+		'<div class="bhg-ads bhg-ads-%1$s">%2$s</div>',
+		esc_attr( $placement_class ),
+		implode( "\n", $ads_output )
+	);
 }
 
 // Demo reset and seed data.

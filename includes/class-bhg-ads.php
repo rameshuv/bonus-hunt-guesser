@@ -136,14 +136,27 @@ class BHG_Ads {
 	 * @return string
 	 */
 	protected static function render_ad_row( $row ) {
-		$msg  = isset( $row->content ) ? $row->content : '';
-		$msg  = wp_kses_post( $msg );
-		$link = isset( $row->link_url ) ? esc_url( $row->link_url ) : '';
+		$content = isset( $row->content ) ? wp_kses_post( $row->content ) : '';
+		if ( '' === $content ) {
+			return '';
+		}
+
+		$placement = isset( $row->placement ) ? sanitize_html_class( $row->placement ) : 'none';
+		$link      = isset( $row->link_url ) ? esc_url( $row->link_url ) : '';
 
 		if ( $link ) {
-			$msg = '<a href="' . $link . '">' . $msg . '</a>';
+			$content = sprintf(
+				'<a class="bhg-ad-link" href="%1$s">%2$s</a>',
+				$link,
+				$content
+			);
 		}
-		return '<div class="bhg-ad bhg-ad-' . esc_attr( $row->placement ) . '">' . $msg . '</div>';
+
+		return sprintf(
+			'<div class="bhg-ad bhg-ad-%1$s">%2$s</div>',
+			esc_attr( $placement ),
+			$content
+		);
 	}
 
 	/**
@@ -154,9 +167,9 @@ class BHG_Ads {
 	 * @return array
 	 */
 	protected static function get_ads_for_placement( $placement = 'footer' ) {
-                global $wpdb;
-                $table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
-                $allowed_tables = array( $table );
+		global $wpdb;
+		$table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
+		$allowed_tables = array( $table );
 		if ( ! in_array( $table, $allowed_tables, true ) ) {
 			return array();
 		}
@@ -166,12 +179,12 @@ class BHG_Ads {
 			return array();
 		}
 
-                return $wpdb->get_results(
-                        $wpdb->prepare(
-                                "SELECT id, content, link_url, placement, visible_to, target_pages FROM {$table} WHERE active = 1 AND placement = %s ORDER BY id DESC",
-                                $placement
-                        )
-                );
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, content, link_url, placement, visible_to, target_pages FROM {$table} WHERE active = 1 AND placement = %s ORDER BY id DESC",
+				$placement
+			)
+		);
 	}
 
 	/**
@@ -187,28 +200,29 @@ class BHG_Ads {
 			return;
 		}
 
-			$placements = array( 'footer', 'bottom' );
+		$placements = array( 'footer', 'bottom' );
 		foreach ( $placements as $place ) {
-				$ads = self::get_ads_for_placement( $place );
+			$ads = self::get_ads_for_placement( $place );
 			if ( empty( $ads ) ) {
-					continue;
+				continue;
 			}
 
-				$out = array();
+			$out = array();
 			foreach ( $ads as $row ) {
 				if ( ! self::visibility_ok( $row->visible_to ) ) {
-						continue;
+					continue;
 				}
 				if ( ! self::page_target_ok( $row->target_pages ) ) {
-						continue;
+					continue;
 				}
-					$out[] = self::render_ad_row( $row );
+				$out[] = self::render_ad_row( $row );
 			}
 
+			$out = array_filter( $out );
 			if ( ! empty( $out ) ) {
-					echo '<div class="bhg-ads bhg-ads-' . esc_attr( $place ) . '" style="margin:16px 0;text-align:center;">';
-					echo wp_kses_post( implode( "\n", $out ) );
-					echo '</div>';
+				echo '<div class="bhg-ads bhg-ads-' . esc_attr( $place ) . '">';
+				echo implode( "\n", $out );
+				echo '</div>';
 			}
 		}
 	}
@@ -248,19 +262,19 @@ class BHG_Ads {
 
 		$status = strtolower( trim( $a['status'] ) );
 
-                global $wpdb;
-                $table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
-                $allowed_tables = array( $table );
+		global $wpdb;
+		$table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
+		$allowed_tables = array( $table );
 		if ( ! in_array( $table, $allowed_tables, true ) ) {
 				return '';
 		}
 
-                $row = $wpdb->get_row(
-                        $wpdb->prepare(
-                                "SELECT id, content, placement, visible_to, target_pages, active, link_url FROM {$table} WHERE id = %d",
-                                $id
-                        )
-                );
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT id, content, placement, visible_to, target_pages, active, link_url FROM {$table} WHERE id = %d",
+				$id
+			)
+		);
 		if ( ! $row ) {
 			return '';
 		}
