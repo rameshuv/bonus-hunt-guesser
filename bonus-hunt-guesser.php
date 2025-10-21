@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Bonus Hunt Guesser
  * Plugin URI: https://yourdomain.com/
- * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality
+ * Description: Bonus hunt management with tournaments, leaderboards, user guesses, affiliates, prizes, notifications, and translations.
  * Version: 8.0.14
  * Requires at least: 6.3.0
  * Requires PHP: 7.4
@@ -105,37 +105,37 @@ if ( ! function_exists( 'bhg_parse_amount' ) ) {
 
 if ( ! function_exists( 'bhg_sanitize_tournament_id' ) ) {
 
-/**
- * Sanitize a tournament ID value.
- *
- * @param mixed $tid Raw tournament ID.
- * @return int Sanitized ID.
- */
-function bhg_sanitize_tournament_id( $tid ) {
-return max( 0, absint( $tid ) );
-}
+	/**
+	 * Sanitize a tournament ID value.
+	 *
+	 * @param mixed $tid Raw tournament ID.
+	 * @return int Sanitized ID.
+	 */
+	function bhg_sanitize_tournament_id( $tid ) {
+		return max( 0, absint( $tid ) );
+	}
 }
 
 if ( ! function_exists( 'bhg_sanitize_tournament_ids' ) ) {
-/**
- * Sanitize a list of tournament IDs.
- *
- * @param mixed $ids Raw IDs or array of IDs.
- * @return int[] Sanitized, unique IDs.
- */
-function bhg_sanitize_tournament_ids( $ids ) {
-$ids        = is_array( $ids ) ? $ids : array( $ids );
-$normalized = array();
+	/**
+	 * Sanitize a list of tournament IDs.
+	 *
+	 * @param mixed $ids Raw IDs or array of IDs.
+	 * @return int[] Sanitized, unique IDs.
+	 */
+	function bhg_sanitize_tournament_ids( $ids ) {
+		$ids        = is_array( $ids ) ? $ids : array( $ids );
+		$normalized = array();
 
-foreach ( $ids as $id ) {
-$id = bhg_sanitize_tournament_id( $id );
-if ( $id > 0 ) {
-$normalized[ $id ] = $id;
-}
-}
+		foreach ( $ids as $id ) {
+			$id = bhg_sanitize_tournament_id( $id );
+			if ( $id > 0 ) {
+				$normalized[ $id ] = $id;
+			}
+		}
 
-return array_values( $normalized );
-}
+		return array_values( $normalized );
+	}
 }
 
 // Ensure canonical DB class is loaded.
