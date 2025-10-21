@@ -148,6 +148,7 @@ define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'BHG_TABLE_PREFIX', 'bhg_' );
+define( 'BHG_EMAIL_NOTIFICATIONS_OPTION', 'bhg_email_notifications' );
 
 // Table creation function.
 /**
@@ -237,6 +238,7 @@ spl_autoload_register(
 // Include helper functions.
 require_once BHG_PLUGIN_DIR . 'includes/helpers.php';
 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
+require_once BHG_PLUGIN_DIR . 'includes/notifications.php';
 
 add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
 /**
@@ -428,7 +430,8 @@ function bhg_init_plugin() {
 	);
 		add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
 		add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
-		add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+        add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+        add_action( 'admin_post_bhg_save_notifications', 'bhg_handle_notifications_save' );
 }
 
 // Early table check on init.
@@ -520,14 +523,66 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                 }
         }
 
-                // Save settings.
-                $existing = get_option( 'bhg_plugin_settings', array() );
-                update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+	// Save settings.
+	$existing = get_option( 'bhg_plugin_settings', array() );
+	update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
-				// Redirect back to settings page.
-								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
-								exit;
+	// Redirect back to settings page.
+	wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
+	exit;
 }
+
+/**
+ * Handle saving of notification templates.
+ *
+ * @return void
+ */
+function bhg_handle_notifications_save() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_perform_this_action', 'You do not have sufficient permissions to perform this action.' ) ) );
+	}
+
+	if ( ! isset( $_POST['bhg_save_notifications_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bhg_save_notifications_nonce'] ) ), 'bhg_save_notifications' ) ) {
+		wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-notifications&error=nonce_failed' ) );
+		exit;
+	}
+
+	$defaults      = function_exists( 'bhg_get_notification_defaults' ) ? bhg_get_notification_defaults() : array();
+	$raw_templates = isset( $_POST['notifications'] ) ? wp_unslash( $_POST['notifications'] ) : array();
+	$raw_templates = is_array( $raw_templates ) ? $raw_templates : array();
+	$sanitized     = array();
+
+	foreach ( $defaults as $key => $default ) {
+		$data    = isset( $raw_templates[ $key ] ) && is_array( $raw_templates[ $key ] ) ? $raw_templates[ $key ] : array();
+		$enabled = isset( $data['enabled'] ) && '1' === (string) $data['enabled'] ? 1 : 0;
+		$title   = isset( $data['title'] ) ? sanitize_text_field( $data['title'] ) : ( isset( $default['title'] ) ? $default['title'] : '' );
+		$body    = isset( $data['body'] ) ? wp_kses_post( (string) $data['body'] ) : ( isset( $default['body'] ) ? $default['body'] : '' );
+
+		$bcc_source = '';
+		if ( isset( $data['bcc'] ) ) {
+			if ( is_array( $data['bcc'] ) ) {
+				$bcc_source = implode( ',', $data['bcc'] );
+			} else {
+				$bcc_source = (string) $data['bcc'];
+			}
+		}
+
+		$bcc = function_exists( 'bhg_normalize_notification_bcc' ) ? bhg_normalize_notification_bcc( $bcc_source ) : array();
+
+		$sanitized[ $key ] = array(
+			'enabled' => $enabled,
+			'title'   => $title,
+			'body'    => $body,
+			'bcc'     => $bcc,
+		);
+	}
+
+	update_option( BHG_EMAIL_NOTIFICATIONS_OPTION, $sanitized );
+
+	wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-notifications&message=saved' ) );
+	exit;
+}
+
 
 // Canonical guess submit handler.
 /**
