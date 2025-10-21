@@ -278,19 +278,31 @@ $wpdb->usermeta,
                                          * @param array $atts Shortcode attributes. Unused.
                                          * @return string HTML output.
                                          */
-        public function login_hint_shortcode( $atts = array() ) {
-                unset( $atts ); // Parameter unused but kept for shortcode signature.
+       public function login_hint_shortcode( $atts = array() ) {
+               unset( $atts ); // Parameter unused but kept for shortcode signature.
 
-                if ( is_user_logged_in() ) {
-								return '';
-			}
-				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
-				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+               if ( is_user_logged_in() ) {
+                       return '';
+               }
 
-										return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
-										. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
-		}
+               $raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+               $base     = wp_validate_redirect( $raw, home_url( '/' ) );
+               $redirect = esc_url_raw( add_query_arg( array(), $base ) );
+
+               wp_enqueue_style(
+                       'bhg-shortcodes',
+                       ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                       array(),
+                       defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+               );
+
+               if ( function_exists( 'bhg_render_login_prompt' ) ) {
+                       return bhg_render_login_prompt( 'notice_login_to_continue', 'Please log in to continue.', $redirect );
+               }
+
+               return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
+                       . '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+       }
 
 			/**
 			 * Renders list of open hunts.
@@ -587,20 +599,31 @@ $wpdb->usermeta,
 					 * @param array $atts Shortcode attributes.
 					 * @return string HTML output.
 					 */
-		public function guess_form_shortcode( $atts ) {
-				$atts    = shortcode_atts( array( 'hunt_id' => 0 ), $atts, 'bhg_guess_form' );
-				$hunt_id = (int) $atts['hunt_id'];
+               public function guess_form_shortcode( $atts ) {
+                                $atts    = shortcode_atts( array( 'hunt_id' => 0 ), $atts, 'bhg_guess_form' );
+                                $hunt_id = (int) $atts['hunt_id'];
 
-			if ( ! is_user_logged_in() ) {
-				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
-				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+                        wp_enqueue_style(
+                                'bhg-shortcodes',
+                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                array(),
+                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                        );
 
-				return '<p>' . esc_html( bhg_t( 'notice_login_to_guess', 'Please log in to submit your guess.' ) ) . '</p>'
-				. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
-			}
+                        if ( ! is_user_logged_in() ) {
+                                $raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+                                $base     = wp_validate_redirect( $raw, home_url( '/' ) );
+                                $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
-						global $wpdb;
+                                if ( function_exists( 'bhg_render_login_prompt' ) ) {
+                                        return bhg_render_login_prompt( 'notice_login_to_guess', 'Please log in to submit your guess.', $redirect );
+                                }
+
+                                return '<p>' . esc_html( bhg_t( 'notice_login_to_guess', 'Please log in to submit your guess.' ) ) . '</p>'
+                                        . '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+                        }
+
+                                                global $wpdb;
 												$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
 			if ( ! $hunts_table ) {
 					return '';
@@ -659,14 +682,7 @@ $wpdb->usermeta,
                         $redirect_target = ! empty( $settings['post_submit_redirect'] ) ? wp_validate_redirect( $settings['post_submit_redirect'], '' ) : '';
                         $button_label    = $existing_id ? bhg_t( 'button_edit_guess', 'Edit Guess' ) : bhg_t( 'button_submit_guess', 'Submit Guess' );
 
-			wp_enqueue_style(
-				'bhg-shortcodes',
-				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				array(),
-				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-			);
-
-			ob_start(); ?>
+                        ob_start(); ?>
                                                 <form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                                                                                                                                <input type="hidden" name="action" value="bhg_submit_guess">
                                                                                                                 <?php wp_nonce_field( 'bhg_submit_guess', 'bhg_submit_guess_nonce' ); ?>
@@ -2661,7 +2677,23 @@ $wpdb->usermeta,
                public function user_profile_shortcode( $atts ) {
                        unset( $atts ); // Parameter unused but kept for shortcode signature.
                        if ( ! is_user_logged_in() ) {
-                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+                               $raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+                               $base     = wp_validate_redirect( $raw, home_url( '/' ) );
+                               $redirect = esc_url_raw( add_query_arg( array(), $base ) );
+
+                               wp_enqueue_style(
+                                       'bhg-shortcodes',
+                                       ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                       array(),
+                                       defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                               );
+
+                               if ( function_exists( 'bhg_render_login_prompt' ) ) {
+                                       return bhg_render_login_prompt( 'notice_login_view_content', 'Please log in to view this content.', $redirect );
+                               }
+
+                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>'
+                                       . '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
                        }
                        wp_enqueue_style(
                                'bhg-shortcodes',
