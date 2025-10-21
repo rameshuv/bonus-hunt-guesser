@@ -786,24 +786,55 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
-		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
-		$map      = array(
-			'usd' => '$',
-			'eur' => '€',
-		);
-		$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
-		return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+        $currency = get_option( 'bhg_currency', '' );
+
+        if ( '' === $currency ) {
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                if ( isset( $settings['currency'] ) ) {
+                        $currency = (string) $settings['currency'];
+                }
+        }
+
+        $currency = strtoupper( $currency );
+
+        $map = array(
+                'USD' => '$',
+                'EUR' => '€',
+        );
+
+        if ( ! isset( $map[ $currency ] ) ) {
+                $currency = 'EUR';
+        }
+
+        $symbol = $map[ $currency ];
+
+        return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
- * Format an amount as currency using the selected symbol.
+ * Format an amount as money using the selected currency symbol.
+ *
+ * @param float $amount Amount to format.
+ * @return string
+ */
+function bhg_format_money( $amount ) {
+        $formatted = sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+
+        return apply_filters( 'bhg_format_money', $formatted, $amount );
+}
+
+/**
+ * Back-compat wrapper for the deprecated bhg_format_currency() helper.
  *
  * @param float $amount Amount to format.
  * @return string
  */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+        if ( function_exists( '_deprecated_function' ) ) {
+                _deprecated_function( __FUNCTION__, '8.0.14', 'bhg_format_money' );
+        }
+
+        return bhg_format_money( $amount );
 }
 
 /**

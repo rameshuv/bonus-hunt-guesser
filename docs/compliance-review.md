@@ -6,8 +6,8 @@
 
 | Requirement | Status | Notes / Required Changes |
 | --- | --- | --- |
-| Plugin header must advertise v8.0.14 with the agreed runtime guard (WP ≥ 6.3.0, MySQL 5.5.5). | ❌ | Header still reports `Version: 8.0.12` and `Requires at least: 5.5.5`; update the block in `bonus-hunt-guesser.php`. |
-| Constants should match header (e.g., `BHG_VERSION` = 8.0.14, `BHG_MIN_WP` = 6.3.0). | ❌ | `bonus-hunt-guesser.php` defines `BHG_VERSION` as `8.0.12` and `BHG_MIN_WP` as `5.5.5`; align them with the spec. |
+| Plugin header must advertise v8.0.14 with the agreed runtime guard (WP ≥ 6.3.0, MySQL 5.5.5). | ✅ | `bonus-hunt-guesser.php` now declares Version 8.0.14, Requires at least 6.3.0, and Requires MySQL 5.5.5. |
+| Constants should match header (e.g., `BHG_VERSION` = 8.0.14, `BHG_MIN_WP` = 6.3.0). | ✅ | Core constants in `bonus-hunt-guesser.php` updated to 8.0.14 / 6.3.0 for consistency. |
 
 ## Database Schema
 
@@ -20,13 +20,13 @@
 
 | Requirement | Status | Notes / Required Changes |
 | --- | --- | --- |
-| Store currency in `bhg_currency` option with helpers `bhg_currency_symbol()` / `bhg_format_money()` using that option. | ❌ | Currency helpers read `bhg_plugin_settings['currency']`; adjust helpers, settings admin, and install logic (`includes/helpers.php`, `admin/views/settings.php`, `bonus-hunt-guesser.php`) to use the standalone option. |
+| Store currency in `bhg_currency` option with helpers `bhg_currency_symbol()` / `bhg_format_money()` using that option. | ✅ | Currency now persists via the `bhg_currency` option with migration/back-compat in `bonus-hunt-guesser.php`, `includes/helpers.php`, and `admin/views/settings.php`; outputs use `bhg_format_money()`. |
 
 ## Admin Dashboard
 
 | Requirement | Status | Notes / Required Changes |
 | --- | --- | --- |
-| “Latest Hunts” widget lists winners one per row with bold usernames (up to 25). | ❌ | `admin/views/dashboard.php` collapses all winners into a single bullet-separated string with no bold styling; refactor rendering to output one `<tr>` per winner with `<strong>` usernames. |
+| “Latest Hunts” widget lists winners one per row with bold usernames (up to 25). | ✅ | `admin/views/dashboard.php` now renders each winner inside a `<ul class="bhg-dashboard-winners-list">` with bold usernames and separate list rows. |
 
 ## Bonus Hunts Admin (`bhg-bonus-hunts`)
 

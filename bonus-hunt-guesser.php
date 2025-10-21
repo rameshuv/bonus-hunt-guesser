@@ -3,14 +3,14 @@
  * Plugin Name: Bonus Hunt Guesser
  * Plugin URI: https://yourdomain.com/
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality
- * Version: 8.0.12
- * Requires at least: 5.5.5
+ * Version: 8.0.14
+ * Requires at least: 6.3.0
  * Requires PHP: 7.4
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser
  * Domain Path: /languages
  * License: GPLv2 or later
- * MySQL tested up to: 5.5.5
+ * Requires MySQL: 5.5.5
  *
  * @package Bonus_Hunt_Guesser
  */
@@ -142,8 +142,8 @@ return array_values( $normalized );
 require_once __DIR__ . '/includes/class-bhg-db.php';
 
 // Define plugin constants.
-define( 'BHG_VERSION', '8.0.12' );
-define( 'BHG_MIN_WP', '5.5.5' );
+define( 'BHG_VERSION', '8.0.14' );
+define( 'BHG_MIN_WP', '6.3.0' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -191,18 +191,44 @@ function bhg_check_tables() {
  * @return void
  */
 function bhg_maybe_run_migrations() {
-	if ( ! class_exists( 'BHG_DB' ) ) {
-			return;
-	}
+        if ( ! class_exists( 'BHG_DB' ) ) {
+                        return;
+        }
 
-		$migrated = get_option( 'bhg_last_migrated_version', '' );
-	if ( version_compare( $migrated, BHG_VERSION, '<' ) ) {
-			BHG_DB::migrate();
-			update_option( 'bhg_last_migrated_version', BHG_VERSION );
-	}
+                $migrated = get_option( 'bhg_last_migrated_version', '' );
+        if ( version_compare( $migrated, BHG_VERSION, '<' ) ) {
+                        BHG_DB::migrate();
+                        update_option( 'bhg_last_migrated_version', BHG_VERSION );
+        }
 }
 
 add_action( 'plugins_loaded', 'bhg_maybe_run_migrations', 0 );
+
+/**
+ * Ensure the standalone currency option exists and carries the correct value.
+ *
+ * @return void
+ */
+function bhg_ensure_currency_option() {
+        $stored = get_option( 'bhg_currency', '' );
+
+        if ( '' !== $stored ) {
+                return;
+        }
+
+        $settings = get_option( 'bhg_plugin_settings', array() );
+        if ( isset( $settings['currency'] ) ) {
+                $stored = strtoupper( (string) $settings['currency'] );
+        }
+
+        if ( ! in_array( $stored, array( 'EUR', 'USD' ), true ) ) {
+                $stored = 'EUR';
+        }
+
+        update_option( 'bhg_currency', $stored );
+}
+
+add_action( 'plugins_loaded', 'bhg_ensure_currency_option', 1 );
 
 // Autoloader for plugin classes.
 spl_autoload_register(
@@ -274,18 +300,19 @@ function bhg_activate_plugin() {
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
-	add_option(
-		'bhg_plugin_settings',
-		array(
-			'allow_guess_changes'       => 'yes',
-			'default_tournament_period' => 'monthly',
+        add_option(
+                'bhg_plugin_settings',
+                array(
+                        'allow_guess_changes'       => 'yes',
+                        'default_tournament_period' => 'monthly',
 			'min_guess_amount'          => 0,
 			'max_guess_amount'          => 100000,
 			'max_guesses'               => 1,
 			'ads_enabled'               => 1,
 			'email_from'                => get_bloginfo( 'admin_email' ),
-		)
-	);
+                )
+        );
+        add_option( 'bhg_currency', 'EUR' );
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
@@ -340,8 +367,8 @@ function bhg_enqueue_public_assets() {
 				$guess_range = sprintf(
 												/* translators: 1: minimum guess, 2: maximum guess. */
 					bhg_t( 'guess_must_be_between', 'Guess must be between %1$s and %2$s.' ),
-					bhg_format_currency( $min_guess ),
-					bhg_format_currency( $max_guess )
+                                    bhg_format_money( $min_guess ),
+                                    bhg_format_money( $max_guess )
 				);
 
 		wp_localize_script(
@@ -477,12 +504,13 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	if ( isset( $_POST['bhg_currency'] ) ) {
-					$currency = sanitize_key( wp_unslash( $_POST['bhg_currency'] ) );
-		if ( in_array( $currency, array( 'eur', 'usd' ), true ) ) {
-						$settings['currency'] = $currency;
-		}
-	}
+        $currency_option = null;
+        if ( isset( $_POST['bhg_currency'] ) ) {
+                $currency = strtoupper( sanitize_key( wp_unslash( $_POST['bhg_currency'] ) ) );
+                if ( in_array( $currency, array( 'EUR', 'USD' ), true ) ) {
+                        $currency_option = $currency;
+                }
+        }
 
 				// Validate that min is not greater than max.
 	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
@@ -522,7 +550,14 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
 
                 // Save settings.
                 $existing = get_option( 'bhg_plugin_settings', array() );
-                update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+        if ( isset( $existing['currency'] ) ) {
+                unset( $existing['currency'] );
+        }
+        update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+
+        if ( null !== $currency_option ) {
+                update_option( 'bhg_currency', $currency_option );
+        }
 
 				// Redirect back to settings page.
 								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );

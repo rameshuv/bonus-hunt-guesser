@@ -475,7 +475,7 @@ $wpdb->usermeta,
 		       echo '<div class="bhg-hunt-card">';
 		       echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
                        echo '<ul class="bhg-hunt-meta">';
-                       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
+                       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $selected_hunt->starting_balance ) ) . '</li>';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
 
                        $opened_at = isset( $selected_hunt->created_at ) ? (string) $selected_hunt->created_at : '';
@@ -509,7 +509,7 @@ $wpdb->usermeta,
                                echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
                        }
                        if ( $has_final ) {
-                               echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $final_balance ) ) . '</li>';
+                               echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $final_balance ) ) . '</li>';
                        }
                        echo '</ul>';
 
@@ -540,10 +540,10 @@ $wpdb->usermeta,
 				       echo '<tr>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'Username' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
-				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
+				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
 				       if ( $has_final ) {
 					       $diff = isset( $row->diff ) ? (float) $row->diff : 0.0;
-					       echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_currency( $diff ) ) . '</td>';
+					       echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_money( $diff ) ) . '</td>';
 				       }
 				       echo '</tr>';
 			       }
@@ -895,7 +895,7 @@ $wpdb->usermeta,
 					} elseif ( 'user' === $field ) {
 																											echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 					} elseif ( 'guess' === $field ) {
-						echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
+						echo '<td data-column="guess">' . esc_html( bhg_format_money( (float) $r->guess ) ) . '</td>';
 					}
 				}
 								echo '</tr>';
@@ -1293,12 +1293,12 @@ $wpdb->usermeta,
                         $user_cell .= '<span class="bhg-user-name">' . esc_html( $user_display ) . '</span>';
                         echo '<td>' . wp_kses_post( $user_cell ) . '</td>';
                 }
-                echo '<td>' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
+                echo '<td>' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
                 if ( $need_site ) {
                         echo '<td>' . esc_html( $row->site_name ? $row->site_name : bhg_t( 'label_emdash', '—' ) ) . '</td>';
                 }
-                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-                echo '<td>' . ( isset( $row->difference ) ? esc_html( bhg_format_currency( (float) $row->difference ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_money( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                echo '<td>' . ( isset( $row->difference ) ? esc_html( bhg_format_money( (float) $row->difference ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                 echo '</tr>';
         }
         echo '</tbody></table>';
@@ -1532,8 +1532,8 @@ $wpdb->usermeta,
 			foreach ( $rows as $row ) {
 				echo '<tr>';
 				echo '<td>' . esc_html( $row->title ) . '</td>';
-							echo '<td>' . esc_html( bhg_format_currency( (float) $row->starting_balance ) ) . '</td>';
-                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+							echo '<td>' . esc_html( bhg_format_money( (float) $row->starting_balance ) ) . '</td>';
+                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_money( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                                 $winners_display = isset( $row->winners_count ) ? number_format_i18n( (int) $row->winners_count ) : bhg_t( 'label_emdash', '—' );
                                 echo '<td>' . esc_html( $winners_display ) . '</td>';
                                 $status_key = strtolower( (string) $row->status );
@@ -2633,7 +2633,7 @@ $wpdb->usermeta,
 				echo '<div class="bhg-winner">';
 				echo '<p><strong>' . esc_html( $hunt->title ) . '</strong></p>';
 				if ( null !== $hunt->final_balance ) {
-					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_currency( (float) $hunt->final_balance ) ) . '</p>';
+					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_money( (float) $hunt->final_balance ) ) . '</p>';
 				}
 
 				if ( $winners ) {
@@ -2641,7 +2641,7 @@ $wpdb->usermeta,
 					foreach ( $winners as $w ) {
 						$u  = get_userdata( (int) $w->user_id );
 						$nm = $u ? $u->user_login : sprintf( bhg_t( 'label_user_number', 'User #%d' ), (int) $w->user_id );
-											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_currency( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_currency( (float) $w->diff ) ) . ')</li>';
+											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_money( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_money( (float) $w->diff ) ) . ')</li>';
 					}
 					echo '</ul>';
 				}
