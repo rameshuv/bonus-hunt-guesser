@@ -37,9 +37,9 @@ if ( ! in_array( $view, array( 'list', 'add', 'edit', 'close' ), true ) ) {
 
 /** LIST VIEW */
 if ( 'list' === $view ) :
-		$current_page = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
-	$per_page         = 30;
-		$offset       = ( $current_page - 1 ) * $per_page;
+        $current_page = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
+        $per_page     = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'admin_bonus_hunts' ) : 30;
+        $offset       = ( $current_page - 1 ) * $per_page;
 	$search_term      = '';
 	if ( isset( $_GET['s'] ) ) {
 			check_admin_referer( 'bhg_hunts_search', 'bhg_hunts_search_nonce' );
@@ -237,8 +237,8 @@ $hunts = $wpdb->get_results( $hunts_query );
                 <tr>
 <td><?php echo esc_html( (int) $h->id ); ?></td>
                         <td><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( $h->title ); ?></a></td>
-<td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
-<td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+        <td><?php echo esc_html( bhg_format_money( (float) $h->starting_balance ) ); ?></td>
+        <td><?php echo null !== $h->final_balance ? esc_html( bhg_format_money( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo esc_html( (int) ( $h->winners_count ?? 3 ) ); ?></td>
 <td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
@@ -400,11 +400,13 @@ if ( 'add' === $view ) :
                                                                                                 if ( ! in_array( $t_table, $allowed_tables, true ) ) {
                                                                                                                                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
                                                                                                 }
-                                                                                                // db call ok; no-cache ok.
-                                                                                                $tours = $wpdb->get_results(
-                                                                                                        "SELECT id, title FROM {$t_table} ORDER BY title ASC"
-                                                                                                );
                                                                                                 $selected_tournaments = array();
+                                                                                                $tours_query          = $wpdb->prepare(
+                                                                                                        "SELECT id, title FROM {$t_table} WHERE status = %s ORDER BY title ASC",
+                                                                                                        'active'
+                                                                                                );
+                                                                                                // db call ok; no-cache ok.
+                                                                                                $tours = $wpdb->get_results( $tours_query );
                                                                                                 ?>
                                                 <select id="bhg_tournament" name="tournament_ids[]" multiple="multiple" size="5">
                                                                 <?php foreach ( $tours as $t ) : ?>
@@ -537,15 +539,26 @@ if ( 'edit' === $view ) :
 						<th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
 						<td>
 												<?php
-												$t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-												if ( ! in_array( $t_table, $allowed_tables, true ) ) {
-																		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
-												}
-												// db call ok; no-cache ok.
-												$tours = $wpdb->get_results(
-													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
-												);
+                                                                                                $t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+                                                                                                if ( ! in_array( $t_table, $allowed_tables, true ) ) {
+                                                                                                                               wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+                                                                                                }
                                                                                                 $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+                                                                                                $selected_tournaments = array_values( array_filter( array_map( 'absint', (array) $selected_tournaments ) ) );
+
+                                                                                                $tour_params = array( 'active' );
+                                                                                                $tour_sql    = "SELECT id, title FROM {$t_table} WHERE status = %s";
+
+                                                                                                if ( ! empty( $selected_tournaments ) ) {
+                                                                                                        $placeholders = implode( ',', array_fill( 0, count( $selected_tournaments ), '%d' ) );
+                                                                                                        $tour_sql    .= " OR id IN ({$placeholders})";
+                                                                                                        $tour_params  = array_merge( $tour_params, $selected_tournaments );
+                                                                                                }
+
+                                                                                                $tour_sql .= ' ORDER BY title ASC';
+
+                                                                                                $tours = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $tour_sql ), $tour_params ) ) );
+                                                                                                // db call ok; no-cache ok.
                                                                                                 $prize_rows          = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
                                                                                                 $selected_prizes     = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( (int) $hunt->id ) : array();
                                                                                                 ?>
@@ -619,7 +632,7 @@ if ( 'edit' === $view ) :
 							echo '<a href="' . esc_url( $url ) . '">' . esc_html( $name ) . '</a>';
 							?>
 			</td>
-						<td><?php echo esc_html( bhg_format_currency( (float) ( $g->guess ?? 0 ) ) ); ?></td>
+                                            <td><?php echo esc_html( bhg_format_money( (float) ( $g->guess ?? 0 ) ) ); ?></td>
 			<td>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');" class="bhg-inline-form">
 																<?php wp_nonce_field( 'bhg_delete_guess', 'bhg_delete_guess_nonce' ); ?>

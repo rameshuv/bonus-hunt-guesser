@@ -21,6 +21,10 @@ class BHG_Users_Table extends WP_List_Table {
 				'ajax'     => false,
 			)
 		);
+
+		if ( function_exists( 'bhg_get_per_page' ) ) {
+			$this->per_page = bhg_get_per_page( 'admin_users_table' );
+		}
 	}
 
 	public function get_columns() {
