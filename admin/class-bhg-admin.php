@@ -33,6 +33,7 @@ class BHG_Admin {
                 add_action( 'admin_post_bhg_delete_ad', array( $this, 'handle_delete_ad' ) );
                 add_action( 'admin_post_bhg_save_prize', array( $this, 'handle_save_prize' ) );
                 add_action( 'admin_post_bhg_delete_prize', array( $this, 'handle_delete_prize' ) );
+                add_action( 'admin_post_bhg_save_notifications', array( $this, 'handle_save_notifications' ) );
 								add_action( 'admin_post_bhg_tournament_save', array( $this, 'handle_save_tournament' ) );
 								add_action( 'admin_post_bhg_tournament_delete', array( $this, 'handle_delete_tournament' ) );
 				add_action( 'admin_post_bhg_tournament_close', array( $this, 'handle_close_tournament' ) );
@@ -66,7 +67,8 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_notifications', 'Notifications' ), bhg_t( 'menu_notifications', 'Notifications' ), $cap, 'bhg-notifications', array( $this, 'notifications' ) );
 		add_submenu_page( $slug, bhg_t( 'database', 'Database' ), bhg_t( 'database', 'Database' ), $cap, 'bhg-database', array( $this, 'database' ) );
 		add_submenu_page( $slug, bhg_t( 'settings', 'Settings' ), bhg_t( 'settings', 'Settings' ), $cap, 'bhg-settings', array( $this, 'settings' ) );
 		add_submenu_page(
@@ -226,12 +228,24 @@ class BHG_Admin {
 	/**
 	 * Render the translations page.
 	 */
-	public function translations() {
-		$view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
-		if ( file_exists( $view ) ) {
-			require $view; } else {
-			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
-	}
+        public function translations() {
+                $view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
+                if ( file_exists( $view ) ) {
+                        require $view; } else {
+                        echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
+        }
+
+        /**
+         * Render the notifications configuration page.
+         */
+        public function notifications() {
+                $view = BHG_PLUGIN_DIR . 'admin/views/notifications.php';
+                if ( file_exists( $view ) ) {
+                        require $view;
+                } else {
+                        echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_notifications', 'Notifications' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_notifications_ui_found', 'No notifications UI found.' ) ) . '</p></div>';
+                }
+        }
 		/**
 		 * Render the database maintenance page.
 		 */
@@ -428,72 +442,10 @@ $id = (int) $wpdb->insert_id;
                                 if ( $should_close ) {
                                         $winners = BHG_Models::close_hunt( $id, $final_balance );
 
-					$emails_enabled = (int) get_option( 'bhg_email_enabled', 1 );
-					if ( $emails_enabled ) {
-																														$guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-
-																														$rows = $wpdb->get_results(
-																															$wpdb->prepare(
-																																"SELECT DISTINCT user_id FROM {$guesses_table} WHERE hunt_id = %d",
-																																$id
-																															)
-																														);
-
-						$template = get_option(
-							'bhg_email_template',
-							'Hi {{username}},\nThe Bonus Hunt "{{hunt}}" is closed. Final balance: €{{final}}. Winners: {{winners}}. Thanks for playing!'
-						);
-
-																														$hunt_title = (string) $wpdb->get_var(
-																															$wpdb->prepare(
-																																"SELECT title FROM {$hunts_table} WHERE id = %d",
-																																$id
-																															)
-																														);
-
-						$winner_names = array();
-						foreach ( (array) $winners as $winner_id ) {
-							$wu = get_userdata( (int) $winner_id );
-							if ( $wu ) {
-								$winner_names[] = $wu->user_login;
-							}
-						}
-								$winner_first = $winner_names ? $winner_names[0] : esc_html( bhg_t( 'label_emdash', '—' ) );
-								$winner_list  = $winner_names ? implode( ', ', $winner_names ) : esc_html( bhg_t( 'label_emdash', '—' ) );
-
-						foreach ( $rows as $r ) {
-							$u = get_userdata( (int) $r->user_id );
-							if ( ! $u ) {
-								continue;
-							}
-										$username   = sanitize_text_field( $u->user_login );
-										$hunt_title = sanitize_text_field( $hunt_title );
-
-										$body = strtr(
-											$template,
-											array(
-												'{{username}}' => esc_html( $username ),
-												'{{hunt}}' => esc_html( $hunt_title ),
-												'{{final}}' => number_format( $final_balance, 2 ),
-												'{{winner}}' => $winner_first,
-												'{{winners}}' => $winner_list,
-											)
-										);
-
-										$headers = array( 'From: ' . BHG_Utils::get_email_from() );
-										wp_mail(
-											$u->user_email,
-											sprintf(
-											/* translators: %s: bonus hunt title. */
-												bhg_t( 'results_for_s', 'Results for %s' ),
-												$hunt_title ? $hunt_title : bhg_t( 'bonus_hunt', 'Bonus Hunt' )
-											),
-											$body,
-											$headers
-										);
-						}
-					}
-				}
+                                        if ( false !== $winners && class_exists( 'BHG_Notifications' ) ) {
+                                                BHG_Notifications::handle_hunt_closed( $id, $final_balance, is_array( $winners ) ? $winners : array() );
+                                        }
+                                }
 
 				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
 				exit;
@@ -533,6 +485,10 @@ $id = (int) $wpdb->insert_id;
                                                );
                                                exit;
                        }
+
+                                               if ( class_exists( 'BHG_Notifications' ) ) {
+                                                       BHG_Notifications::handle_hunt_closed( $hunt_id, $final_balance, is_array( $result ) ? $result : array() );
+                                               }
                }
 
 								$redirect_url = add_query_arg(
@@ -848,6 +804,29 @@ $wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
         }
 
         /**
+         * Save notification templates and settings.
+         */
+        public function handle_save_notifications() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
+
+                if ( ! isset( $_POST['bhg_notifications_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['bhg_notifications_nonce'] ), 'bhg_save_notifications' ) ) {
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', BHG_Utils::admin_url( 'admin.php?page=bhg-notifications' ) ) );
+                        exit;
+                }
+
+                $raw = isset( $_POST['notifications'] ) && is_array( $_POST['notifications'] ) ? wp_unslash( $_POST['notifications'] ) : array();
+
+                if ( class_exists( 'BHG_Notifications' ) ) {
+                        BHG_Notifications::update_settings( $raw );
+                }
+
+                wp_safe_redirect( add_query_arg( 'bhg_msg', 'notifications_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-notifications' ) ) );
+                exit;
+        }
+
+        /**
          * Save a tournament record.
          */
         public function handle_save_tournament() {
@@ -971,20 +950,24 @@ exit;
 
 			$id = isset( $_POST['tournament_id'] ) ? absint( wp_unslash( $_POST['tournament_id'] ) ) : 0;
 
-		if ( $id ) {
-					global $wpdb;
-					$table = $wpdb->prefix . 'bhg_tournaments';
-					$wpdb->update(
-						$table,
-						array(
-							'status'     => 'closed',
-							'updated_at' => current_time( 'mysql' ),
-						),
-						array( 'id' => $id ),
-						array( '%s', '%s' ),
-						array( '%d' )
-					);
-		}
+                if ( $id ) {
+                                        global $wpdb;
+                                        $table = $wpdb->prefix . 'bhg_tournaments';
+                                        $wpdb->update(
+                                                $table,
+                                                array(
+                                                        'status'     => 'closed',
+                                                        'updated_at' => current_time( 'mysql' ),
+                                                ),
+                                                array( 'id' => $id ),
+                                                array( '%s', '%s' ),
+                                                array( '%d' )
+                                        );
+
+                                        if ( class_exists( 'BHG_Notifications' ) ) {
+                                                BHG_Notifications::handle_tournament_closed( $id );
+                                        }
+                }
 
                         wp_safe_redirect( add_query_arg( 'bhg_msg', 't_closed', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
                         exit;

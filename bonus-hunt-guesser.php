@@ -247,6 +247,7 @@ spl_autoload_register(
 			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
                         'BHG_Ads'                    => 'includes/class-bhg-ads.php',
                         'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
+                        'BHG_Notifications'          => 'includes/class-bhg-notifications.php',
 			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
 			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
 		);
@@ -263,6 +264,10 @@ spl_autoload_register(
 // Include helper functions.
 require_once BHG_PLUGIN_DIR . 'includes/helpers.php';
 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
+
+if ( class_exists( 'BHG_Notifications' ) ) {
+        add_action( 'plugins_loaded', array( 'BHG_Notifications', 'maybe_seed_defaults' ), 2 );
+}
 
 add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
 /**
@@ -313,6 +318,10 @@ function bhg_activate_plugin() {
                 )
         );
         add_option( 'bhg_currency', 'EUR' );
+
+        if ( class_exists( 'BHG_Notifications' ) ) {
+                BHG_Notifications::maybe_seed_defaults();
+        }
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
