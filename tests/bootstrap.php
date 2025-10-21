@@ -54,6 +54,25 @@ if ( ! function_exists( 'bhg_log' ) ) {
     }
 }
 
+if ( ! function_exists( 'bhg_get_points_for_position' ) ) {
+    function bhg_get_points_for_position( $position, $context = 'all' ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+        $position = (int) $position;
+
+        $defaults = array(
+            1 => 10,
+            2 => 7,
+            3 => 5,
+            4 => 3,
+            5 => 2,
+            6 => 1,
+            7 => 0,
+            8 => 0,
+        );
+
+        return isset( $defaults[ $position ] ) ? $defaults[ $position ] : 0;
+    }
+}
+
 if ( ! function_exists( 'wp_list_pluck' ) ) {
     function wp_list_pluck( $input_list, $field ) {
         $values = array();

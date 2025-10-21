@@ -453,8 +453,9 @@ function bhg_handle_settings_save() {
 									exit;
 	}
 
-		// Sanitize and validate data.
-		$settings = array();
+// Sanitize and validate data.
+$settings        = array();
+$points_updated  = false;
 
 	if ( isset( $_POST['bhg_default_tournament_period'] ) ) {
 			$period = sanitize_key( wp_unslash( $_POST['bhg_default_tournament_period'] ) );
@@ -492,9 +493,48 @@ function bhg_handle_settings_save() {
 	}
 
 	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
-			$allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
+		$allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
 		if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
-				$settings['allow_guess_changes'] = $allow;
+			$settings['allow_guess_changes'] = $allow;
+		}
+	}
+
+	if ( isset( $_POST['bhg_points'] ) && is_array( $_POST['bhg_points'] ) ) {
+		$raw_points     = wp_unslash( $_POST['bhg_points'] );
+		$defaults       = function_exists( 'bhg_get_default_points_config' ) ? bhg_get_default_points_config() : array();
+		$point_contexts = array( 'active', 'closed', 'all' );
+		$normalized     = array();
+
+		foreach ( $point_contexts as $context ) {
+			$context_key   = sanitize_key( $context );
+			$context_input = isset( $raw_points[ $context_key ] ) ? $raw_points[ $context_key ] : array();
+			$context_base  = isset( $defaults[ $context_key ] ) ? $defaults[ $context_key ] : array();
+			$sanitized     = array();
+
+			if ( is_array( $context_input ) ) {
+				foreach ( $context_input as $position => $value ) {
+					$position = (int) $position;
+					if ( $position < 1 || $position > 8 ) {
+						continue;
+					}
+
+					$sanitized[ $position ] = max( 0, (int) $value );
+				}
+			}
+
+			for ( $i = 1; $i <= 8; $i++ ) {
+				if ( ! isset( $sanitized[ $i ] ) ) {
+					$sanitized[ $i ] = isset( $context_base[ $i ] ) ? (int) $context_base[ $i ] : 0;
+				}
+			}
+
+			ksort( $sanitized );
+			$normalized[ $context_key ] = $sanitized;
+		}
+
+		if ( ! empty( $normalized ) ) {
+			$settings['points'] = $normalized;
+			$points_updated     = true;
 		}
 	}
 
@@ -520,9 +560,21 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                 }
         }
 
-                // Save settings.
-                $existing = get_option( 'bhg_plugin_settings', array() );
-                update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+	// Save settings.
+	$existing = get_option( 'bhg_plugin_settings', array() );
+	update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+
+	if ( $points_updated && class_exists( 'BHG_Models' ) ) {
+		global $wpdb;
+		$tournament_table = $wpdb->prefix . 'bhg_tournaments';
+		$ids              = $wpdb->get_col( "SELECT id FROM {$tournament_table}" );
+		if ( ! empty( $ids ) ) {
+			$ids = array_filter( array_map( 'intval', $ids ) );
+			if ( $ids ) {
+				BHG_Models::recalculate_tournament_results( $ids );
+			}
+		}
+	}
 
 				// Redirect back to settings page.
 								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );

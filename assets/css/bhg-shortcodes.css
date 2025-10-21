@@ -505,6 +505,33 @@
     background-color: #eef2ff;
 }
 
+.bhg-leaderboard tr.bhg-rank-1,
+.bhg-tournaments tr.bhg-rank-1,
+.bhg-user-guesses tr.bhg-rank-1,
+.bhg-hunts tr.bhg-rank-1 {
+    border-left: 4px solid #f59e0b;
+    background-color: #fef3c7;
+    font-weight: 600;
+}
+
+.bhg-leaderboard tr.bhg-rank-2,
+.bhg-tournaments tr.bhg-rank-2,
+.bhg-user-guesses tr.bhg-rank-2,
+.bhg-hunts tr.bhg-rank-2 {
+    border-left: 4px solid #9ca3af;
+    background-color: #f3f4f6;
+    font-weight: 600;
+}
+
+.bhg-leaderboard tr.bhg-rank-3,
+.bhg-tournaments tr.bhg-rank-3,
+.bhg-user-guesses tr.bhg-rank-3,
+.bhg-hunts tr.bhg-rank-3 {
+    border-left: 4px solid #b45309;
+    background-color: #fde68a;
+    font-weight: 600;
+}
+
 /* Responsive tables */
 @media screen and (max-width: 782px) {
     .bhg-leaderboard,

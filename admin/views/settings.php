@@ -14,7 +14,8 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 // Fetch existing settings.
-$settings = get_option( 'bhg_plugin_settings', array() );
+$settings        = get_option( 'bhg_plugin_settings', array() );
+$points_settings = function_exists( 'bhg_get_points_settings' ) ? bhg_get_points_settings() : array();
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
@@ -88,6 +89,35 @@ foreach ( $currencies as $key => $label ) :
 <option value="yes" <?php selected( isset( $settings['allow_guess_changes'] ) ? $settings['allow_guess_changes'] : '', 'yes' ); ?>><?php echo esc_html( bhg_t( 'yes', 'Yes' ) ); ?></option>
 <option value="no" <?php selected( isset( $settings['allow_guess_changes'] ) ? $settings['allow_guess_changes'] : '', 'no' ); ?>><?php echo esc_html( bhg_t( 'no', 'No' ) ); ?></option>
 </select>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'label_points_settings', 'Point Settings' ) ); ?></th>
+<td>
+<p class="description"><?php echo esc_html( bhg_t( 'label_points_note', 'Set point values for positions 1–8.' ) ); ?></p>
+<?php
+$point_contexts = array(
+        'active' => bhg_t( 'label_points_active_hunts', 'Points — Active Hunts' ),
+        'closed' => bhg_t( 'label_points_closed_hunts', 'Points — Closed Hunts' ),
+        'all'    => bhg_t( 'label_points_all_hunts', 'Points — All Hunts' ),
+);
+foreach ( $point_contexts as $context_key => $context_label ) :
+        $context_points = isset( $points_settings[ $context_key ] ) ? $points_settings[ $context_key ] : array();
+        ?>
+        <fieldset class="bhg-points-fieldset">
+        <legend><?php echo esc_html( $context_label ); ?></legend>
+        <div class="bhg-points-list">
+        <?php for ( $position = 1; $position <= 8; $position++ ) :
+                $value = isset( $context_points[ $position ] ) ? (int) $context_points[ $position ] : 0;
+                ?>
+                <label>
+                        <span><?php echo esc_html( sprintf( bhg_t( 'label_place_number', 'Place %d' ), $position ) ); ?></span>
+                        <input type="number" class="small-text" min="0" step="1" name="bhg_points[<?php echo esc_attr( $context_key ); ?>][<?php echo (int) $position; ?>]" value="<?php echo esc_attr( $value ); ?>">
+                </label>
+        <?php endfor; ?>
+        </div>
+        </fieldset>
+<?php endforeach; ?>
 </td>
 </tr>
 <tr>
