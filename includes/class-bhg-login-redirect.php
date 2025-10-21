@@ -37,23 +37,28 @@ if ( ! class_exists( 'BHG_Login_Redirect' ) ) {
 		 * @param WP_User $user        Logged-in user object.
 		 * @return string Sanitized redirect URL.
 		 */
-		public function core_login_redirect( $redirect_to, $requested, $user ) {
-			if ( ! empty( $_REQUEST['redirect_to'] ) ) {
-				$requested_redirect = sanitize_text_field( wp_unslash( $_REQUEST['redirect_to'] ) );
-				$validated_redirect = wp_validate_redirect( $requested_redirect, home_url( '/' ) );
-				return esc_url_raw( $validated_redirect );
-			}
+                public function core_login_redirect( $redirect_to, $requested, $user ) {
+                        unset( $requested, $user );
 
-			// Fall back to referer if safe.
-			$ref = wp_get_referer();
-			if ( $ref ) {
-				$validated_ref = wp_validate_redirect( $ref, home_url( '/' ) );
-				return esc_url_raw( $validated_ref );
-			}
+                        $target = $this->extract_requested_redirect();
 
-			$validated_default = wp_validate_redirect( $redirect_to, home_url( '/' ) );
-			return esc_url_raw( $validated_default );
-		}
+                        if ( ! $target && ! empty( $redirect_to ) ) {
+                                $target = wp_validate_redirect( $redirect_to, home_url( '/' ) );
+                        }
+
+                        if ( ! $target ) {
+                                $ref = wp_get_referer();
+                                if ( $ref ) {
+                                        $target = wp_validate_redirect( $ref, home_url( '/' ) );
+                                }
+                        }
+
+                        if ( ! $target ) {
+                                $target = home_url( '/' );
+                        }
+
+                        return esc_url_raw( $target );
+                }
 
 		/**
 		 * Handle Nextend Social Login redirect.
@@ -64,20 +69,26 @@ if ( ! class_exists( 'BHG_Login_Redirect' ) ) {
 		 * @return string Sanitized redirect URL.
 		 */
                 public function nextend_redirect( $redirect_to, $user, $provider ) {
-			if ( ! empty( $_REQUEST['redirect_to'] ) ) {
-				$requested_redirect = sanitize_text_field( wp_unslash( $_REQUEST['redirect_to'] ) );
-				$validated_redirect = wp_validate_redirect( $requested_redirect, home_url( '/' ) );
-				return esc_url_raw( $validated_redirect );
-			}
+                        unset( $user, $provider );
 
-			$ref = wp_get_referer();
-			if ( $ref ) {
-				$validated_ref = wp_validate_redirect( $ref, home_url( '/' ) );
-				return esc_url_raw( $validated_ref );
-			}
+                        $target = $this->extract_requested_redirect();
 
-                        $validated_default = wp_validate_redirect( $redirect_to, home_url( '/' ) );
-                        return esc_url_raw( $validated_default );
+                        if ( ! $target && ! empty( $redirect_to ) ) {
+                                $target = wp_validate_redirect( $redirect_to, home_url( '/' ) );
+                        }
+
+                        if ( ! $target ) {
+                                $ref = wp_get_referer();
+                                if ( $ref ) {
+                                        $target = wp_validate_redirect( $ref, home_url( '/' ) );
+                                }
+                        }
+
+                        if ( ! $target ) {
+                                $target = home_url( '/' );
+                        }
+
+                        return esc_url_raw( $target );
                 }
 
                 /**
@@ -126,6 +137,35 @@ if ( ! class_exists( 'BHG_Login_Redirect' ) ) {
                          * @param array $data    Raw profile data from Nextend.
                          */
                         do_action( 'bhg_nextend_profile_saved', $user_id, $profile, $data );
+                }
+
+                /**
+                 * Extract redirect target from the current request.
+                 *
+                 * Looks for plugin specific `bhg_redirect` first, then the
+                 * standard `redirect_to` argument.
+                 *
+                 * @return string Sanitized redirect URL or empty string.
+                 */
+                protected function extract_requested_redirect() {
+                        $candidates = array();
+
+                        if ( ! empty( $_REQUEST['bhg_redirect'] ) ) {
+                                $candidates[] = sanitize_text_field( wp_unslash( $_REQUEST['bhg_redirect'] ) );
+                        }
+
+                        if ( ! empty( $_REQUEST['redirect_to'] ) ) {
+                                $candidates[] = sanitize_text_field( wp_unslash( $_REQUEST['redirect_to'] ) );
+                        }
+
+                        foreach ( $candidates as $candidate ) {
+                                $validated = wp_validate_redirect( $candidate, '' );
+                                if ( $validated ) {
+                                        return esc_url_raw( $validated );
+                                }
+                        }
+
+                        return '';
                 }
         }
 }

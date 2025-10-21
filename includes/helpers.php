@@ -58,6 +58,38 @@ function bhg_admin_cap() {
 	return apply_filters( 'bhg_admin_capability', 'manage_options' );
 }
 
+if ( ! function_exists( 'bhg_get_login_url' ) ) {
+	/**
+	 * Build a login URL that preserves redirect targets for BHG flows.
+	 *
+	 * Adds both the core `redirect_to` parameter and a plugin specific
+	 * `bhg_redirect` fallback so social login providers can honour the
+	 * requested destination as well.
+	 *
+	 * @param string $redirect_to Requested redirect destination.
+	 * @return string Filterable login URL.
+	 */
+	function bhg_get_login_url( $redirect_to = '' ) {
+		$default     = home_url( '/' );
+		$redirect_to = $redirect_to ? wp_validate_redirect( $redirect_to, $default ) : $default;
+		$login_url   = wp_login_url( $redirect_to );
+
+		if ( $redirect_to ) {
+			$login_url = add_query_arg( 'bhg_redirect', $redirect_to, $login_url );
+		}
+
+		/**
+		 * Filter the generated login URL used across the plugin.
+		 *
+		 * @param string $login_url   Login URL.
+		 * @param string $redirect_to Destination URL after login.
+		 */
+		$login_url = apply_filters( 'bhg_login_url', $login_url, $redirect_to );
+
+		return esc_url_raw( $login_url );
+	}
+}
+
 // Smart login redirect back to referring page.
 add_filter(
 	'login_redirect',

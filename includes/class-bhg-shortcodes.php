@@ -288,8 +288,10 @@ $wpdb->usermeta,
 				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
 				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
-										return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
-										. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+			$login_url = function_exists( 'bhg_get_login_url' ) ? bhg_get_login_url( $redirect ) : wp_login_url( $redirect );
+
+			return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
+				. '<p><a class="button button-primary" href="' . esc_url( $login_url ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
 		}
 
 			/**
@@ -596,8 +598,10 @@ $wpdb->usermeta,
 				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
 				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
-				return '<p>' . esc_html( bhg_t( 'notice_login_to_guess', 'Please log in to submit your guess.' ) ) . '</p>'
-				. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+			$login_url = function_exists( 'bhg_get_login_url' ) ? bhg_get_login_url( $redirect ) : wp_login_url( $redirect );
+
+			return '<p>' . esc_html( bhg_t( 'notice_login_to_guess', 'Please log in to submit your guess.' ) ) . '</p>'
+				. '<p><a class="button button-primary" href="' . esc_url( $login_url ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
 			}
 
 						global $wpdb;
