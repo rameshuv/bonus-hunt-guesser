@@ -57,11 +57,21 @@ class BHG_Ads {
 	 *
 	 * @return bool
 	 */
-	protected static function user_is_affiliate() {
+	protected static function user_is_affiliate( $affiliate_site_id = 0 ) {
 		if ( ! is_user_logged_in() ) {
 			return false;
 		}
+
 		$uid = get_current_user_id();
+
+		if ( $affiliate_site_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
+			return bhg_is_user_affiliate_for_site( $uid, $affiliate_site_id );
+		}
+
+		if ( function_exists( 'bhg_is_user_affiliate' ) ) {
+			return bhg_is_user_affiliate( $uid );
+		}
+
 		return (bool) get_user_meta( $uid, 'bhg_is_affiliate', true );
 	}
 
@@ -72,21 +82,57 @@ class BHG_Ads {
 	 *
 	 * @return bool
 	 */
-	protected static function visibility_ok( $visibility ) {
-		$visibility = is_string( $visibility ) ? strtolower( $visibility ) : 'all';
+	protected static function visibility_ok( $visibility, $context = array() ) {
+		$visibility         = is_string( $visibility ) ? strtolower( $visibility ) : 'all';
+		$affiliate_site_id = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
+
 		switch ( $visibility ) {
 			case 'logged_in':
 				return is_user_logged_in();
 			case 'guests':
 				return ! is_user_logged_in();
 			case 'affiliates':
-				return self::user_is_affiliate();
+				return self::user_is_affiliate( $affiliate_site_id );
 			case 'non_affiliates':
-				return is_user_logged_in() ? ! self::user_is_affiliate() : false;
+				if ( ! is_user_logged_in() ) {
+					return false;
+				}
+				return ! self::user_is_affiliate( $affiliate_site_id );
 			case 'all':
 			default:
 				return true;
 		}
+	}
+
+	/**
+	 * Determine if an ad row should be shown for the current request.
+	 *
+	 * @param object $row     Database row containing ad data.
+	 * @param array  $context Optional context (e.g. affiliate_site_id).
+	 * @return bool
+	 */
+	public static function should_display_row( $row, $context = array() ) {
+		$visibility = isset( $row->visible_to ) ? $row->visible_to : 'all';
+		if ( ! self::visibility_ok( $visibility, $context ) ) {
+			return false;
+		}
+
+		$targets = isset( $row->target_pages ) ? $row->target_pages : '';
+		if ( ! self::page_target_ok( $targets ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Public wrapper for rendering an ad row.
+	 *
+	 * @param object $row Database row containing ad data.
+	 * @return string
+	 */
+	public static function get_row_markup( $row ) {
+		return self::render_ad_row( $row );
 	}
 
 	/**
@@ -209,13 +255,14 @@ class BHG_Ads {
 
 			$out = array();
 			foreach ( $ads as $row ) {
-				if ( ! self::visibility_ok( $row->visible_to ) ) {
+				if ( ! self::should_display_row( $row ) ) {
 					continue;
 				}
-				if ( ! self::page_target_ok( $row->target_pages ) ) {
-					continue;
+
+				$markup = self::get_row_markup( $row );
+				if ( '' !== $markup ) {
+					$out[] = $markup;
 				}
-				$out[] = self::render_ad_row( $row );
 			}
 
 			$out = array_filter( $out );

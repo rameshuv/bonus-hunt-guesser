@@ -977,7 +977,7 @@ function bhg_render_ads( $placement = 'footer', $hunt_id = 0 ) {
 
 	$placement        = sanitize_key( $placement );
 	$allowed_placings = array( 'none', 'footer', 'bottom', 'sidebar', 'shortcode' );
-	if ( class_exists( 'BHG_Ads' ) ) {
+	if ( class_exists( 'BHG_Ads' ) && method_exists( 'BHG_Ads', 'get_allowed_placements' ) ) {
 		$allowed_placings = BHG_Ads::get_allowed_placements();
 	}
 
@@ -990,7 +990,7 @@ function bhg_render_ads( $placement = 'footer', $hunt_id = 0 ) {
 
 	$rows = $wpdb->get_results(
 		$wpdb->prepare(
-			"SELECT content, link_url, visible_to, target_pages FROM {$tbl} WHERE active = 1 AND placement = %s ORDER BY id DESC",
+			"SELECT id, content, link_url, placement, visible_to, target_pages FROM {$tbl} WHERE active = 1 AND placement = %s ORDER BY id DESC",
 			$placement
 		)
 	);
@@ -1010,49 +1010,64 @@ function bhg_render_ads( $placement = 'footer', $hunt_id = 0 ) {
 		);
 	}
 
-	$ads_output         = array();
-	$placement_class    = sanitize_html_class( $placement );
-	$allowed_visibility = array( 'all', 'guests', 'logged_in', 'affiliates', 'non_affiliates' );
+	$placement_class = sanitize_html_class( $placement );
+	$ads_output      = array();
+	$context         = array(
+		'affiliate_site_id' => $hunt_site_id,
+	);
 
 	foreach ( $rows as $row ) {
-		$visibility = isset( $row->visible_to ) ? sanitize_key( $row->visible_to ) : 'all';
-		if ( ! in_array( $visibility, $allowed_visibility, true ) ) {
-			$visibility = 'all';
+		$can_use_class_helpers = class_exists( 'BHG_Ads' ) && method_exists( 'BHG_Ads', 'should_display_row' );
+		if ( $can_use_class_helpers ) {
+			if ( ! BHG_Ads::should_display_row( $row, $context ) ) {
+				continue;
+			}
+
+			$markup = method_exists( 'BHG_Ads', 'get_row_markup' ) ? BHG_Ads::get_row_markup( $row ) : '';
+			if ( '' === $markup ) {
+				continue;
+			}
+
+			$ads_output[] = $markup;
+			continue;
 		}
 
-		$should_show = false;
+		$visibility = isset( $row->visible_to ) ? sanitize_key( $row->visible_to ) : 'all';
 		switch ( $visibility ) {
 			case 'guests':
-				$should_show = ! is_user_logged_in();
+				if ( is_user_logged_in() ) {
+					continue 2;
+				}
 				break;
 			case 'logged_in':
-				$should_show = is_user_logged_in();
+				if ( ! is_user_logged_in() ) {
+					continue 2;
+				}
 				break;
 			case 'affiliates':
-				if ( is_user_logged_in() ) {
-					$user_id    = get_current_user_id();
-					$should_show = $hunt_site_id > 0
-						? bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_site_id )
-						: bhg_is_user_affiliate( (int) $user_id );
+				if ( ! is_user_logged_in() ) {
+					continue 2;
+				}
+				$uid         = get_current_user_id();
+				$is_affiliate = $hunt_site_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' )
+					? bhg_is_user_affiliate_for_site( (int) $uid, (int) $hunt_site_id )
+					: ( function_exists( 'bhg_is_user_affiliate' ) ? bhg_is_user_affiliate( (int) $uid ) : (bool) get_user_meta( (int) $uid, 'bhg_is_affiliate', true ) );
+				if ( ! $is_affiliate ) {
+					continue 2;
 				}
 				break;
 			case 'non_affiliates':
-				if ( is_user_logged_in() ) {
-					$user_id = get_current_user_id();
-					$is_aff  = $hunt_site_id > 0
-						? bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_site_id )
-						: bhg_is_user_affiliate( (int) $user_id );
-					$should_show = ! $is_aff;
+				if ( ! is_user_logged_in() ) {
+					continue 2;
+				}
+				$uid         = get_current_user_id();
+				$is_affiliate = $hunt_site_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' )
+					? bhg_is_user_affiliate_for_site( (int) $uid, (int) $hunt_site_id )
+					: ( function_exists( 'bhg_is_user_affiliate' ) ? bhg_is_user_affiliate( (int) $uid ) : (bool) get_user_meta( (int) $uid, 'bhg_is_affiliate', true ) );
+				if ( $is_affiliate ) {
+					continue 2;
 				}
 				break;
-			case 'all':
-			default:
-				$should_show = true;
-				break;
-		}
-
-		if ( ! $should_show ) {
-			continue;
 		}
 
 		$target_pages = isset( $row->target_pages ) ? trim( (string) $row->target_pages ) : '';
@@ -1107,6 +1122,7 @@ function bhg_render_ads( $placement = 'footer', $hunt_id = 0 ) {
 		implode( "\n", $ads_output )
 	);
 }
+
 
 // Demo reset and seed data.
 if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
