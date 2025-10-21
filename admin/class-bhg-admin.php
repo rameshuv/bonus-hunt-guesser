@@ -48,21 +48,20 @@ class BHG_Admin {
 		$cap  = 'manage_options';
 		$slug = 'bhg';
 
-		add_menu_page(
-			bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
-			bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
-			$cap,
-			$slug,
-			array( $this, 'dashboard' ),
-			'dashicons-awards',
-			55
-		);
+                add_menu_page(
+                        bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
+                        bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
+                        $cap,
+                        $slug,
+                        array( $this, 'dashboard' ),
+                        'dashicons-awards',
+                        55
+                );
 
-		add_submenu_page( $slug, bhg_t( 'menu_dashboard', 'Dashboard' ), bhg_t( 'menu_dashboard', 'Dashboard' ), $cap, $slug, array( $this, 'dashboard' ) );
                 add_submenu_page( $slug, bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), $cap, 'bhg-bonus-hunts', array( $this, 'bonus_hunts' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_prizes', 'Prizes' ), bhg_t( 'menu_prizes', 'Prizes' ), $cap, 'bhg-prizes', array( $this, 'prizes' ) );
                 add_submenu_page( $slug, bhg_t( 'button_results', 'Results' ), bhg_t( 'button_results', 'Results' ), $cap, 'bhg-bonus-hunts-results', array( $this, 'bonus_hunts_results' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_tournaments', 'Tournaments' ), bhg_t( 'menu_tournaments', 'Tournaments' ), $cap, 'bhg-tournaments', array( $this, 'tournaments' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_tournaments', 'Tournaments' ), bhg_t( 'menu_tournaments', 'Tournaments' ), $cap, 'bhg-tournaments', array( $this, 'tournaments' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
@@ -78,16 +77,16 @@ class BHG_Admin {
 			array( $this, 'bhg_tools_page' )
 		);
 
-		if ( class_exists( 'BHG_Demo' ) ) {
-			BHG_Demo::instance()->register_menu( $slug, $cap );
-		}
+                if ( class_exists( 'BHG_Demo' ) ) {
+                        BHG_Demo::instance()->register_menu( $slug, $cap );
+                }
 
-                // NOTE: By default, WordPress adds a submenu item that duplicates the
-                // top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
-                // call removed this submenu, but it also inadvertently removed our
-                // custom “Dashboard” submenu. Removing the call ensures the Dashboard
-		// item remains visible under the "Bonus Hunt" menu.
-	}
+                // Ensure the automatically generated first submenu entry reads "Dashboard".
+                global $submenu;
+                if ( isset( $submenu[ $slug ][0][0] ) ) {
+                        $submenu[ $slug ][0][0] = bhg_t( 'menu_dashboard', 'Dashboard' );
+                }
+        }
 
 		/**
 		 * Enqueue admin assets on BHG screens.
@@ -337,7 +336,8 @@ class BHG_Admin {
                         }
                 }
                 $primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
-		$winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
+                $winners_input         = isset( $_POST['winners_count'] ) ? absint( wp_unslash( $_POST['winners_count'] ) ) : 3;
+                $winners_count         = min( 25, max( 1, $winners_input ) );
 		$guessing_enabled      = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
                $final_balance_raw = isset( $_POST['final_balance'] ) ? wp_unslash( $_POST['final_balance'] ) : '';
                $final_balance     = null;

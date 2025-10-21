@@ -34,7 +34,7 @@ if ( ! $hunt ) {
 }
 
 $rows          = bhg_get_all_ranked_guesses( $hunt_id );
-$winners_count = (int) ( $hunt->winners_count ?? 3 );
+$winners_count = min( 25, max( 1, (int) ( $hunt->winners_count ?? 3 ) ) );
 ?>
 <div class="wrap">
         <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title ) ); ?></h1>

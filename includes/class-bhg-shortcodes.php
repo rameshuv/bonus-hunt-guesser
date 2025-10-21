@@ -388,21 +388,21 @@ $wpdb->usermeta,
 		       $final_balance = '' === $final_balance ? null : $final_balance;
 		       $has_final     = null !== $final_balance;
 
-		       if ( $has_final ) {
+                       if ( $has_final ) {
                                $sql = sprintf(
-                                       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, (%%f - g.guess) AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC, g.id ASC LIMIT %%d OFFSET %%d',
+                                       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, ABS(%%f - g.guess) AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY diff ASC, g.id ASC LIMIT %%d OFFSET %%d',
                                        $guesses_table,
                                        $users_table
                                );
-			       $rows = $wpdb->get_results(
-				       $wpdb->prepare(
-					       $sql,
-					       (float) $final_balance,
-					       $selected_hunt_id,
-					       $per_page,
-					       $offset
-				       )
-			       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                               $rows = $wpdb->get_results(
+                                       $wpdb->prepare(
+                                               $sql,
+                                               (float) $final_balance,
+                                               $selected_hunt_id,
+                                               $per_page,
+                                               $offset
+                                       )
+                               ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		       } else {
                                $sql = sprintf(
                                        'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, NULL AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY g.created_at ASC, g.id ASC LIMIT %%d OFFSET %%d',
@@ -541,9 +541,9 @@ $wpdb->usermeta,
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'Username' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
-				       if ( $has_final ) {
-					       $diff = isset( $row->diff ) ? (float) $row->diff : 0.0;
-					       echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_currency( $diff ) ) . '</td>';
+                                       if ( $has_final ) {
+                                               $diff = isset( $row->diff ) ? abs( (float) $row->diff ) : 0.0;
+                                               echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_currency( $diff ) ) . '</td>';
 				       }
 				       echo '</tr>';
 			       }
@@ -2641,7 +2641,7 @@ $wpdb->usermeta,
 					foreach ( $winners as $w ) {
 						$u  = get_userdata( (int) $w->user_id );
 						$nm = $u ? $u->user_login : sprintf( bhg_t( 'label_user_number', 'User #%d' ), (int) $w->user_id );
-											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_currency( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_currency( (float) $w->diff ) ) . ')</li>';
+                                                                                   echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_currency( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_currency( abs( (float) $w->diff ) ) ) . ')</li>';
 					}
 					echo '</ul>';
 				}

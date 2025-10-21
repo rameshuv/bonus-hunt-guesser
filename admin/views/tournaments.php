@@ -31,11 +31,12 @@ if ( isset( $_GET['s'] ) ) {
 $orderby_param   = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order_param     = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
 $allowed_orderby = array(
-	'id'         => 'id',
-	'title'      => 'title',
-	'start_date' => 'start_date',
-	'end_date'   => 'end_date',
-	'status'     => 'status',
+        'id'         => 'id',
+        'title'      => 'title',
+        'type'       => 'type',
+        'start_date' => 'start_date',
+        'end_date'   => 'end_date',
+        'status'     => 'status',
 );
 $orderby_column  = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'id';
 $order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
@@ -80,6 +81,18 @@ $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
 }
+$type_options = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+$type_labels  = array(
+        'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+        'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+        'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+        'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+        'alltime'   => bhg_t( 'all_time', 'All Time' ),
+);
+$type_value   = isset( $row->type ) ? sanitize_key( $row->type ) : 'monthly';
+if ( ! in_array( $type_value, $type_options, true ) ) {
+        $type_value = 'monthly';
+}
 $hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
 $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
 ?>
@@ -120,19 +133,32 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 				) . '">' . esc_html( bhg_t( 'id', 'ID' ) ) . '</a>';
 				?>
 				</th>
-				<th>
-				<?php
-				$n = ( 'title' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
-				echo '<a href="' . esc_url(
-					add_query_arg(
-						array(
-							'orderby' => 'title',
-							'order'   => $n,
-						)
-					)
-				) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a>';
-				?>
-				</th>
+                                <th>
+                                <?php
+                                $n = ( 'title' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+                                echo '<a href="' . esc_url(
+                                        add_query_arg(
+                                                array(
+                                                        'orderby' => 'title',
+                                                        'order'   => $n,
+                                                )
+                                        )
+                                ) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a>';
+                                ?>
+                                </th>
+                                <th>
+                                <?php
+                                $n = ( 'type' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+                                echo '<a href="' . esc_url(
+                                        add_query_arg(
+                                                array(
+                                                        'orderby' => 'type',
+                                                        'order'   => $n,
+                                                )
+                                        )
+                                ) . '">' . esc_html( bhg_t( 'type', 'Type' ) ) . '</a>';
+                                ?>
+                                </th>
 				<th>
 				<?php
 				$n = ( 'start_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
@@ -186,7 +212,7 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 		</thead>
 		<tbody>
 				<?php if ( empty( $rows ) ) : ?>
-				<tr><td colspan="7"><em>
+                                <tr><td colspan="8"><em>
 						<?php
 						echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
 						?>
@@ -197,7 +223,14 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 				?>
 		<tr>
 <td><?php echo esc_html( (int) $r->id ); ?></td>
-			<td><?php echo esc_html( $r->title ); ?></td>
+                        <td><?php echo esc_html( $r->title ); ?></td>
+                        <td>
+                        <?php
+                        $type_slug   = sanitize_key( (string) $r->type );
+                        $type_output = isset( $type_labels[ $type_slug ] ) ? $type_labels[ $type_slug ] : ucfirst( $type_slug );
+                        echo esc_html( $type_output );
+                        ?>
+                        </td>
 			<td><?php echo esc_html( $r->start_date ); ?></td>
 						<td><?php echo esc_html( $r->end_date ); ?></td>
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
@@ -268,19 +301,33 @@ endif;
 </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
-</label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-				?>
+                <tr>
+                <th><label for="bhg_t_desc">
+                <?php
+                echo esc_html( bhg_t( 'description', 'Description' ) );
+                ?>
+                </label></th>
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_type">
+                                <?php
+                                echo esc_html( bhg_t( 'type', 'Type' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <select id="bhg_t_type" name="type">
+                                                <?php foreach ( $type_options as $option ) : ?>
+                                                                <option value="<?php echo esc_attr( $option ); ?>" <?php selected( $type_value, $option ); ?>><?php echo esc_html( $type_labels[ $option ] ?? ucfirst( $option ) ); ?></option>
+                                                <?php endforeach; ?>
+                                                </select>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
+                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                                ?>
 				</label></th>
 				<td>
 						<?php $pmode = $row->participants_mode ?? 'winners'; ?>

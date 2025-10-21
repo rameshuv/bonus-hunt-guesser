@@ -59,6 +59,7 @@ $winners_count = $hunt_row ? (int) $hunt_row->winners_count : 0;
 if ( $winners_count <= 0 ) {
 $winners_count = 1;
 }
+$winners_count = min( 25, $winners_count );
 $tournament_ids = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( $hunt_id ) : array();
 if ( empty( $tournament_ids ) && $hunt_row && ! empty( $hunt_row->tournament_id ) ) {
 $tournament_ids = array( (int) $hunt_row->tournament_id );
@@ -205,8 +206,8 @@ $has_all_mode = in_array( 'all', $tournament_modes, true );
 			}
 		}
 // Fetch winners based on proximity to final balance.
-                $query  = 'SELECT user_id, guess, (%f - guess) AS diff FROM ' . $guesses_tbl . ' WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC';
-                $params = array( (float) $final_balance, (int) $hunt_id, (float) $final_balance );
+                $query  = 'SELECT user_id, guess, ABS(%f - guess) AS diff FROM ' . $guesses_tbl . ' WHERE hunt_id = %d ORDER BY diff ASC, id ASC';
+                $params = array( (float) $final_balance, (int) $hunt_id );
                 if ( ! $has_all_mode ) {
                         $query   .= ' LIMIT %d';
                         $params[] = (int) $winners_count;

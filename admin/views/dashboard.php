@@ -82,11 +82,12 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																		<?php foreach ( $hunts as $h ) : ?>
 																			<?php
 																			$hunt_id       = isset( $h->id ) ? (int) $h->id : 0;
-																			$winners_count = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
-																			$winners       = array();
+                                                                                                                               $raw_winners_count = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
+                                                                                                                               $winners_count     = min( 25, max( 1, $raw_winners_count ) );
+                                                                                                                               $winners           = array();
 
 																			if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
-																					$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_count );
+                                                                                                                               $winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_count );
 																				if ( ! is_array( $winners ) ) {
 																					$winners = array();
 																				}
@@ -101,7 +102,7 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																				foreach ( $winners as $w ) {
 																					$user_id = isset( $w->user_id ) ? (int) $w->user_id : 0;
 																					$guess   = isset( $w->guess ) ? (float) $w->guess : 0.0;
-																					$diff    = isset( $w->diff ) ? (float) $w->diff : 0.0;
+                                                                                                                               $diff    = isset( $w->diff ) ? abs( (float) $w->diff ) : 0.0;
 
 																					$u  = $user_id ? get_userdata( $user_id ) : false;
 																					$nm = $u ? $u->user_login : sprintf(
