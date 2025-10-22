@@ -59,7 +59,7 @@ $wpdb->prefix . 'bhg_tournaments',
 $wpdb->prefix . 'bhg_tournament_results',
 $wpdb->prefix . 'bhg_affiliate_websites',
 $wpdb->prefix . 'bhg_hunt_winners',
-$wpdb->prefix . 'bhg_hunt_tournaments',
+$wpdb->prefix . 'bhg_tournaments_hunts',
 $wpdb->users,
 $wpdb->usermeta,
 );
@@ -367,10 +367,11 @@ $wpdb->usermeta,
                                $hunt_prizes = BHG_Prizes::get_prizes_for_hunt( $selected_hunt_id, array( 'active_only' => true ) );
                        }
 
-                       $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 30 );
-                       if ( $per_page <= 0 ) {
-                               $per_page = 30;
-                       }
+        $default_per_page = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_active_hunt' ) : 30;
+        $per_page         = (int) apply_filters( 'bhg_active_hunt_per_page', $default_per_page );
+        if ( $per_page <= 0 ) {
+                $per_page = $default_per_page;
+        }
 
 		       $current_page = 1;
 		       if ( isset( $_GET['bhg_hunt_page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data.
@@ -475,7 +476,7 @@ $wpdb->usermeta,
 		       echo '<div class="bhg-hunt-card">';
 		       echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
                        echo '<ul class="bhg-hunt-meta">';
-                       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
+                       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $selected_hunt->starting_balance ) ) . '</li>';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
 
                        $opened_at = isset( $selected_hunt->created_at ) ? (string) $selected_hunt->created_at : '';
@@ -509,7 +510,7 @@ $wpdb->usermeta,
                                echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
                        }
                        if ( $has_final ) {
-                               echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $final_balance ) ) . '</li>';
+                               echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $final_balance ) ) . '</li>';
                        }
                        echo '</ul>';
 
@@ -540,10 +541,10 @@ $wpdb->usermeta,
 				       echo '<tr>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'Username' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
-				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
+				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
 				       if ( $has_final ) {
 					       $diff = isset( $row->diff ) ? (float) $row->diff : 0.0;
-					       echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_currency( $diff ) ) . '</td>';
+					       echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_money( $diff ) ) . '</td>';
 				       }
 				       echo '</tr>';
 			       }
@@ -724,7 +725,7 @@ $wpdb->usermeta,
 						'order'    => 'ASC',
                                                'fields'   => 'position,user,guess',
                                                'paged'    => 1,
-                                               'per_page' => 30,
+                                               'per_page' => function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_leaderboard' ) : 30,
                                                'search'   => '',
 					),
 					$atts,
@@ -895,7 +896,7 @@ $wpdb->usermeta,
 					} elseif ( 'user' === $field ) {
 																											echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 					} elseif ( 'guess' === $field ) {
-						echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
+						echo '<td data-column="guess">' . esc_html( bhg_format_money( (float) $r->guess ) ) . '</td>';
 					}
 				}
 								echo '</tr>';
@@ -973,8 +974,12 @@ $wpdb->usermeta,
 
         $paged               = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
         $search              = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-        $limit               = 30;
-        $offset              = ( $paged - 1 ) * $limit;
+        $per_page_default    = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_user_guesses' ) : 30;
+        $per_page            = (int) apply_filters( 'bhg_user_guesses_per_page', $per_page_default );
+        if ( $per_page <= 0 ) {
+                $per_page = $per_page_default;
+        }
+        $offset              = ( $paged - 1 ) * $per_page;
         $has_orderby_query   = isset( $_GET['bhg_orderby'] );
         $orderby_request     = $has_orderby_query ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
         $has_order_query     = isset( $_GET['bhg_order'] );
@@ -1293,12 +1298,12 @@ $wpdb->usermeta,
                         $user_cell .= '<span class="bhg-user-name">' . esc_html( $user_display ) . '</span>';
                         echo '<td>' . wp_kses_post( $user_cell ) . '</td>';
                 }
-                echo '<td>' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
+                echo '<td>' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
                 if ( $need_site ) {
                         echo '<td>' . esc_html( $row->site_name ? $row->site_name : bhg_t( 'label_emdash', '—' ) ) . '</td>';
                 }
-                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-                echo '<td>' . ( isset( $row->difference ) ? esc_html( bhg_format_currency( (float) $row->difference ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_money( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                echo '<td>' . ( isset( $row->difference ) ? esc_html( bhg_format_money( (float) $row->difference ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                 echo '</tr>';
         }
         echo '</tbody></table>';
@@ -1368,8 +1373,12 @@ $wpdb->usermeta,
 
                         $paged           = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
                         $search          = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                        $limit           = 30;
-                        $offset          = ( $paged - 1 ) * $limit;
+                        $per_page_default = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_hunts' ) : 30;
+                        $per_page        = (int) apply_filters( 'bhg_hunts_per_page', $per_page_default );
+                        if ( $per_page <= 0 ) {
+                                $per_page = $per_page_default;
+                        }
+                        $offset          = ( $paged - 1 ) * $per_page;
                         $orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
                         $order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
 
@@ -1463,13 +1472,13 @@ $wpdb->usermeta,
                                 $sql .= ' WHERE ' . implode( ' AND ', $where );
                         }
                         $sql     .= $order_sql . ' LIMIT %d OFFSET %d';
-                        $params[] = $limit;
+                        $params[] = $per_page;
                         $params[] = $offset;
 
                         // db call ok; no-cache ok.
                         $sql  = $wpdb->prepare( $sql, ...$params );
                         $rows  = $wpdb->get_results( $sql );
-                        $pages = (int) ceil( $total / $limit );
+                        $pages = (int) ceil( $total / $per_page );
 
                         $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
                         $base_url    = remove_query_arg( array( 'bhg_orderby', 'bhg_order', 'bhg_paged' ), $current_url );
@@ -1532,8 +1541,8 @@ $wpdb->usermeta,
 			foreach ( $rows as $row ) {
 				echo '<tr>';
 				echo '<td>' . esc_html( $row->title ) . '</td>';
-							echo '<td>' . esc_html( bhg_format_currency( (float) $row->starting_balance ) ) . '</td>';
-                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+							echo '<td>' . esc_html( bhg_format_money( (float) $row->starting_balance ) ) . '</td>';
+                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_money( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                                 $winners_display = isset( $row->winners_count ) ? number_format_i18n( (int) $row->winners_count ) : bhg_t( 'label_emdash', '—' );
                                 echo '<td>' . esc_html( $winners_display ) . '</td>';
                                 $status_key = strtolower( (string) $row->status );
@@ -1682,7 +1691,7 @@ $wpdb->usermeta,
 
                         $tournaments_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
                         $hunts_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $hunt_map_table    = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $hunt_map_table    = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
                         $sites_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 
                         if ( $tournaments_table ) {
@@ -1883,7 +1892,7 @@ $wpdb->usermeta,
 			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
                         $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
 			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_tournaments' ) );
+                        $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
 			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
                         if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um || ! $ht ) {
                                 return '';
@@ -2231,12 +2240,12 @@ $wpdb->usermeta,
 				}
 
 					// db call ok; no-cache ok.
-										$tournament = $wpdb->get_row(
-											$wpdb->prepare(
-												"SELECT id, type, start_date, end_date, status FROM {$t} WHERE id = %d",
-												$details_id
-											)
-										);
+                                                                                $tournament = $wpdb->get_row(
+                                                                                        $wpdb->prepare(
+                                                                                                "SELECT id, start_date, end_date, status, participants_mode FROM {$t} WHERE id = %d",
+                                                                                                $details_id
+                                                                                        )
+                                                                                );
 				if ( ! $tournament ) {
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
@@ -2282,11 +2291,14 @@ $wpdb->usermeta,
 					ob_start();
 					echo '<div class="bhg-tournament-details">';
 					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
-					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
-					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
-					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
-									$status_key = strtolower( (string) $tournament->status );
-									echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+                                        $start_display = $tournament->start_date ? mysql2date( get_option( 'date_format' ), $tournament->start_date ) : bhg_t( 'label_emdash', '—' );
+                                        $end_display   = $tournament->end_date ? mysql2date( get_option( 'date_format' ), $tournament->end_date ) : bhg_t( 'label_emdash', '—' );
+                                        echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( $start_display ) . ' &nbsp; ';
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( $end_display ) . ' &nbsp; ';
+                                                                        $status_key = strtolower( (string) $tournament->status );
+                                                                        echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+                                        $mode_display = 'winners' === $tournament->participants_mode ? bhg_t( 'winners', 'Winners' ) : bhg_t( 'all', 'All' );
+                                        echo '<p><strong>' . esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) ) . ':</strong> ' . esc_html( $mode_display ) . '</p>';
 
 				if ( ! $rows ) {
 					echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
@@ -2353,8 +2365,12 @@ $wpdb->usermeta,
                        $website    = absint( $a['website'] );
                        $paged      = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
                        $search     = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-                       $limit      = 30;
-                       $offset     = ( $paged - 1 ) * $limit;
+                       $per_page_default = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'shortcode_tournaments' ) : 30;
+                       $per_page        = (int) apply_filters( 'bhg_tournaments_per_page', $per_page_default );
+                       if ( $per_page <= 0 ) {
+                               $per_page = $per_page_default;
+                       }
+                       $offset     = ( $paged - 1 ) * $per_page;
 
                        $orderby_param = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
                        $order_param   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
@@ -2406,7 +2422,7 @@ $wpdb->usermeta,
                        $total     = (int) ( $params ? $wpdb->get_var( $wpdb->prepare( $count_sql, ...$params ) ) : $wpdb->get_var( $count_sql ) );
 
                        $sql         = 'SELECT * FROM ' . $t . $where_sql . ' ORDER BY ' . $orderby_column . ' ' . $order_param . ' LIMIT %d OFFSET %d'; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Order by clause sanitized via whitelist.
-                       $query_args  = array_merge( $params, array( $limit, $offset ) );
+                       $query_args  = array_merge( $params, array( $per_page, $offset ) );
                        $rows        = $wpdb->get_results( $wpdb->prepare( $sql, ...$query_args ) ); // db call ok; no-cache ok.
                        if ( ! $rows ) {
                                return '<p>' . esc_html( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ) ) . '</p>';
@@ -2509,7 +2525,7 @@ $wpdb->usermeta,
 
                        echo '</tbody></table>';
 
-                       $pages = (int) ceil( $total / $limit );
+                       $pages = (int) ceil( $total / $per_page );
                        if ( $pages > 1 ) {
                                $pagination = paginate_links(
                                        array(
@@ -2633,7 +2649,7 @@ $wpdb->usermeta,
 				echo '<div class="bhg-winner">';
 				echo '<p><strong>' . esc_html( $hunt->title ) . '</strong></p>';
 				if ( null !== $hunt->final_balance ) {
-					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_currency( (float) $hunt->final_balance ) ) . '</p>';
+					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_money( (float) $hunt->final_balance ) ) . '</p>';
 				}
 
 				if ( $winners ) {
@@ -2641,7 +2657,7 @@ $wpdb->usermeta,
 					foreach ( $winners as $w ) {
 						$u  = get_userdata( (int) $w->user_id );
 						$nm = $u ? $u->user_login : sprintf( bhg_t( 'label_user_number', 'User #%d' ), (int) $w->user_id );
-											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_currency( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_currency( (float) $w->diff ) ) . ')</li>';
+											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_money( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_money( (float) $w->diff ) ) . ')</li>';
 					}
 					echo '</ul>';
 				}

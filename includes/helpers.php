@@ -55,13 +55,37 @@ function bhg_slugify( $text ) {
  * @return string
  */
 function bhg_admin_cap() {
-	return apply_filters( 'bhg_admin_capability', 'manage_options' );
+        return apply_filters( 'bhg_admin_capability', 'manage_options' );
+}
+
+/**
+ * Retrieve the standard per-page amount used for listings.
+ *
+ * Applies the global `bhg_per_page` filter and a contextual
+ * `bhg_per_page_{context}` filter (when a context is provided) so integrators
+ * can adjust pagination limits without editing core files.
+ *
+ * @param string $context Optional context identifier.
+ * @return int Sanitized per-page value (defaults to 30).
+ */
+function bhg_get_per_page( $context = '' ) {
+        $default   = defined( 'BHG_PER_PAGE' ) ? (int) BHG_PER_PAGE : 30;
+        $per_page  = (int) apply_filters( 'bhg_per_page', $default, $context );
+        $ctx_key   = $context ? sanitize_key( $context ) : '';
+        if ( $ctx_key ) {
+                $per_page = (int) apply_filters( "bhg_per_page_{$ctx_key}", $per_page, $ctx_key );
+        }
+        if ( $per_page <= 0 ) {
+                $per_page = $default;
+        }
+
+        return $per_page;
 }
 
 // Smart login redirect back to referring page.
 add_filter(
-	'login_redirect',
-	function ( $redirect_to, $requested_redirect_to, $user ) {
+        'login_redirect',
+        function ( $redirect_to, $requested_redirect_to, $user ) {
 		$r = isset( $_REQUEST['bhg_redirect'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['bhg_redirect'] ) ) : '';
 		if ( ! empty( $r ) ) {
 				$safe      = esc_url_raw( $r );
@@ -214,6 +238,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			// Form/field labels.
 			'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
+                        'label_prize'                                  => 'Prize',
                         'label_prizes'                                 => 'Prizes',
                         'category'                                     => 'Category',
 			'label_submit_guess'                           => 'Submit Guess',
@@ -786,24 +811,55 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
-		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
-		$map      = array(
-			'usd' => '$',
-			'eur' => '€',
-		);
-		$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
-		return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+        $currency = get_option( 'bhg_currency', '' );
+
+        if ( '' === $currency ) {
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                if ( isset( $settings['currency'] ) ) {
+                        $currency = (string) $settings['currency'];
+                }
+        }
+
+        $currency = strtoupper( $currency );
+
+        $map = array(
+                'USD' => '$',
+                'EUR' => '€',
+        );
+
+        if ( ! isset( $map[ $currency ] ) ) {
+                $currency = 'EUR';
+        }
+
+        $symbol = $map[ $currency ];
+
+        return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
- * Format an amount as currency using the selected symbol.
+ * Format an amount as money using the selected currency symbol.
+ *
+ * @param float $amount Amount to format.
+ * @return string
+ */
+function bhg_format_money( $amount ) {
+        $formatted = sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+
+        return apply_filters( 'bhg_format_money', $formatted, $amount );
+}
+
+/**
+ * Back-compat wrapper for the deprecated bhg_format_currency() helper.
  *
  * @param float $amount Amount to format.
  * @return string
  */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+        if ( function_exists( '_deprecated_function' ) ) {
+                _deprecated_function( __FUNCTION__, '8.0.14', 'bhg_format_money' );
+        }
+
+        return bhg_format_money( $amount );
 }
 
 /**
@@ -856,10 +912,26 @@ if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
 	 * @param int $user_id User ID.
 	 * @return bool
 	 */
-	function bhg_is_user_affiliate( $user_id ) {
-		$val = get_user_meta( (int) $user_id, 'bhg_is_affiliate', true );
-		return ( '1' === $val || 1 === $val || true === $val || 'yes' === $val );
-	}
+        function bhg_is_user_affiliate( $user_id ) {
+                $user_id = (int) $user_id;
+                $val     = get_user_meta( $user_id, 'bhg_is_affiliate', true );
+
+                if ( '1' === $val || 1 === $val || true === $val || 'yes' === $val ) {
+                        return true;
+                }
+
+                if ( function_exists( 'bhg_get_user_affiliate_websites' ) ) {
+                        $sites = bhg_get_user_affiliate_websites( $user_id );
+                        return ! empty( $sites );
+                }
+
+                $sites_meta = get_user_meta( $user_id, 'bhg_affiliate_websites', true );
+                if ( is_array( $sites_meta ) ) {
+                        return ! empty( $sites_meta );
+                }
+
+                return is_string( $sites_meta ) && '' !== $sites_meta;
+        }
 }
 
 if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {
@@ -1245,12 +1317,12 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 				$month_key = gmdate( 'Y-m', $ts );
 				$year_key  = gmdate( 'Y', $ts );
 
-				$ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
-						$now   = current_time( 'mysql', 1 );
-						$start = $now;
-						$end   = $now;
+                                $ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
+                                                $now   = current_time( 'mysql', 1 );
+                                                $start = $now;
+                                                $end   = $now;
 
-					if ( 'weekly' === $type ) {
+                                        if ( 'weekly' === $type ) {
 						$start = gmdate( 'Y-m-d', strtotime( $period . '-1' ) );
 						$end   = gmdate( 'Y-m-d', strtotime( $period . '-7' ) );
 					} elseif ( 'monthly' === $type ) {
@@ -1261,30 +1333,34 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						$end   = $period . '-12-31';
 					}
 
-																				$sql = $wpdb->prepare(
-																					"SELECT id FROM {$t_tbl} WHERE type=%s AND start_date=%s AND end_date=%s",
-																					$type,
-																					$start,
-																					$end
-																				);
-																				$id  = $wpdb->get_var( $sql );
-					if ( $id ) {
-						return (int) $id;
-					}
-						$wpdb->insert(
-							$t_tbl,
-							array(
-								'type'       => $type,
-								'start_date' => $start,
-								'end_date'   => $end,
-								'status'     => 'active',
-								'created_at' => $now,
-								'updated_at' => $now,
-							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s' )
-						);
-						return (int) $wpdb->insert_id;
-				};
+                                $sql = $wpdb->prepare(
+                                                                                                                               "SELECT id FROM {$t_tbl} WHERE start_date=%s AND end_date=%s AND hunt_link_mode=%s",
+                                                                                                                               $start,
+                                                                                                                               $end,
+                                                                                                                               'auto'
+                                                                                                                               );
+                                                                                                                               $id  = $wpdb->get_var( $sql );
+                                        if ( $id ) {
+                                                return (int) $id;
+                                        }
+                                                $title = sprintf( 'Auto %s %s', ucfirst( $type ), $period );
+                                                $wpdb->insert(
+                                                        $t_tbl,
+                                                        array(
+                                                                'title'             => $title,
+                                                                'description'       => '',
+                                                                'participants_mode' => 'winners',
+                                                                'hunt_link_mode'    => 'auto',
+                                                                'start_date'        => $start,
+                                                                'end_date'          => $end,
+                                                                'status'            => 'active',
+                                                                'created_at'        => $now,
+                                                                'updated_at'        => $now,
+                                                        ),
+                                                        array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+                                                );
+                                                return (int) $wpdb->insert_id;
+                                };
 
                                                $uid = isset( $row->user_id ) ? (int) $row->user_id : 0;
                                                if ( $uid <= 0 ) {
