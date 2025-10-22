@@ -148,13 +148,13 @@ class BHG_Demo {
 		$result = false;
 
 		if ( function_exists( 'bhg_reset_demo_and_seed' ) ) {
-                        try {
-                                bhg_reset_demo_and_seed();
-                                $result = true;
-                        } catch ( Throwable $throwable ) {
-                                do_action( 'bhg_demo_reset_error', $throwable );
-                        }
-                }
+			try {
+					bhg_reset_demo_and_seed();
+					$result = true;
+			} catch ( Throwable $throwable ) {
+					do_action( 'bhg_demo_reset_error', $throwable );
+			}
+		}
 
 		$this->redirect( $result ? 'demo_reset_ok' : 'demo_reset_error' );
 	}
@@ -207,19 +207,19 @@ class BHG_Demo {
 
 		$prefix = $wpdb->prefix;
 		$tables = array(
-			'hunts'       => array(
+			'hunts'        => array(
 				'label' => bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ),
 				'table' => "{$prefix}bhg_bonus_hunts",
 			),
-			'guesses'     => array(
+			'guesses'      => array(
 				'label' => bhg_t( 'guesses', 'Guesses' ),
 				'table' => "{$prefix}bhg_guesses",
 			),
-			'tournaments' => array(
+			'tournaments'  => array(
 				'label' => bhg_t( 'tournaments', 'Tournaments:' ),
 				'table' => "{$prefix}bhg_tournaments",
 			),
-			'ads'         => array(
+			'ads'          => array(
 				'label' => bhg_t( 'ads', 'Ads:' ),
 				'table' => "{$prefix}bhg_ads",
 			),
@@ -231,9 +231,11 @@ class BHG_Demo {
 
 		foreach ( $tables as $key => $info ) {
 			$table = esc_sql( $info['table'] );
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 
 			if ( $exists === $table ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Counting rows for diagnostics display.
 				$tables[ $key ]['count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
 			} else {
 				$tables[ $key ]['count'] = null;
