@@ -276,7 +276,6 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                         $tneed = array(
                                 'title'               => 'ADD COLUMN title VARCHAR(190) NOT NULL',
                                 'description'         => 'ADD COLUMN description TEXT NULL',
-                                'type'                => 'ADD COLUMN type VARCHAR(20) NOT NULL',
                                 'participants_mode'   => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
                                 'hunt_link_mode'      => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
                                 'prizes'              => 'ADD COLUMN prizes TEXT NULL',
