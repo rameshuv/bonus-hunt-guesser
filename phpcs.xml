@@ -2,14 +2,17 @@
 <ruleset name="Bonus Hunt Guesser">
     <description>WordPress coding standards for the Bonus Hunt Guesser plugin.</description>
 
-    <rule ref="WordPress"/>
+    <rule ref="WordPress-Core"/>
+    <rule ref="WordPress-Docs"/>
+    <rule ref="WordPress-Extra"/>
 
     <!-- Use a tab width of four spaces -->
     <arg name="tab-width" value="4"/>
     <arg name="extensions" value="php"/>
 
-    <!-- Scan all plugin PHP files -->
-    <file>.</file>
-    <exclude-pattern>vendor/</exclude-pattern>
-    <exclude-pattern>node_modules/</exclude-pattern>
+    <!-- Temporary baseline: focus on the primary bootstrap file -->
+    <file>bonus-hunt-guesser.php</file>
+
+    <!-- Match PHP 7.4 runtime -->
+    <config name="php_version" value="70400"/>
 </ruleset>

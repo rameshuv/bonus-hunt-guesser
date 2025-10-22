@@ -12,20 +12,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="wrap bhg-wrap">
 	<h1><?php echo esc_html( bhg_t( 'bhg_tools', 'BHG Tools' ) ); ?></h1>
 
-        <?php
-        global $wpdb;
+<?php
+global $wpdb;
 
-        $hunts_table       = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-        $guesses_table     = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-        $users_table       = esc_sql( $wpdb->users );
-        $ads_table         = esc_sql( $wpdb->prefix . 'bhg_ads' );
-        $tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+$tables = array(
+	'hunts'       => esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' ),
+	'guesses'     => esc_sql( $wpdb->prefix . 'bhg_guesses' ),
+	'users'       => esc_sql( $wpdb->users ),
+	'ads'         => esc_sql( $wpdb->prefix . 'bhg_ads' ),
+	'tournaments' => esc_sql( $wpdb->prefix . 'bhg_tournaments' ),
+);
 
-        $hunts       = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$hunts_table}" );
-        $guesses     = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$guesses_table}" );
-        $users       = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$users_table}" );
-        $ads         = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$ads_table}" );
-        $tournaments = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$tournaments_table}" );
+	$counts = array(
+		'hunts'       => 0,
+		'guesses'     => 0,
+		'users'       => 0,
+		'ads'         => 0,
+		'tournaments' => 0,
+	);
+
+	foreach ( $tables as $key => $table_name ) {
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Simple aggregate count for diagnostics display.
+		$counts[ $key ] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" );
+	}
+
+	$hunts       = $counts['hunts'];
+	$guesses     = $counts['guesses'];
+	$users       = $counts['users'];
+	$ads         = $counts['ads'];
+	$tournaments = $counts['tournaments'];
 	?>
 
 	<div class="card" style="max-width:900px;padding:16px;margin-top:12px;">
