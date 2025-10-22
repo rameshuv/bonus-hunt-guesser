@@ -1380,8 +1380,9 @@ $wpdb->usermeta,
 				return '';
 			}
 
-			$where  = array();
-			$params = array();
+$period_case_sql = function_exists( 'bhg_sql_tournament_period_case' ) ? bhg_sql_tournament_period_case( 'start_date', 'end_date' ) : "'" . esc_sql( bhg_get_default_tournament_period_slug() ) . "'";
+$where           = array();
+$where_params    = array();
 
 			$id = (int) $a['id'];
 			if ( $id > 0 ) {
@@ -2230,13 +2231,19 @@ $wpdb->usermeta,
 					return '';
 				}
 
-					// db call ok; no-cache ok.
-										$tournament = $wpdb->get_row(
-											$wpdb->prepare(
-												"SELECT id, type, start_date, end_date, status FROM {$t} WHERE id = %d",
-												$details_id
-											)
-										);
+$period_case = function_exists( 'bhg_sql_tournament_period_case' ) ? bhg_sql_tournament_period_case( 'start_date', 'end_date' ) : "'" . esc_sql( bhg_get_default_tournament_period_slug() ) . "'";
+$select_sql  = "SELECT id, start_date, end_date, status";
+if ( $period_case ) {
+$select_sql .= ', ' . $period_case . ' AS period_slug';
+}
+
+// db call ok; no-cache ok.
+$tournament = $wpdb->get_row(
+$wpdb->prepare(
+$select_sql . " FROM {$t} WHERE id = %d",
+$details_id
+)
+);
 				if ( ! $tournament ) {
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
@@ -2282,7 +2289,14 @@ $wpdb->usermeta,
 					ob_start();
 					echo '<div class="bhg-tournament-details">';
 					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
-					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
+$period_slug  = isset( $tournament->period_slug ) ? sanitize_key( (string) $tournament->period_slug ) : '';
+if ( '' === $period_slug ) {
+$period_slug = function_exists( 'bhg_resolve_tournament_period_slug' )
+? bhg_resolve_tournament_period_slug( $tournament->start_date, $tournament->end_date )
+: bhg_get_default_tournament_period_slug();
+}
+$period_label = bhg_t( $period_slug, ucfirst( $period_slug ) );
+echo '<h3>' . esc_html( $period_label ) . '</h3>';
 					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
 					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
 									$status_key = strtolower( (string) $tournament->status );
@@ -2344,8 +2358,9 @@ $wpdb->usermeta,
                        if ( ! $t ) {
                                        return '';
                        }
-                       $where  = array();
-                       $params = array();
+                       $period_case_sql = function_exists( 'bhg_sql_tournament_period_case' ) ? bhg_sql_tournament_period_case( 'start_date', 'end_date' ) : "'" . esc_sql( bhg_get_default_tournament_period_slug() ) . "'";
+                       $where           = array();
+                       $where_params    = array();
 
                        $status     = isset( $_GET['bhg_status'] ) ? sanitize_key( wp_unslash( $_GET['bhg_status'] ) ) : sanitize_key( $a['status'] );
                        $timeline   = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : sanitize_key( $a['timeline'] );
@@ -2358,56 +2373,69 @@ $wpdb->usermeta,
 
                        $orderby_param = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
                        $order_param   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
-                       $allowed_orderby = array(
-                               'title'      => 'title',
-                               'start_date' => 'start_date',
-                               'end_date'   => 'end_date',
-                               'status'     => 'status',
-                               'type'       => 'type',
-                       );
-                       $orderby_column = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'start_date';
-                       $order_param    = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
+$allowed_orderby = array(
+'title'      => 'title',
+'start_date' => 'start_date',
+'end_date'   => 'end_date',
+'status'     => 'status',
+'period'     => 'period_slug',
+);
+$orderby_column = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'start_date';
+$order_param    = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
 
-                       if ( $tournament > 0 ) {
-                               $where[]  = 'id = %d';
-                               $params[] = $tournament;
-                       }
-                       if ( in_array( $status, array( 'active', 'closed' ), true ) ) {
-                               $where[]  = 'status = %s';
-                               $params[] = $status;
-                       }
+if ( $tournament > 0 ) {
+$where[]        = 'id = %d';
+$where_params[] = $tournament;
+}
+if ( in_array( $status, array( 'active', 'closed' ), true ) ) {
+$where[]        = 'status = %s';
+$where_params[] = $status;
+}
 
-                                           // Accept either explicit time window or tournament type.
-                       if ( in_array( $timeline, array( 'weekly', 'monthly', 'yearly', 'quarterly', 'alltime' ), true ) ) {
-                               $where[]  = 'type = %s';
-                               $params[] = $timeline;
-                       } else {
-                               $range = $this->get_timeline_range( $timeline );
-                               if ( $range ) {
-                                       $where[]  = 'created_at BETWEEN %s AND %s';
-                                       $params[] = $range['start'];
-                                       $params[] = $range['end'];
-                               }
-                       }
+$period_filter = '';
+if ( in_array( $timeline, array( 'weekly', 'monthly', 'yearly', 'quarterly', 'alltime' ), true ) ) {
+$period_filter = $timeline;
+} else {
+$range = $this->get_timeline_range( $timeline );
+if ( $range ) {
+$where[]        = 'created_at BETWEEN %s AND %s';
+$where_params[] = $range['start'];
+$where_params[] = $range['end'];
+}
+}
 
-                       if ( $website > 0 ) {
-                               $where[]  = 'affiliate_site_id = %d';
-                               $params[] = $website;
-                       }
+if ( $website > 0 ) {
+$where[]        = 'affiliate_site_id = %d';
+$where_params[] = $website;
+}
 
-                       if ( '' !== $search ) {
-                               $where[]  = 'title LIKE %s';
-                               $params[] = '%' . $wpdb->esc_like( $search ) . '%';
-                       }
+if ( '' !== $search ) {
+$where[]        = 'title LIKE %s';
+$where_params[] = '%' . $wpdb->esc_like( $search ) . '%';
+}
 
-                       $where_sql = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
+$where_sql = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
 
-                       $count_sql = "SELECT COUNT(*) FROM {$t}{$where_sql}";
-                       $total     = (int) ( $params ? $wpdb->get_var( $wpdb->prepare( $count_sql, ...$params ) ) : $wpdb->get_var( $count_sql ) );
+$select_fields = 'id, title, start_date, end_date, status, participants_mode, hunt_link_mode, prizes, affiliate_site_id, affiliate_url_visible, created_at, updated_at';
+if ( $period_case_sql ) {
+$select_fields .= ', ' . $period_case_sql . ' AS period_slug';
+}
 
-                       $sql         = 'SELECT * FROM ' . $t . $where_sql . ' ORDER BY ' . $orderby_column . ' ' . $order_param . ' LIMIT %d OFFSET %d'; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Order by clause sanitized via whitelist.
-                       $query_args  = array_merge( $params, array( $limit, $offset ) );
-                       $rows        = $wpdb->get_results( $wpdb->prepare( $sql, ...$query_args ) ); // db call ok; no-cache ok.
+$base_sql      = ' FROM ' . $t . $where_sql;
+$having_sql    = '';
+$having_params = array();
+if ( '' !== $period_filter && $period_case_sql ) {
+$having_sql      = ' HAVING period_slug = %s';
+$having_params[] = $period_filter;
+}
+
+$count_sql    = 'SELECT COUNT(*) FROM (SELECT id' . $base_sql . $having_sql . ') AS counted';
+$total_params = array_merge( $where_params, $having_params );
+$total        = (int) ( $total_params ? $wpdb->get_var( $wpdb->prepare( $count_sql, ...$total_params ) ) : $wpdb->get_var( $count_sql ) );
+
+$sql        = 'SELECT ' . $select_fields . $base_sql . $having_sql . ' ORDER BY ' . $orderby_column . ' ' . $order_param . ' LIMIT %d OFFSET %d'; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Order by clause sanitized via whitelist.
+$query_args = array_merge( $where_params, $having_params, array( $limit, $offset ) );
+$rows       = $wpdb->get_results( $wpdb->prepare( $sql, ...$query_args ) ); // db call ok; no-cache ok.
                        if ( ! $rows ) {
                                return '<p>' . esc_html( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ) ) . '</p>';
                        }
@@ -2746,61 +2774,71 @@ $wpdb->usermeta,
 			$periods = array(
 				'overall' => array(
 					'label' => esc_html( bhg_t( 'label_overall', 'Overall' ) ),
-					'type'  => '',
+					'slug'  => '',
 					'start' => '',
 					'end'   => '',
 				),
 				'monthly' => array(
 					'label' => esc_html( bhg_t( 'label_monthly', 'Monthly' ) ),
-					'type'  => 'monthly',
+					'slug'  => 'monthly',
 					'start' => $current_month . '-01',
 					'end'   => wp_date( 'Y-m-t', strtotime( $current_month . '-01', $now_ts ) ),
 				),
 				'yearly'  => array(
 					'label' => esc_html( bhg_t( 'label_yearly', 'Yearly' ) ),
-					'type'  => 'yearly',
+					'slug'  => 'yearly',
 					'start' => $current_year . '-01-01',
 					'end'   => $current_year . '-12-31',
 				),
 				'alltime' => array(
 					'label' => esc_html( bhg_t( 'label_all_time', 'All-Time' ) ),
-					'type'  => 'alltime',
+					'slug'  => 'alltime',
 					'start' => '',
 					'end'   => '',
 				),
 			);
 
-			$results = array();
-			foreach ( $periods as $key => $info ) {
-				if ( $info['type'] ) {
-					$where  = 't.type = %s';
-					$params = array( $info['type'] );
-					if ( ! empty( $info['start'] ) && ! empty( $info['end'] ) ) {
-						$where   .= ' AND t.start_date >= %s AND t.end_date <= %s';
-						$params[] = $info['start'];
-						$params[] = $info['end'];
-					}
-										$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
-										. " FROM {$wins_tbl} r"
-										. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
-										. " INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id"
-										. ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
-										// db call ok; no-cache ok.
-																				$sql = $wpdb->prepare( $sql, ...$params );
-										$sql                                        .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
-																		$results[ $key ] = $wpdb->get_results( $sql );
-				} else {
-						$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
-						. " FROM {$wins_tbl} r"
-						. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
-						. ' GROUP BY u.ID, u.user_login';
-						// db call ok; no-cache ok.
-						$sql .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
-																$results[ $key ] = $wpdb->get_results( $sql );
-				}
-			}
+			$results          = array();
+                        $period_case_expr = function_exists( 'bhg_sql_tournament_period_case' ) ? bhg_sql_tournament_period_case( 't.start_date', 't.end_date' ) : "'" . esc_sql( bhg_get_default_tournament_period_slug() ) . "'";
+                        foreach ( $periods as $key => $info ) {
+                                $where_parts = array();
+                                $params      = array();
 
-						$hunts_tbl = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+                                if ( '' !== $info['slug'] && $period_case_expr ) {
+                                        $where_parts[] = '(' . $period_case_expr . ') = %s';
+                                        $params[]      = $info['slug'];
+                                }
+
+                                if ( ! empty( $info['start'] ) && ! empty( $info['end'] ) ) {
+                                        $where_parts[] = 't.start_date >= %s';
+                                        $where_parts[] = 't.end_date <= %s';
+                                        $params[]      = $info['start'];
+                                        $params[]      = $info['end'];
+                                }
+
+                                $sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
+                                        . " FROM {$wins_tbl} r"
+                                        . " INNER JOIN {$users_tbl} u ON u.ID = r.user_id";
+
+                                if ( '' !== $info['slug'] || ( ! empty( $info['start'] ) && ! empty( $info['end'] ) ) ) {
+                                        $sql .= " INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id";
+                                        if ( $where_parts ) {
+                                                $sql .= ' WHERE ' . implode( ' AND ', $where_parts );
+                                        }
+                                }
+
+                                $sql .= ' GROUP BY u.ID, u.user_login';
+
+                                if ( $params ) {
+                                        // db call ok; no-cache ok.
+                                        $sql = $wpdb->prepare( $sql, ...$params );
+                                }
+
+                                $sql              .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+                                $results[ $key ] = $wpdb->get_results( $sql );
+                        }
+
+$hunts_tbl = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
 			if ( ! $hunts_tbl ) {
 					return '';
 			}
