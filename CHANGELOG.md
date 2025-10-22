@@ -12,6 +12,7 @@
 - Added dedicated `bhg_currency` option with updated helpers to standardize currency formatting across admin and frontend views.
 - Refreshed admin dashboard “Latest Hunts” widget to list each winner on its own row with bold usernames and consistent money formatting.
 - Extended hunt results with a Prize column and neutral winner highlighting that aligns with the grey/white row standard.
+- Optimized dashboard Latest Hunts card by prefetching winner rows and usernames in a single query to reduce repeated database lookups.
 
 ## 8.0.11 — 2025-09-14
 - Version bump.

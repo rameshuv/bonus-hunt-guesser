@@ -32,6 +32,85 @@ $user_counts = count_users();
 $users_count = isset( $user_counts['total_users'] ) ? (int) $user_counts['total_users'] : 0;
 
 $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balance, final_balance, winners_count, closed_at.
+$guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+$prefetched_winners = array();
+$winner_user_ids = array();
+$winner_usernames = array();
+
+if ( ! empty( $hunts ) && is_array( $hunts ) ) {
+        $union_queries = array();
+
+        foreach ( $hunts as $hunt_row ) {
+                $hunt_id = isset( $hunt_row->id ) ? (int) $hunt_row->id : 0;
+                if ( $hunt_id <= 0 ) {
+                        continue;
+                }
+
+                $limit = isset( $hunt_row->winners_count ) ? (int) $hunt_row->winners_count : 3;
+                if ( $limit < 1 ) {
+                        $limit = 3;
+                }
+
+                if ( isset( $hunt_row->final_balance ) && null !== $hunt_row->final_balance ) {
+                        $union_queries[] = $wpdb->prepare(
+                                "SELECT g.hunt_id, g.user_id, g.guess, ABS(%f - g.guess) AS diff, g.id FROM {$guesses_table} g WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                                (float) $hunt_row->final_balance,
+                                $hunt_id,
+                                $limit
+                        );
+                }
+        }
+
+        if ( ! empty( $union_queries ) ) {
+                $winner_rows = $wpdb->get_results( implode( ' UNION ALL ', $union_queries ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
+
+                foreach ( (array) $winner_rows as $winner_row ) {
+                        $hunt_id = isset( $winner_row->hunt_id ) ? (int) $winner_row->hunt_id : 0;
+                        if ( $hunt_id <= 0 ) {
+                                continue;
+                        }
+
+                        if ( ! isset( $prefetched_winners[ $hunt_id ] ) ) {
+                                $prefetched_winners[ $hunt_id ] = array();
+                        }
+
+                        $prefetched_winners[ $hunt_id ][] = array(
+                                'user_id' => isset( $winner_row->user_id ) ? (int) $winner_row->user_id : 0,
+                                'guess'   => isset( $winner_row->guess ) ? (float) $winner_row->guess : 0.0,
+                                'diff'    => isset( $winner_row->diff ) ? (float) $winner_row->diff : 0.0,
+                        );
+
+                        if ( ! empty( $winner_row->user_id ) ) {
+                                $winner_user_ids[ (int) $winner_row->user_id ] = true;
+                        }
+                }
+
+                if ( ! empty( $winner_user_ids ) ) {
+                        $user_ids = array_keys( $winner_user_ids );
+
+                        if ( class_exists( 'WP_User_Query' ) ) {
+                                $user_query = new WP_User_Query(
+                                        array(
+                                                'include' => $user_ids,
+                                                'fields'  => array( 'ID', 'user_login' ),
+                                        )
+                                );
+
+                                foreach ( (array) $user_query->get_results() as $user_obj ) {
+                                        $winner_usernames[ (int) $user_obj->ID ] = $user_obj->user_login;
+                                }
+                        } else {
+                                foreach ( $user_ids as $user_id ) {
+                                        $user = get_userdata( $user_id );
+                                        if ( $user && ! empty( $user->user_login ) ) {
+                                                $winner_usernames[ (int) $user->ID ] = $user->user_login;
+                                        }
+                                }
+                        }
+                }
+        }
+}
+
 // Output dashboard with full-width cards.
 ?>
 <div class="wrap bhg-admin bhg-wrap bhg-dashboard">
@@ -83,13 +162,10 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 <?php
 $hunt_id       = isset( $h->id ) ? (int) $h->id : 0;
 $winners_count = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
-$winners       = array();
+$winners       = isset( $prefetched_winners[ $hunt_id ] ) ? (array) $prefetched_winners[ $hunt_id ] : array();
 
-if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
-$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_count );
-if ( ! is_array( $winners ) ) {
-$winners = array();
-}
+if ( $winners_count < 1 ) {
+$winners_count = 3;
 }
 
 $hunt_title    = isset( $h->title ) ? (string) $h->title : '';
@@ -118,11 +194,10 @@ if ( empty( $winners ) ) :
         $diff_label    = esc_html( bhg_t( 'label_difference', 'Difference' ) );
         $winner_total  = max( 1, count( $winners ) );
         foreach ( $winners as $index => $winner ) :
-                $user_id   = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
-                $guess     = isset( $winner->guess ) ? (float) $winner->guess : 0.0;
-                $diff      = isset( $winner->diff ) ? (float) $winner->diff : 0.0;
-                $user      = $user_id ? get_userdata( $user_id ) : false;
-                $username  = $user ? $user->user_login : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_number', 'User #%d' ), $user_id );
+                $user_id  = isset( $winner['user_id'] ) ? (int) $winner['user_id'] : 0;
+                $guess    = isset( $winner['guess'] ) ? (float) $winner['guess'] : 0.0;
+                $diff     = isset( $winner['diff'] ) ? (float) $winner['diff'] : 0.0;
+                $username = isset( $winner_usernames[ $user_id ] ) ? $winner_usernames[ $user_id ] : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_number', 'User #%d' ), $user_id );
                 $winner_line  = '<strong>' . esc_html( $username ) . '</strong> ' . $separator . ' ' . esc_html( bhg_format_money( $guess ) ) . ' (' . $diff_label . ' ' . esc_html( bhg_format_money( $diff ) ) . ')';
 ?>
 <tr>
