@@ -537,6 +537,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'shortcodes_choose_the_display_layout'         => 'Choose the display layout.',
                         'shortcodes_choose_whether_to_render_only_active_ads_or_include_inactive_ones' => 'Choose whether to render only active ads or include inactive ones.',
                         'shortcodes_choose_which_columns_appear_in_the_table' => 'Choose which columns appear in the table.',
+                        'shortcodes_help_view_missing'                => 'Shortcodes help view missing.',
                         'shortcodes_choose_which_hunt_to_display'      => 'Choose which hunt to display.',
                         'shortcodes_choose_which_leaderboard_columns_render' => 'Choose which leaderboard columns render.',
                         'shortcodes_columns_rendered_in_the_legacy_table' => 'Columns rendered in the legacy table.',
