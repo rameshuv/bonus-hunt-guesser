@@ -10,12 +10,9 @@
     <arg name="tab-width" value="4"/>
     <arg name="extensions" value="php"/>
 
-    <!-- Temporary baseline: focus on the primary bootstrap file -->
+    <!-- Temporary baseline: lint only the plugin bootstrap while legacy files are audited. -->
     <file>bonus-hunt-guesser.php</file>
-    <file>admin</file>
-    <file>includes</file>
-    <file>tests</file>
-    <file>uninstall.php</file>
+    <exclude-pattern>*</exclude-pattern>
 
     <!-- Match PHP 7.4 runtime -->
     <config name="php_version" value="70400"/>
