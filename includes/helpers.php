@@ -195,7 +195,7 @@ return "CASE\n" .
 "\tWHEN DATEDIFF({$end_expr}, {$start_expr}) + 1 <= 120 THEN 'quarterly'\n" .
 "\tWHEN DATEDIFF({$end_expr}, {$start_expr}) + 1 <= 400 THEN 'yearly'\n" .
 "\tELSE 'alltime'\n" .
-'END';
+"END";
 }
 }
 
