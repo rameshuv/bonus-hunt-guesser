@@ -42,7 +42,7 @@ $order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ),
 $order_by_clause = sprintf( '%s %s', $orderby_column, $order_param );
 
 $current_page   = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
-$items_per_page = 30;
+$items_per_page = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'admin_tournaments' ) : 30;
 $offset         = ( $current_page - 1 ) * $items_per_page;
 
 $like_clause = '';
@@ -73,9 +73,29 @@ if ( $search_term ) {
 		);
 }
 $base_url = remove_query_arg( array( 'paged' ) );
-$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
-$linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$hunts_table  = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$linked_hunts = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$linked_hunts = array_values( array_filter( array_map( 'absint', (array) $linked_hunts ) ) );
+
+$year       = (int) wp_date( 'Y' );
+$year_start = sprintf( '%04d-01-01 00:00:00', $year );
+
+$hunt_conditions = array(
+        '(created_at IS NOT NULL AND created_at >= %s)',
+        '(closed_at IS NOT NULL AND closed_at >= %s)',
+);
+$hunt_params    = array( $year_start, $year_start );
+
+if ( ! empty( $linked_hunts ) ) {
+        $placeholders   = implode( ',', array_fill( 0, count( $linked_hunts ), '%d' ) );
+        $hunt_conditions[] = "id IN ({$placeholders})";
+        $hunt_params       = array_merge( $hunt_params, $linked_hunts );
+}
+
+$conditions_sql = implode( ' OR ', $hunt_conditions );
+$hunt_sql       = "SELECT DISTINCT id, title FROM {$hunts_table} WHERE {$conditions_sql} ORDER BY title ASC";
+$all_hunts      = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $hunt_sql ), $hunt_params ) ) );
+// db call ok; no-cache ok.
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';

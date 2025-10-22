@@ -55,13 +55,37 @@ function bhg_slugify( $text ) {
  * @return string
  */
 function bhg_admin_cap() {
-	return apply_filters( 'bhg_admin_capability', 'manage_options' );
+        return apply_filters( 'bhg_admin_capability', 'manage_options' );
+}
+
+/**
+ * Retrieve the standard per-page amount used for listings.
+ *
+ * Applies the global `bhg_per_page` filter and a contextual
+ * `bhg_per_page_{context}` filter (when a context is provided) so integrators
+ * can adjust pagination limits without editing core files.
+ *
+ * @param string $context Optional context identifier.
+ * @return int Sanitized per-page value (defaults to 30).
+ */
+function bhg_get_per_page( $context = '' ) {
+        $default   = defined( 'BHG_PER_PAGE' ) ? (int) BHG_PER_PAGE : 30;
+        $per_page  = (int) apply_filters( 'bhg_per_page', $default, $context );
+        $ctx_key   = $context ? sanitize_key( $context ) : '';
+        if ( $ctx_key ) {
+                $per_page = (int) apply_filters( "bhg_per_page_{$ctx_key}", $per_page, $ctx_key );
+        }
+        if ( $per_page <= 0 ) {
+                $per_page = $default;
+        }
+
+        return $per_page;
 }
 
 // Smart login redirect back to referring page.
 add_filter(
-	'login_redirect',
-	function ( $redirect_to, $requested_redirect_to, $user ) {
+        'login_redirect',
+        function ( $redirect_to, $requested_redirect_to, $user ) {
 		$r = isset( $_REQUEST['bhg_redirect'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['bhg_redirect'] ) ) : '';
 		if ( ! empty( $r ) ) {
 				$safe      = esc_url_raw( $r );
@@ -191,9 +215,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'menu_affiliates'                              => 'Affiliate Websites',
                         'menu_advertising'                             => 'Advertising',
                         'menu_prizes'                                  => 'Prizes',
-			'menu_translations'                            => 'Translations',
-			'menu_settings'                                => 'Settings',
-			'menu_database'                                => 'Database',
+                        'menu_translations'                            => 'Translations',
+                        'menu_settings'                                => 'Settings',
+                        'menu_notifications'                           => 'Notifications',
+                        'menu_database'                                => 'Database',
 			'menu_tools'                                   => 'Tools',
 			'menu_ads'                                     => 'Ads',
 			'bhg_menu_admin'                               => 'BHG Menu — Admin/Moderators',
@@ -214,6 +239,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			// Form/field labels.
 			'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
+                        'label_prize'                                  => 'Prize',
                         'label_prizes'                                 => 'Prizes',
                         'category'                                     => 'Category',
 			'label_submit_guess'                           => 'Submit Guess',
@@ -253,10 +279,12 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_leaderboard'                            => 'Leaderboard',
 			'label_best_guessers'                          => 'Best Guessers',
 			'label_leaderboard_history'                    => 'Leaderboard History',
-			'label_affiliate'                              => 'Affiliate',
-			'label_non_affiliate'                          => 'Non-affiliate',
-			'label_affiliate_status'                       => 'Affiliate Status',
-			'label_site'                                   => 'Site',
+                        'label_affiliate'                              => 'Affiliate',
+                        'label_non_affiliate'                          => 'Non-affiliate',
+                        'label_not_affiliate'                          => 'Not Affiliate',
+                        'label_affiliate_status'                       => 'Affiliate Status',
+                        'label_site'                                   => 'Site',
+                        'label_affiliate_site'                         => 'Affiliate Site',
 			'label_tournament'                             => 'Tournament',
 			'label_actions'                                => 'Actions',
 			'admin_action'                                 => 'Admin Action',
@@ -282,7 +310,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_search_translations'                    => 'Search translations',
 			'label_start_date'                             => 'Start Date',
 			'label_end_date'                               => 'End Date',
-			'currency'                                     => 'Currency',
+                        'currency'                                     => 'Currency',
+                        'eur'                                          => 'EUR',
+                        'usd'                                          => 'USD',
 			'label_email'                                  => 'Email',
 			'label_real_name'                              => 'Real Name',
 			'label_search'                                 => 'Search',
@@ -316,18 +346,26 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_diff'                                   => 'diff',
 			'label_latest_hunts'                           => 'Latest Hunts',
 			'label_bonushunt'                              => 'Bonushunt',
-			'label_all_winners'                            => 'All Winners',
-			'label_closed_at'                              => 'Closed At',
+                        'label_all_winners'                            => 'All Winners',
+                        'label_closed_at'                              => 'Closed At',
+                        'label_opened'                                 => 'Opened',
 			'label_hunt'                                   => 'Hunt',
 			'label_title'                                  => 'Title',
 			'label_your_hunts'                             => 'Your Hunts',
 			'label_your_guesses'                           => 'Your Guesses',
-			'label_winner_notifications'                   => 'Winner Notifications',
-			'label_timeline'                               => 'Timeline',
-			'label_choose_hunt'                            => 'Choose a hunt:',
+                        'label_winner_notifications'                   => 'Winner Notifications',
+                        'label_timeline'                               => 'Timeline',
+                        'label_filter_timeline'                        => 'Timeline',
+                        'label_filter_tournament'                      => 'Tournament',
+                        'label_filter_hunt'                            => 'Bonus Hunt',
+                        'label_filter_site'                            => 'Affiliate Site',
+                        'label_filter_affiliate'                       => 'Affiliate Status',
+                        'label_choose_hunt'                            => 'Choose a hunt:',
                         'label_select_hunt'                            => 'Select a hunt',
                         'label_guess_final_balance'                    => 'Your guess (final balance):',
                         'button_apply'                                 => 'Apply',
+                        'button_save_changes'                          => 'Save Changes',
+                        'button_search'                                => 'Search',
 			'label_bonus_hunt_title'                       => 'Bonus Hunt Title',
 			'label_existing_bonus_hunts'                   => 'Existing Bonus Hunts',
 			'label_start_balance_euro'                     => 'Starting Balance (€)',
@@ -339,12 +377,20 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_hash'                                   => '#',
 			'label_not_set'                                => 'Not set',
 			'label_dash'                                   => '-',
-			'label_untitled'                               => '(untitled)',
-			'label_back_to_tournaments'                    => 'Back to tournaments',
-			'label_last_day'                               => 'Last day',
-			'label_last_week'                              => 'Last week',
-			'label_last_month'                             => 'Last month',
-			'label_last_year'                              => 'Last year',
+                        'label_untitled'                               => '(untitled)',
+                        'label_unnamed_tournament'                     => 'Untitled tournament',
+                        'label_back_to_tournaments'                    => 'Back to tournaments',
+                        'label_today'                                  => 'Today',
+                        'label_this_week'                              => 'This Week',
+                        'label_this_week_legacy'                       => 'This week (legacy alias)',
+                        'label_this_month'                             => 'This Month',
+                        'label_this_month_legacy'                      => 'This month (legacy alias)',
+                        'label_this_year'                              => 'This Year',
+                        'label_this_year_legacy'                       => 'This year (legacy alias)',
+                        'label_last_day'                               => 'Last day',
+                        'label_last_week'                              => 'Last week',
+                        'label_last_month'                             => 'Last month',
+                        'label_last_year'                              => 'Last year',
 			'label_quarterly'                              => 'Quarterly',
 			'label_alltime'                                => 'Alltime',
 			'weekly'                                       => 'Weekly',
@@ -362,7 +408,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_log_out'                                => 'Log out',
 			'label_non_affiliates'                         => 'Non Affiliates',
 			'label_affiliate_website'                      => 'Affiliate Website',
-			'label_affiliate_websites'                     => 'Affiliate Websites',
+                        'label_affiliate_websites'                     => 'Affiliate Websites',
+                        'label_affiliate_website_number'               => 'Affiliate Website %d',
 			'label_affiliate_user_title'                   => 'Affiliate User',
 			'guessing_enabled'                             => 'Guessing Enabled',
 			'label_footer'                                 => 'Footer',
@@ -376,6 +423,11 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'placeholder_custom_value'                     => 'Custom value',
                         'select_multiple_tournaments_hint'             => 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.',
                         'select_multiple_prizes_hint'                  => 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.',
+                        'connected_bonus_hunts'                        => 'Connected Bonus Hunts',
+                        'hunt_connection_mode'                         => 'Hunt Connection Mode',
+                        'hunt_mode_description'                        => 'Choose how hunts are linked to this tournament.',
+                        'hunt_mode_auto'                               => 'All hunts within start/end period',
+                        'hunt_mode_manual'                             => 'From Hunt admin (manual selection)',
                         'post_submit_redirect_url'                     => 'Post-submit redirect URL',
                         'post_submit_redirect_description'             => 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.',
                         'post_submit_redirect_placeholder'             => 'https://example.com/thank-you',
@@ -385,12 +437,26 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'button_cancel'                                => 'Cancel',
 			'button_delete'                                => 'Delete',
 			'button_edit'                                  => 'Edit',
-			'button_view'                                  => 'View',
-			'button_back'                                  => 'Back',
-			'button_create_new_bonus_hunt'                 => 'Create New Bonus Hunt',
+                        'button_view'                                  => 'View',
+                        'button_back'                                  => 'Back',
+                        'button_create_new_bonus_hunt'                 => 'Create New Bonus Hunt',
                         'button_results'                               => 'Results',
                         'button_submit_guess'                          => 'Submit Guess',
                         'button_edit_guess'                            => 'Edit Guess',
+                        // Filter options.
+                        'option_all_tournaments'                       => 'All tournaments',
+                        'option_all_hunts'                             => 'All bonus hunts',
+                        'option_all_sites'                             => 'All affiliate sites',
+                        'option_aff_all'                               => 'All users',
+                        'option_aff_only'                              => 'Affiliates only',
+                        'option_aff_none'                              => 'Non-affiliates only',
+                        'option_timeline_all_time'                     => 'All-Time',
+                        'option_timeline_today'                        => 'Today',
+                        'option_timeline_this_week'                    => 'This Week',
+                        'option_timeline_this_month'                   => 'This Month',
+                        'option_timeline_this_quarter'                 => 'This Quarter',
+                        'option_timeline_this_year'                    => 'This Year',
+                        'option_timeline_last_year'                    => 'Last Year',
                         'button_filter'                                => 'Filter',
 			'button_log_in'                                => 'Log in',
 			'button_view_edit'                             => 'View / Edit',
@@ -469,8 +535,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 
 			// Shortcode labels for public views.
 			'sc_hunt'                                      => 'Hunt',
-			'sc_guess'                                     => 'Guess',
-			'sc_final'                                     => 'Final',
+                        'sc_guess'                                     => 'Guess',
+                        'sc_final'                                     => 'Final',
+                        'sc_difference'                                => 'Difference',
                         'sc_title'                                     => 'Title',
                         'sc_start_balance'                             => 'Start Balance',
                         'sc_final_balance'                             => 'Final Balance',
@@ -485,9 +552,106 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'sc_avg_tournament_pos'                        => 'Avg Tournament Pos',
 			'sc_start'                                     => 'Start',
 			'sc_end'                                       => 'End',
-			'sc_prizes'                                    => 'Prizes',
+                        'sc_prizes'                                    => 'Prizes',
 
-			// Extended admin/UI strings.
+                        // Shortcodes admin reference view.
+                        'menu_shortcodes'                              => 'Shortcodes',
+                        'shortcodes_0_all_hunts'                       => '0 (all hunts)',
+                        'shortcodes_0_all_sites'                       => '0 (all sites)',
+                        'shortcodes_0_auto_detect_latest_open_hunt'    => '0 (auto-detect latest open hunt)',
+                        'shortcodes_0_latest_active_or_most_recent_hunt' => '0 (latest active or most recent hunt)',
+                        'shortcodes_0_latest_hunt'                     => '0 (latest hunt)',
+                        'shortcodes_ad_id_also_accepts_ad'             => 'Ad ID (also accepts ad="")',
+                        'shortcodes_affiliate_site_id'                 => 'Affiliate site ID',
+                        'shortcodes_aliases'                           => 'Aliases',
+                        'shortcodes_all_shortcode_tables_honour_the_bhg_orderby_bhg_order_bhg_paged_bhg_search_and_bhg_timeline_query_arguments_in_addition_to_the_attributes_listed_below' => 'All shortcode tables honour the bhg_orderby, bhg_order, bhg_paged, bhg_search, and bhg_timeline query arguments in addition to the attributes listed below.',
+                        'shortcodes_apply_timeframe_filters_to_guesses_accepts_aliases_such_as_week_month_year' => 'Apply timeframe filters to guesses. Accepts aliases such as week/month/year.',
+                        'shortcodes_attribute'                        => 'Attribute',
+                        'shortcodes_automatically_renders_the_correct_bhg_menu_based_on_the_current_visitor' => 'Automatically renders the correct BHG menu based on the current visitor.',
+                        'shortcodes_bhg_get_per_page_shortcode_leaderboard' => 'bhg_get_per_page( "shortcode_leaderboard" )',
+                        'shortcodes_blank'                            => 'blank',
+                        'shortcodes_blank_all_categories'              => 'blank (all categories)',
+                        'shortcodes_blank_any_status'                  => 'blank (any status)',
+                        'shortcodes_blank_any_user'                    => 'blank (any user)',
+                        'shortcodes_blank_show_all_dates'              => 'blank (show all dates)',
+                        'shortcodes_blank_show_all_types'              => 'blank (show all types)',
+                        'shortcodes_blank_show_all_users'              => 'blank (show all users)',
+                        'shortcodes_choose_the_display_layout'         => 'Choose the display layout.',
+                        'shortcodes_choose_whether_to_render_only_active_ads_or_include_inactive_ones' => 'Choose whether to render only active ads or include inactive ones.',
+                        'shortcodes_choose_which_columns_appear_in_the_table' => 'Choose which columns appear in the table.',
+                        'shortcodes_help_view_missing'                => 'Shortcodes help view missing.',
+                        'shortcodes_choose_which_hunt_to_display'      => 'Choose which hunt to display.',
+                        'shortcodes_choose_which_leaderboard_columns_render' => 'Choose which leaderboard columns render.',
+                        'shortcodes_columns_rendered_in_the_legacy_table' => 'Columns rendered in the legacy table.',
+                        'shortcodes_compact_feed_of_recently_closed_hunts_and_their_winners' => 'Compact feed of recently closed hunts and their winners.',
+                        'shortcodes_comprehensive_leaderboard_with_wins_averages_and_affiliate_filters' => 'Comprehensive leaderboard with wins, averages, and affiliate filters.',
+                        'shortcodes_control_which_columns_render_in_the_table' => 'Control which columns render in the table.',
+                        'shortcodes_controls_how_the_selected_hunt_s_prizes_are_rendered' => 'Controls how the selected hunt\'s prizes are rendered.',
+                        'shortcodes_default_s'                         => '(default: %s)',
+                        'shortcodes_display_currently_open_bonus_hunts_with_the_live_guess_table_and_associated_prizes' => 'Display currently open bonus hunts with the live guess table and associated prizes.',
+                        'shortcodes_displays_prize_cards_as_a_grid_or_carousel_with_optional_category_filters' => 'Displays prize cards as a grid or carousel with optional category filters.',
+                        'shortcodes_example'                           => 'Example',
+                        'shortcodes_filter_hunts_by_open_or_closed_status' => 'Filter hunts by open or closed status.',
+                        'shortcodes_filter_leaderboard_rows_by_affiliate_status' => 'Filter leaderboard rows by affiliate status.',
+                        'shortcodes_filter_results_to_affiliate_or_non_affiliate_users' => 'Filter results to affiliate or non-affiliate users.',
+                        'shortcodes_filter_scores_by_a_single_hunt'    => 'Filter scores by a single hunt.',
+                        'shortcodes_filter_scores_by_affiliate_website' => 'Filter scores by affiliate website.',
+                        'shortcodes_filter_scores_by_tournament'       => 'Filter scores by tournament.',
+                        'shortcodes_filter_tournaments_by_affiliate_site' => 'Filter tournaments by affiliate site.',
+                        'shortcodes_force_a_specific_menu_location_instead_of_auto_detecting_by_role' => 'Force a specific menu location instead of auto-detecting by role.',
+                        'shortcodes_free_text'                         => 'Free text',
+                        'shortcodes_front_end_list_of_hunts_with_sortable_columns_search_and_affiliate_filters' => 'Front-end list of hunts with sortable columns, search, and affiliate filters.',
+                        'shortcodes_highlight_affiliate_status_lights_in_the_results' => 'Highlight affiliate status lights in the results.',
+                        'shortcodes_hunt_id'                           => 'Hunt ID',
+                        'shortcodes_initial_sort_column'               => 'Initial sort column.',
+                        'shortcodes_initial_sort_column_for_the_table_view' => 'Initial sort column for the table view.',
+                        'shortcodes_initial_sort_direction'            => 'Initial sort direction.',
+                        'shortcodes_initial_sort_direction_open_hunts_default_to_earliest_first' => 'Initial sort direction. Open hunts default to earliest first.',
+                        'shortcodes_interactive_guess_submission_form_that_respects_guessing_toggles_and_allows_users_to_edit_prior_guesses' => 'Interactive guess submission form that respects guessing toggles and allows users to edit prior guesses.',
+                        'shortcodes_legacy_single_hunt_leaderboard_retained_for_backward_compatibility' => 'Legacy single-hunt leaderboard retained for backward compatibility.',
+                        'shortcodes_limit_guesses_to_a_specific_affiliate_website' => 'Limit guesses to a specific affiliate website.',
+                        'shortcodes_limit_hunts_to_a_specific_affiliate_website' => 'Limit hunts to a specific affiliate website.',
+                        'shortcodes_limit_results_to_a_single_prize_category' => 'Limit results to a single prize category.',
+                        'shortcodes_limit_the_number_of_rows_displayed' => 'Limit the number of rows displayed.',
+                        'shortcodes_list_only_active_or_closed_tournaments' => 'List only active or closed tournaments.',
+                        'shortcodes_lock_the_form_to_a_specific_hunt_when_multiple_hunts_are_open' => 'Lock the form to a specific hunt when multiple hunts are open.',
+                        'shortcodes_login_prompt_that_preserves_the_current_page_and_links_to_wp_login_php' => 'Login prompt that preserves the current page and links to wp-login.php.',
+                        'shortcodes_match_hunts_by_their_open_closed_state' => 'Match hunts by their open/closed state.',
+                        'shortcodes_match_tournaments_by_time_based_type_or_explicit_timeline_alias' => 'Match tournaments by time-based type or explicit timeline alias.',
+                        'shortcodes_notes'                             => 'Notes',
+                        'shortcodes_number_of_closed_hunts_to_show'    => 'Number of closed hunts to show.',
+                        'shortcodes_numeric_hunt_id'                   => 'Numeric hunt ID',
+                        'shortcodes_numeric_tournament_id'             => 'Numeric tournament ID',
+                        'shortcodes_outputs_the_appropriate_navigation_menu_for_the_requested_audience' => 'Outputs the appropriate navigation menu for the requested audience.',
+                        'shortcodes_override_rows_per_page'            => 'Override rows per page.',
+                        'shortcodes_override_the_starting_page_when_embedding_multiple_lists' => 'Override the starting page when embedding multiple lists.',
+                        'shortcodes_paginated_leaderboard_of_guesses_for_a_hunt_with_affiliate_and_timeline_filters' => 'Paginated leaderboard of guesses for a hunt with affiliate and timeline filters.',
+                        'shortcodes_per_page_limits_use_the_bhg_get_per_page_helper_so_filters_such_as_bhg_hunts_per_page_or_bhg_user_guesses_per_page_can_adjust_row_counts_globally' => 'Per-page limits use the bhg_get_per_page() helper, so filters such as bhg_hunts_per_page or bhg_user_guesses_per_page can adjust row counts globally.',
+                        'shortcodes_positive_integer'                  => 'Positive integer',
+                        'shortcodes_preselect_a_specific_tournament_in_the_filter_dropdown' => 'Preselect a specific tournament in the filter dropdown.',
+                        'shortcodes_profile_summary_for_the_logged_in_user_with_affiliate_indicators_and_edit_link' => 'Profile summary for the logged-in user with affiliate indicators and edit link.',
+                        'shortcodes_render_a_specific_ad_block_when_ads_are_enabled' => 'Render a specific ad block when ads are enabled.',
+                        'shortcodes_restrict_hunts_by_creation_date_using_timeline_keywords' => 'Restrict hunts by creation date using timeline keywords.',
+                        'shortcodes_restrict_results_to_a_specific_hunt' => 'Restrict results to a specific hunt.',
+                        'shortcodes_seed_the_hunts_search_box'         => 'Seed the hunts search box.',
+                        'shortcodes_seed_the_leaderboard_search_box'   => 'Seed the leaderboard search box.',
+                        'shortcodes_seed_the_legacy_search_box'        => 'Seed the legacy search box.',
+                        'shortcodes_seed_the_search_box_with_a_value'  => 'Seed the search box with a value.',
+                        'shortcodes_seed_the_tournaments_search_box'   => 'Seed the tournaments search box.',
+                        'shortcodes_select_the_registered_prize_image_size' => 'Select the registered prize image size.',
+                        'shortcodes_select_which_ad_to_render'         => 'Select which ad to render.',
+                        'shortcodes_selects_the_registered_image_size_used_for_prize_artwork' => 'Selects the registered image size used for prize artwork.',
+                        'shortcodes_set_the_initial_sort_column_open_hunts_default_to_submission_time' => 'Set the initial sort column. Open hunts default to submission time.',
+                        'shortcodes_set_the_scoring_window_for_results' => 'Set the scoring window for results.',
+                        'shortcodes_set_the_starting_page_number'       => 'Set the starting page number.',
+                        'shortcodes_show_a_single_hunt_when_an_id_is_supplied' => 'Show a single hunt when an ID is supplied.',
+                        'shortcodes_show_only_active_prizes_by_default' => 'Show only active prizes by default.',
+                        'shortcodes_tabbed_widget_that_highlights_the_best_guessers_overall_monthly_yearly_and_all_time' => 'Tabbed widget that highlights the best guessers overall, monthly, yearly, and all-time.',
+                        'shortcodes_tournament_directory_with_detail_view_sortable_columns_and_timeline_filters' => 'Tournament directory with detail view, sortable columns, and timeline filters.',
+                        'shortcodes_tournament_id'                     => 'Tournament ID',
+                        'shortcodes_values_default'                    => 'Values / Default',
+
+                        // Extended admin/UI strings.
 			's_participant'                                => '%s participant',
 			'add_ad'                                       => 'Add Ad',
 			'add_affiliate'                                => 'Add Affiliate Website',
@@ -558,12 +722,30 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'email_from'                                   => 'Email From Address',
 
 			// Email notifications.
-			'email_results_title'                          => 'The Bonus Hunt has been closed!',
-			'email_final_balance'                          => 'Final Balance',
-			'email_winner'                                 => 'Winner',
-			'email_congrats_subject'                       => 'Congratulations! You won the Bonus Hunt',
-			'email_congrats_body'                          => 'You had the closest guess. Great job!',
-			'email_hunt'                                   => 'Hunt',
+                        'email_results_title'                          => 'The Bonus Hunt has been closed!',
+                        'email_final_balance'                          => 'Final Balance',
+                        'email_winner'                                 => 'Winner',
+                        'email_congrats_subject'                       => 'Congratulations! You won the Bonus Hunt',
+                        'email_congrats_body'                          => 'You had the closest guess. Great job!',
+                        'email_hunt'                                   => 'Hunt',
+                        'email_subject'                               => 'Email subject',
+                        'email_body'                                   => 'Email body',
+                        'html_allowed_sanitized'                       => 'HTML allowed and sanitized.',
+                        'bcc'                                          => 'BCC',
+                        'bcc_help'                                     => 'Comma separated email addresses.',
+                        'available_tokens'                             => 'Available tokens',
+                        'enabled'                                      => 'Enabled',
+                        'enable_notifications'                         => 'Enable notifications',
+                        'notifications_module_missing'                 => 'Notifications module not available.',
+                        'no_notifications_ui_found'                    => 'No notifications UI found.',
+                        'notifications_saved'                          => 'Notifications updated.',
+                        'nonce_failed'                                 => 'Security check failed. Please try again.',
+                        'bonushunt_notifications'                      => 'Bonushunt Notifications',
+                        'bonushunt_notifications_help'                 => 'Sent to all hunt participants when a hunt closes.',
+                        'winner_notifications'                         => 'Winner Notifications',
+                        'winner_notifications_help'                    => 'Sent to each winner when a hunt closes.',
+                        'tournament_notifications'                     => 'Tournament Notifications',
+                        'tournament_notifications_help'                => 'Sent to tournament leaderboard winners when a tournament closes.',
 
 			'enable_ads'                                   => 'Enable Ads',
 			'existing_ads'                                 => 'Existing Ads',
@@ -578,15 +760,18 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'guesses'                                      => 'Guesses',
 			'guesses_2'                                    => 'Guesses:',
 			'helper_function_bhggetlatestclosedhunts_missing_please_include_classbhgbonushuntsphp_helpers' => 'Helper function bhg_get_latest_closed_hunts() missing. Please include class-bhg-bonus-hunts.php helpers.',
-			'hunt_close_failed'                            => 'Failed to close the hunt.',
-			'hunt_closed_successfully'                     => 'Hunt closed successfully.',
+                        'hunt_close_failed'                            => 'Failed to close the hunt.',
+                        'hunt_closed_successfully'                     => 'Hunt closed successfully.',
+                        'hunt_not_closed_invalid_final_balance'        => 'Hunt not closed. Please enter a non-negative final balance.',
 			'hunt_not_found'                               => 'Hunt not found',
 			'hunt_not_found_2'                             => 'Hunt not found.',
 			'hunts'                                        => 'Hunts:',
 			'id'                                           => 'ID',
 			'insufficient_permissions'                     => 'Insufficient permissions',
 			'invalid_data_submitted_please_check_your_inputs' => 'Invalid data submitted. Please check your inputs.',
-			'invalid_final_balance_please_enter_a_nonnegative_number' => 'Invalid final balance. Please enter a non-negative number.',
+                        'invalid_final_balance_please_enter_a_nonnegative_number' => 'Invalid final balance. Please enter a non-negative number.',
+                        'invalid_final_balance'                        => 'Final balance could not be parsed. Please enter a numeric amount.',
+                        'invalid_starting_balance'                     => 'Starting balance could not be parsed. Please enter a numeric amount.',
 			'invalid_guess_amount'                         => 'Invalid guess amount.',
 			'invalid_hunt'                                 => 'Invalid hunt',
 			'invalid_hunt_2'                               => 'Invalid hunt.',
@@ -594,7 +779,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'invalid_settings'                             => 'Invalid data submitted.',
 			'key'                                          => 'Key',
 			'key_field_is_required'                        => 'Key field is required.',
-			'link_url_optional'                            => 'Link URL (optional)',
+                        'link_url_optional'                            => 'Link URL (optional)',
+                        'link_edit_profile'                            => 'Edit Profile',
 			'maximum_guess_amount'                         => 'Maximum Guess Amount',
 			'max_guess_amount'                             => 'Maximum Guess Amount',
 			'maximum_amount_users_can_guess_for_a_bonus_hunt' => 'Maximum amount users can guess for a bonus hunt.',
@@ -786,24 +972,55 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
-		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
-		$map      = array(
-			'usd' => '$',
-			'eur' => '€',
-		);
-		$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
-		return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+        $currency = get_option( 'bhg_currency', '' );
+
+        if ( '' === $currency ) {
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                if ( isset( $settings['currency'] ) ) {
+                        $currency = (string) $settings['currency'];
+                }
+        }
+
+        $currency = strtoupper( $currency );
+
+        $map = array(
+                'USD' => '$',
+                'EUR' => '€',
+        );
+
+        if ( ! isset( $map[ $currency ] ) ) {
+                $currency = 'EUR';
+        }
+
+        $symbol = $map[ $currency ];
+
+        return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
- * Format an amount as currency using the selected symbol.
+ * Format an amount as money using the selected currency symbol.
+ *
+ * @param float $amount Amount to format.
+ * @return string
+ */
+function bhg_format_money( $amount ) {
+        $formatted = sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+
+        return apply_filters( 'bhg_format_money', $formatted, $amount );
+}
+
+/**
+ * Back-compat wrapper for the deprecated bhg_format_currency() helper.
  *
  * @param float $amount Amount to format.
  * @return string
  */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+        if ( function_exists( '_deprecated_function' ) ) {
+                _deprecated_function( __FUNCTION__, '8.0.14', 'bhg_format_money' );
+        }
+
+        return bhg_format_money( $amount );
 }
 
 /**
@@ -856,10 +1073,26 @@ if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
 	 * @param int $user_id User ID.
 	 * @return bool
 	 */
-	function bhg_is_user_affiliate( $user_id ) {
-		$val = get_user_meta( (int) $user_id, 'bhg_is_affiliate', true );
-		return ( '1' === $val || 1 === $val || true === $val || 'yes' === $val );
-	}
+        function bhg_is_user_affiliate( $user_id ) {
+                $user_id = (int) $user_id;
+                $val     = get_user_meta( $user_id, 'bhg_is_affiliate', true );
+
+                if ( '1' === $val || 1 === $val || true === $val || 'yes' === $val ) {
+                        return true;
+                }
+
+                if ( function_exists( 'bhg_get_user_affiliate_websites' ) ) {
+                        $sites = bhg_get_user_affiliate_websites( $user_id );
+                        return ! empty( $sites );
+                }
+
+                $sites_meta = get_user_meta( $user_id, 'bhg_affiliate_websites', true );
+                if ( is_array( $sites_meta ) ) {
+                        return ! empty( $sites_meta );
+                }
+
+                return is_string( $sites_meta ) && '' !== $sites_meta;
+        }
 }
 
 if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {
@@ -1245,12 +1478,12 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 				$month_key = gmdate( 'Y-m', $ts );
 				$year_key  = gmdate( 'Y', $ts );
 
-				$ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
-						$now   = current_time( 'mysql', 1 );
-						$start = $now;
-						$end   = $now;
+                                $ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
+                                                $now   = current_time( 'mysql', 1 );
+                                                $start = $now;
+                                                $end   = $now;
 
-					if ( 'weekly' === $type ) {
+                                        if ( 'weekly' === $type ) {
 						$start = gmdate( 'Y-m-d', strtotime( $period . '-1' ) );
 						$end   = gmdate( 'Y-m-d', strtotime( $period . '-7' ) );
 					} elseif ( 'monthly' === $type ) {
@@ -1261,30 +1494,34 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						$end   = $period . '-12-31';
 					}
 
-																				$sql = $wpdb->prepare(
-																					"SELECT id FROM {$t_tbl} WHERE type=%s AND start_date=%s AND end_date=%s",
-																					$type,
-																					$start,
-																					$end
-																				);
-																				$id  = $wpdb->get_var( $sql );
-					if ( $id ) {
-						return (int) $id;
-					}
-						$wpdb->insert(
-							$t_tbl,
-							array(
-								'type'       => $type,
-								'start_date' => $start,
-								'end_date'   => $end,
-								'status'     => 'active',
-								'created_at' => $now,
-								'updated_at' => $now,
-							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s' )
-						);
-						return (int) $wpdb->insert_id;
-				};
+                                $sql = $wpdb->prepare(
+                                                                                                                               "SELECT id FROM {$t_tbl} WHERE start_date=%s AND end_date=%s AND hunt_link_mode=%s",
+                                                                                                                               $start,
+                                                                                                                               $end,
+                                                                                                                               'auto'
+                                                                                                                               );
+                                                                                                                               $id  = $wpdb->get_var( $sql );
+                                        if ( $id ) {
+                                                return (int) $id;
+                                        }
+                                                $title = sprintf( 'Auto %s %s', ucfirst( $type ), $period );
+                                                $wpdb->insert(
+                                                        $t_tbl,
+                                                        array(
+                                                                'title'             => $title,
+                                                                'description'       => '',
+                                                                'participants_mode' => 'winners',
+                                                                'hunt_link_mode'    => 'auto',
+                                                                'start_date'        => $start,
+                                                                'end_date'          => $end,
+                                                                'status'            => 'active',
+                                                                'created_at'        => $now,
+                                                                'updated_at'        => $now,
+                                                        ),
+                                                        array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+                                                );
+                                                return (int) $wpdb->insert_id;
+                                };
 
                                                $uid = isset( $row->user_id ) ? (int) $row->user_id : 0;
                                                if ( $uid <= 0 ) {
