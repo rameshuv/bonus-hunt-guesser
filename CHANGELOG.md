@@ -13,6 +13,7 @@
 - Refreshed admin dashboard “Latest Hunts” widget to list each winner on its own row with bold usernames and consistent money formatting.
 - Extended hunt results with a Prize column and neutral winner highlighting that aligns with the grey/white row standard.
 - Simplified the Latest Hunts data fetch to rely on existing winner helpers while keeping all rendering WPCS-compliant and avoiding duplicate queries per row.
+- Hardened settings and guess submission handlers by sanitizing toggle inputs and redirect targets while aligning the bootstrap file with WordPress coding standards.
 
 ## 8.0.11 — 2025-09-14
 - Version bump.
