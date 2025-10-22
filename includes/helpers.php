@@ -1372,7 +1372,9 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $t_tbl ) ) === $t_tbl ) {
 				// Wipe results only.
 			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
-						$wpdb->delete( $r_tbl, '1=1' );
+						// Use a plain DELETE to remain compatible with wpdb::delete() requiring an array.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "DELETE FROM {$r_tbl}" );
 			}
 
                                                                $winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );

@@ -17,6 +17,7 @@
 - Migrated tournament period logic to derive from start/end dates, dropped the legacy `type` column, and updated admin/front-end listings to use computed period filters.
 - Fixed the tournament schema migration so the legacy `type` column is no longer re-added during idempotent column checks.
 - Updated demo reseeding so automatic tournaments are created/updated without relying on the removed `type` column.
+- Ensured demo reseeding clears tournament results via a direct DELETE so repeated runs don't accumulate stale wins.
 
 ## 8.0.11 — 2025-09-14
 - Version bump.
