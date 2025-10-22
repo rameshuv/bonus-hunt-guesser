@@ -314,6 +314,47 @@ flex: 1;
     margin-top: var(--bhg-spacing);
 }
 
+.bhg-affiliate-cell {
+    vertical-align: top;
+}
+
+.bhg-aff-toggle {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.bhg-aff-sites {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.bhg-aff-sites li {
+    margin: 0;
+}
+
+.bhg-aff-site-inactive {
+    color: #6b7280;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.bhg-notification-section {
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 6px;
+    background: var(--bhg-card-bg);
+    padding: var(--bhg-spacing);
+    margin-bottom: 24px;
+}
+
+.bhg-notification-section h2 {
+    margin-top: 0;
+}
+
 /* Buttons */
 .bhg-wrap .bhg-dashboard-button,
 .bhg-wrap .button,

@@ -2232,7 +2232,7 @@ $where_params    = array();
 				}
 
 $period_case = function_exists( 'bhg_sql_tournament_period_case' ) ? bhg_sql_tournament_period_case( 'start_date', 'end_date' ) : "'" . esc_sql( bhg_get_default_tournament_period_slug() ) . "'";
-$select_sql  = "SELECT id, start_date, end_date, status";
+$select_sql  = "SELECT id, start_date, end_date, status, type";
 if ( $period_case ) {
 $select_sql .= ', ' . $period_case . ' AS period_slug';
 }
@@ -2290,6 +2290,10 @@ $details_id
 					echo '<div class="bhg-tournament-details">';
 					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
 $period_slug  = isset( $tournament->period_slug ) ? sanitize_key( (string) $tournament->period_slug ) : '';
+$type_slug    = isset( $tournament->type ) ? sanitize_key( (string) $tournament->type ) : '';
+if ( '' === $period_slug && '' !== $type_slug ) {
+$period_slug = $type_slug;
+}
 if ( '' === $period_slug ) {
 $period_slug = function_exists( 'bhg_resolve_tournament_period_slug' )
 ? bhg_resolve_tournament_period_slug( $tournament->start_date, $tournament->end_date )
@@ -2375,6 +2379,7 @@ echo '<h3>' . esc_html( $period_label ) . '</h3>';
                        $order_param   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
 $allowed_orderby = array(
 'title'      => 'title',
+'type'       => 'type',
 'start_date' => 'start_date',
 'end_date'   => 'end_date',
 'status'     => 'status',
@@ -2416,7 +2421,7 @@ $where_params[] = '%' . $wpdb->esc_like( $search ) . '%';
 
 $where_sql = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
 
-$select_fields = 'id, title, start_date, end_date, status, participants_mode, hunt_link_mode, prizes, affiliate_site_id, affiliate_url_visible, created_at, updated_at';
+$select_fields = 'id, title, type, start_date, end_date, status, participants_mode, hunt_link_mode, prizes, affiliate_site_id, affiliate_url_visible, created_at, updated_at';
 if ( $period_case_sql ) {
 $select_fields .= ', ' . $period_case_sql . ' AS period_slug';
 }
@@ -2516,8 +2521,9 @@ $rows       = $wpdb->get_results( $wpdb->prepare( $sql, ...$query_args ) ); // d
 
 			echo '<table class="bhg-tournaments">';
 			echo '<thead><tr>';
-			echo '<th><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</a></th>';
-			echo '<th><a href="' . esc_url( $toggle( 'start_date' ) ) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a></th>';
+                        echo '<th><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</a></th>';
+                        echo '<th><a href="' . esc_url( $toggle( 'type' ) ) . '">' . esc_html( bhg_t( 'type', 'Type' ) ) . '</a></th>';
+                        echo '<th><a href="' . esc_url( $toggle( 'start_date' ) ) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a></th>';
 			echo '<th><a href="' . esc_url( $toggle( 'end_date' ) ) . '">' . esc_html( bhg_t( 'sc_end', 'End' ) ) . '</a></th>';
 			echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
 			echo '<th>' . esc_html( bhg_t( 'label_details', 'Details' ) ) . '</th>';
@@ -2525,9 +2531,12 @@ $rows       = $wpdb->get_results( $wpdb->prepare( $sql, ...$query_args ) ); // d
 
 			foreach ( $rows as $row ) {
 				$detail_url = add_query_arg( 'bhg_tournament_id', (int) $row->id, remove_query_arg( array( 'orderby', 'order' ), $current_url ) );
-				echo '<tr>';
-				echo '<td data-label="' . esc_attr( bhg_t( 'label_name', 'Name' ) ) . '"><a href="' . esc_url( $detail_url ) . '">' . esc_html( $row->title ? $row->title : bhg_t( 'label_unnamed_tournament', 'Untitled tournament' ) ) . '</a></td>';
-				echo '<td data-label="' . esc_attr( bhg_t( 'sc_start', 'Start' ) ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $row->start_date ) ) . '</td>';
+                                echo '<tr>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'label_name', 'Name' ) ) . '"><a href="' . esc_url( $detail_url ) . '">' . esc_html( $row->title ? $row->title : bhg_t( 'label_unnamed_tournament', 'Untitled tournament' ) ) . '</a></td>';
+                                $type_value = isset( $row->type ) ? sanitize_key( (string) $row->type ) : '';
+                                $type_label = $type_value ? bhg_t( $type_value, ucfirst( $type_value ) ) : bhg_t( 'label_emdash', '—' );
+                                echo '<td data-label="' . esc_attr( bhg_t( 'type', 'Type' ) ) . '">' . esc_html( $type_label ) . '</td>';
+                                echo '<td data-label="' . esc_attr( bhg_t( 'sc_start', 'Start' ) ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $row->start_date ) ) . '</td>';
 				echo '<td data-label="' . esc_attr( bhg_t( 'sc_end', 'End' ) ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $row->end_date ) ) . '</td>';
 				$status_key = strtolower( (string) $row->status );
 				echo '<td data-label="' . esc_attr( bhg_t( 'sc_status', 'Status' ) ) . '">' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';

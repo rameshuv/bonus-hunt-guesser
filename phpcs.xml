@@ -12,6 +12,10 @@
 
     <!-- Temporary baseline: focus on the primary bootstrap file -->
     <file>bonus-hunt-guesser.php</file>
+    <file>admin</file>
+    <file>includes</file>
+    <file>tests</file>
+    <file>uninstall.php</file>
 
     <!-- Match PHP 7.4 runtime -->
     <config name="php_version" value="70400"/>
