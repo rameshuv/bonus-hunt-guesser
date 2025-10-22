@@ -19,36 +19,12 @@ class BHG_DB {
 	 *
 	 * @return void
 	 */
-	public static function migrate() {
-		$db = new self();
-		$db->create_tables();
+        public static function migrate() {
+                $db = new self();
+                $db->create_tables();
 
-				global $wpdb;
-				$tours_table = $wpdb->prefix . 'bhg_tournaments';
-
-// Drop legacy "period" column and related index if they exist.
-if ( $db->column_exists( $tours_table, 'period' ) ) {
-// Remove unique index first if present.
-if ( $db->index_exists( $tours_table, 'type_period' ) ) {
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-$wpdb->query( "ALTER TABLE `{$tours_table}` DROP INDEX type_period" );
-}
-
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-$wpdb->query( "ALTER TABLE `{$tours_table}` DROP COLUMN period" );
-}
-
-// Drop legacy "type" column now that period is derived from dates.
-if ( $db->column_exists( $tours_table, 'type' ) ) {
-if ( $db->index_exists( $tours_table, 'type' ) ) {
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-$wpdb->query( "ALTER TABLE `{$tours_table}` DROP INDEX type" );
-}
-
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-$wpdb->query( "ALTER TABLE `{$tours_table}` DROP COLUMN type" );
-}
-	}
+                $db->drop_legacy_tournament_columns();
+        }
 
 	/**
 	 * Create or update required database tables.
@@ -234,6 +210,7 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 		foreach ( $sql as $statement ) {
 				dbDelta( $statement );
 		}
+                                $this->drop_legacy_tournament_columns();
 
 				// Translations table handled separately.
 				$this->create_table_translations();
@@ -459,6 +436,43 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 																				error_log( '[BHG] Schema ensure error: ' . $e->getMessage() );
 			}
 		}
+	}
+
+		/**
+		 * Drop columns that belonged to the legacy tournament type schema.
+		 *
+		 * Ensures dbDelta or direct ensure calls do not bring the column back.
+		 *
+		 * @return void
+		 */
+	private function drop_legacy_tournament_columns() {
+			global $wpdb;
+
+			$tours_table = $wpdb->prefix . 'bhg_tournaments';
+
+			if ( ! $this->table_exists( $tours_table ) ) {
+				return;
+			}
+
+			if ( $this->index_exists( $tours_table, 'type_period' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$tours_table}` DROP INDEX type_period" );
+			}
+
+			if ( $this->column_exists( $tours_table, 'period' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$tours_table}` DROP COLUMN period" );
+			}
+
+			if ( $this->index_exists( $tours_table, 'type' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$tours_table}` DROP INDEX type" );
+			}
+
+			if ( $this->column_exists( $tours_table, 'type' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$tours_table}` DROP COLUMN type" );
+			}
 	}
 
 		/**
