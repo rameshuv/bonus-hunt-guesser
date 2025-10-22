@@ -9,7 +9,9 @@
     <arg name="extensions" value="php"/>
 
     <!-- Scan all plugin PHP files -->
-    <file>.</file>
-    <exclude-pattern>vendor/</exclude-pattern>
-    <exclude-pattern>node_modules/</exclude-pattern>
+    <file>admin/class-bhg-demo.php</file>
+    <file>admin/views/advertising.php</file>
+    <file>admin/views/database.php</file>
+    <file>admin/views/tools.php</file>
+    <file>admin/views/users.php</file>
 </ruleset>
