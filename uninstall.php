@@ -11,10 +11,12 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 			// Delete plugin options.
 			delete_option( 'bhg_version' );
-			delete_option( 'bhg_plugin_settings' );
+delete_option( 'bhg_plugin_settings' );
+delete_option( 'bhg_currency' );
 
-			delete_site_option( 'bhg_version' );
-			delete_site_option( 'bhg_plugin_settings' );
+delete_site_option( 'bhg_version' );
+delete_site_option( 'bhg_plugin_settings' );
+delete_site_option( 'bhg_currency' );
 
 			global $wpdb;
 

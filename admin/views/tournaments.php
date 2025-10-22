@@ -73,9 +73,35 @@ if ( $search_term ) {
 		);
 }
 $base_url = remove_query_arg( array( 'paged' ) );
-$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$hunts_table    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$year_start     = gmdate( 'Y-01-01 00:00:00' );
+$all_hunts      = $wpdb->get_results(
+$wpdb->prepare(
+"SELECT id, title FROM {$hunts_table} WHERE (COALESCE(closed_at, created_at, updated_at) >= %s OR status = %s) ORDER BY title ASC",
+$year_start,
+'open'
+)
+);
+$all_hunts      = is_array( $all_hunts ) ? $all_hunts : array();
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+if ( ! empty( $linked_hunts ) ) {
+$missing = array_diff( $linked_hunts, wp_list_pluck( $all_hunts, 'id' ) );
+if ( $missing ) {
+$placeholders = implode( ',', array_fill( 0, count( $missing ), '%d' ) );
+$extra        = $wpdb->get_results( $wpdb->prepare( "SELECT id, title FROM {$hunts_table} WHERE id IN ({$placeholders})", ...array_values( $missing ) ) );
+if ( $extra ) {
+$all_hunts = array_merge( $all_hunts, $extra );
+}
+}
+}
+if ( $all_hunts ) {
+usort(
+$all_hunts,
+function ( $a, $b ) {
+return strcasecmp( (string) $a->title, (string) $b->title );
+}
+);
+}
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
