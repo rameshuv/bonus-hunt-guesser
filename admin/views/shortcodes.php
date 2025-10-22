@@ -491,24 +491,23 @@ $shortcodes = array(
 														<th><?php echo esc_html( bhg_t( 'shortcodes_notes', 'Notes' ) ); ?></th>
 												</tr>
 										</thead>
-										<tbody>
-												<?php foreach ( $shortcode['attributes'] as $attribute ) : ?>
-														<tr>
-																<td><code><?php echo esc_html( $attribute['name'] ); ?></code></td>
-																<td>
-<?php
-$values = isset( $attribute['values'] ) ? $attribute['values'] : '';
-if ( isset( $attribute['default'] ) && '' !== $attribute['default'] ) {
-/* translators: %s Default shortcode value. */
-$values .= ' ' . sprintf( esc_html( bhg_t( 'shortcodes_default_s', '(default: %s)' ) ), $attribute['default'] );
-}
-echo esc_html( $values );
-?>
-																</td>
-																<td><?php echo esc_html( $attribute['description'] ); ?></td>
-														</tr>
-												<?php endforeach; ?>
-										</tbody>
+								<tbody>
+									<?php
+									foreach ( $shortcode['attributes'] as $attribute ) :
+										$values = isset( $attribute['values'] ) ? $attribute['values'] : '';
+
+										if ( isset( $attribute['default'] ) && '' !== $attribute['default'] ) {
+											/* translators: %s Default shortcode value. */
+											$values .= ' ' . sprintf( esc_html( bhg_t( 'shortcodes_default_s', '(default: %s)' ) ), $attribute['default'] );
+										}
+										?>
+										<tr>
+											<td><code><?php echo esc_html( $attribute['name'] ); ?></code></td>
+											<td><?php echo esc_html( $values ); ?></td>
+											<td><?php echo esc_html( $attribute['description'] ); ?></td>
+										</tr>
+								<?php endforeach; ?>
+							</tbody>
 								</table>
 						<?php endif; ?>
 						<?php if ( ! empty( $shortcode['example'] ) ) : ?>
