@@ -79,81 +79,65 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																				</tr>
 																		</thead>
 																		<tbody>
-																		<?php foreach ( $hunts as $h ) : ?>
-																			<?php
-																			$hunt_id       = isset( $h->id ) ? (int) $h->id : 0;
-																			$winners_count = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
-																			$winners       = array();
+<?php foreach ( $hunts as $h ) : ?>
+<?php
+$hunt_id       = isset( $h->id ) ? (int) $h->id : 0;
+$winners_count = isset( $h->winners_count ) ? (int) $h->winners_count : 0;
+$winners       = array();
 
-																			if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
-																					$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_count );
-																				if ( ! is_array( $winners ) ) {
-																					$winners = array();
-																				}
-																			}
+if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
+$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_count );
+if ( ! is_array( $winners ) ) {
+$winners = array();
+}
+}
 
-																			$hunt_title  = isset( $h->title ) ? (string) $h->title : '';
-																			$start       = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
-																			$winners_out = '';
+$hunt_title    = isset( $h->title ) ? (string) $h->title : '';
+$start_balance = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
+$final_balance = isset( $h->final_balance ) && null !== $h->final_balance ? (float) $h->final_balance : null;
+$closed_at     = isset( $h->closed_at ) ? (string) $h->closed_at : '';
 
-																			if ( ! empty( $winners ) ) {
-																					$out = array();
-																				foreach ( $winners as $w ) {
-																					$user_id = isset( $w->user_id ) ? (int) $w->user_id : 0;
-																					$guess   = isset( $w->guess ) ? (float) $w->guess : 0.0;
-																					$diff    = isset( $w->diff ) ? (float) $w->diff : 0.0;
+$final_display = null !== $final_balance ? bhg_format_money( $final_balance ) : bhg_t( 'label_emdash', '—' );
+$closed_display = bhg_t( 'label_emdash', '—' );
+if ( '' !== $closed_at ) {
+        $timestamp = strtotime( $closed_at );
+        $closed_display = false !== $timestamp ? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp ) : $closed_at;
+}
 
-																					$u  = $user_id ? get_userdata( $user_id ) : false;
-																					$nm = $u ? $u->user_login : sprintf(
-																						/* translators: %d: user ID. */
-																						esc_html( bhg_t( 'label_user_number', 'User #%d' ) ),
-																						$user_id
-																					);
-
-																					$out[] = sprintf(
-																						'%1$s %2$s %3$s (%4$s %5$s)',
-																						esc_html( $nm ),
-																						esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ),
-																						esc_html( bhg_format_currency( $guess ) ),
-																						esc_html( bhg_t( 'label_diff', 'diff' ) ),
-																						esc_html( bhg_format_currency( $diff ) )
-																					);
-																				}
-																				$winners_out = implode( ' • ', $out );
-																			} else {
-																					$winners_out = bhg_t( 'no_winners_yet', 'No winners yet' );
-																			}
-
-																			?>
-																				<tr>
-																						<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
-																						<td><?php echo esc_html( $winners_out ); ?></td>
-																																<td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
-																						<td>
-																						<?php
-																						if ( isset( $h->final_balance ) && null !== $h->final_balance ) {
-																																echo esc_html( bhg_format_currency( (float) $h->final_balance ) );
-																						} else {
-																								echo esc_html( bhg_t( 'label_emdash', '—' ) );
-																						}
-																						?>
-																						</td>
-																						<td>
-																						<?php
-																						if ( ! empty( $h->closed_at ) ) {
-																								$ts = strtotime( (string) $h->closed_at );
-																								echo esc_html(
-																									false !== $ts
-																												? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $ts )
-																												: (string) $h->closed_at
-																								);
-																						} else {
-																								echo esc_html( bhg_t( 'label_emdash', '—' ) );
-																						}
-																						?>
-																						</td>
-																				</tr>
-																		<?php endforeach; ?>
+if ( empty( $winners ) ) :
+?>
+<tr>
+        <td class="bhg-latest-hunts-title"><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
+        <td class="bhg-latest-hunts-winner-cell"><?php echo esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) ); ?></td>
+        <td class="bhg-latest-hunts-money"><?php echo esc_html( bhg_format_money( $start_balance ) ); ?></td>
+        <td class="bhg-latest-hunts-money"><?php echo esc_html( $final_display ); ?></td>
+        <td><?php echo esc_html( $closed_display ); ?></td>
+</tr>
+<?php else :
+        $separator     = esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' );
+        $diff_label    = esc_html( bhg_t( 'label_difference', 'Difference' ) );
+        $winner_total  = max( 1, count( $winners ) );
+        foreach ( $winners as $index => $winner ) :
+                $user_id   = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
+                $guess     = isset( $winner->guess ) ? (float) $winner->guess : 0.0;
+                $diff      = isset( $winner->diff ) ? (float) $winner->diff : 0.0;
+                $user      = $user_id ? get_userdata( $user_id ) : false;
+                $username  = $user ? $user->user_login : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_number', 'User #%d' ), $user_id );
+                $winner_line  = '<strong>' . esc_html( $username ) . '</strong> ' . $separator . ' ' . esc_html( bhg_format_money( $guess ) ) . ' (' . $diff_label . ' ' . esc_html( bhg_format_money( $diff ) ) . ')';
+?>
+<tr>
+        <?php if ( 0 === $index ) : ?>
+        <td class="bhg-latest-hunts-title" rowspan="<?php echo esc_attr( $winner_total ); ?>"><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
+        <?php endif; ?>
+        <td class="bhg-latest-hunts-winner-cell"><?php echo wp_kses_post( $winner_line ); ?></td>
+        <?php if ( 0 === $index ) : ?>
+        <td class="bhg-latest-hunts-money" rowspan="<?php echo esc_attr( $winner_total ); ?>"><?php echo esc_html( bhg_format_money( $start_balance ) ); ?></td>
+        <td class="bhg-latest-hunts-money" rowspan="<?php echo esc_attr( $winner_total ); ?>"><?php echo esc_html( $final_display ); ?></td>
+        <td rowspan="<?php echo esc_attr( $winner_total ); ?>"><?php echo esc_html( $closed_display ); ?></td>
+        <?php endif; ?>
+</tr>
+<?php endforeach; endif; ?>
+<?php endforeach; ?>
 																		</tbody>
 																</table>
 																<?php else : ?>

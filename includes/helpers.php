@@ -215,6 +215,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
                         'label_prizes'                                 => 'Prizes',
+                        'label_prize'                                  => 'Prize',
                         'category'                                     => 'Category',
 			'label_submit_guess'                           => 'Submit Guess',
                         'label_guess'                                  => 'Guess',
@@ -786,14 +787,32 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
-		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
-		$map      = array(
-			'usd' => '$',
-			'eur' => '€',
-		);
-		$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
-		return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+        $currency = get_option( 'bhg_currency', '' );
+        if ( ! $currency ) {
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                if ( isset( $settings['currency'] ) ) {
+                        $currency = strtoupper( (string) $settings['currency'] );
+                }
+        }
+
+        $currency = strtoupper( (string) $currency );
+        if ( ! in_array( $currency, array( 'USD', 'EUR' ), true ) ) {
+                $currency = 'EUR';
+        }
+
+        $map    = array(
+                'USD' => '$',
+                'EUR' => '€',
+        );
+        $symbol = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
+
+        /**
+         * Filters the resolved currency symbol.
+         *
+         * @param string $symbol   Currency symbol.
+         * @param string $currency ISO currency code (EUR or USD).
+         */
+        return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
@@ -802,8 +821,18 @@ function bhg_currency_symbol() {
  * @param float $amount Amount to format.
  * @return string
  */
+function bhg_format_money( $amount ) {
+        return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+}
+
+/**
+ * Back-compat wrapper for legacy currency formatter.
+ *
+ * @param float $amount Amount to format.
+ * @return string
+ */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+        return bhg_format_money( $amount );
 }
 
 /**
