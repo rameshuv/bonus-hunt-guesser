@@ -15,6 +15,13 @@ if ( ! current_user_can( 'manage_options' ) ) {
 
 // Fetch existing settings.
 $settings = get_option( 'bhg_plugin_settings', array() );
+$currency_option = get_option( 'bhg_currency', '' );
+if ( '' === $currency_option && isset( $settings['currency'] ) ) {
+        $currency_option = strtoupper( (string) $settings['currency'] );
+}
+if ( '' === $currency_option ) {
+        $currency_option = 'EUR';
+}
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
@@ -61,14 +68,13 @@ foreach ( $periods as $key => $label ) :
 <td>
 <select name="bhg_currency" id="bhg_currency">
 <?php
-$currencies       = array(
-	'eur' => bhg_t( 'eur', 'EUR' ),
-	'usd' => bhg_t( 'usd', 'USD' ),
+$currencies = array(
+        'EUR' => bhg_t( 'eur', 'EUR' ),
+        'USD' => bhg_t( 'usd', 'USD' ),
 );
-$current_currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
 foreach ( $currencies as $key => $label ) :
-	?>
-<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $current_currency, $key ); ?>><?php echo esc_html( $label ); ?></option>
+        ?>
+<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $currency_option, $key ); ?>><?php echo esc_html( $label ); ?></option>
 <?php endforeach; ?>
 </select>
 </td>

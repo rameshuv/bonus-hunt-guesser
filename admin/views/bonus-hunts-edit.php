@@ -31,11 +31,24 @@ $affs = $wpdb->get_results(
 $sel  = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 
 $t_table              = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-$tournaments          = $wpdb->get_results( "SELECT id, title FROM {$t_table} ORDER BY title ASC" );
 $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+$selected_tournaments = array_values( array_filter( array_map( 'absint', (array) $selected_tournaments ) ) );
+
+$tour_params = array( 'active' );
+$tour_sql    = "SELECT id, title FROM {$t_table} WHERE status = %s";
+
+if ( ! empty( $selected_tournaments ) ) {
+        $placeholders = implode( ',', array_fill( 0, count( $selected_tournaments ), '%d' ) );
+        $tour_sql    .= " OR id IN ({$placeholders})";
+        $tour_params  = array_merge( $tour_params, $selected_tournaments );
+}
+
+$tour_sql   .= ' ORDER BY title ASC';
+$tournaments = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $tour_sql ), $tour_params ) ) );
+// db call ok; no-cache ok.
 
 $paged    = max( 1, absint( wp_unslash( $_GET['ppaged'] ?? '' ) ) );
-$per_page = 30;
+$per_page = function_exists( 'bhg_get_per_page' ) ? bhg_get_per_page( 'admin_hunt_participants' ) : 30;
 $data     = bhg_get_hunt_participants( $id, $paged, $per_page );
 $rows     = $data['rows'];
 $total    = (int) $data['total'];

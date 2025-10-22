@@ -202,7 +202,7 @@ class MockWPDB {
     }
 
     public function get_col( $query ) {
-        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_tournaments' ) ) {
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournaments_hunts' ) ) {
             $hunt_id = $this->match_int( '/WHERE hunt_id = (\d+)/', $query );
             $results = array();
 
