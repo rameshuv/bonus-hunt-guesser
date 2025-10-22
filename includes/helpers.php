@@ -1388,44 +1388,76 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 				$year_key  = gmdate( 'Y', $ts );
 
 				$ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
-						$now   = current_time( 'mysql', 1 );
-						$start = $now;
-						$end   = $now;
+				$now   = current_time( 'mysql', 1 );
+				$start = $now;
+				$end   = $now;
+				$title = '';
 
-					if ( 'weekly' === $type ) {
-						$start = gmdate( 'Y-m-d', strtotime( $period . '-1' ) );
-						$end   = gmdate( 'Y-m-d', strtotime( $period . '-7' ) );
-					} elseif ( 'monthly' === $type ) {
-						$start = $period . '-01';
-						$end   = gmdate( 'Y-m-t', strtotime( $start ) );
-					} elseif ( 'yearly' === $type ) {
-						$start = $period . '-01-01';
-						$end   = $period . '-12-31';
-					}
+				if ( 'weekly' === $type ) {
+				$start        = gmdate( 'Y-m-d', strtotime( $period . '-1' ) );
+				$end          = gmdate( 'Y-m-d', strtotime( $period . '-7' ) );
+				$title_format = function_exists( '__' ) ? __( 'Weekly %s', 'bonus-hunt-guesser' ) : 'Weekly %s';
+				$title        = sprintf( $title_format, $period );
+				} elseif ( 'monthly' === $type ) {
+				$start        = $period . '-01';
+				$end          = gmdate( 'Y-m-t', strtotime( $start ) );
+				$month_label  = gmdate( 'F Y', strtotime( $start ) );
+				$title_format = function_exists( '__' ) ? __( 'Monthly %s', 'bonus-hunt-guesser' ) : 'Monthly %s';
+				$title        = sprintf( $title_format, $month_label );
+				} elseif ( 'yearly' === $type ) {
+				$start        = $period . '-01-01';
+				$end          = $period . '-12-31';
+				$title_format = function_exists( '__' ) ? __( 'Yearly %s', 'bonus-hunt-guesser' ) : 'Yearly %s';
+				$title        = sprintf( $title_format, $period );
+				}
 
-																				$sql = $wpdb->prepare(
-																					"SELECT id FROM {$t_tbl} WHERE type=%s AND start_date=%s AND end_date=%s",
-																					$type,
-																					$start,
-																					$end
-																				);
-																				$id  = $wpdb->get_var( $sql );
-					if ( $id ) {
-						return (int) $id;
-					}
-						$wpdb->insert(
-							$t_tbl,
-							array(
-								'type'       => $type,
-								'start_date' => $start,
-								'end_date'   => $end,
-								'status'     => 'active',
-								'created_at' => $now,
-								'updated_at' => $now,
-							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s' )
-						);
-						return (int) $wpdb->insert_id;
+				if ( '' === $title ) {
+				$title = ucfirst( $type ) . ' ' . $period;
+				}
+
+				$existing_id = $wpdb->get_var(
+				$wpdb->prepare(
+				"SELECT id FROM {$t_tbl} WHERE start_date = %s AND end_date = %s LIMIT 1",
+				$start,
+				$end
+				)
+				);
+
+				if ( $existing_id ) {
+				$wpdb->update(
+				$t_tbl,
+				array(
+				'title'             => $title,
+				'hunt_link_mode'    => 'auto',
+				'participants_mode' => 'winners',
+				'status'            => 'active',
+				'updated_at'        => $now,
+				),
+				array( 'id' => (int) $existing_id ),
+				array( '%s', '%s', '%s', '%s', '%s' ),
+				array( '%d' )
+				);
+
+				return (int) $existing_id;
+				}
+
+				$wpdb->insert(
+				$t_tbl,
+				array(
+				'title'             => $title,
+				'description'       => '',
+				'participants_mode' => 'winners',
+				'hunt_link_mode'    => 'auto',
+				'start_date'        => $start,
+				'end_date'          => $end,
+				'status'            => 'active',
+				'created_at'        => $now,
+				'updated_at'        => $now,
+				),
+				array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+				);
+
+				return (int) $wpdb->insert_id;
 				};
 
                                                $uid = isset( $row->user_id ) ? (int) $row->user_id : 0;

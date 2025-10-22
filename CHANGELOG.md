@@ -16,6 +16,7 @@
 - Hardened settings and guess submission handlers by sanitizing toggle inputs and redirect targets while aligning the bootstrap file with WordPress coding standards.
 - Migrated tournament period logic to derive from start/end dates, dropped the legacy `type` column, and updated admin/front-end listings to use computed period filters.
 - Fixed the tournament schema migration so the legacy `type` column is no longer re-added during idempotent column checks.
+- Updated demo reseeding so automatic tournaments are created/updated without relying on the removed `type` column.
 
 ## 8.0.11 — 2025-09-14
 - Version bump.
