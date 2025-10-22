@@ -83,13 +83,126 @@ add_filter(
  * @return bool
  */
 function bhg_is_frontend() {
-	return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+}
+
+if ( ! function_exists( 'bhg_get_default_tournament_period_slug' ) ) {
+/**
+ * Retrieve the default tournament period slug from settings.
+ *
+ * @return string One of weekly, monthly, quarterly, yearly, alltime.
+ */
+function bhg_get_default_tournament_period_slug() {
+$settings = get_option( 'bhg_plugin_settings', array() );
+$default  = isset( $settings['default_tournament_period'] ) ? sanitize_key( $settings['default_tournament_period'] ) : 'monthly';
+$allowed  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+
+return in_array( $default, $allowed, true ) ? $default : 'monthly';
+}
+}
+
+if ( ! function_exists( 'bhg_resolve_tournament_period_slug' ) ) {
+/**
+ * Determine a tournament period slug based on start and end dates.
+ *
+ * @param string|null $start_date Tournament start date (Y-m-d) or null.
+ * @param string|null $end_date   Tournament end date (Y-m-d) or null.
+ * @param string      $fallback   Optional fallback slug when dates are missing/invalid.
+ * @return string Period slug.
+ */
+function bhg_resolve_tournament_period_slug( $start_date, $end_date, $fallback = '' ) {
+$allowed  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+$fallback = $fallback ? sanitize_key( $fallback ) : bhg_get_default_tournament_period_slug();
+if ( ! in_array( $fallback, $allowed, true ) ) {
+$fallback = 'monthly';
+}
+
+$start_date = is_string( $start_date ) ? trim( $start_date ) : '';
+$end_date   = is_string( $end_date ) ? trim( $end_date ) : '';
+
+if ( '' === $start_date || '' === $end_date ) {
+return $fallback;
+}
+
+try {
+$start = new DateTimeImmutable( $start_date );
+$end   = new DateTimeImmutable( $end_date );
+} catch ( Exception $e ) {
+return $fallback;
+}
+
+if ( $end < $start ) {
+$tmp   = $start;
+$start = $end;
+$end   = $tmp;
+}
+
+$days = (int) $end->diff( $start )->format( '%a' ) + 1;
+
+if ( $days <= 10 ) {
+return 'weekly';
+}
+
+if ( $days <= 45 ) {
+return 'monthly';
+}
+
+if ( $days <= 120 ) {
+return 'quarterly';
+}
+
+if ( $days <= 400 ) {
+return 'yearly';
+}
+
+return 'alltime';
+}
+}
+
+if ( ! function_exists( 'bhg_sql_tournament_period_case' ) ) {
+/**
+ * Build a CASE SQL expression that mirrors bhg_resolve_tournament_period_slug().
+ *
+ * @param string $start_column Column name for the start date.
+ * @param string $end_column   Column name for the end date.
+ * @param string $fallback     Optional fallback slug when dates are missing/invalid.
+ * @return string Sanitized SQL CASE expression.
+ */
+function bhg_sql_tournament_period_case( $start_column = 'start_date', $end_column = 'end_date', $fallback = '' ) {
+$allowed = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+$start   = preg_replace( '/[^A-Za-z0-9_\.]/', '', (string) $start_column );
+$end     = preg_replace( '/[^A-Za-z0-9_\.]/', '', (string) $end_column );
+if ( '' === $start ) {
+$start = 'start_date';
+}
+if ( '' === $end ) {
+$end = 'end_date';
+}
+
+$fallback = $fallback ? sanitize_key( $fallback ) : bhg_get_default_tournament_period_slug();
+if ( ! in_array( $fallback, $allowed, true ) ) {
+$fallback = 'monthly';
+}
+
+$start_expr = 'LEAST(' . $start . ', ' . $end . ')';
+$end_expr   = 'GREATEST(' . $start . ', ' . $end . ')';
+$fallback   = esc_sql( $fallback );
+
+return "CASE\n" .
+"\tWHEN {$start} IS NULL OR {$end} IS NULL THEN '{$fallback}'\n" .
+"\tWHEN DATEDIFF({$end_expr}, {$start_expr}) + 1 <= 10 THEN 'weekly'\n" .
+"\tWHEN DATEDIFF({$end_expr}, {$start_expr}) + 1 <= 45 THEN 'monthly'\n" .
+"\tWHEN DATEDIFF({$end_expr}, {$start_expr}) + 1 <= 120 THEN 'quarterly'\n" .
+"\tWHEN DATEDIFF({$end_expr}, {$start_expr}) + 1 <= 400 THEN 'yearly'\n" .
+"\tELSE 'alltime'\n" .
+"END";
+}
 }
 
 if ( ! function_exists( 'bhg_t' ) ) {
-		/**
-		 * Retrieve a translation value from the database.
-		 *
+/**
+ * Retrieve a translation value from the database.
+ *
 		 * @param string $slug    Translation slug.
 		 * @param string $default_text Default text if not found.
 		 * @param string $locale  Locale to use. Defaults to current locale.
@@ -215,6 +328,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
                         'label_prizes'                                 => 'Prizes',
+                        'label_prize'                                  => 'Prize',
                         'category'                                     => 'Category',
 			'label_submit_guess'                           => 'Submit Guess',
                         'label_guess'                                  => 'Guess',
@@ -786,14 +900,32 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
-		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
-		$map      = array(
-			'usd' => '$',
-			'eur' => '€',
-		);
-		$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
-		return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+        $currency = get_option( 'bhg_currency', '' );
+        if ( ! $currency ) {
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                if ( isset( $settings['currency'] ) ) {
+                        $currency = strtoupper( (string) $settings['currency'] );
+                }
+        }
+
+        $currency = strtoupper( (string) $currency );
+        if ( ! in_array( $currency, array( 'USD', 'EUR' ), true ) ) {
+                $currency = 'EUR';
+        }
+
+        $map    = array(
+                'USD' => '$',
+                'EUR' => '€',
+        );
+        $symbol = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
+
+        /**
+         * Filters the resolved currency symbol.
+         *
+         * @param string $symbol   Currency symbol.
+         * @param string $currency ISO currency code (EUR or USD).
+         */
+        return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
@@ -802,8 +934,18 @@ function bhg_currency_symbol() {
  * @param float $amount Amount to format.
  * @return string
  */
+function bhg_format_money( $amount ) {
+        return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+}
+
+/**
+ * Back-compat wrapper for legacy currency formatter.
+ *
+ * @param float $amount Amount to format.
+ * @return string
+ */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+        return bhg_format_money( $amount );
 }
 
 /**
@@ -1230,7 +1372,9 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $t_tbl ) ) === $t_tbl ) {
 				// Wipe results only.
 			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
-						$wpdb->delete( $r_tbl, '1=1' );
+						// Use a plain DELETE to remain compatible with wpdb::delete() requiring an array.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "DELETE FROM {$r_tbl}" );
 			}
 
                                                                $winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
@@ -1246,44 +1390,76 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 				$year_key  = gmdate( 'Y', $ts );
 
 				$ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
-						$now   = current_time( 'mysql', 1 );
-						$start = $now;
-						$end   = $now;
+				$now   = current_time( 'mysql', 1 );
+				$start = $now;
+				$end   = $now;
+				$title = '';
 
-					if ( 'weekly' === $type ) {
-						$start = gmdate( 'Y-m-d', strtotime( $period . '-1' ) );
-						$end   = gmdate( 'Y-m-d', strtotime( $period . '-7' ) );
-					} elseif ( 'monthly' === $type ) {
-						$start = $period . '-01';
-						$end   = gmdate( 'Y-m-t', strtotime( $start ) );
-					} elseif ( 'yearly' === $type ) {
-						$start = $period . '-01-01';
-						$end   = $period . '-12-31';
-					}
+				if ( 'weekly' === $type ) {
+				$start        = gmdate( 'Y-m-d', strtotime( $period . '-1' ) );
+				$end          = gmdate( 'Y-m-d', strtotime( $period . '-7' ) );
+				$title_format = function_exists( '__' ) ? __( 'Weekly %s', 'bonus-hunt-guesser' ) : 'Weekly %s';
+				$title        = sprintf( $title_format, $period );
+				} elseif ( 'monthly' === $type ) {
+				$start        = $period . '-01';
+				$end          = gmdate( 'Y-m-t', strtotime( $start ) );
+				$month_label  = gmdate( 'F Y', strtotime( $start ) );
+				$title_format = function_exists( '__' ) ? __( 'Monthly %s', 'bonus-hunt-guesser' ) : 'Monthly %s';
+				$title        = sprintf( $title_format, $month_label );
+				} elseif ( 'yearly' === $type ) {
+				$start        = $period . '-01-01';
+				$end          = $period . '-12-31';
+				$title_format = function_exists( '__' ) ? __( 'Yearly %s', 'bonus-hunt-guesser' ) : 'Yearly %s';
+				$title        = sprintf( $title_format, $period );
+				}
 
-																				$sql = $wpdb->prepare(
-																					"SELECT id FROM {$t_tbl} WHERE type=%s AND start_date=%s AND end_date=%s",
-																					$type,
-																					$start,
-																					$end
-																				);
-																				$id  = $wpdb->get_var( $sql );
-					if ( $id ) {
-						return (int) $id;
-					}
-						$wpdb->insert(
-							$t_tbl,
-							array(
-								'type'       => $type,
-								'start_date' => $start,
-								'end_date'   => $end,
-								'status'     => 'active',
-								'created_at' => $now,
-								'updated_at' => $now,
-							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s' )
-						);
-						return (int) $wpdb->insert_id;
+				if ( '' === $title ) {
+				$title = ucfirst( $type ) . ' ' . $period;
+				}
+
+				$existing_id = $wpdb->get_var(
+				$wpdb->prepare(
+				"SELECT id FROM {$t_tbl} WHERE start_date = %s AND end_date = %s LIMIT 1",
+				$start,
+				$end
+				)
+				);
+
+				if ( $existing_id ) {
+				$wpdb->update(
+				$t_tbl,
+				array(
+				'title'             => $title,
+				'hunt_link_mode'    => 'auto',
+				'participants_mode' => 'winners',
+				'status'            => 'active',
+				'updated_at'        => $now,
+				),
+				array( 'id' => (int) $existing_id ),
+				array( '%s', '%s', '%s', '%s', '%s' ),
+				array( '%d' )
+				);
+
+				return (int) $existing_id;
+				}
+
+				$wpdb->insert(
+				$t_tbl,
+				array(
+				'title'             => $title,
+				'description'       => '',
+				'participants_mode' => 'winners',
+				'hunt_link_mode'    => 'auto',
+				'start_date'        => $start,
+				'end_date'          => $end,
+				'status'            => 'active',
+				'created_at'        => $now,
+				'updated_at'        => $now,
+				),
+				array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+				);
+
+				return (int) $wpdb->insert_id;
 				};
 
                                                $uid = isset( $row->user_id ) ? (int) $row->user_id : 0;

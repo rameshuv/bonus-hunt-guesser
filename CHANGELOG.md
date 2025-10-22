@@ -8,6 +8,17 @@
 
 # Changelog
 
+## 8.0.14 — 2025-09-20
+- Added dedicated `bhg_currency` option with updated helpers to standardize currency formatting across admin and frontend views.
+- Refreshed admin dashboard “Latest Hunts” widget to list each winner on its own row with bold usernames and consistent money formatting.
+- Extended hunt results with a Prize column and neutral winner highlighting that aligns with the grey/white row standard.
+- Simplified the Latest Hunts data fetch to rely on existing winner helpers while keeping all rendering WPCS-compliant and avoiding duplicate queries per row.
+- Hardened settings and guess submission handlers by sanitizing toggle inputs and redirect targets while aligning the bootstrap file with WordPress coding standards.
+- Migrated tournament period logic to derive from start/end dates, dropped the legacy `type` column, and updated admin/front-end listings to use computed period filters.
+- Fixed the tournament schema migration so the legacy `type` column is no longer re-added during idempotent column checks.
+- Updated demo reseeding so automatic tournaments are created/updated without relying on the removed `type` column.
+- Ensured demo reseeding clears tournament results via a direct DELETE so repeated runs don't accumulate stale wins.
+
 ## 8.0.11 — 2025-09-14
 - Version bump.
 
