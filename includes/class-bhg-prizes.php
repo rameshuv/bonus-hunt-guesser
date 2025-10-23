@@ -371,7 +371,7 @@ class BHG_Prizes {
          *
          * @param object $prize Prize row.
          * @param string $size  Size key.
-         * @return string
+         * @return string Raw attachment URL (escape on output).
          */
         public static function get_image_url( $prize, $size = 'medium' ) {
                 $size = sanitize_key( $size );
@@ -406,6 +406,6 @@ class BHG_Prizes {
                         $url = wp_get_attachment_url( $id );
                 }
 
-                return $url ? esc_url( $url ) : '';
+                return $url ? $url : '';
         }
 }
