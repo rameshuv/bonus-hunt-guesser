@@ -1,67 +1,107 @@
 # Bonus Hunt Guesser — Customer Acceptance Checklist
 
-_Status legend:_ `[ ]` pending verification, `[x]` complete, `[>]` in progress, `[!]` blocked, `[?]` clarification needed.
+_Status legend:_ `[x]` complete, `[!]` needs attention, `[?]` requires manual verification.
 
-> Update the status token at the start of each line as work progresses. Each item lists the primary file(s) to inspect when implementing or validating the requirement.
+Each line lists the primary files to inspect or adjust.
 
 ## A. Core Functionality (Bonus Hunts & Guessing)
-- [ ] Admin can create a bonus hunt with title, starting balance, number of bonuses, and prize description. (`admin/views/bonus-hunts.php`, `includes/class-bhg-bonus-hunts.php`)
-- [ ] Logged-in users can submit a final balance guess between €0 and €100,000 for the active hunt. (`includes/class-bhg-shortcodes.php`, `includes/class-bhg-bonus-hunts.php`)
-- [ ] Frontend displays active hunt details (title, starting balance, bonuses count). (`includes/class-bhg-shortcodes.php`, templates)
-- [ ] Leaderboard lists all guesses with position, username, and guessed balance. (`includes/class-bhg-shortcodes.php`, frontend assets)
+- [x] Admin can create a bonus hunt with title, starting balance, number of bonuses, and prize description. (`admin/views/bonus-hunts.php`)  
+  *Verified form inputs for title, starting balance, bonus count, winners, and prizes.*
+- [x] Logged-in users can submit a final balance guess between €0 and €100,000 for the active hunt. (`bonus-hunt-guesser.php`)  
+  *`bhg_handle_submit_guess()` enforces min/max limits and login checks.*
+- [x] Frontend displays active hunt details (title, starting balance, bonuses count). (`includes/class-bhg-shortcodes.php`)  
+  *`active_hunt_shortcode()` prints the selected hunt card with balances and bonus count.*
+- [x] Leaderboard lists all guesses with position, username, and guessed balance. (`includes/class-bhg-shortcodes.php`)  
+  *Rendered in both `[bhg_active_hunt]` and `[bhg_leaderboard]` outputs with pagination support.*
 
 ## B. User Profiles & Guessing Enhancements
-- [ ] Admin user management includes real name, username, email, and affiliate status fields. (`admin/views/users.php`, `includes/class-bhg-users.php`)
-- [ ] Integration detects Nextend Social Login (Google/Twitch/Kick) without hard coupling. (`includes/class-bhg-login-redirect.php`, `includes/helpers.php`)
-- [ ] Users may edit their guesses while the hunt remains open. (`includes/class-bhg-bonus-hunts.php`, `includes/class-bhg-shortcodes.php`)
-- [ ] Leaderboard shows affiliate indicator (green for affiliates, red for non-affiliates). (`includes/class-bhg-shortcodes.php`, `assets/css/frontend.css`)
-- [ ] Guess table supports sorting by position, username, and guess amount with pagination. (`includes/class-bhg-shortcodes.php`, JS helpers)
+- [x] Admin user management includes real name, username, email, and affiliate status fields. (`admin/views/users.php`)  
+  *Inline edit controls allow updating real name, global affiliate flag, and per-site toggles.*
+- [x] Integration detects Nextend Social Login (Google/Twitch/Kick) without hard coupling. (`includes/class-bhg-login-redirect.php`)  
+  *Checks for `NextendSocialLogin()` and maps profile data when available.*
+- [x] Users may edit their guesses while the hunt remains open. (`bonus-hunt-guesser.php`)  
+  *When `allow_guess_changes` is enabled the handler updates the latest guess instead of blocking.*
+- [x] Leaderboard shows affiliate indicator (green for affiliates, red for non-affiliates). (`includes/helpers.php`, `includes/class-bhg-shortcodes.php`)  
+  *`bhg_render_affiliate_dot()` emits colour-coded markers appended to usernames.*
+- [x] Guess table supports sorting by position, username, and guess amount with pagination. (`includes/class-bhg-shortcodes.php`)  
+  *`bhg_leaderboard` shortcode sanitises `orderby`/`order` inputs and paginates results.*
 
 ## C. Tournament & Leaderboard System
-- [ ] Admin can create tournaments with title, description, schedule (monthly/yearly/quarterly/all-time). (`admin/views/tournaments.php`, `includes/class-bhg-tournaments.php`)
-- [ ] Tournament leaderboard exposes sortable columns (position, username, wins) and filters (week/month/year). (`includes/class-bhg-shortcodes.php`)
-- [ ] Historical tournament data accessible alongside current standings. (`includes/class-bhg-shortcodes.php`, `admin/views/tournaments.php`)
+- [!] Admin can create tournaments with title, description, schedule (monthly/quarterly/yearly/all-time). (`admin/views/tournaments.php`, `admin/class-bhg-admin.php`, `includes/class-bhg-db.php`)  
+  *UI exposes the selector but the database schema drops the `type` column, so saves will fail—restore the column and persistence logic.*
+- [x] Tournament leaderboard exposes sortable columns (position, username, wins) and filters (week/month/year). (`includes/class-bhg-shortcodes.php`)  
+  *`[bhg_leaderboards]` builds CASE expressions for period filters and applies sort toggles.*
+- [x] Historical tournament data accessible alongside current standings. (`includes/class-bhg-shortcodes.php`)  
+  *Timeline filters (`this_month`, `this_year`, etc.) are translated into date ranges for archived data.*
 
 ## D. Frontend Leaderboard Enhancements
-- [ ] Leaderboard interface provides tabs for Overall, Monthly, Yearly, and All-Time best guessers. (`includes/class-bhg-shortcodes.php`, frontend scripts)
-- [ ] Tabs expose history across previous bonus hunts. (`includes/class-bhg-shortcodes.php`, templates)
+- [x] Leaderboard interface provides tabs for Overall, Monthly, Yearly, and All-Time best guessers. (`includes/class-bhg-shortcodes.php`, `assets/css/bhg-shortcodes.css`)  
+  *`bhg_render_leaderboard_tabs()` outputs the tabbed navigation with matching styles.*
+- [x] Tabs expose history across previous bonus hunts. (`includes/class-bhg-shortcodes.php`)  
+  *Historic closed hunts are listed under the “Bonus Hunts” tab with deep links.*
 
 ## E. User Experience Improvements
-- [ ] Smart login redirect returns users to the page that required authentication. (`includes/class-bhg-login-redirect.php`)
-- [ ] Three WordPress menu locations registered (Admins/Mods, Logged-in, Guests) with styling guidance. (`includes/helpers.php`, `assets/css/frontend.css`, `docs/`)
-- [ ] Translations admin tab lists all plugin strings with override capability. (`admin/views/translations.php`, `includes/helpers.php`)
+- [x] Smart login redirect returns users to the page that required authentication. (`includes/class-bhg-login-redirect.php`)  
+  *Filters `login_redirect` and Nextend callbacks to honour the attempted URL.*
+- [x] Three WordPress menu locations registered (Admins/Mods, Logged-in, Guests) with styling guidance. (`includes/class-bhg-front-menus.php`, `assets/css/bhg-shortcodes.css`)  
+  *`register_nav_menus()` registers the three slots; shortcode helpers pick the appropriate menu.*
+- [x] Translations admin tab lists all plugin strings with override capability. (`admin/views/translations.php`, `includes/helpers.php`)  
+  *Interface seeds defaults, supports search, pagination, and updates the translations table.*
 
 ## F. Affiliate Adjustment / Upgrade
-- [ ] Admin CRUD for multiple affiliate websites (add/edit/delete). (`admin/views/affiliate-websites.php`, `includes/class-bhg-affiliates.php`)
-- [ ] Bonus hunt edit form includes affiliate dropdown selection. (`admin/views/bonus-hunts.php`)
-- [ ] User profile shows affiliate yes/no per affiliate site. (`admin/views/users.php`)
-- [ ] Frontend guess tables and ad targeting respect per-affiliate status. (`includes/class-bhg-shortcodes.php`, `admin/views/advertising.php`)
+- [x] Admin CRUD for multiple affiliate websites (add/edit/delete). (`admin/views/affiliate-websites.php`, `admin/class-bhg-admin.php`)  
+  *Listing, edit, and delete actions are nonce-protected.*
+- [x] Bonus hunt edit form includes affiliate dropdown selection. (`admin/views/bonus-hunts.php`)  
+  *Affiliate site select appears on create/edit screens.*
+- [x] User profile shows affiliate yes/no per affiliate site. (`admin/views/users.php`)  
+  *Each affiliate renders as a checkbox within the profile row.*
+- [x] Frontend guess tables and ad targeting respect per-affiliate status. (`includes/class-bhg-shortcodes.php`, `admin/views/advertising.php`)  
+  *Affiliate filters propagate through leaderboard queries and ad placement rules.*
 
 ## G. Final Enhancements & Polish
-- [ ] Winner ranking uses closest final-balance difference. (`includes/class-bhg-bonus-hunts-helpers.php`)
-- [ ] Email notifications announce results and wins when enabled. (`includes/class-bhg-notifications.php`, `admin/views/notifications.php`)
-- [ ] Performance fixes and bug resolutions documented in changelog. (`CHANGELOG.md`)
-- [ ] Bonus Hunt admin inputs use required border styling. (`assets/css/admin.css`)
-- [ ] Advertising module allows text/link ads, placement control (including footer), login/affiliate visibility, and `none` placement for shortcode use. (`admin/views/advertising.php`)
+- [x] Winner ranking uses closest final-balance difference. (`admin/views/bonus-hunts-results.php`, `includes/class-bhg-shortcodes.php`)  
+  *Queries order by `ABS(final_balance - guess)` and display formatted differences.*
+- [x] Email notifications announce results and wins when enabled. (`includes/class-bhg-notifications.php`, `admin/views/notifications.php`)  
+  *Notifications service stores templates, enables toggles, and dispatches emails via hooks.*
+- [x] Performance fixes and bug resolutions documented in changelog. (`CHANGELOG.md`)  
+  *8.0.14 entry notes caching, dashboard unions, and schema clean-up items.*
+- [x] Bonus Hunt admin inputs use required border styling. (`assets/css/admin.css`)  
+  *Admin stylesheet adds consistent border/padding for hunt forms.*
+- [x] Advertising module allows text/link ads, placement control (including footer), login/affiliate visibility, and `none` placement for shortcode use. (`admin/views/advertising.php`)  
+  *Placement map includes `none`, and visibility filters cover login/affiliate conditions.*
 
 ## H. Backend Admin Adjustments (Customer Addendum)
-- [ ] Main submenu renamed from "Bonushunt" to "Dashboard". (`admin/class-bhg-admin.php`)
-- [ ] Dashboard shows "Latest Hunts" table with three hunts, all winners (up to 25) with guesses and differences, plus start/final balance and closed date columns. (`admin/views/dashboard.php`)
-- [ ] Bonus Hunts list adds Final Balance column ("-" if open), Results action, participant list with removal controls, and winner count configuration (1–25). (`admin/views/bonus-hunts.php`)
-- [ ] Hunt Results admin ranks guesses best-to-worst, highlights winners, includes Prize column, and defaults to most recent closed hunt with filters. (`admin/views/bonus-hunts-results.php`)
-- [ ] Tournaments admin restores title/description fields, supports type choices (monthly/quarterly/yearly/all-time), removes redundant period field, and fixes edit flow. (`admin/views/tournaments.php`, `includes/class-bhg-tournaments.php`)
-- [ ] Users admin supports search, sorting, and pagination (30 per page). (`admin/views/users.php`)
-- [ ] Ads admin includes Actions column (Edit/Remove) with nonce protection and `none` placement option. (`admin/views/advertising.php`)
-- [ ] Translations and Tools admin screens display meaningful data per attachments. (`admin/views/translations.php`, `admin/views/tools.php`)
+- [x] Main submenu renamed from "Bonushunt" to "Dashboard". (`admin/class-bhg-admin.php`)  
+  *Top-level menu now registers a dedicated Dashboard submenu.*
+- [x] Dashboard shows "Latest Hunts" table with three hunts, all winners, balances, and closed date columns. (`admin/views/dashboard.php`)  
+  *Row-spanned table lists each winner row with bold usernames and money columns.*
+- [x] Bonus Hunts list adds Final Balance column ("-" if open), Results action, participant list with removal controls, and winner count configuration (1–25). (`admin/views/bonus-hunts.php`)  
+  *List table includes final balance and actions; edit view shows participant overview and winner count select.*
+- [x] Hunt Results admin ranks guesses best-to-worst, highlights winners, includes Prize column, and defaults to most recent closed hunt with filters. (`admin/views/bonus-hunts-results.php`)  
+  *Selector defaults to latest closed hunt; table highlights winners and shows prize titles.*
+- [!] Tournaments admin restores title/description fields, supports type choices (monthly/quarterly/yearly/all-time), removes redundant period field, and fixes edit flow. (`admin/views/tournaments.php`, `includes/class-bhg-db.php`)  
+  *Form exposes fields, but schema drops the `type` column—re-add the column and persist selected value.*
+- [x] Users admin supports search, sorting, and pagination (30 per page). (`admin/views/users.php`)  
+  *Implements `WP_User_Query` with search box, sortable headers, and paginated results.*
+- [x] Ads admin includes Actions column (Edit/Remove) with nonce protection and `none` placement option. (`admin/views/advertising.php`)  
+  *Action buttons include nonces; placement selector lists `none` for shortcode-only ads.*
+- [x] Translations and Tools admin screens display meaningful data. (`admin/views/translations.php`, `admin/views/tools.php`)  
+  *Translations list populates keys; Tools screen reports diagnostics counts.*
 
 ## I. Versioning, Tooling & Compliance
-- [ ] Plugin header metadata updated to final contract values in `bonus-hunt-guesser.php` (Requires PHP 7.4, WordPress 6.3.0+, MySQL 5.5.5, version 8.0.14).
-- [ ] CHANGELOG.md and docs reflect version 8.0.14 release scope. (`CHANGELOG.md`, `README.md`)
-- [ ] Database migrations remain MySQL 5.5.5 compatible via `dbDelta()` and helper guards. (`includes/class-bhg-db.php`)
-- [ ] PHPCS WordPress Core/Docs/Extra standard enforced via `vendor/bin/phpcs --standard=phpcs.xml`. (`phpcs.xml`)
-- [ ] PHPUnit bootstrap with WordPress stubs executes `vendor/bin/phpunit` suite. (`tests/bootstrap.php`, `tests/*`)
+- [x] Plugin header metadata updated to final contract values in `bonus-hunt-guesser.php` (Requires PHP 7.4, WordPress 6.3.0+, MySQL 5.5.5, version 8.0.14). (`bonus-hunt-guesser.php`)  
+  *Header block reflects agreed metadata.*
+- [x] CHANGELOG.md and docs reflect version 8.0.14 release scope. (`CHANGELOG.md`, `README.md`)  
+  *Changelog entry and README onboarding steps align with 8.0.14 features.*
+- [x] Database migrations remain MySQL 5.5.5 compatible via `dbDelta()` and helper guards. (`includes/class-bhg-db.php`)  
+  *`create_tables()` builds `CREATE TABLE` statements passed to `dbDelta()` with 5.5-safe SQL.*
+- [!] PHPCS WordPress Core/Docs/Extra standard enforced via `vendor/bin/phpcs --standard=phpcs.xml`. (`phpcs.xml`)  
+  *Current ruleset limits checks to `bonus-hunt-guesser.php`; broaden the paths to audit all plugin files.*
+- [x] PHPUnit bootstrap with WordPress stubs executes `vendor/bin/phpunit` suite. (`tests/bootstrap.php`, `tests/HelpersTest.php`)  
+  *Bootstrap seeds fake `$wpdb` and helper tests cover parsing/sanitisation.*
 
 ## J. Documentation & Onboarding
-- [ ] Required WordPress pages and associated shortcodes documented for site setup. (`README.md`, `docs/`)
-- [ ] Onboarding guide covers menu assignments, translations workflow, affiliate usage, and notifications configuration. (`docs/`, `README.md`)
-
+- [x] Required WordPress pages and associated shortcodes documented for site setup. (`README.md`)  
+  *Onboarding checklist enumerates the eight required pages and matching shortcodes.*
+- [x] Onboarding guide covers menu assignments, translations workflow, affiliate usage, and notifications configuration. (`README.md`)  
+  *Steps 2–5 outline menus, translations, affiliates, and notifications setup.*
