@@ -243,13 +243,15 @@ if ( ! function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
 		if ( ! $hunt || null === $hunt->final_balance ) {
 				return array();
 		}
-		if ( $winners_limit ) {
-				$limit = (int) $winners_limit;
-		} elseif ( $hunt->winners_count ) {
-				$limit = (int) $hunt->winners_count;
-		} else {
-				$limit = 3;
-		}
+                if ( $winners_limit ) {
+                                $limit = (int) $winners_limit;
+                } elseif ( $hunt->winners_count ) {
+                                $limit = (int) $hunt->winners_count;
+                } else {
+                                $limit = 3;
+                }
+
+                $limit = max( 1, min( 25, $limit ) );
 
                 $sql = $wpdb->prepare(
                         sprintf(
