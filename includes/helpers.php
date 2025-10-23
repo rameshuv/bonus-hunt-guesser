@@ -119,6 +119,241 @@ function bhg_get_points_for_position( $position ) {
         return isset( $config['positions'][ $position ] ) ? (int) $config['positions'][ $position ] : 0;
 }
 
+/**
+ * Default front-end design settings.
+ *
+ * @return array<string,string> Associative array of CSS option defaults.
+ */
+function bhg_get_default_design_settings() {
+        return array(
+                'title_block_background'  => '',
+                'title_block_radius'      => '',
+                'title_block_padding'     => '',
+                'title_block_margin'      => '',
+                'h2_font_size'            => '',
+                'h2_font_weight'          => '',
+                'h2_color'                => '',
+                'h2_padding'              => '',
+                'h2_margin'               => '',
+                'h3_font_size'            => '',
+                'h3_font_weight'          => '',
+                'h3_color'                => '',
+                'h3_padding'              => '',
+                'h3_margin'               => '',
+                'description_font_size'   => '',
+                'description_font_weight' => '',
+                'description_color'       => '',
+                'description_padding'     => '',
+                'description_margin'      => '',
+                'text_font_size'          => '',
+                'text_padding'            => '',
+                'text_margin'             => '',
+        );
+}
+
+/**
+ * Sanitize a CSS value by stripping unsafe characters.
+ *
+ * @param string $value Raw CSS value.
+ * @return string
+ */
+function bhg_sanitize_css_value( $value ) {
+        $value = (string) $value;
+        $value = trim( wp_strip_all_tags( $value ) );
+        if ( '' === $value ) {
+                return '';
+        }
+
+        $value = str_replace( array( ';', '{', '}', '\\' ), '', $value );
+        $value = preg_replace( '/[\x00-\x1F\x7F]/u', '', $value );
+
+        return substr( $value, 0, 100 );
+}
+
+/**
+ * Sanitize color values for CSS output.
+ *
+ * @param string $value Raw color value.
+ * @return string
+ */
+function bhg_sanitize_css_color( $value ) {
+        $value = (string) $value;
+        $value = trim( $value );
+        if ( '' === $value ) {
+                return '';
+        }
+
+        $hex = sanitize_hex_color( $value );
+        if ( $hex ) {
+                return $hex;
+        }
+
+        if ( preg_match( '/^(?:rgba?|hsla?)\([0-9%.,\s]+\)$/i', $value ) ) {
+                return substr( preg_replace( '/[^0-9%.,\s\(\)a-zA-Z]/', '', $value ), 0, 100 );
+        }
+
+        if ( 0 === strpos( $value, 'var(' ) ) {
+                return substr( preg_replace( '/[^a-zA-Z0-9_\-\s,\(\)]/', '', $value ), 0, 100 );
+        }
+
+        return bhg_sanitize_css_value( $value );
+}
+
+/**
+ * Sanitize design settings array.
+ *
+ * @param array<string,string> $input Raw input values.
+ * @return array<string,string> Sanitized values merged with defaults.
+ */
+function bhg_sanitize_design_settings( $input ) {
+        $defaults   = bhg_get_default_design_settings();
+        $sanitized  = $defaults;
+        $input      = is_array( $input ) ? $input : array();
+        $color_keys = array(
+                'title_block_background',
+                'h2_color',
+                'h3_color',
+                'description_color',
+        );
+
+        foreach ( $defaults as $key => $default ) {
+                if ( ! isset( $input[ $key ] ) ) {
+                        continue;
+                }
+
+                $raw = $input[ $key ];
+                if ( is_array( $raw ) ) {
+                        $raw = '';
+                }
+
+                if ( in_array( $key, $color_keys, true ) ) {
+                        $sanitized[ $key ] = bhg_sanitize_css_color( $raw );
+                } else {
+                        $sanitized[ $key ] = bhg_sanitize_css_value( $raw );
+                }
+        }
+
+        return $sanitized;
+}
+
+/**
+ * Retrieve stored design settings merged with defaults.
+ *
+ * @return array<string,string>
+ */
+function bhg_get_design_settings() {
+        $options   = get_option( 'bhg_plugin_settings', array() );
+        $stored    = isset( $options['design'] ) && is_array( $options['design'] ) ? $options['design'] : array();
+        $sanitized = bhg_sanitize_design_settings( $stored );
+
+        return array_merge( bhg_get_default_design_settings(), $sanitized );
+}
+
+/**
+ * Generate inline CSS for the front-end based on saved design settings.
+ *
+ * @return string CSS declarations or empty string if unused.
+ */
+function bhg_generate_design_css() {
+        $settings = bhg_get_design_settings();
+        $css      = array();
+
+        $title_props = array();
+        if ( '' !== $settings['title_block_background'] ) {
+                $color        = esc_html( $settings['title_block_background'] );
+                $title_props[] = 'background-color:' . $color;
+                $title_props[] = 'border-color:' . $color;
+        }
+        if ( '' !== $settings['title_block_radius'] ) {
+                $title_props[] = 'border-radius:' . esc_html( $settings['title_block_radius'] );
+        }
+        if ( '' !== $settings['title_block_padding'] ) {
+                $title_props[] = 'padding:' . esc_html( $settings['title_block_padding'] );
+        }
+        if ( '' !== $settings['title_block_margin'] ) {
+                $title_props[] = 'margin:' . esc_html( $settings['title_block_margin'] );
+        }
+        if ( ! empty( $title_props ) ) {
+                $css[] = '.bhg-hunt-card h3, .bhg-tournament-details h3, .bhg-prizes-title { ' . implode( ';', $title_props ) . '; }';
+        }
+
+        $h2_props = array();
+        if ( '' !== $settings['h2_font_size'] ) {
+                $h2_props[] = 'font-size:' . esc_html( $settings['h2_font_size'] );
+        }
+        if ( '' !== $settings['h2_font_weight'] ) {
+                $h2_props[] = 'font-weight:' . esc_html( $settings['h2_font_weight'] );
+        }
+        if ( '' !== $settings['h2_color'] ) {
+                $h2_props[] = 'color:' . esc_html( $settings['h2_color'] );
+        }
+        if ( '' !== $settings['h2_padding'] ) {
+                $h2_props[] = 'padding:' . esc_html( $settings['h2_padding'] );
+        }
+        if ( '' !== $settings['h2_margin'] ) {
+                $h2_props[] = 'margin:' . esc_html( $settings['h2_margin'] );
+        }
+        if ( ! empty( $h2_props ) ) {
+                $css[] = '.bhg-active-hunt h2, .bhg-tournament-details h2, .bhg-profile-section h2 { ' . implode( ';', $h2_props ) . '; }';
+        }
+
+        $h3_props = array();
+        if ( '' !== $settings['h3_font_size'] ) {
+                $h3_props[] = 'font-size:' . esc_html( $settings['h3_font_size'] );
+        }
+        if ( '' !== $settings['h3_font_weight'] ) {
+                $h3_props[] = 'font-weight:' . esc_html( $settings['h3_font_weight'] );
+        }
+        if ( '' !== $settings['h3_color'] ) {
+                $h3_props[] = 'color:' . esc_html( $settings['h3_color'] );
+        }
+        if ( '' !== $settings['h3_padding'] ) {
+                $h3_props[] = 'padding:' . esc_html( $settings['h3_padding'] );
+        }
+        if ( '' !== $settings['h3_margin'] ) {
+                $h3_props[] = 'margin:' . esc_html( $settings['h3_margin'] );
+        }
+        if ( ! empty( $h3_props ) ) {
+                $css[] = '.bhg-hunt-card h3, .bhg-tournament-details h3, .bhg-profile-section h3, .bhg-prizes-title { ' . implode( ';', $h3_props ) . '; }';
+        }
+
+        $description_props = array();
+        if ( '' !== $settings['description_font_size'] ) {
+                $description_props[] = 'font-size:' . esc_html( $settings['description_font_size'] );
+        }
+        if ( '' !== $settings['description_font_weight'] ) {
+                $description_props[] = 'font-weight:' . esc_html( $settings['description_font_weight'] );
+        }
+        if ( '' !== $settings['description_color'] ) {
+                $description_props[] = 'color:' . esc_html( $settings['description_color'] );
+        }
+        if ( '' !== $settings['description_padding'] ) {
+                $description_props[] = 'padding:' . esc_html( $settings['description_padding'] );
+        }
+        if ( '' !== $settings['description_margin'] ) {
+                $description_props[] = 'margin:' . esc_html( $settings['description_margin'] );
+        }
+        if ( ! empty( $description_props ) ) {
+                $css[] = '.bhg-prize-description, .bhg-tournament-description { ' . implode( ';', $description_props ) . '; }';
+        }
+
+        $text_props = array();
+        if ( '' !== $settings['text_font_size'] ) {
+                $text_props[] = 'font-size:' . esc_html( $settings['text_font_size'] );
+        }
+        if ( '' !== $settings['text_padding'] ) {
+                $text_props[] = 'padding:' . esc_html( $settings['text_padding'] );
+        }
+        if ( '' !== $settings['text_margin'] ) {
+                $text_props[] = 'margin:' . esc_html( $settings['text_margin'] );
+        }
+        if ( ! empty( $text_props ) ) {
+                $css[] = '.bhg-active-hunt p, .bhg-active-hunt span, .bhg-tournament-details p, .bhg-tournament-details span, .bhg-profile-section p, .bhg-profile-section span { ' . implode( ';', $text_props ) . '; }';
+        }
+
+        return implode( "\n", $css );
+}
+
 // Smart login redirect back to referring page.
 add_filter(
 	'login_redirect',
@@ -283,6 +518,17 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'label_no_attributes'                          => 'No additional attributes.',
                         'label_number_bonuses'                         => 'Number of Bonuses',
                         'label_prizes'                                 => 'Prizes',
+                        'design_settings'                              => 'Design Settings',
+                        'title_block'                                  => 'Title Block',
+                        'title_block_design_help'                      => 'Applies to hunt and tournament headers.',
+                        'border_radius'                                => 'Border Radius',
+                        'heading_h2'                                   => 'Heading H2',
+                        'heading_h3'                                   => 'Heading H3',
+                        'font_size'                                    => 'Font Size',
+                        'font_weight'                                  => 'Font Weight',
+                        'text_color'                                   => 'Text Color',
+                        'description_block'                            => 'Description Block',
+                        'standard_text'                                => 'Standard Text',
                         'label_prize'                                  => 'Prize',
                         'label_prize_category'                         => 'Prize Category',
                         'label_email_subject'                          => 'Email subject',

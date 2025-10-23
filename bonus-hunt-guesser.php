@@ -289,6 +289,7 @@ function bhg_activate_plugin() {
                         'show_my_prizes'            => 1,
                         'show_my_rankings'          => 1,
                         'email_from'                => get_bloginfo( 'admin_email' ),
+                        'design'                    => bhg_get_default_design_settings(),
                 )
         );
 
@@ -327,18 +328,25 @@ function bhg_enqueue_public_assets() {
 		$min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
 		$max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 
-		wp_register_style(
-			'bhg-public',
-			BHG_PLUGIN_URL . 'assets/css/public.css',
-			array(),
-			defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-		);
+                wp_register_style(
+                        'bhg-public',
+                        BHG_PLUGIN_URL . 'assets/css/public.css',
+                        array(),
+                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                );
 
-		wp_register_script(
-			'bhg-public',
-			BHG_PLUGIN_URL . 'assets/js/public.js',
-			array( 'jquery' ),
-			defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
+                if ( function_exists( 'bhg_generate_design_css' ) ) {
+                        $design_css = bhg_generate_design_css();
+                        if ( $design_css ) {
+                                wp_add_inline_style( 'bhg-public', $design_css );
+                        }
+                }
+
+                wp_register_script(
+                        'bhg-public',
+                        BHG_PLUGIN_URL . 'assets/js/public.js',
+                        array( 'jquery' ),
+                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
 			true
 		);
 
@@ -541,6 +549,9 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                         }
                 }
         }
+
+        $design_raw           = isset( $_POST['bhg_design'] ) ? wp_unslash( $_POST['bhg_design'] ) : array();
+        $settings['design']   = bhg_sanitize_design_settings( $design_raw );
 
                 // Save settings.
                 $existing = get_option( 'bhg_plugin_settings', array() );
