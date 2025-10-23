@@ -909,26 +909,20 @@ $is_new_tournament     = $id <= 0;
                                 $hunt_link_mode = 'manual';
                         }
 
-                        $allowed_types  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
-                        $raw_start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
-                        $raw_end_date   = isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : '';
+                        $allowed_types         = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+                        $raw_start_date        = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
+                        $raw_end_date          = isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : '';
+                        $prizes_raw            = isset( $_POST['prizes'] ) ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
+                        $affiliate_site_id     = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+                        $affiliate_url_visible = isset( $_POST['affiliate_url_visible'] ) ? 1 : 0;
 
                         $start_date = '' !== $raw_start_date ? $raw_start_date : null;
                         $end_date   = '' !== $raw_end_date ? $raw_end_date : null;
 
-                        $data = array(
-                                'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
-                                'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
-                                'participants_mode' => $participants_mode,
-                                'hunt_link_mode'    => $hunt_link_mode,
-                                'start_date'        => $start_date,
-                                'end_date'          => $end_date,
-                                'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
-                                'updated_at'        => current_time( 'mysql' ),
-                        );
-                        $allowed_statuses = array( 'active', 'archived' );
-                        if ( ! in_array( $data['status'], $allowed_statuses, true ) ) {
-                                $data['status'] = 'active';
+                        $status           = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active';
+                        $allowed_statuses = array( 'active', 'archived', 'closed' );
+                        if ( ! in_array( $status, $allowed_statuses, true ) ) {
+                                $status = 'active';
                         }
                         $existing_type = '';
                         if ( $id > 0 ) {
@@ -949,40 +943,54 @@ $is_new_tournament     = $id <= 0;
                                 $resolved_type = $this->infer_tournament_type( $start_date, $end_date );
                         }
 
-$data['type'] = $resolved_type;
+                        $data = array(
+                                'title'                 => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+                                'description'           => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
+                                'participants_mode'     => $participants_mode,
+                                'hunt_link_mode'        => $hunt_link_mode,
+                                'start_date'            => $start_date,
+                                'end_date'              => $end_date,
+                                'status'                => $status,
+                                'prizes'                => $prizes_raw,
+                                'affiliate_site_id'     => $affiliate_site_id > 0 ? $affiliate_site_id : 0,
+                                'affiliate_url_visible' => $affiliate_url_visible ? 1 : 0,
+                                'type'                  => $resolved_type,
+                                'updated_at'            => current_time( 'mysql' ),
+                        );
 
-if ( 'auto' === $hunt_link_mode ) {
-        $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
-}
-try {
-$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
-if ( $id > 0 ) {
-$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
-$saved_id = $id;
-} else {
-$data['created_at'] = current_time( 'mysql' );
-$format[]           = '%s';
-$wpdb->insert( $t, $data, $format );
-$saved_id = (int) $wpdb->insert_id;
-}
+                        if ( 'auto' === $hunt_link_mode ) {
+                                $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
+                        }
 
-if ( function_exists( 'bhg_set_tournament_hunts' ) && $saved_id > 0 ) {
-bhg_set_tournament_hunts( $saved_id, $hunt_ids );
-}
+                        try {
+                                $format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s' );
+                                if ( $id > 0 ) {
+                                        $wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
+                                        $saved_id = $id;
+                                } else {
+                                        $data['created_at'] = current_time( 'mysql' );
+                                        $format[]           = '%s';
+                                        $wpdb->insert( $t, $data, $format );
+                                        $saved_id = (int) $wpdb->insert_id;
+                                }
 
-if ( $is_new_tournament && $saved_id > 0 && function_exists( 'bhg_send_tournament_notification' ) ) {
-bhg_send_tournament_notification( $saved_id );
-}
+                                if ( function_exists( 'bhg_set_tournament_hunts' ) && $saved_id > 0 ) {
+                                        bhg_set_tournament_hunts( $saved_id, $hunt_ids );
+                                }
 
-wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
-exit;
-} catch ( Throwable $e ) {
-				if ( function_exists( 'error_log' ) ) {
-					error_log( '[BHG] tournament save error: ' . $e->getMessage() );
-				}
-							wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
-				exit;
-			}
+                                if ( $is_new_tournament && $saved_id > 0 && function_exists( 'bhg_send_tournament_notification' ) ) {
+                                        bhg_send_tournament_notification( $saved_id );
+                                }
+
+                                wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                                exit;
+                        } catch ( Throwable $e ) {
+                                if ( function_exists( 'error_log' ) ) {
+                                        error_log( '[BHG] tournament save error: ' . $e->getMessage() );
+                                }
+                                                        wp_safe_redirect( add_query_arg( 'bhg_msg', 't_error', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                                exit;
+                        }
 	}
 
 		/**

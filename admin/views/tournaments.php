@@ -13,9 +13,10 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 global $wpdb;
 $table          = $wpdb->prefix . 'bhg_tournaments';
-$allowed_tables = array( $wpdb->prefix . 'bhg_tournaments' );
+$aff_table      = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+$allowed_tables = array( $wpdb->prefix . 'bhg_tournaments', $wpdb->prefix . 'bhg_affiliate_websites' );
 if ( ! in_array( $table, $allowed_tables, true ) ) {
-		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
@@ -74,7 +75,12 @@ if ( $search_term ) {
 }
 $base_url = remove_query_arg( array( 'paged' ) );
 $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$all_hunts      = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$affiliates     = array();
+if ( in_array( $wpdb->prefix . 'bhg_affiliate_websites', $allowed_tables, true ) && $aff_table ) {
+        // db call ok; no-cache ok.
+        $affiliates = $wpdb->get_results( "SELECT id, name FROM {$aff_table} ORDER BY name ASC" );
+}
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
@@ -82,6 +88,19 @@ if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
 }
 $hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
 $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
+$type_value      = isset( $row->type ) ? sanitize_key( $row->type ) : 'monthly';
+$type_options    = array(
+        'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+        'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+        'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+        'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+        'alltime'   => bhg_t( 'label_all_time', 'All Time' ),
+);
+if ( ! isset( $type_options[ $type_value ] ) ) {
+        $type_value = 'monthly';
+}
+$selected_affiliate = isset( $row->affiliate_site_id ) ? (int) $row->affiliate_site_id : 0;
+$affiliate_visible  = isset( $row->affiliate_url_visible ) ? (int) $row->affiliate_url_visible : 1;
 ?>
 <div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline">
@@ -259,29 +278,55 @@ endif;
 	if ( $row ) :
 		?>
 <input type="hidden" name="id" value="<?php echo esc_attr( (int) $row->id ); ?>" /><?php endif; ?>
-	<table class="form-table">
-		<tr>
-		<th><label for="bhg_t_title">
-		<?php
-		echo esc_html( bhg_t( 'sc_title', 'Title' ) );
-		?>
+        <table class="form-table">
+                <tr>
+                <th><label for="bhg_t_title">
+                <?php
+                echo esc_html( bhg_t( 'sc_title', 'Title' ) );
+                ?>
 </label></th>
-		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
-		</tr>
-		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
+                <td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_desc">
+                <?php
+                echo esc_html( bhg_t( 'description', 'Description' ) );
+                ?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-				?>
-				</label></th>
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_type"><?php echo esc_html( bhg_t( 'label_type', 'Type' ) ); ?></label></th>
+                <td>
+                        <select id="bhg_t_type" name="type">
+                        <?php foreach ( $type_options as $key => $label ) : ?>
+                                <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $type_value, $key ); ?>><?php echo esc_html( $label ); ?></option>
+                        <?php endforeach; ?>
+                        </select>
+                </td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_prizes"><?php echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) ); ?></label></th>
+                <td>
+                        <?php
+                        $prizes_value = $row->prizes ?? '';
+                        wp_editor(
+                                $prizes_value,
+                                'bhg_t_prizes',
+                                array(
+                                        'textarea_name' => 'prizes',
+                                        'textarea_rows' => 6,
+                                )
+                        );
+                        ?>
+                </td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_pmode">
+                <?php
+                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                ?>
+                </label></th>
 				<td>
 						<?php $pmode = $row->participants_mode ?? 'winners'; ?>
 						<select id="bhg_t_pmode" name="participants_mode">
@@ -314,14 +359,35 @@ endif;
                 </label></th>
                 <td>
                         <?php
-                        $st  = array( 'active', 'archived' );
+                        $st  = array( 'active', 'archived', 'closed' );
                         $cur = $row->status ?? 'active';
                         ?>
                         <select id="bhg_t_status" name="status">
                         <?php foreach ( $st as $v ) : ?>
-                                <option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
+                                <?php $label = 'closed' === $v ? bhg_t( 'label_closed', 'Closed' ) : bhg_t( $v, ucfirst( $v ) ); ?>
+                                <option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( $label ); ?></option>
                         <?php endforeach; ?>
                         </select>
+                </td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_affiliate"><?php echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) ); ?></label></th>
+                <td>
+                        <select id="bhg_t_affiliate" name="affiliate_site_id">
+                                <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                <?php foreach ( $affiliates as $affiliate ) : ?>
+                                        <option value="<?php echo esc_attr( (int) $affiliate->id ); ?>" <?php selected( $selected_affiliate, (int) $affiliate->id ); ?>><?php echo esc_html( $affiliate->name ); ?></option>
+                                <?php endforeach; ?>
+                        </select>
+                </td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_affiliate_visible"><?php echo esc_html( bhg_t( 'label_affiliate_url_visible', 'Show affiliate website in output' ) ); ?></label></th>
+                <td>
+                        <label for="bhg_t_affiliate_visible">
+                                <input type="checkbox" id="bhg_t_affiliate_visible" name="affiliate_url_visible" value="1" <?php checked( $affiliate_visible, 1 ); ?> />
+                                <?php echo esc_html( bhg_t( 'label_affiliate_url_visible', 'Show affiliate website in output' ) ); ?>
+                        </label>
                 </td>
                 </tr>
                 <tr>
