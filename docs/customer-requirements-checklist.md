@@ -1,7 +1,21 @@
 # Bonus Hunt Guesser — Customer Acceptance Checklist
 
-_Last reviewed:_ 2025-02-15 (UTC)
+_Last reviewed:_ 2025-02-16 (UTC)
 _Status legend:_ `[x]` complete, `[!]` needs attention, `[?]` requires manual verification.
+
+## Quick Reference Matrix
+
+| Requirement Block | Key Implementation Files |
+| --- | --- |
+| Core Bonus Hunt & Guessing | `bonus-hunt-guesser.php`, `admin/views/bonus-hunts.php`, `includes/class-bhg-shortcodes.php` |
+| User Profiles & Guessing Enhancements | `admin/views/users.php`, `includes/helpers.php`, `includes/class-bhg-login-redirect.php` |
+| Tournament & Leaderboard System | `admin/views/tournaments.php`, `includes/class-bhg-db.php`, `includes/class-bhg-shortcodes.php` |
+| Frontend Leaderboard Enhancements | `includes/class-bhg-shortcodes.php`, `assets/css/bhg-shortcodes.css` |
+| UX Improvements (Menus, Redirects, Translations) | `includes/class-bhg-login-redirect.php`, `includes/class-bhg-front-menus.php`, `admin/views/translations.php` |
+| Affiliate Adjustments | `admin/views/affiliate-websites.php`, `admin/views/bonus-hunts.php`, `admin/views/users.php` |
+| Notifications & Final Polish | `includes/class-bhg-notifications.php`, `admin/views/notifications.php`, `assets/css/admin.css` |
+| Backend Admin Addendum | `admin/views/dashboard.php`, `admin/views/bonus-hunts-results.php`, `admin/views/advertising.php` |
+| Tooling & Compliance | `phpcs.xml`, `tests/bootstrap.php`, `tests/HelpersTest.php`, `CHANGELOG.md`, `README.md` |
 
 ## Verification Summary
 
