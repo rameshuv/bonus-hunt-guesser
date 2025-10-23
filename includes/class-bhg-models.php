@@ -225,7 +225,7 @@ $has_all_mode = in_array( 'all', $tournament_modes, true );
 			}
 		}
 			// Fetch winners based on proximity to final balance.
-				$query  = 'SELECT user_id, guess, (%f - guess) AS diff FROM ' . $guesses_tbl . ' WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC';
+                                $query  = 'SELECT user_id, guess, ABS(%f - guess) AS diff FROM ' . $guesses_tbl . ' WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC';
 				$params = array( (float) $final_balance, (int) $hunt_id, (float) $final_balance );
 				if ( ! $has_all_mode ) {
 						$query   .= ' LIMIT %d';

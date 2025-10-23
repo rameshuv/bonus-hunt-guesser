@@ -253,7 +253,7 @@ if ( ! function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
 
                 $sql = $wpdb->prepare(
                         sprintf(
-                                'SELECT g.user_id, g.guess, (%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC LIMIT %%d',
+                                'SELECT g.user_id, g.guess, ABS(%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC LIMIT %%d',
                                 $t_g
                         ),
                         (float) $hunt->final_balance,
@@ -277,7 +277,7 @@ if ( ! function_exists( 'bhg_get_all_ranked_guesses' ) ) {
 
                 $sql = $wpdb->prepare(
                         sprintf(
-                                'SELECT g.id, g.user_id, g.guess, (%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC',
+                                'SELECT g.id, g.user_id, g.guess, ABS(%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC',
                                 $t_g
                         ),
                         (float) $hunt->final_balance,

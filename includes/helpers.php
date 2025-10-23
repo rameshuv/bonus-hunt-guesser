@@ -1343,7 +1343,7 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
                         if ( $closed_id > 0 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $winners_tbl ) ) === $winners_tbl ) {
                                 $limit = max( 1, min( $closed_winners_limit, count( $users ) ) );
                                 $winners_sql = $wpdb->prepare(
-                                        "SELECT user_id, guess, (%f - guess) AS diff FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC LIMIT %d",
+                                        "SELECT user_id, guess, ABS(%f - guess) AS diff FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC LIMIT %d",
                                         $final_balance,
                                         $closed_id,
                                         $final_balance,
@@ -1365,7 +1365,7 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
                                                         'user_id'    => $user_id,
                                                         'position'   => $position,
                                                         'guess'      => isset( $winner->guess ) ? (float) $winner->guess : 0.0,
-                                                        'diff'       => isset( $winner->diff ) ? (float) $winner->diff : 0.0,
+                                                        'diff'       => isset( $winner->diff ) ? abs( (float) $winner->diff ) : 0.0,
                                                         'created_at' => $now,
                                                 ),
                                                 array( '%d', '%d', '%d', '%f', '%f', '%s' )
