@@ -10,9 +10,13 @@
     <arg name="tab-width" value="4"/>
     <arg name="extensions" value="php"/>
 
-    <!-- Temporary baseline: lint only the plugin bootstrap while legacy files are audited. -->
+    <!-- Scan all plugin PHP sources -->
     <file>bonus-hunt-guesser.php</file>
-    <exclude-pattern>*</exclude-pattern>
+    <directory>admin</directory>
+    <directory>includes</directory>
+    <directory>tests</directory>
+    <file>uninstall.php</file>
+    <exclude-pattern>vendor/*</exclude-pattern>
 
     <!-- Match PHP 7.4 runtime -->
     <config name="php_version" value="70400"/>

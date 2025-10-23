@@ -1,16 +1,16 @@
 <?php
-			/**
-			 * Uninstall script for Bonus Hunt Guesser.
-			 *
-			 * @package Bonus_Hunt_Guesser
-			 */
+/**
+ * Uninstall script for Bonus Hunt Guesser.
+ *
+ * @package Bonus_Hunt_Guesser
+ */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-			// Delete plugin options.
-			delete_option( 'bhg_version' );
+// Delete plugin options.
+delete_option( 'bhg_version' );
 delete_option( 'bhg_plugin_settings' );
 delete_option( 'bhg_currency' );
 
@@ -18,21 +18,22 @@ delete_site_option( 'bhg_version' );
 delete_site_option( 'bhg_plugin_settings' );
 delete_site_option( 'bhg_currency' );
 
-			global $wpdb;
+global $wpdb;
 
-                        $tables = array(
-                                'bhg_bonus_hunts',
-                                'bhg_guesses',
-                                'bhg_tournaments',
-                                'bhg_tournament_results',
-                                'bhg_ads',
-                                'bhg_translations',
-                                'bhg_affiliate_websites',
-                                'bhg_prizes',
-                                'bhg_hunt_prizes',
-                        );
+$tables = array(
+	'bhg_bonus_hunts',
+	'bhg_guesses',
+	'bhg_tournaments',
+	'bhg_tournament_results',
+	'bhg_ads',
+	'bhg_translations',
+	'bhg_affiliate_websites',
+	'bhg_prizes',
+	'bhg_hunt_prizes',
+);
 
-			foreach ( $tables as $table ) {
-					$table_name = esc_sql( $wpdb->prefix . $table );
-					$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // db call ok; no-cache ok.
-			}
+foreach ( $tables as $table ) {
+	$table_name = esc_sql( $wpdb->prefix . $table );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+	$wpdb->query( "DROP TABLE IF EXISTS `{$table_name}`" );
+}

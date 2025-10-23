@@ -87,10 +87,11 @@ KEY tournament_id (tournament_id)
                 ) {$charset_collate};";
 
 		// Tournaments.
-$sql[] = "CREATE TABLE `{$tours_table}` (
+                $sql[] = "CREATE TABLE `{$tours_table}` (
 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 title VARCHAR(190) NOT NULL,
 description TEXT NULL,
+type VARCHAR(20) NOT NULL DEFAULT 'monthly',
 participants_mode VARCHAR(20) NOT NULL DEFAULT 'winners',
 hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual',
 prizes TEXT NULL,
@@ -464,15 +465,15 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 				$wpdb->query( "ALTER TABLE `{$tours_table}` DROP COLUMN period" );
 			}
 
-			if ( $this->index_exists( $tours_table, 'type' ) ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-				$wpdb->query( "ALTER TABLE `{$tours_table}` DROP INDEX type" );
-			}
+                        if ( $this->index_exists( $tours_table, 'type' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$tours_table}` DROP INDEX type" );
+                        }
 
-			if ( $this->column_exists( $tours_table, 'type' ) ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-				$wpdb->query( "ALTER TABLE `{$tours_table}` DROP COLUMN type" );
-			}
+                        if ( ! $this->column_exists( $tours_table, 'type' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN type VARCHAR(20) NOT NULL DEFAULT 'monthly' AFTER description" );
+                        }
 	}
 
 		/**

@@ -27,8 +27,8 @@ Each line lists the primary files to inspect or adjust.
   *`bhg_leaderboard` shortcode sanitises `orderby`/`order` inputs and paginates results.*
 
 ## C. Tournament & Leaderboard System
-- [!] Admin can create tournaments with title, description, schedule (monthly/quarterly/yearly/all-time). (`admin/views/tournaments.php`, `admin/class-bhg-admin.php`, `includes/class-bhg-db.php`)  
-  *UI exposes the selector but the database schema drops the `type` column, so saves will fail—restore the column and persistence logic.*
+- [x] Admin can create tournaments with title, description, schedule (monthly/quarterly/yearly/all-time). (`admin/views/tournaments.php`, `admin/class-bhg-admin.php`, `includes/class-bhg-db.php`)
+  *Schema now retains the `type` column and the save handler persists the selected value without errors.*
 - [x] Tournament leaderboard exposes sortable columns (position, username, wins) and filters (week/month/year). (`includes/class-bhg-shortcodes.php`)  
   *`[bhg_leaderboards]` builds CASE expressions for period filters and applies sort toggles.*
 - [x] Historical tournament data accessible alongside current standings. (`includes/class-bhg-shortcodes.php`)  
@@ -79,8 +79,8 @@ Each line lists the primary files to inspect or adjust.
   *List table includes final balance and actions; edit view shows participant overview and winner count select.*
 - [x] Hunt Results admin ranks guesses best-to-worst, highlights winners, includes Prize column, and defaults to most recent closed hunt with filters. (`admin/views/bonus-hunts-results.php`)  
   *Selector defaults to latest closed hunt; table highlights winners and shows prize titles.*
-- [!] Tournaments admin restores title/description fields, supports type choices (monthly/quarterly/yearly/all-time), removes redundant period field, and fixes edit flow. (`admin/views/tournaments.php`, `includes/class-bhg-db.php`)  
-  *Form exposes fields, but schema drops the `type` column—re-add the column and persist selected value.*
+- [x] Tournaments admin restores title/description fields, supports type choices (monthly/quarterly/yearly/all-time), removes redundant period field, and fixes edit flow. (`admin/views/tournaments.php`, `includes/class-bhg-db.php`)
+  *Database keeps the `type` column so edit and create actions save and reload the configured schedule.*
 - [x] Users admin supports search, sorting, and pagination (30 per page). (`admin/views/users.php`)  
   *Implements `WP_User_Query` with search box, sortable headers, and paginated results.*
 - [x] Ads admin includes Actions column (Edit/Remove) with nonce protection and `none` placement option. (`admin/views/advertising.php`)  
@@ -95,8 +95,8 @@ Each line lists the primary files to inspect or adjust.
   *Changelog entry and README onboarding steps align with 8.0.14 features.*
 - [x] Database migrations remain MySQL 5.5.5 compatible via `dbDelta()` and helper guards. (`includes/class-bhg-db.php`)  
   *`create_tables()` builds `CREATE TABLE` statements passed to `dbDelta()` with 5.5-safe SQL.*
-- [!] PHPCS WordPress Core/Docs/Extra standard enforced via `vendor/bin/phpcs --standard=phpcs.xml`. (`phpcs.xml`)  
-  *Current ruleset limits checks to `bonus-hunt-guesser.php`; broaden the paths to audit all plugin files.*
+- [x] PHPCS WordPress Core/Docs/Extra standard enforced via `vendor/bin/phpcs --standard=phpcs.xml`. (`phpcs.xml`)
+  *Ruleset now scans the admin, includes, tests, and bootstrap files (excluding vendor) so coding standards cover the full plugin.*
 - [x] PHPUnit bootstrap with WordPress stubs executes `vendor/bin/phpunit` suite. (`tests/bootstrap.php`, `tests/HelpersTest.php`)  
   *Bootstrap seeds fake `$wpdb` and helper tests cover parsing/sanitisation.*
 
