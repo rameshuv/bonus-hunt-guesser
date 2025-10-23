@@ -366,14 +366,15 @@ class BHG_Prizes {
                 return ' style="' . esc_attr( implode( ';', $styles ) ) . '"';
         }
 
-        /**
-         * Retrieve image URL for a prize.
-         *
-         * @param object $prize Prize row.
-         * @param string $size  Size key.
-         * @return string Raw attachment URL (escape on output).
-         */
-        public static function get_image_url( $prize, $size = 'medium' ) {
+       /**
+        * Retrieve image URL for a prize.
+        *
+        * @param object $prize  Prize row.
+        * @param string $size   Size key.
+        * @param bool   $escape Whether to escape the URL before returning.
+        * @return string Attachment URL (escaped by default).
+        */
+       public static function get_image_url( $prize, $size = 'medium', $escape = true ) {
                 $size = sanitize_key( $size );
                 $map  = array(
                         'small'  => 'image_small',
@@ -401,11 +402,15 @@ class BHG_Prizes {
                         $wp_size = $size;
                 }
 
-                $url = wp_get_attachment_image_url( $id, $wp_size );
-                if ( ! $url ) {
-                        $url = wp_get_attachment_url( $id );
-                }
+               $url = wp_get_attachment_image_url( $id, $wp_size );
+               if ( ! $url ) {
+                       $url = wp_get_attachment_url( $id );
+               }
 
-                return $url ? $url : '';
-        }
+               if ( ! $url ) {
+                       return '';
+               }
+
+               return $escape ? esc_url( $url ) : $url;
+       }
 }

@@ -274,7 +274,7 @@ echo '<td>' . esc_html( $diff_display ) . '</td>';
 echo '<td>' . esc_html( $closed_at ? $closed_at : $dash ) . '</td>';
 echo '<td class="bhg-profile-prize-thumb">';
 if ( $prize && class_exists( 'BHG_Prizes' ) ) {
-$image_url = BHG_Prizes::get_image_url( $prize, 'small' );
+$image_url = BHG_Prizes::get_image_url( $prize, 'small', false );
 if ( $image_url ) {
 echo '<img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $prize->title ) . '" />';
 } else {

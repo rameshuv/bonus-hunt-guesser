@@ -248,7 +248,7 @@ $wpdb->usermeta,
                 }
 
                 $style_attr = BHG_Prizes::build_style_attr( $prize );
-                $image_url  = BHG_Prizes::get_image_url( $prize, $size );
+               $image_url  = BHG_Prizes::get_image_url( $prize, $size, false );
                 $category   = isset( $prize->category ) ? (string) $prize->category : '';
 
                 ob_start();
