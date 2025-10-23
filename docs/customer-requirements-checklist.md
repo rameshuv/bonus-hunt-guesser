@@ -101,7 +101,12 @@ Each line lists the primary files to inspect or adjust.
   *Bootstrap seeds fake `$wpdb` and helper tests cover parsing/sanitisation.*
 
 ## J. Documentation & Onboarding
-- [x] Required WordPress pages and associated shortcodes documented for site setup. (`README.md`)  
+- [x] Required WordPress pages and associated shortcodes documented for site setup. (`README.md`)
   *Onboarding checklist enumerates the eight required pages and matching shortcodes.*
-- [x] Onboarding guide covers menu assignments, translations workflow, affiliate usage, and notifications configuration. (`README.md`)  
+- [x] Onboarding guide covers menu assignments, translations workflow, affiliate usage, and notifications configuration. (`README.md`)
   *Steps 2–5 outline menus, translations, affiliates, and notifications setup.*
+
+## Verification
+
+- `vendor/bin/phpunit`
+- `vendor/bin/phpcs --standard=phpcs.xml`
