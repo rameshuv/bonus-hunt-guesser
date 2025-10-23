@@ -26,6 +26,23 @@ List tournaments or show details.
 
 - `timeline`: limit tournaments by `day`, `week`, `month`, `year`, the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`, or by type keywords `all_time`, `weekly`, `monthly`, `yearly`, `quarterly`, `alltime`.
 
+### Onboarding Checklist
+
+1. **Create required pages** under *Pages → Add New* and place the documented shortcodes:
+   - `/bonus-hunt/active` → `[[bhg_active_hunt]]`
+   - `/bonus-hunt/guess` → `[[bhg_guess_form]]`
+   - `/bonus-hunt/guesses` → `[[bhg_user_guesses]]`
+   - `/bonus-hunt/hunts` → `[[bhg_hunts status="active" timeline="month"]]`
+   - `/tournaments` → `[[bhg_tournaments status="active" timeline="year"]]`
+   - `/leaderboards` → `[[bhg_leaderboards ranking="10" timeline="year" fields="pos,user,wins,avg_rank,hunt_title,tournament_title,aff,aff_site"]]`
+   - `/profile` → `[[bhg_user_profile]]`
+   - `/ads` → `[[bhg_advertising status="active" ad="1"]]`
+2. **Assign menus** via *Appearance → Menus*. Create dedicated menus for admins/moderators, logged-in users, and guests, then assign them to the plugin’s menu locations.
+3. **Configure translations** from *Bonus Hunt → Translations*. Override any customer-facing labels directly in the UI without editing code.
+4. **Manage affiliate websites** from *Bonus Hunt → Affiliates* and set per-user affiliate access on *Bonus Hunt → Users* by toggling the site checkboxes.
+5. **Set up notifications** under *Bonus Hunt → Notifications* to enable and customize hunt, winner, or tournament email templates.
+
+
 ## Manual Testing
 
 - **Hunt deletion updates tournaments**

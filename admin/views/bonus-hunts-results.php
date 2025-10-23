@@ -109,10 +109,9 @@ if ( 'tournament' === $view_type ) {
         if ( $has_final_balance ) {
                 $rows = $wpdb->get_results(
                         $wpdb->prepare(
-                                "SELECT g.guess, u.display_name, (%f - g.guess) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY ABS(%f - g.guess) ASC, g.id ASC",
+                                "SELECT g.guess, u.display_name, ABS(%f - g.guess) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC",
                                 (float) $hunt->final_balance,
-                                $item_id,
-                                (float) $hunt->final_balance
+                                $item_id
                         )
                 );
         } else {
@@ -123,12 +122,22 @@ if ( 'tournament' === $view_type ) {
 	if ( $wcount < 1 ) {
 			$wcount = 3;
 	}
-	$columns = array(
-		'sc_position' => bhg_t( 'sc_position', 'Position' ),
-		'sc_user'     => bhg_t( 'sc_user', 'User' ),
-		'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
-		'difference'  => bhg_t( 'difference', 'Difference' ),
-	);
+        $columns = array(
+                'sc_position' => bhg_t( 'sc_position', 'Position' ),
+                'sc_user'     => bhg_t( 'sc_user', 'User' ),
+                'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
+                'difference'  => bhg_t( 'difference', 'Difference' ),
+                'prize'       => bhg_t( 'label_prize', 'Prize' ),
+        );
+        $prize_titles = array();
+        if ( class_exists( 'BHG_Prizes' ) ) {
+                $prize_rows = BHG_Prizes::get_prizes_for_hunt( $item_id, array( 'active_only' => false ) );
+                if ( $prize_rows ) {
+                        foreach ( $prize_rows as $prize_row ) {
+                                $prize_titles[] = isset( $prize_row->title ) ? (string) $prize_row->title : '';
+                        }
+                }
+        }
 }
 
 // Gather hunts and tournaments for the selector.
@@ -190,7 +199,7 @@ $current   = $view_type . '-' . $item_id;
         </div>
         <?php if ( empty( $rows ) ) : ?>
                 <div class="notice notice-info">
-                        <p><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></p>
+                        <p><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet.' ) ); ?></p>
                 </div>
 	<?php else : ?>
 		<table class="widefat striped">
@@ -204,19 +213,21 @@ $current   = $view_type . '-' . $item_id;
 			<tbody>
 			<?php
 			$pos = 1;
-			foreach ( (array) $rows as $r ) :
-				$is_winner = $pos <= $wcount;
-				?>
-				<tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
-					<td><?php echo (int) $pos; ?></td>
-					<td><?php echo esc_html( $r->display_name ); ?></td>
-					<?php if ( 'tournament' === $view_type ) : ?>
-						<td><?php echo (int) $r->wins; ?></td>
-					<?php else : ?>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
-					<?php endif; ?>
-				</tr>
+                        foreach ( (array) $rows as $r ) :
+                                $is_winner = $pos <= $wcount;
+                                $prize_text = ( isset( $prize_titles ) && isset( $prize_titles[ $pos - 1 ] ) && '' !== $prize_titles[ $pos - 1 ] ) ? $prize_titles[ $pos - 1 ] : bhg_t( 'label_emdash', '—' );
+                                ?>
+                                <tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
+                                        <td><?php echo (int) $pos; ?></td>
+                                        <td><?php echo esc_html( $r->display_name ); ?></td>
+                                        <?php if ( 'tournament' === $view_type ) : ?>
+                                                <td><?php echo (int) $r->wins; ?></td>
+                                        <?php else : ?>
+                                                <td><?php echo esc_html( bhg_format_money( (float) $r->guess ) ); ?></td>
+                                                <td><?php echo esc_html( bhg_format_money( (float) $r->diff ) ); ?></td>
+                                                <td><?php echo esc_html( $prize_text ); ?></td>
+                                        <?php endif; ?>
+                                </tr>
 				<?php
 				++$pos;
 			endforeach;

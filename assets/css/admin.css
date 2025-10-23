@@ -57,8 +57,10 @@
     box-shadow: inset 0 1px 2px rgba(0,0,0,.04);
 }
 
+
 .bhg-winner-row {
-    background-color: #d1fae5;
+    background-color: #f3f4f6;
+    font-weight: 600;
 }
 
 /* Utility classes */
@@ -153,6 +155,33 @@ flex: 1;
     width: 100%;
     box-sizing: border-box;
     margin-bottom: var(--bhg-spacing);
+}
+
+.bhg-latest-hunts-table td,
+.bhg-latest-hunts-table th {
+    vertical-align: top;
+}
+
+.bhg-latest-hunts-title {
+    font-weight: 600;
+}
+
+.bhg-latest-hunts-row.is-winner {
+    background-color: #f3f4f6;
+}
+
+.bhg-dashboard-diff {
+    color: #4b5563;
+    font-weight: 400;
+}
+
+.bhg-latest-hunts-winner-cell strong {
+    font-weight: 700;
+}
+
+.bhg-latest-hunts-money {
+    text-align: left;
+    white-space: nowrap;
 }
 
 
@@ -283,6 +312,47 @@ flex: 1;
 
 .bhg-card-content > p {
     margin-top: var(--bhg-spacing);
+}
+
+.bhg-affiliate-cell {
+    vertical-align: top;
+}
+
+.bhg-aff-toggle {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.bhg-aff-sites {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.bhg-aff-sites li {
+    margin: 0;
+}
+
+.bhg-aff-site-inactive {
+    color: #6b7280;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.bhg-notification-section {
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 6px;
+    background: var(--bhg-card-bg);
+    padding: var(--bhg-spacing);
+    margin-bottom: 24px;
+}
+
+.bhg-notification-section h2 {
+    margin-top: 0;
 }
 
 /* Buttons */
