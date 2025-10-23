@@ -91,6 +91,38 @@ foreach ( $currencies as $key => $label ) :
 </td>
 </tr>
 <tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'label_profile_sections', 'Profile Sections' ) ); ?></th>
+<td>
+<fieldset>
+<legend class="screen-reader-text"><span><?php echo esc_html( bhg_t( 'label_profile_sections', 'Profile Sections' ) ); ?></span></legend>
+<p class="description"><?php echo esc_html( bhg_t( 'help_profile_sections', 'Choose which "My" sections are visible to users on the frontend.' ) ); ?></p>
+<input type="hidden" name="bhg_show_my_bonushunts" value="0">
+<label for="bhg_show_my_bonushunts">
+<input type="checkbox" id="bhg_show_my_bonushunts" name="bhg_show_my_bonushunts" value="1" <?php checked( ! empty( $settings['show_my_bonushunts'] ) ); ?>>
+<?php echo esc_html( bhg_t( 'label_show_my_bonushunts', 'Show "My Bonus Hunts"' ) ); ?>
+</label>
+<br>
+<input type="hidden" name="bhg_show_my_tournaments" value="0">
+<label for="bhg_show_my_tournaments">
+<input type="checkbox" id="bhg_show_my_tournaments" name="bhg_show_my_tournaments" value="1" <?php checked( ! empty( $settings['show_my_tournaments'] ) ); ?>>
+<?php echo esc_html( bhg_t( 'label_show_my_tournaments', 'Show "My Tournaments"' ) ); ?>
+</label>
+<br>
+<input type="hidden" name="bhg_show_my_prizes" value="0">
+<label for="bhg_show_my_prizes">
+<input type="checkbox" id="bhg_show_my_prizes" name="bhg_show_my_prizes" value="1" <?php checked( ! empty( $settings['show_my_prizes'] ) ); ?>>
+<?php echo esc_html( bhg_t( 'label_show_my_prizes', 'Show "My Prizes"' ) ); ?>
+</label>
+<br>
+<input type="hidden" name="bhg_show_my_rankings" value="0">
+<label for="bhg_show_my_rankings">
+<input type="checkbox" id="bhg_show_my_rankings" name="bhg_show_my_rankings" value="1" <?php checked( ! empty( $settings['show_my_rankings'] ) ); ?>>
+<?php echo esc_html( bhg_t( 'label_show_my_rankings', 'Show "My Rankings"' ) ); ?>
+</label>
+</fieldset>
+</td>
+</tr>
+<tr>
 <th scope="row"><label for="bhg_ads_enabled"><?php echo esc_html( bhg_t( 'ads_enabled', 'Enable Ads' ) ); ?></label></th>
 <td>
 <input type="hidden" name="bhg_ads_enabled" value="0">
