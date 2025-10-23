@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser — Customer Acceptance Checklist
 
-_Last reviewed:_ 2025-02-14 (UTC)  
+_Last reviewed:_ 2025-02-15 (UTC)
 _Status legend:_ `[x]` complete, `[!]` needs attention, `[?]` requires manual verification.
 
 ## Verification Summary
@@ -95,7 +95,7 @@ Each requirement below links back to the main implementation areas for quick spo
   *Translations list populates keys; Tools screen reports diagnostics counts.*
 
 ## I. Versioning, Tooling & Compliance
-- [x] Plugin header metadata updated to final contract values in `bonus-hunt-guesser.php` (Requires PHP 7.4, WordPress 6.3.0+, MySQL 5.5.5, version 8.0.14). (`bonus-hunt-guesser.php`)  
+- [x] Plugin header metadata updated to final contract values in `bonus-hunt-guesser.php` (Requires PHP 7.4, WordPress 6.3.5+, MySQL 5.5.5, version 8.0.14). (`bonus-hunt-guesser.php`)
   *Header block reflects agreed metadata.*
 - [x] CHANGELOG.md and docs reflect version 8.0.14 release scope. (`CHANGELOG.md`, `README.md`)  
   *Changelog entry and README onboarding steps align with 8.0.14 features.*
