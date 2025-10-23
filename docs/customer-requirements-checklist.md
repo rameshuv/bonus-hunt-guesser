@@ -1,8 +1,14 @@
 # Bonus Hunt Guesser — Customer Acceptance Checklist
 
+_Last reviewed:_ 2025-02-14 (UTC)  
 _Status legend:_ `[x]` complete, `[!]` needs attention, `[?]` requires manual verification.
 
-Each line lists the primary files to inspect or adjust.
+## Verification Summary
+
+- ✅ Functional tests: `vendor/bin/phpunit`
+- ✅ Coding standards: `vendor/bin/phpcs --standard=phpcs.xml`
+
+Each requirement below links back to the main implementation areas for quick spot checks.
 
 ## A. Core Functionality (Bonus Hunts & Guessing)
 - [x] Admin can create a bonus hunt with title, starting balance, number of bonuses, and prize description. (`admin/views/bonus-hunts.php`)  
