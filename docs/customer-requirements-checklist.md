@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser — Customer Acceptance Checklist
 
-_Last reviewed:_ 2025-02-16 (UTC)
+_Last reviewed:_ 2025-02-17 (UTC)
 _Status legend:_ `[x]` complete, `[!]` needs attention, `[?]` requires manual verification.
 
 ## Quick Reference Matrix
@@ -16,6 +16,23 @@ _Status legend:_ `[x]` complete, `[!]` needs attention, `[?]` requires manual ve
 | Notifications & Final Polish | `includes/class-bhg-notifications.php`, `admin/views/notifications.php`, `assets/css/admin.css` |
 | Backend Admin Addendum | `admin/views/dashboard.php`, `admin/views/bonus-hunts-results.php`, `admin/views/advertising.php` |
 | Tooling & Compliance | `phpcs.xml`, `tests/bootstrap.php`, `tests/HelpersTest.php`, `CHANGELOG.md`, `README.md` |
+
+## Add-On Verification — Customer Checklist
+
+The customer requested an explicit validation of the prizes, shortcode, notification, and tournament enhancements. The table below records their status and the primary files involved when remediation is required.
+
+| # | Requirement | Status | Notes / Files to modify |
+| --- | --- | --- | --- |
+| 1 | Prizes menu in admin with CRUD, category, multi-size images, CSS panel (border/border-color/padding/margin/background), active toggle | ✅ | Implemented via `admin/class-bhg-admin.php`, `admin/views/prizes.php`, `includes/class-bhg-prizes.php`, and enqueue script/styles in `assets/js/admin-prizes.js`, `assets/css/admin.css`. |
+| 2 | Bonus hunt add/edit supports selecting one or multiple prizes | ✅ | Multi-select rendered in `admin/views/bonus-hunts.php` and persisted through `admin/class-bhg-admin.php` → `BHG_Prizes::set_hunt_prizes()`. |
+| 3 | Active Hunt shortcode renders prizes as grid or carousel with dots/arrows | ✅ | `[bhg_active_hunt]` accepts `prize_layout`/`prize_size`; output handled in `includes/class-bhg-shortcodes.php` with behaviour scripts in `assets/js/bhg-shortcodes.js`. |
+| 4 | `[bhg_prizes]` shortcode supports `category`, `design` (grid/carousel), `size` (small/medium/big), `active` (yes/no) filters | ✅ | Implemented in `includes/class-bhg-shortcodes.php` leveraging `BHG_Prizes::get_prizes()`. |
+| 5 | Front-end “My Profile” shortcodes (`my_bonushunts`, `my_tournaments`, `my_prizes`, `my_rankings`) with admin hide/show toggles | ❌ | Not present; add shortcode handlers and visibility settings in `includes/class-bhg-shortcodes.php`, profile rendering helpers, and admin toggles (e.g. `admin/views/users.php` or dedicated settings). |
+| 6 | Extended CSS/color panel covering title block, H2/H3, description, and standard text styling | ❌ | Current form only captures border/background basics. Enhance `admin/views/prizes.php`, `includes/class-bhg-prizes.php`, and front-end styles in `assets/css/bhg-shortcodes.css` to store/apply per-element styles. |
+| 7 | “Info & Help” Shortcodes admin screen listing all shortcodes and attributes | ❌ | Menu item/view missing. Introduce submenu in `admin/class-bhg-admin.php` and template under `admin/views/shortcodes.php`. |
+| 8 | Notifications tab with winner/tournament/bonus-hunt blocks (subject, HTML body, BCC, enable checkbox) | ✅ | Available via `admin/views/notifications.php` and handled by `includes/class-bhg-notifications.php`. |
+| 9 | Tournaments: attach prizes (admin & frontend), affiliate website URL field, show/hide checkbox for frontend exposure | ❌ | Admin form lacks these controls and front-end ignores prize display. Update `admin/views/tournaments.php`, persist via `admin/class-bhg-admin.php`/`includes/class-bhg-db.php`, and render in `includes/class-bhg-shortcodes.php`. |
+| 10 | Tournament ranking point system (editable points per placement, scoped to active/closed/all hunts; results highlight top winners) | ❌ | No point-allocation logic exists. Requires schema/storage in `includes/class-bhg-db.php`, calculations in hunt close handlers, admin UI for point tables, and leaderboard updates in `includes/class-bhg-shortcodes.php`. |
 
 ## Verification Summary
 
