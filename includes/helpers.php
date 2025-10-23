@@ -58,6 +58,67 @@ function bhg_admin_cap() {
 	return apply_filters( 'bhg_admin_capability', 'manage_options' );
 }
 
+/**
+ * Default points awarded per ranking position.
+ *
+ * @return array<int,int> Associative array indexed by position.
+ */
+function bhg_get_default_points_config() {
+        return array(
+                1 => 25,
+                2 => 15,
+                3 => 10,
+                4 => 5,
+                5 => 4,
+                6 => 3,
+                7 => 2,
+                8 => 1,
+        );
+}
+
+/**
+ * Retrieve sanitized points configuration.
+ *
+ * @return array{positions:array<int,int>} Configuration array.
+ */
+function bhg_get_points_config() {
+        $stored    = get_option( 'bhg_points_config', array() );
+        $defaults  = bhg_get_default_points_config();
+        $positions = isset( $stored['positions'] ) && is_array( $stored['positions'] ) ? $stored['positions'] : array();
+
+        $sanitized = array();
+        foreach ( $positions as $pos => $points ) {
+                $pos     = absint( $pos );
+                $points  = is_numeric( $points ) ? max( 0, (int) $points ) : 0;
+                if ( $pos <= 0 ) {
+                        continue;
+                }
+                $sanitized[ $pos ] = $points;
+        }
+
+        $config = array( 'positions' => $defaults );
+        if ( ! empty( $sanitized ) ) {
+                $config['positions'] = array_merge( $defaults, $sanitized );
+        }
+
+        ksort( $config['positions'], SORT_NUMERIC );
+
+        return $config;
+}
+
+/**
+ * Get the number of points for a given winner position.
+ *
+ * @param int $position Finishing position (1-indexed).
+ * @return int Points assigned to the position.
+ */
+function bhg_get_points_for_position( $position ) {
+        $position = max( 1, (int) $position );
+        $config   = bhg_get_points_config();
+
+        return isset( $config['positions'][ $position ] ) ? (int) $config['positions'][ $position ] : 0;
+}
+
 // Smart login redirect back to referring page.
 add_filter(
 	'login_redirect',
