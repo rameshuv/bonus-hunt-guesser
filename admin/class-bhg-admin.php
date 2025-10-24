@@ -287,16 +287,21 @@ require BHG_PLUGIN_DIR . 'admin/views/notifications.php';
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
-								check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
-                global $wpdb;
-                $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
 
-                $guess_id = isset( $_REQUEST['guess_id'] ) ? absint( wp_unslash( $_REQUEST['guess_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified above.
+		check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
+
+		global $wpdb;
+
+		$guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+		$guess_id      = isset( $_REQUEST['guess_id'] ) ? absint( wp_unslash( $_REQUEST['guess_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified above.
+
 		if ( $guess_id ) {
 			$wpdb->delete( $guesses_table, array( 'id' => $guess_id ), array( '%d' ) );
 		}
-				$referer = wp_get_referer();
-								wp_safe_redirect( $referer ? $referer : BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
+
+		$referer = wp_get_referer();
+
+		wp_safe_redirect( $referer ? $referer : BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
 		exit;
 	}
 
