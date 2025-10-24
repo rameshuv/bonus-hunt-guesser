@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-        exit;
+	exit;
 }
 
 /**
@@ -50,14 +50,13 @@ class BHG_Prizes {
 
                 foreach ( $defaults as $key => $default ) {
                         if ( isset( $input[ $key ] ) && is_string( $input[ $key ] ) ) {
-                                $value = trim( wp_unslash( $input[ $key ] ) );
+                                $value = $input[ $key ];
                         } else {
                                 $value = $default;
                         }
 
                         if ( in_array( $key, array( 'border_color', 'background' ), true ) ) {
-                                $value = sanitize_hex_color_no_hash( ltrim( $value, '#' ) );
-                                $value = $value ? '#' . $value : '';
+                                $value = self::sanitize_color_value( $value );
                         } else {
                                 $value = sanitize_text_field( $value );
                         }
@@ -343,37 +342,121 @@ class BHG_Prizes {
          */
         public static function build_style_attr( $prize ) {
                 $styles = array();
+
                 if ( ! empty( $prize->css_border ) ) {
-                        $styles[] = 'border:' . esc_attr( $prize->css_border );
+                        $styles[] = 'border:' . sanitize_text_field( $prize->css_border );
                 }
+
                 if ( ! empty( $prize->css_border_color ) ) {
-                        $styles[] = 'border-color:' . esc_attr( $prize->css_border_color );
+                        $color = self::sanitize_color_value( $prize->css_border_color );
+                        if ( '' !== $color ) {
+                                $styles[] = 'border-color:' . $color;
+                        }
                 }
+
                 if ( ! empty( $prize->css_padding ) ) {
-                        $styles[] = 'padding:' . esc_attr( $prize->css_padding );
+                        $styles[] = 'padding:' . sanitize_text_field( $prize->css_padding );
                 }
+
                 if ( ! empty( $prize->css_margin ) ) {
-                        $styles[] = 'margin:' . esc_attr( $prize->css_margin );
+                        $styles[] = 'margin:' . sanitize_text_field( $prize->css_margin );
                 }
+
                 if ( ! empty( $prize->css_background ) ) {
-                        $styles[] = 'background-color:' . esc_attr( $prize->css_background );
+                        $background = self::sanitize_color_value( $prize->css_background );
+                        if ( '' !== $background ) {
+                                $styles[] = 'background-color:' . $background;
+                        }
                 }
 
                 if ( empty( $styles ) ) {
                         return '';
                 }
 
-                return ' style="' . esc_attr( implode( ';', $styles ) ) . '"';
+                return implode( ';', $styles );
         }
 
         /**
-         * Retrieve image URL for a prize.
+         * Sanitize CSS color-like values while allowing common keywords and functions.
          *
-         * @param object $prize Prize row.
-         * @param string $size  Size key.
-         * @return string
+         * @param string $value Raw color value.
+         * @return string Sanitized value or empty string when invalid.
          */
-        public static function get_image_url( $prize, $size = 'medium' ) {
+        private static function sanitize_color_value( $value ) {
+                if ( ! is_string( $value ) ) {
+                        return '';
+                }
+
+                if ( function_exists( 'wp_unslash' ) ) {
+                        $value = wp_unslash( $value );
+                }
+
+                $value = trim( $value );
+
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                if ( function_exists( 'wp_strip_all_tags' ) ) {
+                        $value = wp_strip_all_tags( $value );
+                } else {
+                        $value = strip_tags( $value );
+                }
+
+                $value = preg_replace( '/[^#a-zA-Z0-9(),.%_\s\-]/', '', $value );
+
+                if ( ! is_string( $value ) ) {
+                        return '';
+                }
+
+                $value = trim( $value );
+
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                $value = substr( $value, 0, 100 );
+
+                $compacted = preg_replace( '/\s+/', '', $value );
+                $normalized = strtolower( $compacted );
+
+                if ( '' === $normalized ) {
+                        return '';
+                }
+
+                $keywords = array( 'transparent', 'inherit', 'initial', 'unset', 'currentcolor' );
+                if ( in_array( $normalized, $keywords, true ) ) {
+                        return $normalized;
+                }
+
+                if ( preg_match( '/^#[0-9a-f]{3,8}$/', $normalized ) ) {
+                        return '#' . substr( $normalized, 1 );
+                }
+
+                if ( preg_match( '/^var\(--[a-z0-9_-]+\)$/i', $compacted ) ) {
+                        return $compacted;
+                }
+
+                if ( preg_match( '/^(rgba?|hsla?)\([0-9.,%]+\)$/', $normalized ) ) {
+                        return $normalized;
+                }
+
+                if ( preg_match( '/^[a-z]+$/', $normalized ) ) {
+                        return $normalized;
+                }
+
+                return '';
+        }
+
+	/**
+	 * Retrieve image URL for a prize.
+	 *
+	 * @param object $prize  Prize row.
+	 * @param string $size   Size key.
+	 * @param bool   $escape Whether to escape the URL before returning.
+	 * @return string Attachment URL (escaped by default).
+	 */
+	public static function get_image_url( $prize, $size = 'medium', $escape = true ) {
                 $size = sanitize_key( $size );
                 $map  = array(
                         'small'  => 'image_small',
@@ -401,11 +484,15 @@ class BHG_Prizes {
                         $wp_size = $size;
                 }
 
-                $url = wp_get_attachment_image_url( $id, $wp_size );
-                if ( ! $url ) {
-                        $url = wp_get_attachment_url( $id );
-                }
+               $url = wp_get_attachment_image_url( $id, $wp_size );
+               if ( ! $url ) {
+                       $url = wp_get_attachment_url( $id );
+               }
 
-                return $url ? esc_url( $url ) : '';
-        }
+               if ( ! $url ) {
+                       return '';
+               }
+
+               return $escape ? esc_url( $url ) : $url;
+       }
 }

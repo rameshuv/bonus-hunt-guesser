@@ -23,8 +23,8 @@ class BHG_DB {
 		$db = new self();
 		$db->create_tables();
 
-				global $wpdb;
-				$tours_table = $wpdb->prefix . 'bhg_tournaments';
+		global $wpdb;
+		$tours_table = $wpdb->prefix . 'bhg_tournaments';
 
 		// Drop legacy "period" column and related index if they exist.
 		if ( $db->column_exists( $tours_table, 'period' ) ) {
@@ -48,20 +48,20 @@ class BHG_DB {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-				$charset_collate = $wpdb->get_charset_collate();
+		$charset_collate = $wpdb->get_charset_collate();
 
-				// Raw table names without backticks.
+		// Raw table names without backticks.
 				$hunts_table        = $wpdb->prefix . 'bhg_bonus_hunts';
 				$guesses_table      = $wpdb->prefix . 'bhg_guesses';
 				$tours_table        = $wpdb->prefix . 'bhg_tournaments';
 				$tres_table         = $wpdb->prefix . 'bhg_tournament_results';
 				$ads_table          = $wpdb->prefix . 'bhg_ads';
 				$trans_table        = $wpdb->prefix . 'bhg_translations';
-$aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
-$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
-$hunt_tours_table   = $wpdb->prefix . 'bhg_hunt_tournaments';
-$prizes_table       = $wpdb->prefix . 'bhg_prizes';
-$hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
+				$aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
+				$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
+				$hunt_tours_table   = $wpdb->prefix . 'bhg_hunt_tournaments';
+				$prizes_table       = $wpdb->prefix . 'bhg_prizes';
+				$hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
 
 		$sql = array();
 
@@ -100,7 +100,7 @@ KEY tournament_id (tournament_id)
                 ) {$charset_collate};";
 
 		// Tournaments.
-                                $sql[] = "CREATE TABLE `{$tours_table}` (
+                 		$sql[] = "CREATE TABLE `{$tours_table}` (
                                                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                                 title VARCHAR(190) NOT NULL,
                                                 description TEXT NULL,
@@ -122,15 +122,16 @@ KEY tournament_id (tournament_id)
 
 		// Tournament Results.
 		$sql[] = "CREATE TABLE `{$tres_table}` (
-						id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-						tournament_id BIGINT UNSIGNED NOT NULL,
-						user_id BIGINT UNSIGNED NOT NULL,
-						wins INT UNSIGNED NOT NULL DEFAULT 0,
-						last_win_date DATETIME NULL,
-						PRIMARY KEY  (id),
-						KEY tournament_id (tournament_id),
-						KEY user_id (user_id)
-				) {$charset_collate};";
+                                                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                                tournament_id BIGINT UNSIGNED NOT NULL,
+                                                user_id BIGINT UNSIGNED NOT NULL,
+                                                wins INT UNSIGNED NOT NULL DEFAULT 0,
+                                                points INT UNSIGNED NOT NULL DEFAULT 0,
+                                                last_win_date DATETIME NULL,
+                                                PRIMARY KEY  (id),
+                                                KEY tournament_id (tournament_id),
+                                                KEY user_id (user_id)
+                                ) {$charset_collate};";
 
 		// Ads.
 		$sql[] = "CREATE TABLE `{$ads_table}` (
@@ -162,22 +163,23 @@ KEY tournament_id (tournament_id)
 					   UNIQUE KEY slug_unique (slug)
 			   ) {$charset_collate};";
 
-// Hunt Winners.
-$sql[] = "CREATE TABLE `{$winners_table}` (
+		// Hunt Winners.
+		$sql[] = "CREATE TABLE `{$winners_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    user_id BIGINT UNSIGNED NOT NULL,
                                    position INT UNSIGNED NOT NULL,
                                    guess DECIMAL(12,2) NOT NULL,
                                    diff DECIMAL(12,2) NOT NULL,
+                                   points INT UNSIGNED NOT NULL DEFAULT 0,
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
                                    KEY hunt_id (hunt_id),
                                    KEY user_id (user_id)
                    ) {$charset_collate};";
 
-// Prizes table.
-$sql[] = "CREATE TABLE `{$prizes_table}` (
+		// Prizes table.
+		$sql[] = "CREATE TABLE `{$prizes_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    title VARCHAR(190) NOT NULL,
                                    description TEXT NULL,
@@ -198,8 +200,8 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
                                    KEY active (active)
                    ) {$charset_collate};";
 
-// Hunt prize map.
-$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
+		// Hunt prize map.
+		$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    prize_id BIGINT UNSIGNED NOT NULL,
@@ -210,8 +212,8 @@ $sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
                                    KEY prize_id (prize_id)
                    ) {$charset_collate};";
 
-// Hunt to tournament mapping.
-$sql[] = "CREATE TABLE `{$hunt_tours_table}` (
+		// Hunt to tournament mapping.
+		$sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    tournament_id BIGINT UNSIGNED NOT NULL,
@@ -285,12 +287,13 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 			}
 
 												// Tournament results columns.
-			$trrneed = array(
-				'tournament_id' => 'ADD COLUMN tournament_id BIGINT UNSIGNED NOT NULL',
-				'user_id'       => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
-				'wins'          => 'ADD COLUMN wins INT UNSIGNED NOT NULL DEFAULT 0',
-				'last_win_date' => 'ADD COLUMN last_win_date DATETIME NULL',
-			);
+                        $trrneed = array(
+                                'tournament_id' => 'ADD COLUMN tournament_id BIGINT UNSIGNED NOT NULL',
+                                'user_id'       => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
+                                'wins'          => 'ADD COLUMN wins INT UNSIGNED NOT NULL DEFAULT 0',
+                                'points'        => 'ADD COLUMN points INT UNSIGNED NOT NULL DEFAULT 0',
+                                'last_win_date' => 'ADD COLUMN last_win_date DATETIME NULL',
+                        );
 			foreach ( $trrneed as $c => $alter ) {
 				if ( ! $this->column_exists( $tres_table, $c ) ) {
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -380,14 +383,15 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 			}
 
 												// Hunt winners columns / indexes.
-			$hwneed = array(
-				'hunt_id'    => 'ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL',
-				'user_id'    => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
-				'position'   => 'ADD COLUMN position INT UNSIGNED NOT NULL',
-				'guess'      => 'ADD COLUMN guess DECIMAL(12,2) NOT NULL',
-				'diff'       => 'ADD COLUMN diff DECIMAL(12,2) NOT NULL',
-				'created_at' => 'ADD COLUMN created_at DATETIME NULL',
-			);
+                        $hwneed = array(
+                                'hunt_id'    => 'ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL',
+                                'user_id'    => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
+                                'position'   => 'ADD COLUMN position INT UNSIGNED NOT NULL',
+                                'guess'      => 'ADD COLUMN guess DECIMAL(12,2) NOT NULL',
+                                'diff'       => 'ADD COLUMN diff DECIMAL(12,2) NOT NULL',
+                                'points'     => 'ADD COLUMN points INT UNSIGNED NOT NULL DEFAULT 0',
+                                'created_at' => 'ADD COLUMN created_at DATETIME NULL',
+                        );
 			foreach ( $hwneed as $c => $alter ) {
 				if ( ! $this->column_exists( $winners_table, $c ) ) {
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -462,7 +466,7 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 			global $wpdb;
 
 						$table           = $wpdb->prefix . 'bhg_translations';
-						$charset_collate = $wpdb->get_charset_collate();
+				$charset_collate = $wpdb->get_charset_collate();
 
 						$sql = "CREATE TABLE `{$table}` (
 					   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -485,7 +489,7 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 		 * @return array List of affiliate website objects.
 		 */
 	public function get_affiliate_websites() {
-						global $wpdb;
+				global $wpdb;
 
 						$table = $wpdb->prefix . 'bhg_affiliate_websites';
 
