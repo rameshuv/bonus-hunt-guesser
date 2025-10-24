@@ -359,12 +359,12 @@ class BHG_Prizes {
                         $styles[] = 'background-color:' . esc_attr( $prize->css_background );
                 }
 
-                if ( empty( $styles ) ) {
-                        return '';
-                }
+               if ( empty( $styles ) ) {
+                       return '';
+               }
 
-                return ' style="' . esc_attr( implode( ';', $styles ) ) . '"';
-        }
+               return implode( ';', $styles );
+       }
 
        /**
         * Retrieve image URL for a prize.

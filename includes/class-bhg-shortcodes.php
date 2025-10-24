@@ -243,27 +243,28 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '">&#10094;</button>';
 			}
 			echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
-			foreach ( $prizes as $prize ) {
-				echo $this->render_prize_card( $prize, $size );
-			}
+                       foreach ( $prizes as $prize ) {
+                               echo wp_kses_post( $this->render_prize_card( $prize, $size ) );
+                       }
 			echo '</div></div>';
 			if ( $show_nav ) {
 				echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '">&#10095;</button>';
 			}
 			if ( $count > 1 ) {
 				echo '<div class="bhg-prize-dots">';
-				for ( $i = 0; $i < $count; $i++ ) {
-					$active = 0 === $i ? ' active' : '';
-					echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
+                               for ( $i = 0; $i < $count; $i++ ) {
+                                       $active    = 0 === $i ? ' active' : '';
+                                       $dot_class = 'bhg-prize-dot' . $active;
+                                       echo '<button type="button" class="' . esc_attr( $dot_class ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
 				}
 				echo '</div>';
 			}
 			echo '</div>';
 		} else {
 			echo '<div class="bhg-prizes-grid">';
-			foreach ( $prizes as $prize ) {
-				echo $this->render_prize_card( $prize, $size );
-			}
+                       foreach ( $prizes as $prize ) {
+                               echo wp_kses_post( $this->render_prize_card( $prize, $size ) );
+                       }
 			echo '</div>';
 		}
 
@@ -289,7 +290,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		$category   = isset( $prize->category ) ? (string) $prize->category : '';
 
 		ob_start();
-		echo '<div class="bhg-prize-card"' . $style_attr . '>';
+               echo '<div class="bhg-prize-card"' . ( '' !== $style_attr ? ' style="' . esc_attr( $style_attr ) . '"' : '' ) . '>';
 		echo '<div class="bhg-prize-image">';
 		if ( $image_url ) {
 			echo '<img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $prize->title ) . '">';
@@ -302,10 +303,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		if ( $category ) {
 			echo '<div class="bhg-prize-category">' . esc_html( ucwords( str_replace( '_', ' ', $category ) ) ) . '</div>';
 		}
-		if ( ! empty( $prize->description ) ) {
-			$description = wp_kses_post( wpautop( $prize->description ) );
-			echo '<div class="bhg-prize-description">' . $description . '</div>';
-		}
+               if ( ! empty( $prize->description ) ) {
+                       echo '<div class="bhg-prize-description">' . wp_kses_post( wpautop( $prize->description ) ) . '</div>';
+               }
 		echo '</div>';
 		echo '</div>';
 
@@ -463,12 +463,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		       }
 
-		       $total_guesses = (int) $wpdb->get_var(
-			       $wpdb->prepare(
-				       "SELECT COUNT(*) FROM {$guesses_table} WHERE hunt_id = %d",
-				       $selected_hunt_id
-			       )
-		       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+               $total_guesses = (int) $wpdb->get_var(
+                       $wpdb->prepare(
+                               "SELECT COUNT(*) FROM {$guesses_table} WHERE hunt_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above.
+                               $selected_hunt_id
+                       )
+               ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		       $total_pages = $total_guesses > 0 ? (int) ceil( $total_guesses / $per_page ) : 1;
 
@@ -539,12 +539,12 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		       if ( '' === $affiliate_name && isset( $selected_hunt->affiliate_site_id ) && (int) $selected_hunt->affiliate_site_id > 0 ) {
 			       $sites_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 			       if ( $sites_table ) {
-				       $affiliate_name = $wpdb->get_var(
-					       $wpdb->prepare(
-						       "SELECT name FROM {$sites_table} WHERE id = %d",
-						       (int) $selected_hunt->affiliate_site_id
-					       )
-				       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                               $affiliate_name = $wpdb->get_var(
+                                       $wpdb->prepare(
+                                               "SELECT name FROM {$sites_table} WHERE id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above.
+                                               (int) $selected_hunt->affiliate_site_id
+                                       )
+                               ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			       }
 		       }
 		       $affiliate_display = '' !== $affiliate_name ? $affiliate_name : '-';
@@ -557,9 +557,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		       }
 		       echo '</ul>';
 
-		       if ( ! empty( $hunt_prizes ) ) {
-			       echo $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size );
-		       }
+               if ( ! empty( $hunt_prizes ) ) {
+                       echo wp_kses_post( $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size ) );
+               }
 		       echo '</div>';
 
 		       echo '<div class="bhg-table-wrapper">';
@@ -620,10 +620,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			       if ( ! empty( $pagination_links ) ) {
 				       echo '<nav class="bhg-pagination" aria-label="' . esc_attr( bhg_t( 'label_pagination', 'Pagination' ) ) . '">';
 				       echo '<ul class="bhg-pagination-list">';
-				       foreach ( $pagination_links as $link ) {
-					       $class = false !== strpos( $link, 'current' ) ? ' class="bhg-current-page"' : '';
-					       echo '<li' . $class . '>' . wp_kses_post( $link ) . '</li>';
-				       }
+                               foreach ( $pagination_links as $link ) {
+                                       echo '<li' . ( false !== strpos( $link, 'current' ) ? ' class="bhg-current-page"' : '' ) . '>' . wp_kses_post( $link ) . '</li>';
+                               }
 				       echo '</ul>';
 				       echo '</nav>';
 			       }
@@ -2707,13 +2706,13 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '<div class="bhg-prizes-shortcode"><p>' . esc_html( bhg_t( 'no_prizes_yet', 'No prizes found.' ) ) . '</p></div>';
 			}
 
-			$content = $this->render_prize_section( $prizes, $layout, $size );
+               $content = $this->render_prize_section( $prizes, $layout, $size );
 
 			if ( '' === $content ) {
 				return '';
 			}
 
-			return '<div class="bhg-prizes-shortcode">' . $content . '</div>';
+               return '<div class="bhg-prizes-shortcode">' . wp_kses_post( $content ) . '</div>';
 		}
 
 					/**
