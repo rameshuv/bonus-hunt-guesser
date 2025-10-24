@@ -62,7 +62,7 @@ This document maps each agreed customer requirement to the implementing code so 
 ## Testing References
 - PHPUnit coverage guards prize normalization, CSS sanitization, shortcode rendering, and tournament recalculations to prevent regressions within the documented requirements. 【F:tests/PrizesShortcodeNormalizationTest.php†L1-L210】【F:tests/PrizesCssSettingsTest.php†L1-L190】【F:tests/PrizesShortcodeRenderingTest.php†L1-L220】
 
-## WordPress Coding Standards Checklist
-- Core admin controllers and views follow WordPress tab-based indentation, ABSPATH guards, and translation-ready strings as demonstrated in `BHG_Admin` and the prizes view. 【F:admin/class-bhg-admin.php†L1-L210】【F:admin/views/prizes.php†L1-L60】
-- Frontend helpers sanitize URLs, attributes, and CSS fragments before output, mirroring WordPress escaping guidance. 【F:includes/class-bhg-prizes.php†L120-L210】【F:includes/class-bhg-shortcodes.php†L2590-L2854】
+## WordPress Coding Standards Review
+- `composer phpcs` reports widespread indentation and escaping issues (primarily tab/space violations and unescaped output) across `admin/class-bhg-admin.php`, `admin/views/prizes.php`, `admin/views/translations.php`, and related admin views. These should be normalised with tabs and the flagged variables escaped before the code can be considered compliant. 【c14dff†L1-L170】
+- Frontend helpers continue to escape URLs, attributes, and CSS fragments before output, aligning with WordPress security guidance. 【F:includes/class-bhg-prizes.php†L120-L210】【F:includes/class-bhg-shortcodes.php†L2590-L2854】
 - PHPUnit bootstrap supplies shims for `sanitize_text_field()` and `sanitize_hex_color()` so automated checks emulate the WordPress environment, keeping tests PHP 7.4 compatible. 【F:tests/bootstrap.php†L1-L220】
