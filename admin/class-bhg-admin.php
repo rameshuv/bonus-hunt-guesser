@@ -91,10 +91,10 @@ class BHG_Admin {
 		}
 
 				// NOTE: By default, WordPress adds a submenu item that duplicates the
-				// top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
+				// top-level "Bonus Hunt" menu. The previous `remove_submenu_page()`
 				// call removed this submenu, but it also inadvertently removed our
-				// custom “Dashboard” submenu. Removing the call ensures the Dashboard
-		// item remains visible under the "Bonus Hunt" menu.
+				// custom "Dashboard" submenu. Removing the call ensures the Dashboard
+				// item remains visible under the "Bonus Hunt" menu.
 	}
 
 		/**
