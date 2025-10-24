@@ -288,9 +288,10 @@ require BHG_PLUGIN_DIR . 'admin/views/notifications.php';
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
 								check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
-		global $wpdb;
-																														$guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-		$guess_id = isset( $_POST['guess_id'] ) ? absint( wp_unslash( $_POST['guess_id'] ) ) : 0;
+                global $wpdb;
+                $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+
+                $guess_id = isset( $_REQUEST['guess_id'] ) ? absint( wp_unslash( $_REQUEST['guess_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified above.
 		if ( $guess_id ) {
 			$wpdb->delete( $guesses_table, array( 'id' => $guess_id ), array( '%d' ) );
 		}
