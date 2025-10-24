@@ -9,6 +9,30 @@ if ( ! function_exists( 'esc_sql' ) ) {
     }
 }
 
+if ( ! function_exists( 'add_shortcode' ) ) {
+    function add_shortcode( $tag, $callback ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundInFunction
+        if ( ! isset( $GLOBALS['shortcode_tags'] ) || ! is_array( $GLOBALS['shortcode_tags'] ) ) {
+            $GLOBALS['shortcode_tags'] = array();
+        }
+
+        $GLOBALS['shortcode_tags'][ $tag ] = $callback;
+    }
+}
+
+if ( ! function_exists( 'add_action' ) ) {
+    function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundInFunction
+        if ( ! isset( $GLOBALS['wp_actions'] ) || ! is_array( $GLOBALS['wp_actions'] ) ) {
+            $GLOBALS['wp_actions'] = array();
+        }
+
+        if ( ! isset( $GLOBALS['wp_actions'][ $hook ] ) || ! is_array( $GLOBALS['wp_actions'][ $hook ] ) ) {
+            $GLOBALS['wp_actions'][ $hook ] = array();
+        }
+
+        $GLOBALS['wp_actions'][ $hook ][ $priority ][] = $callback;
+    }
+}
+
 if ( ! function_exists( 'current_time' ) ) {
     function current_time( $type ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
         return '2024-01-01 00:00:00';
@@ -54,6 +78,25 @@ if ( ! function_exists( 'bhg_log' ) ) {
     }
 }
 
+if ( ! function_exists( 'bhg_get_points_for_position' ) ) {
+    function bhg_get_points_for_position( $position ) {
+        $defaults = array(
+            1 => 25,
+            2 => 15,
+            3 => 10,
+            4 => 5,
+            5 => 4,
+            6 => 3,
+            7 => 2,
+            8 => 1,
+        );
+
+        $position = max( 1, (int) $position );
+
+        return isset( $defaults[ $position ] ) ? $defaults[ $position ] : 0;
+    }
+}
+
 if ( ! function_exists( 'wp_list_pluck' ) ) {
     function wp_list_pluck( $input_list, $field ) {
         $values = array();
@@ -77,4 +120,5 @@ if ( ! class_exists( 'BHG_DB' ) ) {
 }
 
 require_once __DIR__ . '/../includes/class-bhg-models.php';
+require_once __DIR__ . '/../includes/class-bhg-shortcodes.php';
 require_once __DIR__ . '/support/class-mock-wpdb.php';
