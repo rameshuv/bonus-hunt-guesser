@@ -164,12 +164,18 @@ $wpdb->usermeta,
                 $layout = strtolower( trim( (string) $layout ) );
 
                 $aliases = array(
-                        'list'      => 'grid',
-                        'grid-list' => 'grid',
-                        'gridlist'  => 'grid',
-                        'caroussel' => 'carousel',
-                        'carrousel' => 'carousel',
-                        'slider'    => 'carousel',
+                        'list'                 => 'grid',
+                        'grid-list'           => 'grid',
+                        'gridlist'            => 'grid',
+                        'caroussel'           => 'carousel',
+                        'carrousel'           => 'carousel',
+                        'carousal'            => 'carousel',
+                        'slider'              => 'carousel',
+                        'horizontal'          => 'carousel',
+                        'horizontal-carousel' => 'carousel',
+                        'horizontal_carousel' => 'carousel',
+                        'carousel-horizontal' => 'carousel',
+                        'carousel_horizontal' => 'carousel',
                 );
 
                 if ( isset( $aliases[ $layout ] ) ) {
@@ -189,9 +195,15 @@ $wpdb->usermeta,
                 $size = strtolower( trim( (string) $size ) );
 
                 $aliases = array(
-                        'thumbnail' => 'small',
-                        'thumb'     => 'small',
-                        'large'     => 'big',
+                        'thumbnail'     => 'small',
+                        'thumb'         => 'small',
+                        'sm'            => 'small',
+                        'medium-large'  => 'medium',
+                        'medium_large'  => 'medium',
+                        'md'            => 'medium',
+                        'large'         => 'big',
+                        'lg'            => 'big',
+                        'full'          => 'big',
                 );
 
                 if ( isset( $aliases[ $size ] ) ) {
