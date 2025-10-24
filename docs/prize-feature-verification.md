@@ -1,6 +1,6 @@
-# Prize & Bonus Hunt Feature Verification
+# Bonus Hunt Guesser Requirement Verification
 
-This document maps each customer requirement for prize management, hunt integration, and the related front-end output to the corresponding implementation in the plugin.
+This document maps each agreed customer requirement to the implementing code so reviewers can quickly confirm coverage without browsing the full codebase.
 
 ## 1. Prizes Admin (bhg-prizes)
 - **Menu entry**: The main `Bonus Hunt` admin menu registers a dedicated **Prizes** submenu item so administrators can reach the prize list directly. 【F:admin/class-bhg-admin.php†L78-L118】
@@ -39,8 +39,44 @@ This document maps each customer requirement for prize management, hunt integrat
 
 ## 10. Additional Back-End Improvements
 - **Dashboard rename & widget**: The primary submenu label is “Dashboard,” and the widget titled “Latest Hunts” lists the three most recent hunts with all winners, balances, and timestamps. 【F:admin/class-bhg-admin.php†L64-L118】【F:admin/views/dashboard.php†L32-L150】
-- **Users & Ads tooling**: The Users admin view supports searching, sorting, and pagination; the Ads table adds Edit/Remove actions and supports a “none” placement for shortcode-only ads. 【F:admin/views/users.php†L1-L210】【F:admin/views/ads.php†L1-L180】
-- **Translations & Tools**: Both admin pages load the corresponding data tables (import/export, string management), ensuring the tabs no longer appear empty. 【F:admin/views/translations.php†L1-L200】【F:admin/views/tools.php†L1-L190】
+- **Users tooling**: The Users admin view supports searching (with nonce), sortable username/name/email columns, in-place affiliate toggles, and 30-per-page pagination. 【F:admin/views/users.php†L9-L148】
+- **Ads administration**: Advertising entries expose bulk delete, edit, and remove controls with a placement dropdown that includes “none” for shortcode-only spots and visibility filters for guests, logged-in users, affiliates, and non-affiliates. 【F:admin/views/advertising.php†L37-L200】
+- **Translations & Tools**: Both admin pages load search, pagination, and grouped translation data plus import/export utilities, ensuring the tabs no longer appear empty. 【F:admin/views/translations.php†L1-L200】【F:admin/views/tools.php†L1-L190】
+
+## 11. Guess Submission & Leaderboards
+- **Guess form & editing**: Logged-in users can submit or edit guesses while hunts are open, with range validation (0–100,000 by default), AJAX support, and redirect handling. 【F:bonus-hunt-guesser.php†L590-L715】【F:includes/class-bhg-shortcodes.php†L637-L780】
+- **Leaderboard tables**: Active hunt leaderboards provide sortable/paginated listings, affiliate indicators, and winner highlighting. 【F:includes/class-bhg-shortcodes.php†L420-L940】
+- **Best guesser tabs**: The `[bhg_best_guessers]` shortcode renders overall/monthly/yearly/all-time tabs plus hunt history links. 【F:includes/class-bhg-shortcodes.php†L2936-L3007】
+- **User history**: `[bhg_user_guesses]` and profile shortcodes list per-user guesses with sorting, final balances, and winner badges. 【F:includes/class-bhg-shortcodes.php†L985-L1400】【F:includes/class-bhg-profile-shortcodes.php†L430-L760】
+
+## 12. Login & Social Integration
+- **Smart redirect**: Core and Nextend Social Login flows validate `redirect_to` parameters or fall back to referers so users return to their original destination after logging in. 【F:includes/class-bhg-login-redirect.php†L21-L81】
+- **Social profile capture**: When Nextend is active the plugin sanitizes provider data (Google, Twitch, Kick) and stores avatar/profile metadata on registration. 【F:includes/class-bhg-login-redirect.php†L24-L128】【F:includes/class-bhg-nextend-profile.php†L12-L40】
+
+## 13. Menu Customization
+- **Role-specific menus**: Three menu locations (Admin/Moderator, Logged-in, Guest) are registered and rendered via shortcodes or automatic selection. 【F:includes/class-bhg-front-menus.php†L20-L115】
+- **Admin reminder**: Backend notices prompt administrators to assign the menus from Appearance → Menus, ensuring visibility controls are configured. 【F:includes/class-bhg-front-menus.php†L118-L131】
+
+## 14. Affiliate Management & Indicators
+- **Affiliate websites**: Administrators can add/edit/delete affiliate sites with nonce protection, and hunts/tournaments present dropdown selectors plus visibility toggles. 【F:admin/views/affiliate-websites.php†L40-L180】【F:admin/views/bonus-hunts.php†L370-L530】【F:admin/views/tournaments.php†L70-L248】
+- **User tracking**: The Users view toggles affiliate status, and helpers expose per-site affiliation plus indicator dots for leaderboards and profiles. 【F:admin/views/users.php†L94-L148】【F:includes/helpers.php†L1226-L1408】
+- **Frontend usage**: Shortcodes render affiliate badges next to guesses and respect hunt-specific affiliate associations. 【F:includes/class-bhg-shortcodes.php†L870-L1050】【F:includes/class-bhg-profile-shortcodes.php†L540-L760】
+
+## 15. Advertising Module
+- **Admin tooling**: Ads can be targeted by placement (`none`, `footer`, `bottom`, `sidebar`, `shortcode`), visibility (guests/logged-in/affiliates), and page slugs. 【F:admin/views/advertising.php†L117-L200】
+- **Frontend delivery**: Ads respect enablement settings, visitor visibility, affiliate status, and placement hooks; shortcode rendering is also available. 【F:includes/class-bhg-ads.php†L22-L200】
+
+## 16. Translation & Localization
+- **Translation manager**: Administrators can search, paginate, and edit translation strings with nonce-protected forms and highlighted overrides. 【F:admin/views/translations.php†L26-L200】
+- **String registry**: `bhg_t()` exposes all labels (menus, shortcodes, notifications) so the translations UI surfaces every customer-facing phrase. 【F:includes/helpers.php†L470-L1108】
+
+## 17. Notifications & Email Templates
+- **Configurable emails**: Winner, Tournament, and Bonus Hunt notifications include editable subject/body, BCC recipients, and enable toggles (disabled by default). 【F:admin/views/notifications.php†L1-L232】【F:includes/helpers.php†L420-L548】
+- **Delivery hooks**: Notification helpers integrate with hunt/tournament lifecycle events so configured emails dispatch when hunts close or tournaments are created. 【F:includes/helpers.php†L548-L692】
+
+## 18. Platform Compatibility & Bootstrapping
+- **Version requirements**: Plugin headers declare PHP 7.4, WordPress 5.5.5, and MySQL 5.5.5 compatibility, aligning with customer constraints. 【F:bonus-hunt-guesser.php†L1-L16】
+- **Database migrations**: Table creation and migration routines cover hunts, guesses, prizes, tournaments, affiliates, and ads with MySQL-safe schema definitions. 【F:bonus-hunt-guesser.php†L141-L210】【F:includes/class-bhg-db.php†L55-L340】
 
 ## Testing
 - PHPUnit coverage guards prize normalization, CSS sanitization, shortcode rendering, and tournament recalculations to prevent regressions. 【F:tests/PrizesShortcodeNormalizationTest.php†L1-L210】【F:tests/PrizesCssSettingsTest.php†L1-L190】【F:tests/PrizesShortcodeRenderingTest.php†L1-L220】
