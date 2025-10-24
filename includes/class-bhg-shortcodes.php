@@ -248,14 +248,18 @@ $wpdb->usermeta,
                 }
 
                 $style_attr = BHG_Prizes::build_style_attr( $prize );
-               $image_url  = BHG_Prizes::get_image_url( $prize, $size, false );
+                $image_url  = BHG_Prizes::get_image_url( $prize, $size, false );
                 $category   = isset( $prize->category ) ? (string) $prize->category : '';
 
                 ob_start();
                 echo '<div class="bhg-prize-card"' . $style_attr . '>';
+                echo '<div class="bhg-prize-image">';
                 if ( $image_url ) {
-                        echo '<div class="bhg-prize-image"><img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $prize->title ) . '"></div>';
+                        echo '<img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $prize->title ) . '">';
+                } else {
+                        echo '<span class="bhg-prize-no-image">' . esc_html( bhg_t( 'no_image_selected', 'No image selected' ) ) . '</span>';
                 }
+                echo '</div>';
                 echo '<div class="bhg-prize-body">';
                 echo '<h5 class="bhg-prize-title">' . esc_html( $prize->title ) . '</h5>';
                 if ( $category ) {
