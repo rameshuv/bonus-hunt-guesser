@@ -195,6 +195,7 @@ $wpdb->usermeta,
                 $size   = $this->normalize_prize_size( $size );
 
                 ob_start();
+
                 echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
                 echo '<h4 class="bhg-prizes-title">' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . '</h4>';
 
