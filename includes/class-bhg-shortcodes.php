@@ -244,7 +244,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			}
 			echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
                        foreach ( $prizes as $prize ) {
-                               echo wp_kses_post( $this->render_prize_card( $prize, $size ) );
+                               echo $this->render_prize_card( $prize, $size );
                        }
 			echo '</div></div>';
 			if ( $show_nav ) {
@@ -263,7 +263,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		} else {
 			echo '<div class="bhg-prizes-grid">';
                        foreach ( $prizes as $prize ) {
-                               echo wp_kses_post( $this->render_prize_card( $prize, $size ) );
+                               echo $this->render_prize_card( $prize, $size );
                        }
 			echo '</div>';
 		}
@@ -558,7 +558,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		       echo '</ul>';
 
                if ( ! empty( $hunt_prizes ) ) {
-                       echo wp_kses_post( $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size ) );
+                       echo $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size );
                }
 		       echo '</div>';
 
@@ -2712,7 +2712,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				return '';
 			}
 
-               return '<div class="bhg-prizes-shortcode">' . wp_kses_post( $content ) . '</div>';
+               return '<div class="bhg-prizes-shortcode">' . $content . '</div>';
 		}
 
 					/**
