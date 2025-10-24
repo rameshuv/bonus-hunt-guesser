@@ -53,9 +53,9 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
             return '';
         }
 
-        $text = (string) $text;
+        $text = strip_tags( (string) $text );
         $text = preg_replace( '/[\r\n\t]+/', ' ', $text );
-        $text = preg_replace( '/[^a-z0-9 _:\-\.\#,\%\/]/i', '', $text );
+        $text = preg_replace( '/[^a-z0-9 _:\-\.\#,\%\/\(\)]/i', '', $text );
 
         return trim( $text );
     }

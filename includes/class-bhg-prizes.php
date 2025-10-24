@@ -50,14 +50,13 @@ class BHG_Prizes {
 
                 foreach ( $defaults as $key => $default ) {
                         if ( isset( $input[ $key ] ) && is_string( $input[ $key ] ) ) {
-                                $value = trim( wp_unslash( $input[ $key ] ) );
+                                $value = $input[ $key ];
                         } else {
                                 $value = $default;
                         }
 
                         if ( in_array( $key, array( 'border_color', 'background' ), true ) ) {
-                                $value = sanitize_hex_color_no_hash( ltrim( $value, '#' ) );
-                                $value = $value ? '#' . $value : '';
+                                $value = self::sanitize_color_value( $value );
                         } else {
                                 $value = sanitize_text_field( $value );
                         }
@@ -349,8 +348,8 @@ class BHG_Prizes {
                 }
 
                 if ( ! empty( $prize->css_border_color ) ) {
-                        $color = sanitize_hex_color( $prize->css_border_color );
-                        if ( $color ) {
+                        $color = self::sanitize_color_value( $prize->css_border_color );
+                        if ( '' !== $color ) {
                                 $styles[] = 'border-color:' . $color;
                         }
                 }
@@ -364,8 +363,8 @@ class BHG_Prizes {
                 }
 
                 if ( ! empty( $prize->css_background ) ) {
-                        $background = sanitize_hex_color( $prize->css_background );
-                        if ( $background ) {
+                        $background = self::sanitize_color_value( $prize->css_background );
+                        if ( '' !== $background ) {
                                 $styles[] = 'background-color:' . $background;
                         }
                 }
@@ -375,6 +374,75 @@ class BHG_Prizes {
                 }
 
                 return implode( ';', $styles );
+        }
+
+        /**
+         * Sanitize CSS color-like values while allowing common keywords and functions.
+         *
+         * @param string $value Raw color value.
+         * @return string Sanitized value or empty string when invalid.
+         */
+        private static function sanitize_color_value( $value ) {
+                if ( ! is_string( $value ) ) {
+                        return '';
+                }
+
+                if ( function_exists( 'wp_unslash' ) ) {
+                        $value = wp_unslash( $value );
+                }
+
+                $value = trim( $value );
+
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                if ( function_exists( 'wp_strip_all_tags' ) ) {
+                        $value = wp_strip_all_tags( $value );
+                } else {
+                        $value = strip_tags( $value );
+                }
+
+                $value = preg_replace( '/[^#a-z0-9(),.%\s\-]/i', '', $value );
+
+                if ( ! is_string( $value ) ) {
+                        return '';
+                }
+
+                $value = trim( $value );
+
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                $normalized = strtolower( preg_replace( '/\s+/', '', $value ) );
+
+                if ( '' === $normalized ) {
+                        return '';
+                }
+
+                $keywords = array( 'transparent', 'inherit', 'initial', 'unset', 'currentcolor' );
+                if ( in_array( $normalized, $keywords, true ) ) {
+                        return $normalized;
+                }
+
+                if ( preg_match( '/^#[0-9a-f]{3,8}$/', $normalized ) ) {
+                        return $normalized;
+                }
+
+                if ( preg_match( '/^var\(--[a-z0-9_-]+\)$/', $normalized ) ) {
+                        return $normalized;
+                }
+
+                if ( preg_match( '/^(rgba?|hsla?)\([0-9.,%]+\)$/', $normalized ) ) {
+                        return $normalized;
+                }
+
+                if ( preg_match( '/^[a-z]+$/', $normalized ) ) {
+                        return $normalized;
+                }
+
+                return '';
         }
 
        /**
