@@ -1000,19 +1000,24 @@ $wpdb->usermeta,
 
                         global $wpdb;
 
-                        $g  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
-                        $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                        $w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
-                        $um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
-                        $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
-			if ( ! $g || ! $h ) {
-                return '';
-        }
+                        $g       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
+                        $h       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+                        $w       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                        $winners = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
+                        $um      = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
+                        $u       = esc_sql( $this->sanitize_table( $wpdb->users ) );
+                        if ( ! $g || ! $h ) {
+                                return '';
+                        }
                         if ( $need_site && ! $w ) {
                                 return '';
                         }
 
                         if ( $need_users && ! $u ) {
+                                return '';
+                        }
+
+                        if ( ! $winners ) {
                                 return '';
                         }
 
@@ -1183,10 +1188,12 @@ $wpdb->usermeta,
                 $select_joins[] = "LEFT JOIN {$u} u ON u.ID = g.user_id";
         }
 
+        $select_joins[] = "LEFT JOIN {$winners} hw ON hw.hunt_id = g.hunt_id AND hw.user_id = g.user_id";
+
 			$select_join_sql = $select_joins ? ' ' . implode( ' ', $select_joins ) . ' ' : ' ';
 			$where_sql       = implode( ' AND ', $where );
 
-        $sql = 'SELECT g.guess, g.created_at, g.user_id, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(h.final_balance - g.guess) END AS difference';
+        $sql = 'SELECT g.guess, g.created_at, g.user_id, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(h.final_balance - g.guess) END AS difference, hw.position AS winner_position';
         if ( $need_site ) {
                 $sql .= ', w.name AS site_name';
         }
@@ -1290,8 +1297,22 @@ $wpdb->usermeta,
         echo '<th><a href="' . esc_url( $toggle( 'difference' ) ) . '">' . esc_html( bhg_t( 'sc_difference', 'Difference' ) ) . '</a></th>';
         echo '</tr></thead><tbody>';
 
-                        foreach ( $rows as $row ) {
-                                echo '<tr>';
+        foreach ( $rows as $row ) {
+                $row_classes = array();
+
+                if ( isset( $row->winner_position ) && $row->winner_position ) {
+                        $winner_position = (int) $row->winner_position;
+                        if ( $winner_position > 0 ) {
+                                $row_classes[] = 'bhg-winner-row';
+                                if ( $winner_position <= 3 ) {
+                                        $row_classes[] = 'bhg-winner-top-' . $winner_position;
+                                }
+                        }
+                }
+
+                $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+
+                echo '<tr' . $class_attr . '>';
                 echo '<td>' . esc_html( $row->title ) . '</td>';
                 if ( $need_users ) {
                         $user_display = '';
