@@ -1,34 +1,46 @@
-# Prize and Bonus Hunt Feature Verification
+# Prize & Bonus Hunt Feature Verification
 
-This document summarizes where the plugin implements the customer requirements that relate to prizes, bonus hunts, front-end displays, and supporting tooling.
+This document maps each customer requirement for prize management, hunt integration, and the related front-end output to the corresponding implementation in the plugin.
 
 ## 1. Prizes Admin (bhg-prizes)
-- The top-level `Bonus Hunt` admin menu registers a dedicated **Prizes** submenu entry via `BHG_Admin::menu()` so administrators can reach the management screen directly. 【F:admin/class-bhg-admin.php†L52-L91】
-- The prizes admin view lets staff create, edit, or delete prizes with fields for title, description, category, three image sizes, CSS styling controls, and the active toggle. Actions for editing and removing prizes are exposed alongside the listing. 【F:admin/views/prizes.php†L1-L210】【F:admin/views/prizes.php†L214-L285】
-- `BHG_Prizes` provides the corresponding CRUD utilities, category list (`cash_money`, `casino_money`, `coupons`, `merchandise`, `various`), CSS sanitization, and multi-size image storage so the admin form persists the submitted data. 【F:includes/class-bhg-prizes.php†L15-L200】
+- **Menu entry**: The main `Bonus Hunt` admin menu registers a dedicated **Prizes** submenu item so administrators can reach the prize list directly. 【F:admin/class-bhg-admin.php†L78-L118】
+- **CRUD capabilities**: The prizes admin view renders the list table with Edit/Delete actions and the creation form with inputs for title, description, category, image IDs for three sizes (small, medium, large), CSS panel fields (border, border color, padding, margin, background color), and an Active toggle. 【F:admin/views/prizes.php†L1-L210】【F:admin/views/prizes.php†L214-L290】
+- **Data layer**: `BHG_Prizes` provides category validation, CSS sanitization, CRUD helpers, and image retrieval for the three stored sizes. 【F:includes/class-bhg-prizes.php†L15-L210】
 
 ## 2. Bonus Hunt Editor (bhg-bonus-hunts)
-- Administrators can link multiple prizes to a hunt, configure up to 25 winners, review sortable and paginated hunts, view final balances, and access a dedicated **Results** button from the list screen. The edit view shows all participants with profile links and per-guess removal controls. 【F:admin/views/bonus-hunts.php†L1-L320】【F:admin/views/bonus-hunts.php†L321-L640】
+- **Prize selection**: The hunt editor exposes a multi-select control that pulls from saved prizes so admins can associate one or more prizes with each hunt. 【F:admin/views/bonus-hunts.php†L120-L212】
+- **Participants overview**: Editing a hunt shows all submitted guesses with sortable columns, pagination, profile links, and removal buttons that call the admin handler. 【F:admin/views/bonus-hunts.php†L320-L512】【F:admin/class-bhg-admin.php†L420-L548】
+- **Final balance/results access**: The hunt list table shows the Final Balance column (or `-` while open) and adds a **Results** button that links to the ranked guesses view with highlighted winners. 【F:admin/views/bonus-hunts.php†L40-L118】【F:admin/views/bonus-hunts-results.php†L1-L180】
+- **Winner count configuration**: Admins can define 1–25 winners per hunt, and the setting is enforced when closing hunts and generating rankings. 【F:admin/views/bonus-hunts.php†L214-L252】【F:includes/class-bhg-bonus-hunts-helpers.php†L120-L228】
 
 ## 3. Frontend Prize Display
-- The active hunt presentation renders linked prizes as reusable card layouts (grid or carousel), shares styling with the shortcode output, and highlights winners within leaderboards and participant tables. 【F:includes/class-bhg-shortcodes.php†L1770-L2080】【F:includes/class-bhg-shortcodes.php†L2370-L2663】
-- The standalone `[bhg_prizes]` shortcode supports `category`, `design` (grid or carousel aliases), `size` (small/medium/big with common synonyms), and `active` filters while reusing the same rendering pipeline. 【F:includes/class-bhg-shortcodes.php†L2672-L2715】
+- **Active hunt prizes**: The active hunt shortcode renders linked prizes in reusable card templates that support grid or carousel layouts, navigation controls, and winner highlighting across hunt tables. 【F:includes/class-bhg-shortcodes.php†L1740-L2112】【F:assets/css/bhg-shortcodes.css†L1-L220】
+- **Standalone prize shortcode**: `[bhg_prizes]` accepts `category`, `design` (grid, carousel, plus aliases like list/caroussel/horizontal), `size` (small/medium/big with common synonyms), and `active` filters; it reuses the same rendering pipeline and placeholder handling. 【F:includes/class-bhg-shortcodes.php†L2676-L2854】
 
 ## 4. User Profile Shortcodes
-- Logged-in users can list their hunts, tournaments, prizes, and rankings through dedicated profile shortcodes. Admins can enable or disable each section in settings, and winner styling carries across the tables. 【F:includes/class-bhg-profile-shortcodes.php†L1-L380】
+- **Profile sections**: Logged-in users can embed `[my_bonushunts]`, `[my_tournaments]`, `[my_prizes]`, and `[my_rankings]`, each producing tables with ranking data, prize summaries, and winner highlighting. 【F:includes/class-bhg-profile-shortcodes.php†L1-L410】
+- **Admin visibility controls**: The settings view exposes toggles so administrators can hide/show each profile shortcode section in the frontend. 【F:admin/views/settings.php†L150-L242】
 
-## 5. Design Settings & Styling
-- Global styling controls for title blocks, headings, descriptions, and standard text appear in the settings screen and are sanitized plus applied on the frontend. 【F:admin/views/settings.php†L150-L290】【F:includes/helpers.php†L1-L220】
+## 5. CSS / Color Panel
+- **Design controls**: The settings page offers inputs for title block background, border radius, padding, margin, and typography options for `h2`, `h3`, description, and standard text. Saved values are sanitized and transformed into inline CSS for frontend usage. 【F:admin/views/settings.php†L244-L332】【F:includes/helpers.php†L40-L236】
 
-## 6. Notifications & Shortcode Help
-- Notifications and shortcode documentation each live in their own admin tabs so site owners can configure winner/tournament/bonushunt emails and review shortcode parameters. 【F:admin/views/notifications.php†L1-L220】【F:admin/views/shortcodes.php†L1-L200】
+## 6. Shortcodes Help (bhg-shortcodes)
+- The Shortcodes admin page lists every available shortcode with option tables (block title: “Info & Help”), covering prizes, hunts, tournaments, user dashboards, and filters. 【F:admin/views/shortcodes.php†L1-L200】
 
-## 7. Tournament Integration
-- Tournament administration covers title, description, type (including quarterly and all-time), affiliate visibility, prize selection, and the ability to attach hunts. The frontend tournament view and ranking recalculations incorporate winner points based on configured scales. 【F:admin/views/tournaments.php†L1-L280】【F:includes/class-bhg-models.php†L350-L560】
+## 7. Notifications (bhg-notifications)
+- The Notifications admin tab provides configurable sections for Winner, Tournament, and Bonus Hunt emails with subject, HTML body, BCC field, and enable checkbox (disabled by default). 【F:admin/views/notifications.php†L1-L232】【F:includes/helpers.php†L420-L548】
 
-## 8. Dashboard & Results Visibility
-- The dashboard “Latest Hunts” widget lists recent hunts with all winners, start and final balances, and closed timestamps, fulfilling the multi-winner requirement. Closed hunts expose a detailed results table with highlighted placements. 【F:admin/views/dashboard.php†L40-L160】【F:admin/views/bonus-hunts-results.php†L1-L200】
+## 8. Tournaments
+- **Admin form**: Tournament creation/editing includes title, description, type selector (weekly, monthly, quarterly, yearly, alltime), hunt linkage mode, affiliate website dropdown plus visibility toggle, and prize editor. 【F:admin/views/tournaments.php†L1-L248】
+- **Frontend output**: Tournament detail shortcodes render prizes, affiliate links (respecting visibility flag), and standings aggregated from winner points. 【F:includes/class-bhg-shortcodes.php†L1200-L1738】
 
-## 9. Testing
-- Automated PHPUnit coverage exercises prize normalization, rendering, CSS sanitization, and related helpers to guard against regressions. 【F:tests/PrizesShortcodeNormalizationTest.php†L1-L200】【F:tests/PrizesCssSettingsTest.php†L1-L180】【F:tests/PrizesShortcodeRenderingTest.php†L1-L220】
+## 9. Tournament Ranking
+- **Point system**: Default points (1st–8th) are stored in options, editable in the admin, and applied when hunts are closed. Aggregation recalculates tournaments based on selected hunt winners and highlights the top three in both admin and frontend tables. 【F:includes/helpers.php†L238-L418】【F:includes/class-bhg-models.php†L350-L612】【F:admin/views/bonus-hunts-results.php†L90-L170】
 
+## 10. Additional Back-End Improvements
+- **Dashboard rename & widget**: The primary submenu label is “Dashboard,” and the widget titled “Latest Hunts” lists the three most recent hunts with all winners, balances, and timestamps. 【F:admin/class-bhg-admin.php†L64-L118】【F:admin/views/dashboard.php†L32-L150】
+- **Users & Ads tooling**: The Users admin view supports searching, sorting, and pagination; the Ads table adds Edit/Remove actions and supports a “none” placement for shortcode-only ads. 【F:admin/views/users.php†L1-L210】【F:admin/views/ads.php†L1-L180】
+- **Translations & Tools**: Both admin pages load the corresponding data tables (import/export, string management), ensuring the tabs no longer appear empty. 【F:admin/views/translations.php†L1-L200】【F:admin/views/tools.php†L1-L190】
+
+## Testing
+- PHPUnit coverage guards prize normalization, CSS sanitization, shortcode rendering, and tournament recalculations to prevent regressions. 【F:tests/PrizesShortcodeNormalizationTest.php†L1-L210】【F:tests/PrizesCssSettingsTest.php†L1-L190】【F:tests/PrizesShortcodeRenderingTest.php†L1-L220】
