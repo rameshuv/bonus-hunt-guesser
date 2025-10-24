@@ -6,11 +6,11 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-        exit;
+	exit;
 }
 
 if ( ! class_exists( 'BHG_Prizes' ) ) {
-        return;
+	return;
 }
 
 $action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
