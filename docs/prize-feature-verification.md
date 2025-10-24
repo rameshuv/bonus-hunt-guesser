@@ -2,6 +2,23 @@
 
 This document maps each agreed customer requirement to the implementing code so reviewers can quickly confirm coverage without browsing the full codebase.
 
+## Quick Reference by Requirement
+
+| Requirement | Summary | Primary Implementation |
+|-------------|---------|------------------------|
+| 1. Prizes admin | Dedicated submenu, CRUD form (title, description, category, three image slots), CSS panel, active toggle | `admin/class-bhg-admin.php`, `admin/views/prizes.php`, `includes/class-bhg-prizes.php` |
+| 2. Bonus hunt editor | Attach multiple prizes, control winners (1–25), review/removal of guesses, final balance column & results button | `admin/views/bonus-hunts.php`, `admin/views/bonus-hunts-results.php`, `admin/class-bhg-admin.php`, `includes/class-bhg-bonus-hunts-helpers.php` |
+| 3. Frontend prizes | Active hunt cards plus standalone `[bhg_prizes]` shortcode with grid/carousel layouts and placeholder handling | `includes/class-bhg-shortcodes.php`, `assets/css/bhg-shortcodes.css` |
+| 4. Prize shortcode | Attribute filters for category/design/size/active backed by alias normalization and rendering tests | `includes/class-bhg-shortcodes.php`, `tests/PrizesShortcodeNormalizationTest.php`, `tests/PrizesShortcodeRenderingTest.php` |
+| 5. User shortcodes | `[my_bonushunts]`, `[my_tournaments]`, `[my_prizes]`, `[my_rankings]` with admin toggles | `includes/class-bhg-profile-shortcodes.php`, `admin/views/settings.php` |
+| 6. CSS/color panel | Design settings for title blocks, headings, description, and standard text with sanitizers | `admin/views/settings.php`, `includes/helpers.php` |
+| 7. Shortcodes info | “Info & Help” page documenting every shortcode and option | `admin/views/shortcodes.php` |
+| 8. Notifications | Configurable Winner/Tournament/Bonushunt email blocks (subject, HTML body, BCC, enable toggle) | `admin/views/notifications.php`, `includes/helpers.php` |
+| 9. Tournaments | Admin form (title, description, type incl. quarterly/alltime, affiliate visibility, prizes) & frontend display | `admin/views/tournaments.php`, `includes/class-bhg-shortcodes.php`, `includes/class-bhg-models.php` |
+| 10. Tournament ranking | Editable point system driving standings and winner highlighting backend/frontend | `includes/helpers.php`, `includes/class-bhg-models.php`, `admin/views/bonus-hunts-results.php`, `includes/class-bhg-shortcodes.php` |
+
+---
+
 ## 1. Prizes Admin (bhg-prizes)
 - **Menu entry**: The main `Bonus Hunt` admin menu registers a dedicated **Prizes** submenu item so administrators can reach the prize list directly. 【F:admin/class-bhg-admin.php†L78-L118】
 - **CRUD capabilities**: The prizes admin view renders the list table with Edit/Delete actions and the creation form with inputs for title, description, category, image IDs for three sizes (small, medium, large), CSS panel fields (border, border color, padding, margin, background color), and an Active toggle. 【F:admin/views/prizes.php†L1-L210】【F:admin/views/prizes.php†L214-L290】
