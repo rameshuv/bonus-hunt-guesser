@@ -47,6 +47,36 @@ if ( ! function_exists( 'sanitize_key' ) ) {
     }
 }
 
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+    function sanitize_text_field( $text ) {
+        if ( ! is_scalar( $text ) ) {
+            return '';
+        }
+
+        $text = (string) $text;
+        $text = preg_replace( '/[\r\n\t]+/', ' ', $text );
+        $text = preg_replace( '/[^a-z0-9 _:\-\.\#,\%\/]/i', '', $text );
+
+        return trim( $text );
+    }
+}
+
+if ( ! function_exists( 'sanitize_hex_color' ) ) {
+    function sanitize_hex_color( $color ) {
+        $color = is_string( $color ) ? trim( $color ) : '';
+
+        if ( '' === $color ) {
+            return null;
+        }
+
+        if ( preg_match( '/^#?([a-f0-9]{3}|[a-f0-9]{6})$/i', $color, $matches ) ) {
+            return '#' . strtolower( $matches[1] );
+        }
+
+        return null;
+    }
+}
+
 if ( ! function_exists( 'absint' ) ) {
     function absint( $value ) {
         return abs( (int) $value );

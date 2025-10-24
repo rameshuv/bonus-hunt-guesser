@@ -343,28 +343,39 @@ class BHG_Prizes {
          */
         public static function build_style_attr( $prize ) {
                 $styles = array();
+
                 if ( ! empty( $prize->css_border ) ) {
-                        $styles[] = 'border:' . esc_attr( $prize->css_border );
+                        $styles[] = 'border:' . sanitize_text_field( $prize->css_border );
                 }
+
                 if ( ! empty( $prize->css_border_color ) ) {
-                        $styles[] = 'border-color:' . esc_attr( $prize->css_border_color );
+                        $color = sanitize_hex_color( $prize->css_border_color );
+                        if ( $color ) {
+                                $styles[] = 'border-color:' . $color;
+                        }
                 }
+
                 if ( ! empty( $prize->css_padding ) ) {
-                        $styles[] = 'padding:' . esc_attr( $prize->css_padding );
+                        $styles[] = 'padding:' . sanitize_text_field( $prize->css_padding );
                 }
+
                 if ( ! empty( $prize->css_margin ) ) {
-                        $styles[] = 'margin:' . esc_attr( $prize->css_margin );
+                        $styles[] = 'margin:' . sanitize_text_field( $prize->css_margin );
                 }
+
                 if ( ! empty( $prize->css_background ) ) {
-                        $styles[] = 'background-color:' . esc_attr( $prize->css_background );
+                        $background = sanitize_hex_color( $prize->css_background );
+                        if ( $background ) {
+                                $styles[] = 'background-color:' . $background;
+                        }
                 }
 
-               if ( empty( $styles ) ) {
-                       return '';
-               }
+                if ( empty( $styles ) ) {
+                        return '';
+                }
 
-               return implode( ';', $styles );
-       }
+                return implode( ';', $styles );
+        }
 
        /**
         * Retrieve image URL for a prize.
