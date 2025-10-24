@@ -204,11 +204,19 @@ $current   = $view_type . '-' . $item_id;
 			<tbody>
 			<?php
 			$pos = 1;
-			foreach ( (array) $rows as $r ) :
-				$is_winner = $pos <= $wcount;
-				?>
-				<tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
-					<td><?php echo (int) $pos; ?></td>
+                        foreach ( (array) $rows as $r ) :
+                                $is_winner = $pos <= $wcount;
+                                $classes   = array();
+                                if ( $is_winner ) {
+                                        $classes[] = 'bhg-winner-row';
+                                        if ( $pos <= 3 ) {
+                                                $classes[] = 'bhg-winner-row-top-' . (int) $pos;
+                                        }
+                                }
+                                $class_attr = $classes ? ' class="' . esc_attr( implode( ' ', $classes ) ) . '"' : '';
+                                ?>
+                                <tr<?php echo $class_attr; ?>>
+                                        <td><?php echo (int) $pos; ?></td>
 					<td><?php echo esc_html( $r->display_name ); ?></td>
 					<?php if ( 'tournament' === $view_type ) : ?>
 						<td><?php echo (int) $r->wins; ?></td>

@@ -89,9 +89,13 @@ echo '</tr></thead><tbody>';
 foreach ( $rows as $row ) {
 $row_classes = array();
 
-if ( isset( $row->winner_position ) && (int) $row->winner_position > 0 ) {
-$row_classes[] = 'bhg-profile-winner';
-}
+        if ( isset( $row->winner_position ) && (int) $row->winner_position > 0 ) {
+                $row_classes[] = 'bhg-profile-winner';
+                $winner_pos    = (int) $row->winner_position;
+                if ( $winner_pos > 0 && $winner_pos <= 3 ) {
+                        $row_classes[] = 'bhg-profile-winner-top-' . $winner_pos;
+                }
+        }
 
 $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
 
@@ -242,7 +246,17 @@ echo '<th>' . esc_html( bhg_t( 'label_image', 'Image' ) ) . '</th>';
 echo '</tr></thead><tbody>';
 
 foreach ( $winners as $winner ) {
-$hunt_id = isset( $winner->hunt_id ) ? (int) $winner->hunt_id : ( isset( $winner->id ) ? (int) $winner->id : 0 );
+        $row_classes = array();
+        if ( isset( $winner->winner_position ) && (int) $winner->winner_position > 0 ) {
+                $row_classes[] = 'bhg-profile-winner';
+                $winner_pos    = (int) $winner->winner_position;
+                if ( $winner_pos <= 3 ) {
+                        $row_classes[] = 'bhg-profile-winner-top-' . $winner_pos;
+                }
+        }
+        $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+
+        $hunt_id = isset( $winner->hunt_id ) ? (int) $winner->hunt_id : ( isset( $winner->id ) ? (int) $winner->id : 0 );
 
 if ( ! isset( $prize_cache[ $hunt_id ] ) ) {
 $prize_cache[ $hunt_id ] = array();
@@ -264,7 +278,7 @@ $category    = $prize && isset( $prize->category ) ? ucwords( str_replace( '_', 
 $diff_display = ( isset( $winner->winner_diff ) && null !== $winner->winner_diff ) ? bhg_format_currency( (float) $winner->winner_diff ) : ( ( isset( $winner->diff ) && null !== $winner->diff ) ? bhg_format_currency( (float) $winner->diff ) : $dash );
 $closed_at    = $this->format_datetime( isset( $winner->closed_at ) ? $winner->closed_at : $winner->sort_date );
 
-echo '<tr>';
+        echo '<tr' . $class_attr . '>';
 echo '<td>' . esc_html( $winner->title ) . '</td>';
 echo '<td>' . esc_html( isset( $winner->winner_position ) ? (int) $winner->winner_position : $dash ) . '</td>';
 echo '<td>' . esc_html( $prize_title ) . '</td>';
@@ -352,11 +366,28 @@ echo '<th>' . esc_html( bhg_t( 'label_closed_at', 'Closed At' ) ) . '</th>';
 echo '</tr></thead><tbody>';
 
 foreach ( $ranked_hunts as $row ) {
-$guess_display = bhg_format_currency( (float) $row->guess );
-$diff_display  = ( isset( $row->diff ) && null !== $row->diff ) ? bhg_format_currency( (float) $row->diff ) : $dash;
-$closed_at     = $this->format_datetime( isset( $row->closed_at ) ? $row->closed_at : $row->sort_date );
+        $guess_display = bhg_format_currency( (float) $row->guess );
+        $diff_display  = ( isset( $row->diff ) && null !== $row->diff ) ? bhg_format_currency( (float) $row->diff ) : $dash;
+        $closed_at     = $this->format_datetime( isset( $row->closed_at ) ? $row->closed_at : $row->sort_date );
 
-echo '<tr>';
+        $row_classes = array();
+        if ( isset( $row->winner_position ) && $row->winner_position ) {
+                $row_classes[] = 'bhg-profile-winner';
+                $winner_pos    = (int) $row->winner_position;
+                if ( $winner_pos > 0 && $winner_pos <= 3 ) {
+                        $row_classes[] = 'bhg-profile-winner-top-' . $winner_pos;
+                }
+        }
+        if ( isset( $row->user_rank ) && (int) $row->user_rank > 0 && (int) $row->user_rank <= 3 ) {
+                $row_classes[] = 'bhg-profile-winner-top-' . (int) $row->user_rank;
+                if ( ! in_array( 'bhg-profile-winner', $row_classes, true ) ) {
+                        $row_classes[] = 'bhg-profile-winner';
+                }
+        }
+
+        $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', array_unique( $row_classes ) ) ) . '"' : '';
+
+        echo '<tr' . $class_attr . '>';
 echo '<td>' . esc_html( $row->title ) . '</td>';
 echo '<td>' . esc_html( (int) $row->user_rank ) . '</td>';
 echo '<td>' . esc_html( isset( $row->winner_position ) && $row->winner_position ? (int) $row->winner_position : $dash ) . '</td>';
@@ -381,10 +412,20 @@ echo '<th>' . esc_html( bhg_t( 'label_last_result', 'Last Result' ) ) . '</th>';
 echo '</tr></thead><tbody>';
 
 foreach ( $ranked_tournaments as $row ) {
-$last_result  = $row->last_win_date ? $row->last_win_date : ( $row->end_date ? $row->end_date : ( $row->start_date ? $row->start_date : $row->sort_date ) );
-$last_display = $this->format_datetime( $last_result );
+        $last_result  = $row->last_win_date ? $row->last_win_date : ( $row->end_date ? $row->end_date : ( $row->start_date ? $row->start_date : $row->sort_date ) );
+        $last_display = $this->format_datetime( $last_result );
 
-echo '<tr>';
+        $row_classes = array();
+        if ( isset( $row->user_rank ) && (int) $row->user_rank > 0 ) {
+                $row_classes[] = 'bhg-profile-winner';
+                if ( (int) $row->user_rank <= 3 ) {
+                        $row_classes[] = 'bhg-profile-winner-top-' . (int) $row->user_rank;
+                }
+        }
+
+        $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', array_unique( $row_classes ) ) ) . '"' : '';
+
+        echo '<tr' . $class_attr . '>';
 echo '<td>' . esc_html( $row->title ) . '</td>';
 echo '<td>' . esc_html( (int) $row->user_rank ) . '</td>';
 echo '<td>' . esc_html( isset( $row->wins ) ? (int) $row->wins : 0 ) . '</td>';

@@ -595,6 +595,33 @@
     }
 }
 
+.bhg-leaderboard tr.bhg-winner-row,
+.bhg-user-guesses tr.bhg-winner-row,
+.bhg-hunts tr.bhg-winner-row {
+    background-color: #ecfdf5;
+}
+
+.bhg-leaderboard tr.bhg-winner-top-1,
+.bhg-user-guesses tr.bhg-winner-top-1,
+.bhg-hunts tr.bhg-winner-top-1 {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+}
+
+.bhg-leaderboard tr.bhg-winner-top-2,
+.bhg-user-guesses tr.bhg-winner-top-2,
+.bhg-hunts tr.bhg-winner-top-2 {
+    background-color: #dbeafe;
+    border-left: 4px solid #3b82f6;
+}
+
+.bhg-leaderboard tr.bhg-winner-top-3,
+.bhg-user-guesses tr.bhg-winner-top-3,
+.bhg-hunts tr.bhg-winner-top-3 {
+    background-color: #ede9fe;
+    border-left: 4px solid #8b5cf6;
+}
+
 .bhg-winner {
     margin-bottom: 15px;
 }
@@ -654,6 +681,21 @@
 
 .bhg-profile-winner {
     background-color: #f0fdf4;
+}
+
+.bhg-profile-winner-top-1 {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+}
+
+.bhg-profile-winner-top-2 {
+    background-color: #dbeafe;
+    border-left: 4px solid #3b82f6;
+}
+
+.bhg-profile-winner-top-3 {
+    background-color: #ede9fe;
+    border-left: 4px solid #8b5cf6;
 }
 
 .bhg-profile-winner td {

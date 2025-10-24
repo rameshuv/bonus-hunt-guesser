@@ -372,6 +372,8 @@ $wpdb->usermeta,
                                $hunt_prizes = BHG_Prizes::get_prizes_for_hunt( $selected_hunt_id, array( 'active_only' => true ) );
                        }
 
+                       $winner_limit = isset( $selected_hunt->winners_count ) ? max( 1, (int) $selected_hunt->winners_count ) : 3;
+
                        $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 30 );
                        if ( $per_page <= 0 ) {
                                $per_page = 30;
@@ -537,14 +539,23 @@ $wpdb->usermeta,
 				       echo '<th scope="col">' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
 			       }
 			       echo '</tr></thead><tbody>';
-			       foreach ( $rows as $index => $row ) {
-				       $position   = $offset + $index + 1;
-				       $user_login = ! empty( $row->display_name ) ? $row->display_name : $row->user_login;
-				       $user_label = $user_login ? $user_login : bhg_t( 'label_unknown_user', 'Unknown user' );
-				       $aff_dot    = bhg_render_affiliate_dot( (int) $row->user_id, $hunt_site_id );
+                               foreach ( $rows as $index => $row ) {
+                                       $position   = $offset + $index + 1;
+                                       $user_login = ! empty( $row->display_name ) ? $row->display_name : $row->user_login;
+                                       $user_label = $user_login ? $user_login : bhg_t( 'label_unknown_user', 'Unknown user' );
+                                       $aff_dot    = bhg_render_affiliate_dot( (int) $row->user_id, $hunt_site_id );
 
-				       echo '<tr>';
-				       echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
+                                       $row_classes = array();
+                                       if ( $has_final && $position <= $winner_limit ) {
+                                               $row_classes[] = 'bhg-winner-row';
+                                               if ( $position <= 3 ) {
+                                                       $row_classes[] = 'bhg-winner-top-' . (int) $position;
+                                               }
+                                       }
+
+                                       $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+                                       echo '<tr' . $class_attr . '>';
+                                       echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'Username' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
 				       if ( $has_final ) {
