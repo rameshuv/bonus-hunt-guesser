@@ -161,7 +161,20 @@ $wpdb->usermeta,
          * @return string
          */
         private function normalize_prize_layout( $layout ) {
-                $layout = strtolower( (string) $layout );
+                $layout = strtolower( trim( (string) $layout ) );
+
+                $aliases = array(
+                        'list'      => 'grid',
+                        'grid-list' => 'grid',
+                        'gridlist'  => 'grid',
+                        'caroussel' => 'carousel',
+                        'carrousel' => 'carousel',
+                        'slider'    => 'carousel',
+                );
+
+                if ( isset( $aliases[ $layout ] ) ) {
+                        $layout = $aliases[ $layout ];
+                }
 
                 return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
         }
@@ -173,7 +186,17 @@ $wpdb->usermeta,
          * @return string
          */
         private function normalize_prize_size( $size ) {
-                $size = strtolower( (string) $size );
+                $size = strtolower( trim( (string) $size ) );
+
+                $aliases = array(
+                        'thumbnail' => 'small',
+                        'thumb'     => 'small',
+                        'large'     => 'big',
+                );
+
+                if ( isset( $aliases[ $size ] ) ) {
+                        $size = $aliases[ $size ];
+                }
 
                 return in_array( $size, array( 'small', 'medium', 'big' ), true ) ? $size : 'medium';
         }
