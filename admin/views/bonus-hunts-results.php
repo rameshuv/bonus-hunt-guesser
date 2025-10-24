@@ -109,7 +109,7 @@ if ( 'tournament' === $view_type ) {
         if ( $has_final_balance ) {
                 $rows = $wpdb->get_results(
                         $wpdb->prepare(
-                                "SELECT g.guess, u.display_name, (%f - g.guess) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY ABS(%f - g.guess) ASC, g.id ASC",
+                                "SELECT g.guess, u.display_name, ABS(%f - g.guess) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY ABS(%f - g.guess) ASC, g.id ASC",
                                 (float) $hunt->final_balance,
                                 $item_id,
                                 (float) $hunt->final_balance
@@ -204,11 +204,19 @@ $current   = $view_type . '-' . $item_id;
 			<tbody>
 			<?php
 			$pos = 1;
-			foreach ( (array) $rows as $r ) :
-				$is_winner = $pos <= $wcount;
-				?>
-				<tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
-					<td><?php echo (int) $pos; ?></td>
+                        foreach ( (array) $rows as $r ) :
+                                $is_winner = $pos <= $wcount;
+                                $classes   = array();
+                                if ( $is_winner ) {
+                                        $classes[] = 'bhg-winner-row';
+                                        if ( $pos <= 3 ) {
+                                                $classes[] = 'bhg-winner-row-top-' . (int) $pos;
+                                        }
+                                }
+                                $class_attr = $classes ? ' class="' . esc_attr( implode( ' ', $classes ) ) . '"' : '';
+                                ?>
+                                <tr<?php echo $class_attr; ?>>
+                                        <td><?php echo (int) $pos; ?></td>
 					<td><?php echo esc_html( $r->display_name ); ?></td>
 					<?php if ( 'tournament' === $view_type ) : ?>
 						<td><?php echo (int) $r->wins; ?></td>

@@ -173,6 +173,7 @@ class MockWPDB {
                 $results[] = (object) array(
                     'user_id'           => (int) $winner['user_id'],
                     'position'          => (int) $winner['position'],
+                    'points'            => isset( $winner['points'] ) ? (int) $winner['points'] : 0,
                     'participants_mode' => $mode,
                     'winners_count'     => $winners,
                     'event_date'        => $event_date,

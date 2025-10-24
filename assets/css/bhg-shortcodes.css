@@ -202,6 +202,15 @@
     margin: 0 auto;
 }
 
+.bhg-prize-no-image {
+    display: inline-block;
+    padding: 16px 12px;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
 .bhg-prize-title {
     margin: 0 0 6px;
     font-size: 18px;
@@ -586,7 +595,131 @@
     }
 }
 
+.bhg-leaderboard tr.bhg-winner-row,
+.bhg-user-guesses tr.bhg-winner-row,
+.bhg-hunts tr.bhg-winner-row {
+    background-color: #ecfdf5;
+}
+
+.bhg-leaderboard tr.bhg-winner-top-1,
+.bhg-user-guesses tr.bhg-winner-top-1,
+.bhg-hunts tr.bhg-winner-top-1 {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+}
+
+.bhg-leaderboard tr.bhg-winner-top-2,
+.bhg-user-guesses tr.bhg-winner-top-2,
+.bhg-hunts tr.bhg-winner-top-2 {
+    background-color: #dbeafe;
+    border-left: 4px solid #3b82f6;
+}
+
+.bhg-leaderboard tr.bhg-winner-top-3,
+.bhg-user-guesses tr.bhg-winner-top-3,
+.bhg-hunts tr.bhg-winner-top-3 {
+    background-color: #ede9fe;
+    border-left: 4px solid #8b5cf6;
+}
+
 .bhg-winner {
     margin-bottom: 15px;
+}
+
+.bhg-profile-section {
+    margin: 24px 0;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    overflow-x: auto;
+}
+
+.bhg-profile-section h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 20px;
+    color: #0f172a;
+}
+
+.bhg-profile-section h4 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #1e293b;
+}
+
+.bhg-profile-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 520px;
+}
+
+.bhg-profile-table th,
+.bhg-profile-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.bhg-profile-table th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.bhg-profile-table tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+.bhg-profile-table tbody tr:hover {
+    background-color: #eef2ff;
+}
+
+.bhg-profile-winner {
+    background-color: #f0fdf4;
+}
+
+.bhg-profile-winner-top-1 {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+}
+
+.bhg-profile-winner-top-2 {
+    background-color: #dbeafe;
+    border-left: 4px solid #3b82f6;
+}
+
+.bhg-profile-winner-top-3 {
+    background-color: #ede9fe;
+    border-left: 4px solid #8b5cf6;
+}
+
+.bhg-profile-winner td {
+    font-weight: 600;
+}
+
+.bhg-profile-prize-thumb {
+    width: 80px;
+}
+
+.bhg-profile-prize-thumb img {
+    max-width: 64px;
+    height: auto;
+    border-radius: 6px;
+    display: block;
+}
+
+@media (max-width: 782px) {
+    .bhg-profile-section {
+        padding: 12px;
+    }
+
+    .bhg-profile-table {
+        min-width: 400px;
+    }
 }
 

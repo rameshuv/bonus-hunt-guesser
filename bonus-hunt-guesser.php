@@ -214,7 +214,8 @@ spl_autoload_register(
 		$class_map = array(
 			'BHG_Admin'                  => 'admin/class-bhg-admin.php',
 			'BHG_Demo'                   => 'admin/class-bhg-demo.php',
-			'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
+                        'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
+                        'BHG_Profile_Shortcodes'     => 'includes/class-bhg-profile-shortcodes.php',
 			'BHG_Logger'                 => 'includes/class-bhg-logger.php',
 			'BHG_Utils'                  => 'includes/class-bhg-utils.php',
 			'BHG_Models'                 => 'includes/class-bhg-models.php',
@@ -276,16 +277,21 @@ function bhg_activate_plugin() {
 	add_option( 'bhg_version', BHG_VERSION );
 	add_option(
 		'bhg_plugin_settings',
-		array(
-			'allow_guess_changes'       => 'yes',
-			'default_tournament_period' => 'monthly',
-			'min_guess_amount'          => 0,
-			'max_guess_amount'          => 100000,
-			'max_guesses'               => 1,
-			'ads_enabled'               => 1,
-			'email_from'                => get_bloginfo( 'admin_email' ),
-		)
-	);
+                array(
+                        'allow_guess_changes'       => 'yes',
+                        'default_tournament_period' => 'monthly',
+                        'min_guess_amount'          => 0,
+                        'max_guess_amount'          => 100000,
+                        'max_guesses'               => 1,
+                        'ads_enabled'               => 1,
+                        'show_my_bonushunts'        => 1,
+                        'show_my_tournaments'       => 1,
+                        'show_my_prizes'            => 1,
+                        'show_my_rankings'          => 1,
+                        'email_from'                => get_bloginfo( 'admin_email' ),
+                        'design'                    => bhg_get_default_design_settings(),
+                )
+        );
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
@@ -322,18 +328,25 @@ function bhg_enqueue_public_assets() {
 		$min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
 		$max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 
-		wp_register_style(
-			'bhg-public',
-			BHG_PLUGIN_URL . 'assets/css/public.css',
-			array(),
-			defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-		);
+                wp_register_style(
+                        'bhg-public',
+                        BHG_PLUGIN_URL . 'assets/css/public.css',
+                        array(),
+                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                );
 
-		wp_register_script(
-			'bhg-public',
-			BHG_PLUGIN_URL . 'assets/js/public.js',
-			array( 'jquery' ),
-			defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
+                if ( function_exists( 'bhg_generate_design_css' ) ) {
+                        $design_css = bhg_generate_design_css();
+                        if ( $design_css ) {
+                                wp_add_inline_style( 'bhg-public', $design_css );
+                        }
+                }
+
+                wp_register_script(
+                        'bhg-public',
+                        BHG_PLUGIN_URL . 'assets/js/public.js',
+                        array( 'jquery' ),
+                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
 			true
 		);
 
@@ -393,9 +406,13 @@ function bhg_init_plugin() {
 		}
 	}
 
-	if ( class_exists( 'BHG_Shortcodes' ) ) {
-		new BHG_Shortcodes();
-	}
+        if ( class_exists( 'BHG_Shortcodes' ) ) {
+                new BHG_Shortcodes();
+        }
+
+        if ( class_exists( 'BHG_Profile_Shortcodes' ) ) {
+                new BHG_Profile_Shortcodes();
+        }
 	if ( class_exists( 'BHG_Front_Menus' ) ) {
 			new BHG_Front_Menus();
 	}
@@ -501,6 +518,19 @@ function bhg_handle_settings_save() {
 $ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
 $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
 
+        $profile_flags = array(
+                'show_my_bonushunts',
+                'show_my_tournaments',
+                'show_my_prizes',
+                'show_my_rankings',
+        );
+
+        foreach ( $profile_flags as $flag ) {
+                $field_name = 'bhg_' . $flag;
+                $raw_value  = isset( $_POST[ $field_name ] ) ? wp_unslash( $_POST[ $field_name ] ) : '0';
+                $settings[ $flag ] = (string) $raw_value === '1' ? 1 : 0;
+        }
+
         if ( isset( $_POST['bhg_email_from'] ) ) {
                         $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
                 if ( $email_from ) {
@@ -519,6 +549,9 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                         }
                 }
         }
+
+        $design_raw           = isset( $_POST['bhg_design'] ) ? wp_unslash( $_POST['bhg_design'] ) : array();
+        $settings['design']   = bhg_sanitize_design_settings( $design_raw );
 
                 // Save settings.
                 $existing = get_option( 'bhg_plugin_settings', array() );
