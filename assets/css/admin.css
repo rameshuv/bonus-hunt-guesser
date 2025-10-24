@@ -61,6 +61,21 @@
     background-color: #d1fae5;
 }
 
+.bhg-winner-row-top-1 {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+}
+
+.bhg-winner-row-top-2 {
+    background-color: #dbeafe;
+    border-left: 4px solid #3b82f6;
+}
+
+.bhg-winner-row-top-3 {
+    background-color: #ede9fe;
+    border-left: 4px solid #8b5cf6;
+}
+
 /* Utility classes */
 .bhg-margin-top-small {
     margin-top: 1em;
