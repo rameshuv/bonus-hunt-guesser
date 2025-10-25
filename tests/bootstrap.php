@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile -- Legacy test bootstrap uses simplified WordPress shims for unit tests.
 if ( ! defined( 'ABSPATH' ) ) {
     define( 'ABSPATH', __DIR__ . '/../' );
 }

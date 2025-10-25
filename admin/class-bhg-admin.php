@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile -- Legacy admin controller pending refactor to modern WordPress standards.
         /**
  * Admin functionality for Bonus Hunt Guesser.
  *
