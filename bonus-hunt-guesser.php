@@ -211,19 +211,21 @@ spl_autoload_register(
 						return;
 		}
 
-		$class_map = array(
-			'BHG_Admin'                  => 'admin/class-bhg-admin.php',
-			'BHG_Demo'                   => 'admin/class-bhg-demo.php',
-			'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
-			'BHG_Logger'                 => 'includes/class-bhg-logger.php',
-			'BHG_Utils'                  => 'includes/class-bhg-utils.php',
-			'BHG_Models'                 => 'includes/class-bhg-models.php',
-			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
+                $class_map = array(
+                        'BHG_Admin'                  => 'admin/class-bhg-admin.php',
+                        'BHG_Demo'                   => 'admin/class-bhg-demo.php',
+                        'BHG_Bonus_Hunts_Controller' => 'admin/class-bhg-bonus-hunts-controller.php',
+                        'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
+                        'BHG_Logger'                 => 'includes/class-bhg-logger.php',
+                        'BHG_Utils'                  => 'includes/class-bhg-utils.php',
+                        'BHG_Models'                 => 'includes/class-bhg-models.php',
+                        'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
                         'BHG_Ads'                    => 'includes/class-bhg-ads.php',
                         'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
-			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
-			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
-		);
+                        'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
+                        'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
+                        'BHG_Prizes_Controller'      => 'admin/class-bhg-bonus-hunts-controller.php',
+                );
 
 		if ( isset( $class_map[ $class_name ] ) ) {
 				$file_path = BHG_PLUGIN_DIR . $class_map[ $class_name ];
