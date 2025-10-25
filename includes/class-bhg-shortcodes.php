@@ -14,10 +14,545 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
-		/**
-		 * Handles shortcode registration and rendering.
-		 */
-	class BHG_Shortcodes {
+/**
+ * Handles shortcode registration and rendering.
+ */
+class BHG_Shortcodes {
+
+/**
+ * Helper for translating documentation strings.
+ *
+ * @param string $key     Translation key used by bhg_t().
+ * @param string $default Fallback string when translation helper is unavailable.
+ *
+ * @return string
+ */
+protected static function translate( $key, $default ) {
+if ( function_exists( 'bhg_t' ) ) {
+return bhg_t( $key, $default );
+}
+
+return $default;
+}
+
+/**
+ * Structured documentation for all shortcodes registered by the plugin.
+ *
+ * Each entry contains a user-facing label, description, usage example, and
+ * metadata for every supported attribute so admin documentation stays in
+ * sync with the actual shortcode definitions.
+ *
+ * @return array
+ */
+public static function get_documented_shortcodes() {
+$docs = array(
+'core'      => array(
+'label'       => self::translate( 'shortcode_group_core', 'Core bonus hunt shortcodes' ),
+'description' => self::translate( 'shortcode_group_core_desc', 'Primary shortcodes that power the bonus hunt and guessing flow.' ),
+'items'       => array(
+array(
+'tag'         => 'bhg_active_hunt',
+'name'        => self::translate( 'shortcode_active_hunt', 'Active Bonus Hunt' ),
+'description' => self::translate( 'shortcode_active_hunt_desc', 'Displays the currently open hunt with prize details, participant guesses, and pagination controls.' ),
+'usage'       => '[bhg_active_hunt]',
+'aliases'     => array( 'bhg_active' ),
+'attributes'  => array(
+'prize_layout' => array(
+'label'       => self::translate( 'shortcode_attr_prize_layout', 'Prize layout' ),
+'type'        => 'string',
+'default'     => 'grid',
+'options'     => array( 'grid', 'carousel' ),
+'description' => self::translate( 'shortcode_attr_prize_layout_desc', 'Controls whether prizes render in a grid or carousel.' ),
+),
+'prize_size'   => array(
+'label'       => self::translate( 'shortcode_attr_prize_size', 'Prize image size' ),
+'type'        => 'string',
+'default'     => 'medium',
+'options'     => array( 'small', 'medium', 'big' ),
+'description' => self::translate( 'shortcode_attr_prize_size_desc', 'Adjusts the rendered image size for hunt prizes.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_guess_form',
+'name'        => self::translate( 'shortcode_guess_form', 'Guess Submission Form' ),
+'description' => self::translate( 'shortcode_guess_form_desc', 'Renders the front-end form that lets logged-in users submit or edit their guess for an open hunt.' ),
+'usage'       => '[bhg_guess_form]',
+'attributes'  => array(
+'hunt_id' => array(
+'label'       => self::translate( 'shortcode_attr_hunt_id', 'Hunt ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_hunt_id_desc', 'Optional explicit hunt ID. Defaults to the only open hunt or the most recent open hunt.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_leaderboard',
+'name'        => self::translate( 'shortcode_leaderboard', 'Guess Leaderboard' ),
+'description' => self::translate( 'shortcode_leaderboard_desc', 'Shows guesses for a hunt with sortable columns, search, and pagination.' ),
+'usage'       => '[bhg_leaderboard]',
+'aliases'     => array( 'bonus_hunt_leaderboard' ),
+'attributes'  => array(
+'hunt_id'  => array(
+'label'       => self::translate( 'shortcode_attr_hunt_id', 'Hunt ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_leaderboard_hunt_id_desc', 'Set to a specific hunt. Defaults to the latest hunt when omitted.' ),
+),
+'fields'   => array(
+'label'       => self::translate( 'shortcode_attr_fields', 'Visible columns' ),
+'type'        => 'string',
+'default'     => 'position,user,guess',
+'options'     => self::translate( 'shortcode_leaderboard_fields_options', 'Comma separated list of position,user,guess' ),
+'description' => self::translate( 'shortcode_leaderboard_fields_desc', 'Choose which columns to display.' ),
+),
+'orderby'  => array(
+'label'       => self::translate( 'shortcode_attr_orderby', 'Order by' ),
+'type'        => 'string',
+'default'     => 'guess',
+'options'     => array( 'guess', 'user', 'position' ),
+'description' => self::translate( 'shortcode_leaderboard_orderby_desc', 'Sort guesses by value, username, or position.' ),
+),
+'order'    => array(
+'label'       => self::translate( 'shortcode_attr_order', 'Order' ),
+'type'        => 'string',
+'default'     => 'ASC',
+'options'     => array( 'ASC', 'DESC' ),
+'description' => self::translate( 'shortcode_attr_order_desc', 'Ascending or descending sort direction.' ),
+),
+'paged'    => array(
+'label'       => self::translate( 'shortcode_attr_paged', 'Page number' ),
+'type'        => 'int',
+'default'     => 1,
+'description' => self::translate( 'shortcode_attr_paged_desc', 'Starting page when pagination is enabled.' ),
+),
+'per_page' => array(
+'label'       => self::translate( 'shortcode_attr_per_page', 'Rows per page' ),
+'type'        => 'int',
+'default'     => 30,
+'description' => self::translate( 'shortcode_attr_per_page_desc', 'Number of guesses to render per page.' ),
+),
+'search'   => array(
+'label'       => self::translate( 'shortcode_attr_search', 'Search term' ),
+'type'        => 'string',
+'default'     => '',
+'description' => self::translate( 'shortcode_attr_search_desc', 'Filters results by username.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_user_guesses',
+'name'        => self::translate( 'shortcode_user_guesses', 'User Guess History' ),
+'description' => self::translate( 'shortcode_user_guesses_desc', 'Displays guesses placed on a specific hunt with advanced filtering, search, and affiliate indicators.' ),
+'usage'       => '[bhg_user_guesses]',
+'attributes'  => array(
+'id'       => array(
+'label'       => self::translate( 'shortcode_attr_hunt_id', 'Hunt ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_user_guesses_hunt_desc', 'Defaults to the latest hunt. Set to target a specific hunt.' ),
+),
+'aff'      => array(
+'label'       => self::translate( 'shortcode_attr_affiliate_filter', 'Affiliate filter' ),
+'type'        => 'string',
+'default'     => '',
+'options'     => array( 'yes', 'no', '' ),
+'description' => self::translate( 'shortcode_attr_affiliate_filter_desc', 'Limit results to affiliate (yes) or non-affiliate (no) users.' ),
+),
+'website'  => array(
+'label'       => self::translate( 'shortcode_attr_website', 'Affiliate website ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_website_desc', 'Filter guesses by affiliate website context.' ),
+),
+'status'   => array(
+'label'       => self::translate( 'shortcode_attr_status', 'Hunt status' ),
+'type'        => 'string',
+'default'     => '',
+'options'     => array( 'open', 'closed', '' ),
+'description' => self::translate( 'shortcode_attr_status_desc', 'Limit to open or closed hunts.' ),
+),
+'timeline' => array(
+'label'       => self::translate( 'shortcode_attr_timeline', 'Timeline' ),
+'type'        => 'string',
+'default'     => '',
+'options'     => self::translate( 'shortcode_attr_timeline_options', 'day, week, month, quarter, year, last_year, all_time' ),
+'description' => self::translate( 'shortcode_attr_timeline_desc', 'Restrict guesses to a specific time window.' ),
+),
+'fields'   => array(
+'label'       => self::translate( 'shortcode_attr_fields', 'Visible columns' ),
+'type'        => 'string',
+'default'     => 'hunt,user,guess,final',
+'options'     => self::translate( 'shortcode_user_guesses_fields_options', 'Comma separated list of hunt,user,guess,final,site' ),
+'description' => self::translate( 'shortcode_user_guesses_fields_desc', 'Select which data columns to render.' ),
+),
+'orderby'  => array(
+'label'       => self::translate( 'shortcode_attr_orderby', 'Order by' ),
+'type'        => 'string',
+'default'     => 'hunt',
+'options'     => array( 'hunt', 'guess', 'final', 'time', 'difference' ),
+'description' => self::translate( 'shortcode_user_guesses_orderby_desc', 'Sort by hunt, guess amount, final balance, created time, or accuracy difference.' ),
+),
+'order'    => array(
+'label'       => self::translate( 'shortcode_attr_order', 'Order' ),
+'type'        => 'string',
+'default'     => 'DESC',
+'options'     => array( 'ASC', 'DESC' ),
+'description' => self::translate( 'shortcode_attr_order_desc', 'Ascending or descending sort direction.' ),
+),
+'paged'    => array(
+'label'       => self::translate( 'shortcode_attr_paged', 'Page number' ),
+'type'        => 'int',
+'default'     => 1,
+'description' => self::translate( 'shortcode_attr_paged_desc', 'First page to show when paginating results.' ),
+),
+'search'   => array(
+'label'       => self::translate( 'shortcode_attr_search', 'Search term' ),
+'type'        => 'string',
+'default'     => '',
+'description' => self::translate( 'shortcode_attr_search_desc', 'Filters hunts by title.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_winner_notifications',
+'name'        => self::translate( 'shortcode_winner_notifications', 'Winner Notifications' ),
+'description' => self::translate( 'shortcode_winner_notifications_desc', 'Outputs a compact list of the latest closed hunts and their winners.' ),
+'usage'       => '[bhg_winner_notifications]',
+'attributes'  => array(
+'limit' => array(
+'label'       => self::translate( 'shortcode_attr_limit', 'Number of hunts' ),
+'type'        => 'int',
+'default'     => 5,
+'description' => self::translate( 'shortcode_attr_limit_desc', 'Maximum number of closed hunts to display.' ),
+),
+),
+),
+),
+),
+'library'  => array(
+'label'       => self::translate( 'shortcode_group_library', 'Hunt & results library' ),
+'description' => self::translate( 'shortcode_group_library_desc', 'Directory views for hunts, tournaments, prizes, and historical leaderboards.' ),
+'items'       => array(
+array(
+'tag'         => 'bhg_hunts',
+'name'        => self::translate( 'shortcode_hunts', 'Bonus Hunt Directory' ),
+'description' => self::translate( 'shortcode_hunts_desc', 'Lists hunts with search, sorting, pagination, and optional affiliate context.' ),
+'usage'       => '[bhg_hunts]',
+'attributes'  => array(
+'id'       => array(
+'label'       => self::translate( 'shortcode_attr_hunt_id', 'Hunt ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_hunts_id_desc', 'Show a specific hunt when provided.' ),
+),
+'website'  => array(
+'label'       => self::translate( 'shortcode_attr_website', 'Affiliate website ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_website_desc', 'Filter hunts by affiliate website assignment.' ),
+),
+'status'   => array(
+'label'       => self::translate( 'shortcode_attr_status', 'Hunt status' ),
+'type'        => 'string',
+'default'     => '',
+'options'     => array( 'open', 'closed', '' ),
+'description' => self::translate( 'shortcode_attr_status_desc', 'Limit the directory to open or closed hunts.' ),
+),
+'timeline' => array(
+'label'       => self::translate( 'shortcode_attr_timeline', 'Timeline' ),
+'type'        => 'string',
+'default'     => '',
+'options'     => self::translate( 'shortcode_attr_timeline_options', 'day, week, month, quarter, year, last_year, all_time' ),
+'description' => self::translate( 'shortcode_attr_timeline_desc', 'Restrict hunts by created date.' ),
+),
+'fields'   => array(
+'label'       => self::translate( 'shortcode_attr_fields', 'Visible columns' ),
+'type'        => 'string',
+'default'     => 'title,start,final,status',
+'options'     => self::translate( 'shortcode_hunts_fields_options', 'Comma separated list of title,start,final,winners,status,user,site' ),
+'description' => self::translate( 'shortcode_hunts_fields_desc', 'Choose which hunt columns to render.' ),
+),
+'orderby'  => array(
+'label'       => self::translate( 'shortcode_attr_orderby', 'Order by' ),
+'type'        => 'string',
+'default'     => 'created',
+'options'     => array( 'created', 'title', 'start', 'final', 'winners', 'status' ),
+'description' => self::translate( 'shortcode_attr_orderby_desc', 'Sort hunts by the selected column.' ),
+),
+'order'    => array(
+'label'       => self::translate( 'shortcode_attr_order', 'Order' ),
+'type'        => 'string',
+'default'     => 'DESC',
+'options'     => array( 'ASC', 'DESC' ),
+'description' => self::translate( 'shortcode_attr_order_desc', 'Ascending or descending sort direction.' ),
+),
+'paged'    => array(
+'label'       => self::translate( 'shortcode_attr_paged', 'Page number' ),
+'type'        => 'int',
+'default'     => 1,
+'description' => self::translate( 'shortcode_attr_paged_desc', 'Starting page when rendering the directory.' ),
+),
+'search'   => array(
+'label'       => self::translate( 'shortcode_attr_search', 'Search term' ),
+'type'        => 'string',
+'default'     => '',
+'description' => self::translate( 'shortcode_attr_search_desc', 'Filters hunts by title keyword.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_leaderboards',
+'name'        => self::translate( 'shortcode_leaderboards', 'Tournament Leaderboards' ),
+'description' => self::translate( 'shortcode_leaderboards_desc', 'Aggregated leaderboard with filters for tournaments, hunts, affiliate sites, and time ranges.' ),
+'usage'       => '[bhg_leaderboards]',
+'attributes'  => array(
+'fields'     => array(
+'label'       => self::translate( 'shortcode_attr_fields', 'Visible columns' ),
+'type'        => 'string',
+'default'     => 'pos,user,wins,avg_hunt,avg_tournament',
+'options'     => self::translate( 'shortcode_leaderboards_fields_options', 'Comma separated list of pos,user,wins,avg_hunt,avg_tournament,aff,site,hunt,tournament' ),
+'description' => self::translate( 'shortcode_leaderboards_fields_desc', 'Select which leaderboard metrics to show.' ),
+),
+'ranking'    => array(
+'label'       => self::translate( 'shortcode_attr_ranking', 'Entries per view' ),
+'type'        => 'int',
+'default'     => 1,
+'description' => self::translate( 'shortcode_attr_ranking_desc', 'Maximum number of users to show per leaderboard tab (1–10).' ),
+),
+'timeline'   => array(
+'label'       => self::translate( 'shortcode_attr_timeline', 'Timeline' ),
+'type'        => 'string',
+'default'     => '',
+'options'     => self::translate( 'shortcode_attr_timeline_options', 'day, week, month, quarter, year, last_year, all_time' ),
+'description' => self::translate( 'shortcode_attr_timeline_desc', 'Default time filter applied to leaderboard data.' ),
+),
+'orderby'    => array(
+'label'       => self::translate( 'shortcode_attr_orderby', 'Order by' ),
+'type'        => 'string',
+'default'     => 'wins',
+'options'     => array( 'wins', 'avg_hunt', 'avg_tournament' ),
+'description' => self::translate( 'shortcode_leaderboards_orderby_desc', 'Default column used for ordering results.' ),
+),
+'order'      => array(
+'label'       => self::translate( 'shortcode_attr_order', 'Order' ),
+'type'        => 'string',
+'default'     => 'DESC',
+'options'     => array( 'ASC', 'DESC' ),
+'description' => self::translate( 'shortcode_attr_order_desc', 'Ascending or descending sort direction.' ),
+),
+'search'     => array(
+'label'       => self::translate( 'shortcode_attr_search', 'Search term' ),
+'type'        => 'string',
+'default'     => '',
+'description' => self::translate( 'shortcode_attr_search_desc', 'Filter leaderboard entries by username.' ),
+),
+'tournament' => array(
+'label'       => self::translate( 'shortcode_attr_tournament', 'Tournament ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_tournament_desc', 'Pre-select a tournament filter.' ),
+),
+'bonushunt'  => array(
+'label'       => self::translate( 'shortcode_attr_hunt_id', 'Hunt ID filter' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_leaderboards_hunt_desc', 'Limit leaderboard results to a specific hunt.' ),
+),
+'website'    => array(
+'label'       => self::translate( 'shortcode_attr_website', 'Affiliate website ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_website_desc', 'Filter by affiliate website affiliation.' ),
+),
+'aff'        => array(
+'label'       => self::translate( 'shortcode_attr_affiliate_filter', 'Affiliate filter' ),
+'type'        => 'string',
+'default'     => '',
+'options'     => array( 'yes', 'no', '' ),
+'description' => self::translate( 'shortcode_attr_affiliate_filter_desc', 'Limit results to affiliate or non-affiliate users.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_tournaments',
+'name'        => self::translate( 'shortcode_tournaments', 'Tournament Directory' ),
+'description' => self::translate( 'shortcode_tournaments_desc', 'Outputs tournament listings with filters and a drill-down results view.' ),
+'usage'       => '[bhg_tournaments]',
+'attributes'  => array(
+'status'     => array(
+'label'       => self::translate( 'shortcode_attr_status', 'Tournament status' ),
+'type'        => 'string',
+'default'     => 'active',
+'options'     => array( 'active', 'closed' ),
+'description' => self::translate( 'shortcode_tournaments_status_desc', 'Filter tournaments by current status.' ),
+),
+'tournament' => array(
+'label'       => self::translate( 'shortcode_attr_tournament', 'Tournament ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_tournament_desc', 'Display a single tournament when specified.' ),
+),
+'website'    => array(
+'label'       => self::translate( 'shortcode_attr_website', 'Affiliate website ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_website_desc', 'Filter tournaments by affiliate website.' ),
+),
+'timeline'   => array(
+'label'       => self::translate( 'shortcode_attr_timeline', 'Timeline or type' ),
+'type'        => 'string',
+'default'     => '',
+'options'     => self::translate( 'shortcode_tournaments_timeline_options', 'weekly, monthly, yearly, quarterly, alltime or a specific date window' ),
+'description' => self::translate( 'shortcode_tournaments_timeline_desc', 'Limit tournaments by schedule or explicit date range.' ),
+),
+'paged'      => array(
+'label'       => self::translate( 'shortcode_attr_paged', 'Page number' ),
+'type'        => 'int',
+'default'     => 1,
+'description' => self::translate( 'shortcode_attr_paged_desc', 'First page to display for the directory.' ),
+),
+'orderby'    => array(
+'label'       => self::translate( 'shortcode_attr_orderby', 'Order by' ),
+'type'        => 'string',
+'default'     => 'start_date',
+'options'     => array( 'title', 'start_date', 'end_date', 'status', 'type' ),
+'description' => self::translate( 'shortcode_attr_orderby_desc', 'Sort tournaments by title, schedule, status, or type.' ),
+),
+'order'      => array(
+'label'       => self::translate( 'shortcode_attr_order', 'Order' ),
+'type'        => 'string',
+'default'     => 'desc',
+'options'     => array( 'asc', 'desc' ),
+'description' => self::translate( 'shortcode_attr_order_desc', 'Ascending or descending sort direction.' ),
+),
+'search'     => array(
+'label'       => self::translate( 'shortcode_attr_search', 'Search term' ),
+'type'        => 'string',
+'default'     => '',
+'description' => self::translate( 'shortcode_attr_search_desc', 'Filters tournaments by title.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_prizes',
+'name'        => self::translate( 'shortcode_prizes', 'Prizes Gallery' ),
+'description' => self::translate( 'shortcode_prizes_desc', 'Standalone display of prizes with optional category filters.' ),
+'usage'       => '[bhg_prizes]',
+'attributes'  => array(
+'category' => array(
+'label'       => self::translate( 'shortcode_attr_category', 'Category' ),
+'type'        => 'string',
+'default'     => '',
+'description' => self::translate( 'shortcode_prizes_category_desc', 'Limit the gallery to a specific prize category.' ),
+),
+'design'   => array(
+'label'       => self::translate( 'shortcode_attr_design', 'Layout' ),
+'type'        => 'string',
+'default'     => 'grid',
+'options'     => array( 'grid', 'carousel' ),
+'description' => self::translate( 'shortcode_attr_prize_layout_desc', 'Layout used for rendering prizes.' ),
+),
+'size'     => array(
+'label'       => self::translate( 'shortcode_attr_prize_size', 'Prize image size' ),
+'type'        => 'string',
+'default'     => 'medium',
+'options'     => array( 'small', 'medium', 'big' ),
+'description' => self::translate( 'shortcode_attr_prize_size_desc', 'Image size used for prize cards.' ),
+),
+'active'   => array(
+'label'       => self::translate( 'shortcode_attr_active', 'Active prizes only' ),
+'type'        => 'string',
+'default'     => 'yes',
+'options'     => array( 'yes', 'no' ),
+'description' => self::translate( 'shortcode_prizes_active_desc', 'Toggle whether to only show active prizes.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_best_guessers',
+'name'        => self::translate( 'shortcode_best_guessers', 'Best Guessers Tabs' ),
+'description' => self::translate( 'shortcode_best_guessers_desc', 'Tabbed widget showing top guessers for overall, monthly, yearly, and all-time leaderboards.' ),
+'usage'       => '[bhg_best_guessers]',
+'attributes'  => array(),
+),
+),
+),
+'profiles' => array(
+'label'       => self::translate( 'shortcode_group_profiles', 'User experience & helpers' ),
+'description' => self::translate( 'shortcode_group_profiles_desc', 'Profile widgets, navigation helpers, and legacy compatibility shortcodes.' ),
+'items'       => array(
+array(
+'tag'         => 'bhg_user_profile',
+'name'        => self::translate( 'shortcode_user_profile', 'User Profile Summary' ),
+'description' => self::translate( 'shortcode_user_profile_desc', 'Shows the logged-in user their Bonus Hunt profile details and affiliate sites.' ),
+'usage'       => '[bhg_user_profile]',
+'attributes'  => array(),
+),
+array(
+'tag'         => 'bonus_hunt_login',
+'name'        => self::translate( 'shortcode_bonus_hunt_login', 'Login Prompt' ),
+'description' => self::translate( 'shortcode_bonus_hunt_login_desc', 'Legacy shortcode that renders a call-to-action for users to log in.' ),
+'usage'       => '[bonus_hunt_login]',
+'attributes'  => array(),
+),
+array(
+'tag'         => 'bhg_nav',
+'name'        => self::translate( 'shortcode_bhg_nav', 'Role-aware Navigation' ),
+'description' => self::translate( 'shortcode_bhg_nav_desc', 'Outputs the configured navigation menu for guests, logged-in users, or admins.' ),
+'usage'       => '[bhg_nav area="guest"]',
+'attributes'  => array(
+'area' => array(
+'label'       => self::translate( 'shortcode_attr_area', 'Menu audience' ),
+'type'        => 'string',
+'default'     => 'guest',
+'options'     => array( 'guest', 'user', 'admin' ),
+'description' => self::translate( 'shortcode_attr_area_desc', 'Pick which role-specific menu location to render.' ),
+),
+),
+),
+array(
+'tag'         => 'bhg_menu',
+'name'        => self::translate( 'shortcode_bhg_menu', 'Smart Menu Wrapper' ),
+'description' => self::translate( 'shortcode_bhg_menu_desc', 'Automatically renders the appropriate menu based on the current visitor.' ),
+'usage'       => '[bhg_menu]',
+'attributes'  => array(),
+),
+array(
+'tag'         => 'bhg_ad',
+'name'        => self::translate( 'shortcode_bhg_ad', 'Advertising Block' ),
+'description' => self::translate( 'shortcode_bhg_ad_desc', 'Embeds a configured advertising message by ID with visibility rules.' ),
+'usage'       => '[bhg_ad id="123"]',
+'aliases'     => array( 'bhg_advertising' ),
+'attributes'  => array(
+'id'     => array(
+'label'       => self::translate( 'shortcode_attr_ad_id', 'Ad ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_ad_id_desc', 'Numeric ID of the ad to display.' ),
+),
+'ad'     => array(
+'label'       => self::translate( 'shortcode_attr_ad_alias', 'Alternate ad ID' ),
+'type'        => 'int',
+'default'     => 0,
+'description' => self::translate( 'shortcode_attr_ad_alias_desc', 'Alternate attribute name for the ad ID (legacy support).' ),
+),
+'status' => array(
+'label'       => self::translate( 'shortcode_attr_status', 'Status' ),
+'type'        => 'string',
+'default'     => 'active',
+'options'     => array( 'active', 'inactive', 'all' ),
+'description' => self::translate( 'shortcode_attr_status_desc', 'Display only active, inactive, or all ads.' ),
+),
+),
+),
+),
+),
+);
+
+return $docs;
+}
 
 			/**
 			 * Registers all shortcodes.

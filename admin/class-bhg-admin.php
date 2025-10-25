@@ -1,5 +1,5 @@
 <?php
-/**
+        /**
  * Admin functionality for Bonus Hunt Guesser.
  *
  * @package Bonus_Hunt_Guesser
@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
+        /**
  * Handles admin screens and actions for the plugin.
  */
 class BHG_Admin {
@@ -60,8 +60,9 @@ class BHG_Admin {
 
 		add_submenu_page( $slug, bhg_t( 'menu_dashboard', 'Dashboard' ), bhg_t( 'menu_dashboard', 'Dashboard' ), $cap, $slug, array( $this, 'dashboard' ) );
                 add_submenu_page( $slug, bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), $cap, 'bhg-bonus-hunts', array( $this, 'bonus_hunts' ) );
-                add_submenu_page( $slug, bhg_t( 'menu_prizes', 'Prizes' ), bhg_t( 'menu_prizes', 'Prizes' ), $cap, 'bhg-prizes', array( $this, 'prizes' ) );
-                add_submenu_page( $slug, bhg_t( 'button_results', 'Results' ), bhg_t( 'button_results', 'Results' ), $cap, 'bhg-bonus-hunts-results', array( $this, 'bonus_hunts_results' ) );
+		add_submenu_page( $slug, bhg_t( 'menu_prizes', 'Prizes' ), bhg_t( 'menu_prizes', 'Prizes' ), $cap, 'bhg-prizes', array( $this, 'prizes' ) );
+		add_submenu_page( $slug, bhg_t( 'button_results', 'Results' ), bhg_t( 'button_results', 'Results' ), $cap, 'bhg-bonus-hunts-results', array( $this, 'bonus_hunts_results' ) );
+		add_submenu_page( $slug, bhg_t( 'menu_shortcodes', 'Shortcodes' ), bhg_t( 'menu_shortcodes', 'Shortcodes' ), $cap, 'bhg-shortcodes', array( $this, 'shortcodes' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_tournaments', 'Tournaments' ), bhg_t( 'menu_tournaments', 'Tournaments' ), $cap, 'bhg-tournaments', array( $this, 'tournaments' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
@@ -181,14 +182,21 @@ class BHG_Admin {
          */
         public function bonus_hunts_results() {
                 require BHG_PLUGIN_DIR . 'admin/views/bonus-hunts-results.php';
-	}
+        }
 
-	/**
-	 * Render the tournaments page.
-	 */
-	public function tournaments() {
-		require BHG_PLUGIN_DIR . 'admin/views/tournaments.php';
-	}
+        /**
+         * Render the shortcodes documentation page.
+         */
+        public function shortcodes() {
+                require BHG_PLUGIN_DIR . 'admin/views/shortcodes.php';
+        }
+
+        /**
+         * Render the tournaments page.
+         */
+        public function tournaments() {
+                require BHG_PLUGIN_DIR . 'admin/views/tournaments.php';
+        }
 
 	/**
 	 * Render the users page.
