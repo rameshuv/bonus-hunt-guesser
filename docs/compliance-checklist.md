@@ -2,6 +2,11 @@
 
 Legend: ✅ satisfied · ⚠️ partially satisfied · ❌ missing / incorrect
 
+## Environment & Standards
+
+- ✅ Runtime targets: PHP 7.4, WordPress 6.3.5, and MySQL 5.5.5 match the customer brief and are reflected in the plugin header and constants (`bonus-hunt-guesser.php`).
+- ⚠️ WordPress Coding Standards: project ships PHPCS rulesets, but `vendor/bin/phpcs` is not available in this environment; run `composer install` to install the tooling and address any remaining warnings in legacy admin templates if required.
+
 ## Dev Spec (v8.0.14)
 
 ### 0) Plugin Header
