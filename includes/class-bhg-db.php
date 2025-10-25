@@ -125,8 +125,9 @@ KEY tournament_id (tournament_id)
 						id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 						tournament_id BIGINT UNSIGNED NOT NULL,
 						user_id BIGINT UNSIGNED NOT NULL,
-						wins INT UNSIGNED NOT NULL DEFAULT 0,
-						last_win_date DATETIME NULL,
+                                                wins INT UNSIGNED NOT NULL DEFAULT 0,
+                                                points INT UNSIGNED NOT NULL DEFAULT 0,
+                                                last_win_date DATETIME NULL,
 						PRIMARY KEY  (id),
 						KEY tournament_id (tournament_id),
 						KEY user_id (user_id)
@@ -170,6 +171,7 @@ $sql[] = "CREATE TABLE `{$winners_table}` (
                                    position INT UNSIGNED NOT NULL,
                                    guess DECIMAL(12,2) NOT NULL,
                                    diff DECIMAL(12,2) NOT NULL,
+                                   points INT UNSIGNED NOT NULL DEFAULT 0,
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
                                    KEY hunt_id (hunt_id),
@@ -288,8 +290,9 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 			$trrneed = array(
 				'tournament_id' => 'ADD COLUMN tournament_id BIGINT UNSIGNED NOT NULL',
 				'user_id'       => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
-				'wins'          => 'ADD COLUMN wins INT UNSIGNED NOT NULL DEFAULT 0',
-				'last_win_date' => 'ADD COLUMN last_win_date DATETIME NULL',
+                                'wins'          => 'ADD COLUMN wins INT UNSIGNED NOT NULL DEFAULT 0',
+                                'points'        => 'ADD COLUMN points INT UNSIGNED NOT NULL DEFAULT 0',
+                                'last_win_date' => 'ADD COLUMN last_win_date DATETIME NULL',
 			);
 			foreach ( $trrneed as $c => $alter ) {
 				if ( ! $this->column_exists( $tres_table, $c ) ) {
@@ -385,8 +388,9 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 				'user_id'    => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
 				'position'   => 'ADD COLUMN position INT UNSIGNED NOT NULL',
 				'guess'      => 'ADD COLUMN guess DECIMAL(12,2) NOT NULL',
-				'diff'       => 'ADD COLUMN diff DECIMAL(12,2) NOT NULL',
-				'created_at' => 'ADD COLUMN created_at DATETIME NULL',
+                                'diff'       => 'ADD COLUMN diff DECIMAL(12,2) NOT NULL',
+                                'points'     => 'ADD COLUMN points INT UNSIGNED NOT NULL DEFAULT 0',
+                                'created_at' => 'ADD COLUMN created_at DATETIME NULL',
 			);
 			foreach ( $hwneed as $c => $alter ) {
 				if ( ! $this->column_exists( $winners_table, $c ) ) {

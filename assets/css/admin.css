@@ -61,6 +61,19 @@
     background-color: #d1fae5;
 }
 
+.bhg-podium-1 {
+    background-color: #fde68a;
+    font-weight: 600;
+}
+
+.bhg-podium-2 {
+    background-color: #e0f2fe;
+}
+
+.bhg-podium-3 {
+    background-color: #f3e8ff;
+}
+
 /* Utility classes */
 .bhg-margin-top-small {
     margin-top: 1em;
