@@ -14,7 +14,9 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 // Fetch existing settings.
-$settings = get_option( 'bhg_plugin_settings', array() );
+$settings          = get_option( 'bhg_plugin_settings', array() );
+$shortcode_options = function_exists( 'bhg_get_profile_shortcodes_visibility' ) ? bhg_get_profile_shortcodes_visibility() : array();
+$style_settings    = function_exists( 'bhg_get_style_panel_settings' ) ? bhg_get_style_panel_settings() : array();
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
@@ -106,6 +108,110 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="url" class="regular-text" id="bhg_post_submit_redirect" name="bhg_post_submit_redirect" value="<?php echo isset( $settings['post_submit_redirect'] ) ? esc_attr( $settings['post_submit_redirect'] ) : ''; ?>" placeholder="<?php echo esc_attr( bhg_t( 'post_submit_redirect_placeholder', 'https://example.com/thank-you' ) ); ?>">
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'profile_shortcodes', 'Profile Shortcodes' ) ); ?></th>
+<td>
+<?php
+$profile_shortcodes = array(
+	'my_bonushunts'  => bhg_t( 'shortcode_my_bonushunts', 'My Bonus Hunts' ),
+	'my_tournaments' => bhg_t( 'shortcode_my_tournaments', 'My Tournaments' ),
+	'my_prizes'      => bhg_t( 'shortcode_my_prizes', 'My Prizes' ),
+	'my_rankings'    => bhg_t( 'shortcode_my_rankings', 'My Rankings' ),
+);
+foreach ( $profile_shortcodes as $slug => $label ) :
+		$checked = isset( $shortcode_options[ $slug ] ) ? (int) $shortcode_options[ $slug ] : 1;
+	?>
+		<label style="display:inline-block;margin-right:18px;">
+				<input type="hidden" name="shortcode_visibility[<?php echo esc_attr( $slug ); ?>]" value="0" />
+				<input type="checkbox" name="shortcode_visibility[<?php echo esc_attr( $slug ); ?>]" value="1" <?php checked( 1, $checked ); ?> />
+				<?php echo esc_html( $label ); ?>
+		</label>
+<?php endforeach; ?>
+<p class="description"><?php echo esc_html( bhg_t( 'profile_shortcodes_description', 'Toggle visibility of profile shortcodes rendered on the frontend.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'style_panel', 'Style Panel' ) ); ?></th>
+<td>
+		<fieldset>
+				<legend class="screen-reader-text"><?php echo esc_html( bhg_t( 'style_panel', 'Style Panel' ) ); ?></legend>
+				<h3><?php echo esc_html( bhg_t( 'title_block_styles', 'Title Block' ) ); ?></h3>
+				<label for="bhg_style_title_background"><?php echo esc_html( bhg_t( 'background_color', 'Background Color' ) ); ?></label>
+				<input type="text" id="bhg_style_title_background" name="style_panel[title_block][background]" value="<?php echo esc_attr( $style_settings['title_block']['background'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_title_border"><?php echo esc_html( bhg_t( 'border', 'Border' ) ); ?></label>
+				<input type="text" id="bhg_style_title_border" name="style_panel[title_block][border]" value="<?php echo esc_attr( $style_settings['title_block']['border'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_title_radius"><?php echo esc_html( bhg_t( 'border_radius', 'Border Radius' ) ); ?></label>
+				<input type="text" id="bhg_style_title_radius" name="style_panel[title_block][border_radius]" value="<?php echo esc_attr( $style_settings['title_block']['border_radius'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_title_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label>
+				<input type="text" id="bhg_style_title_padding" name="style_panel[title_block][padding]" value="<?php echo esc_attr( $style_settings['title_block']['padding'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_title_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label>
+				<input type="text" id="bhg_style_title_margin" name="style_panel[title_block][margin]" value="<?php echo esc_attr( $style_settings['title_block']['margin'] ?? '' ); ?>" class="regular-text" />
+
+				<h3><?php echo esc_html( bhg_t( 'heading_two_styles', 'Heading (H2)' ) ); ?></h3>
+				<label for="bhg_style_h2_size"><?php echo esc_html( bhg_t( 'font_size', 'Font Size' ) ); ?></label>
+				<input type="text" id="bhg_style_h2_size" name="style_panel[h2][font_size]" value="<?php echo esc_attr( $style_settings['h2']['font_size'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_h2_weight"><?php echo esc_html( bhg_t( 'font_weight', 'Font Weight' ) ); ?></label>
+				<input type="text" id="bhg_style_h2_weight" name="style_panel[h2][font_weight]" value="<?php echo esc_attr( $style_settings['h2']['font_weight'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_h2_color"><?php echo esc_html( bhg_t( 'color', 'Color' ) ); ?></label>
+				<input type="text" id="bhg_style_h2_color" name="style_panel[h2][color]" value="<?php echo esc_attr( $style_settings['h2']['color'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_h2_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label>
+				<input type="text" id="bhg_style_h2_padding" name="style_panel[h2][padding]" value="<?php echo esc_attr( $style_settings['h2']['padding'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_h2_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label>
+				<input type="text" id="bhg_style_h2_margin" name="style_panel[h2][margin]" value="<?php echo esc_attr( $style_settings['h2']['margin'] ?? '' ); ?>" class="regular-text" />
+
+				<h3><?php echo esc_html( bhg_t( 'heading_three_styles', 'Heading (H3)' ) ); ?></h3>
+				<label for="bhg_style_h3_size"><?php echo esc_html( bhg_t( 'font_size', 'Font Size' ) ); ?></label>
+				<input type="text" id="bhg_style_h3_size" name="style_panel[h3][font_size]" value="<?php echo esc_attr( $style_settings['h3']['font_size'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_h3_weight"><?php echo esc_html( bhg_t( 'font_weight', 'Font Weight' ) ); ?></label>
+				<input type="text" id="bhg_style_h3_weight" name="style_panel[h3][font_weight]" value="<?php echo esc_attr( $style_settings['h3']['font_weight'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_h3_color"><?php echo esc_html( bhg_t( 'color', 'Color' ) ); ?></label>
+				<input type="text" id="bhg_style_h3_color" name="style_panel[h3][color]" value="<?php echo esc_attr( $style_settings['h3']['color'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_h3_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label>
+				<input type="text" id="bhg_style_h3_padding" name="style_panel[h3][padding]" value="<?php echo esc_attr( $style_settings['h3']['padding'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_h3_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label>
+				<input type="text" id="bhg_style_h3_margin" name="style_panel[h3][margin]" value="<?php echo esc_attr( $style_settings['h3']['margin'] ?? '' ); ?>" class="regular-text" />
+
+				<h3><?php echo esc_html( bhg_t( 'description_styles', 'Description' ) ); ?></h3>
+				<label for="bhg_style_desc_size"><?php echo esc_html( bhg_t( 'font_size', 'Font Size' ) ); ?></label>
+				<input type="text" id="bhg_style_desc_size" name="style_panel[description][font_size]" value="<?php echo esc_attr( $style_settings['description']['font_size'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_desc_weight"><?php echo esc_html( bhg_t( 'font_weight', 'Font Weight' ) ); ?></label>
+				<input type="text" id="bhg_style_desc_weight" name="style_panel[description][font_weight]" value="<?php echo esc_attr( $style_settings['description']['font_weight'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_desc_color"><?php echo esc_html( bhg_t( 'color', 'Color' ) ); ?></label>
+				<input type="text" id="bhg_style_desc_color" name="style_panel[description][color]" value="<?php echo esc_attr( $style_settings['description']['color'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_desc_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label>
+				<input type="text" id="bhg_style_desc_padding" name="style_panel[description][padding]" value="<?php echo esc_attr( $style_settings['description']['padding'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_desc_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label>
+				<input type="text" id="bhg_style_desc_margin" name="style_panel[description][margin]" value="<?php echo esc_attr( $style_settings['description']['margin'] ?? '' ); ?>" class="regular-text" />
+
+				<h3><?php echo esc_html( bhg_t( 'body_text_styles', 'Paragraph & Span' ) ); ?></h3>
+				<label for="bhg_style_body_size"><?php echo esc_html( bhg_t( 'font_size', 'Font Size' ) ); ?></label>
+				<input type="text" id="bhg_style_body_size" name="style_panel[body_text][font_size]" value="<?php echo esc_attr( $style_settings['body_text']['font_size'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_body_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label>
+				<input type="text" id="bhg_style_body_padding" name="style_panel[body_text][padding]" value="<?php echo esc_attr( $style_settings['body_text']['padding'] ?? '' ); ?>" class="regular-text" />
+				<br />
+				<label for="bhg_style_body_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label>
+				<input type="text" id="bhg_style_body_margin" name="style_panel[body_text][margin]" value="<?php echo esc_attr( $style_settings['body_text']['margin'] ?? '' ); ?>" class="regular-text" />
+		</fieldset>
+		<p class="description"><?php echo esc_html( bhg_t( 'style_panel_description', 'Adjust core colors and spacing for plugin shortcodes.' ) ); ?></p>
 </td>
 </tr>
 </tbody>
