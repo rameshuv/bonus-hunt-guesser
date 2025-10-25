@@ -41,8 +41,8 @@ $dash               = '—';
                                 <?php foreach ( $hunts as $hunt ) :
                                         $is_winner     = ! empty( $hunt['winner_position'] );
                                         $row_class     = $is_winner ? 'is-winner' : 'is-participant';
-                                        $status        = isset( $hunt['status'] ) ? strtolower( (string) $hunt['status'] ) : '';
-                                        $status_label  = $status ? bhg_t( 'status_' . $status, ucfirst( $status ) ) : '';
+                                        $hunt_status   = isset( $hunt['status'] ) ? strtolower( (string) $hunt['status'] ) : '';
+                                        $status_label  = $hunt_status ? bhg_t( 'status_' . $hunt_status, ucfirst( $hunt_status ) ) : '';
                                         $guess_display = $currency_formatter ? call_user_func( $currency_formatter, (float) $hunt['guess'] ) : number_format_i18n( (float) $hunt['guess'], 2 );
                                         $difference    = null !== $hunt['difference'] ? ( $currency_formatter ? call_user_func( $currency_formatter, (float) $hunt['difference'] ) : number_format_i18n( (float) $hunt['difference'], 2 ) ) : $dash;
                                         $final_balance = null !== $hunt['final_balance'] ? ( $currency_formatter ? call_user_func( $currency_formatter, (float) $hunt['final_balance'] ) : number_format_i18n( (float) $hunt['final_balance'], 2 ) ) : $dash;

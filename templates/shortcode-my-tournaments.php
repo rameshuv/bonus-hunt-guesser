@@ -37,10 +37,10 @@ $dash        = '—';
                         </thead>
                         <tbody>
                                 <?php foreach ( $tournaments as $tournament ) :
-                                        $type       = isset( $tournament['type'] ) ? sanitize_key( $tournament['type'] ) : '';
-                                        $type_label = $type ? bhg_t( 'tournament_type_' . $type, ucwords( str_replace( '_', ' ', $type ) ) ) : $dash;
-                                        $status     = isset( $tournament['status'] ) ? strtolower( (string) $tournament['status'] ) : '';
-                                        $status     = $status ? bhg_t( 'status_' . $status, ucfirst( $status ) ) : $dash;
+                                        $tournament_type = isset( $tournament['type'] ) ? sanitize_key( $tournament['type'] ) : '';
+                                        $type_label = $tournament_type ? bhg_t( 'tournament_type_' . $tournament_type, ucwords( str_replace( '_', ' ', $tournament_type ) ) ) : $dash;
+                                        $status_key = isset( $tournament['status'] ) ? strtolower( (string) $tournament['status'] ) : '';
+                                        $status_label = $status_key ? bhg_t( 'status_' . $status_key, ucfirst( $status_key ) ) : $dash;
                                         $wins       = isset( $tournament['wins'] ) ? (int) $tournament['wins'] : 0;
                                         $last_win   = ! empty( $tournament['last_win_date'] ) ? mysql2date( $date_format, $tournament['last_win_date'] ) : $dash;
                                         $start_date = ! empty( $tournament['start_date'] ) ? mysql2date( $date_format, $tournament['start_date'] ) : $dash;
@@ -60,7 +60,7 @@ $dash        = '—';
                                                         <?php echo esc_html( $last_win ); ?>
                                                 </td>
                                                 <td data-title="<?php echo esc_attr( bhg_t( 'column_status', 'Status' ) ); ?>">
-                                                        <?php echo esc_html( $status ); ?>
+                                                        <?php echo esc_html( $status_label ); ?>
                                                 </td>
                                                 <td data-title="<?php echo esc_attr( bhg_t( 'column_start_date', 'Start Date' ) ); ?>">
                                                         <?php echo esc_html( $start_date ); ?>

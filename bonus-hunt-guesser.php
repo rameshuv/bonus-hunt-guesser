@@ -498,8 +498,8 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
-$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
+$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_ads_enabled'] ) ) : '';
+$settings['ads_enabled'] = '1' === (string) $ads_enabled_value ? 1 : 0;
 
         if ( isset( $_POST['bhg_email_from'] ) ) {
                         $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
@@ -509,7 +509,7 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
         }
 
 	if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
-		$redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
+		$redirect = trim( sanitize_text_field( wp_unslash( $_POST['bhg_post_submit_redirect'] ) ) );
 		if ( '' === $redirect ) {
 			$settings['post_submit_redirect'] = '';
 		} else {
@@ -594,7 +594,7 @@ function bhg_handle_submit_guess() {
         $redirect_setting = isset( $settings['post_submit_redirect'] ) ? $settings['post_submit_redirect'] : '';
         $redirect_target  = $redirect_setting ? wp_validate_redirect( $redirect_setting, '' ) : '';
         if ( isset( $_POST['redirect_to'] ) ) {
-                        $requested_redirect = trim( wp_unslash( $_POST['redirect_to'] ) );
+                        $requested_redirect = trim( sanitize_text_field( wp_unslash( $_POST['redirect_to'] ) ) );
                 if ( '' !== $requested_redirect ) {
                                 $maybe_redirect = wp_validate_redirect( $requested_redirect, '' );
                         if ( $maybe_redirect ) {
