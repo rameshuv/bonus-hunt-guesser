@@ -123,12 +123,23 @@ if ( 'tournament' === $view_type ) {
 	if ( $wcount < 1 ) {
 			$wcount = 3;
 	}
-	$columns = array(
-		'sc_position' => bhg_t( 'sc_position', 'Position' ),
-		'sc_user'     => bhg_t( 'sc_user', 'User' ),
-		'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
-		'difference'  => bhg_t( 'difference', 'Difference' ),
-	);
+        $prize_titles = array();
+        if ( class_exists( 'BHG_Prizes' ) ) {
+                $prize_rows = BHG_Prizes::get_prizes_for_hunt( $item_id );
+                if ( ! empty( $prize_rows ) ) {
+                        foreach ( $prize_rows as $prize_row ) {
+                                $prize_titles[] = isset( $prize_row->title ) ? (string) $prize_row->title : '';
+                        }
+                }
+        }
+
+        $columns = array(
+                'sc_position' => bhg_t( 'sc_position', 'Position' ),
+                'sc_user'     => bhg_t( 'sc_user', 'User' ),
+                'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
+                'difference'  => bhg_t( 'difference', 'Difference' ),
+                'label_price' => bhg_t( 'label_price', 'Price' ),
+        );
 }
 
 // Gather hunts and tournaments for the selector.
@@ -212,10 +223,17 @@ $current   = $view_type . '-' . $item_id;
 					<td><?php echo esc_html( $r->display_name ); ?></td>
 					<?php if ( 'tournament' === $view_type ) : ?>
 						<td><?php echo (int) $r->wins; ?></td>
-					<?php else : ?>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
-					<?php endif; ?>
+                                        <?php else : ?>
+                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
+                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+                                                <td>
+                                                        <?php
+                                                        $prize_index = $pos - 1;
+                                                        $prize_title = isset( $prize_titles[ $prize_index ] ) ? $prize_titles[ $prize_index ] : '';
+                                                        echo $prize_title ? esc_html( $prize_title ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                                                        ?>
+                                                </td>
+                                        <?php endif; ?>
 				</tr>
 				<?php
 				++$pos;

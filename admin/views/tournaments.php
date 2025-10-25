@@ -73,9 +73,33 @@ if ( $search_term ) {
 		);
 }
 $base_url = remove_query_arg( array( 'paged' ) );
-$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
-$linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$hunts_table  = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$linked_hunts = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+if ( ! is_array( $linked_hunts ) ) {
+        $linked_hunts = array();
+}
+$year_start        = gmdate( 'Y-01-01 00:00:00' );
+$hunt_where_parts  = array(
+        '( (created_at IS NOT NULL AND created_at >= %s) OR (closed_at IS NOT NULL AND closed_at >= %s) )'
+);
+$hunt_where_params = array( $year_start, $year_start );
+
+if ( ! empty( $linked_hunts ) ) {
+        $linked_hunts      = array_map( 'absint', $linked_hunts );
+        $placeholders      = implode( ', ', array_fill( 0, count( $linked_hunts ), '%d' ) );
+        $hunt_where_parts[] = "id IN ({$placeholders})";
+        $hunt_where_params  = array_merge( $hunt_where_params, $linked_hunts );
+}
+
+$hunt_sql = "SELECT id, title FROM {$hunts_table}";
+if ( ! empty( $hunt_where_parts ) ) {
+        $hunt_sql .= ' WHERE ' . implode( ' OR ', $hunt_where_parts );
+}
+$hunt_sql .= ' ORDER BY title ASC';
+
+$hunt_prepare_args = array_merge( array( $hunt_sql ), $hunt_where_params );
+$hunt_prepared     = call_user_func_array( array( $wpdb, 'prepare' ), $hunt_prepare_args );
+$all_hunts         = $wpdb->get_results( $hunt_prepared );
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
@@ -268,18 +292,45 @@ endif;
 </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
+                <tr>
+                <th><label for="bhg_t_desc">
+                <?php
+                echo esc_html( bhg_t( 'description', 'Description' ) );
+                ?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_type">
+                                <?php
+                                echo esc_html( bhg_t( 'label_type', 'Type' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <?php
+                                                $type_value   = isset( $row->type ) ? sanitize_key( $row->type ) : 'monthly';
+                                                $type_options = array(
+                                                        'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+                                                        'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+                                                        'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+                                                        'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+                                                        'alltime'   => bhg_t( 'all_time', 'All Time' ),
+                                                );
+                                                if ( ! array_key_exists( $type_value, $type_options ) ) {
+                                                        $type_value = 'monthly';
+                                                }
+                                                ?>
+                                                <select id="bhg_t_type" name="type">
+                                                <?php foreach ( $type_options as $value => $label ) : ?>
+                                                        <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $type_value, $value ); ?>><?php echo esc_html( $label ); ?></option>
+                                                <?php endforeach; ?>
+                                                </select>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
+                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
 				?>
 				</label></th>
 				<td>

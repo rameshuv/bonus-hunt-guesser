@@ -59,6 +59,23 @@
 
 .bhg-winner-row {
     background-color: #d1fae5;
+    font-weight: 600;
+}
+
+.bhg-winner-row td {
+    font-weight: 600;
+}
+
+.bhg-dashboard-winner {
+    display: block;
+}
+
+.bhg-dashboard-winner + .bhg-dashboard-winner {
+    margin-top: 4px;
+}
+
+.bhg-dashboard-winner-name {
+    font-weight: 600;
 }
 
 /* Utility classes */
