@@ -17,6 +17,7 @@ $view_type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) 
 $view_type = ( 'tournament' === $view_type ) ? 'tournament' : 'hunt';
 $item_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 $timeframe = isset( $_GET['timeframe'] ) ? sanitize_key( wp_unslash( $_GET['timeframe'] ) ) : 'month';
+$hunt_prize_titles = array();
 if ( 'all' === $timeframe ) {
         $timeframe = 'all_time';
 }
@@ -101,10 +102,14 @@ if ( 'tournament' === $view_type ) {
 		'wins'        => bhg_t( 'wins', 'Wins' ),
 	);
 } else {
-	if ( empty( $hunt ) ) {
+        if ( ! empty( $hunt ) && isset( $hunt->id ) && class_exists( 'BHG_Bonus_Hunts' ) ) {
+                $hunt = BHG_Bonus_Hunts::get_hunt( (int) $hunt->id );
+        }
+
+        if ( empty( $hunt ) ) {
                     echo '<div class="wrap bhg-wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
-			return;
-	}
+                        return;
+        }
         $has_final_balance = isset( $hunt->final_balance ) && '' !== $hunt->final_balance && null !== $hunt->final_balance;
         if ( $has_final_balance ) {
                 $rows = $wpdb->get_results(
@@ -117,6 +122,15 @@ if ( 'tournament' === $view_type ) {
                 );
         } else {
                 $rows = array();
+        }
+
+        if ( class_exists( 'BHG_Bonus_Hunts' ) ) {
+                if ( isset( $hunt->prize_titles ) && is_array( $hunt->prize_titles ) ) {
+                        $hunt_prize_titles = $hunt->prize_titles;
+                } else {
+                        $prize_map = BHG_Bonus_Hunts::get_prize_titles_for_hunts( array( (int) $hunt->id ) );
+                        $hunt_prize_titles = isset( $prize_map[ (int) $hunt->id ] ) ? $prize_map[ (int) $hunt->id ] : array();
+                }
         }
         $result_title = $hunt->title;
         $wcount       = (int) $hunt->winners_count;
@@ -188,6 +202,12 @@ $current   = $view_type . '-' . $item_id;
                                 <option value="all_time" <?php selected( $timeframe, 'all_time' ); ?>><?php echo esc_html( bhg_t( 'all_time', 'All Time' ) ); ?></option>
                         </select>
         </div>
+        <?php if ( 'hunt' === $view_type ) : ?>
+                <p class="description">
+                        <strong><?php echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) ); ?>:</strong>
+                        <?php echo ! empty( $hunt_prize_titles ) ? esc_html( implode( ', ', $hunt_prize_titles ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?>
+                </p>
+        <?php endif; ?>
         <?php if ( empty( $rows ) ) : ?>
                 <div class="notice notice-info">
                         <p><?php echo esc_html( bhg_t( 'no_winners_yet', 'There are no winners yet' ) ); ?></p>

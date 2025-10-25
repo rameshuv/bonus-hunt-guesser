@@ -94,6 +94,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 									$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
 									$status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
 									$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+									$prize_ids         = $this->sanitize_prize_ids_from_request();
 
 									$result = $db->create_bonus_hunt(
 										array(
@@ -108,6 +109,18 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 										)
 									);
 
+										if ( false !== $result && class_exists( 'BHG_Prizes' ) ) {
+												$hunt_id = is_numeric( $result ) ? (int) $result : 0;
+												if ( $hunt_id <= 0 ) {
+																global $wpdb;
+																$hunt_id = isset( $wpdb->insert_id ) ? (int) $wpdb->insert_id : 0;
+												}
+
+												if ( $hunt_id > 0 ) {
+																BHG_Prizes::set_hunt_prizes( $hunt_id, $prize_ids );
+												}
+										}
+
 										$message = $result ? 'success' : 'error';
 					break;
 
@@ -120,6 +133,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 					$status               = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
 					$final_balance        = isset( $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
 					$affiliate_site_id    = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+					$prize_ids            = $this->sanitize_prize_ids_from_request();
 
 					$result = $db->update_bonus_hunt(
 						$id,
@@ -143,6 +157,10 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 						}
 					}
 
+			if ( false !== $result && class_exists( 'BHG_Prizes' ) ) {
+				BHG_Prizes::set_hunt_prizes( $id, $prize_ids );
+			}
+
 						$message = $result ? 'updated' : 'error';
 					break;
 
@@ -158,33 +176,59 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 							exit;
 		}
 
-				/**
-				 * Delete a guess submitted for a hunt.
-				 *
-				 * @return void
-				 */
+		/**
+		 * Delete a guess submitted for a hunt.
+		 *
+		 * @return void
+		 */
 		public function delete_guess() {
 			if ( ! current_user_can( 'manage_options' ) ) {
-						wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+				wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
 			}
 
-																check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
+			check_admin_referer( 'bhg_delete_guess', 'bhg_delete_guess_nonce' );
 
-				$guess_id = isset( $_GET['guess_id'] ) ? absint( wp_unslash( $_GET['guess_id'] ) ) : 0;
+			$guess_id = isset( $_GET['guess_id'] ) ? absint( wp_unslash( $_GET['guess_id'] ) ) : 0;
 
-				global $wpdb;
-				$table   = $wpdb->prefix . 'bhg_guesses';
-				$deleted = false;
+			global $wpdb;
+			$table   = $wpdb->prefix . 'bhg_guesses';
+			$deleted = false;
 
 			if ( $guess_id > 0 ) {
 				$deleted = (bool) $wpdb->delete( $table, array( 'id' => $guess_id ), array( '%d' ) );
 			}
 
-							$message = $deleted ? 'guess_deleted' : 'error';
-							$url     = esc_url_raw( add_query_arg( 'message', $message, wp_get_referer() ) );
+			$message = $deleted ? 'guess_deleted' : 'error';
+			$url     = esc_url_raw( add_query_arg( 'message', $message, wp_get_referer() ) );
 
-							wp_safe_redirect( $url );
-							exit;
+			wp_safe_redirect( $url );
+			exit;
 		}
-	}
+
+		/**
+		 * Sanitize prize IDs submitted from the request.
+		 *
+		 * @return int[]
+		 */
+		private function sanitize_prize_ids_from_request() {
+			$input     = isset( $_POST['prize_ids'] ) ? wp_unslash( $_POST['prize_ids'] ) : array();
+			$prize_ids = array();
+
+			if ( is_array( $input ) ) {
+				foreach ( $input as $maybe_id ) {
+					$pid = absint( $maybe_id );
+					if ( $pid > 0 ) {
+						$prize_ids[ $pid ] = $pid;
+					}
+				}
+			} elseif ( $input ) {
+				$pid = absint( $input );
+				if ( $pid > 0 ) {
+					$prize_ids[ $pid ] = $pid;
+				}
+			}
+
+			return array_values( $prize_ids );
+		}
+}
 }

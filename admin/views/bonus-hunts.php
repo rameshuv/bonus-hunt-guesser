@@ -77,6 +77,12 @@ $offset
 
 // db call ok; no-cache ok.
 $hunts = $wpdb->get_results( $hunts_query );
+$prize_map = array();
+
+if ( ! empty( $hunts ) && class_exists( 'BHG_Bonus_Hunts' ) ) {
+        $hunt_ids = wp_list_pluck( $hunts, 'id' );
+        $prize_map = BHG_Bonus_Hunts::get_prize_titles_for_hunts( $hunt_ids );
+}
 
 		$count_query = $wpdb->prepare(
 			"SELECT COUNT(*) FROM {$hunts_table} h WHERE h.title LIKE %s",
@@ -176,8 +182,8 @@ $hunts = $wpdb->get_results( $hunts_query );
 	?>
 				"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></a></th>
 <th><a href="
-	<?php
-	echo esc_url(
+        <?php
+        echo esc_url(
                 add_query_arg(
                         array(
                                 'orderby' => 'affiliate',
@@ -185,12 +191,13 @@ $hunts = $wpdb->get_results( $hunts_query );
                         ),
                         $sort_base
                 )
-	);
-	?>
-				"><?php echo esc_html( bhg_t( 'affiliate', 'Affiliate' ) ); ?></a></th>
+        );
+        ?>
+                                "><?php echo esc_html( bhg_t( 'affiliate', 'Affiliate' ) ); ?></a></th>
+		<th><?php echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) ); ?></th>
 <th><a href="
-	<?php
-	echo esc_url(
+        <?php
+        echo esc_url(
                 add_query_arg(
                         array(
                                 'orderby' => 'winners',
@@ -220,7 +227,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 </thead>
 		<tbody>
 				<?php if ( empty( $hunts ) ) : ?>
-<tr><td colspan="9"><?php echo esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ); ?></td></tr>
+<tr><td colspan="10"><?php echo esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ); ?></td></tr>
 						<?php
 				else :
                                         foreach ( $hunts as $h ) :
@@ -240,6 +247,13 @@ $hunts = $wpdb->get_results( $hunts_query );
 <td><?php echo esc_html( bhg_format_currency( (float) $h->starting_balance ) ); ?></td>
 <td><?php echo null !== $h->final_balance ? esc_html( bhg_format_currency( (float) $h->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
 <td><?php echo $h->affiliate_name ? esc_html( $h->affiliate_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+		<td>
+			<?php
+			$hunt_id      = (int) $h->id;
+			$prize_titles = isset( $prize_map[ $hunt_id ] ) ? $prize_map[ $hunt_id ] : array();
+			echo ! empty( $prize_titles ) ? esc_html( implode( ', ', $prize_titles ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+			?>
+		</td>
 <td><?php echo esc_html( (int) ( $h->winners_count ?? 3 ) ); ?></td>
 <td><?php echo esc_html( bhg_t( $h->status, ucfirst( $h->status ) ) ); ?></td>
 <td>
