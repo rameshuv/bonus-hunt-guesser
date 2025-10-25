@@ -14,10 +14,13 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 // Fetch existing settings.
-$settings = get_option( 'bhg_plugin_settings', array() );
+$settings       = get_option( 'bhg_plugin_settings', array() );
+$points_config  = function_exists( 'bhg_get_tournament_points_settings' ) ? bhg_get_tournament_points_settings() : array();
+$design_config  = function_exists( 'bhg_get_design_settings' ) ? bhg_get_design_settings() : array();
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
+$points_msg = isset( $_GET['points_scope'] ) ? sanitize_key( wp_unslash( $_GET['points_scope'] ) ) : '';
 ?>
 <div class="wrap">
 <h1><?php echo esc_html( bhg_t( 'bonus_hunt_guesser_settings', 'Bonus Hunt Guesser Settings' ) ); ?></h1>
@@ -28,6 +31,19 @@ $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error']
 <div class="notice notice-error"><p><?php echo esc_html( bhg_t( 'invalid_settings', 'Invalid data submitted.' ) ); ?></p></div>
 <?php elseif ( 'nonce_failed' === $error_code ) : ?>
 <div class="notice notice-error"><p><?php echo esc_html( bhg_t( 'security_check_failed', 'Security check failed. Please try again.' ) ); ?></p></div>
+<?php endif; ?>
+<?php if ( in_array( $points_msg, array( 'all', 'active', 'closed' ), true ) ) : ?>
+<div class="notice notice-info"><p>
+<?php
+if ( 'all' === $points_msg ) {
+        echo esc_html( bhg_t( 'points_recalculated_all', 'Tournament standings recalculated for all hunts.' ) );
+} elseif ( 'active' === $points_msg ) {
+        echo esc_html( bhg_t( 'points_recalculated_active', 'Tournament standings recalculated for active hunts.' ) );
+} else {
+        echo esc_html( bhg_t( 'points_recalculated_closed', 'Tournament standings recalculated for closed hunts.' ) );
+}
+?>
+</p></div>
 <?php endif; ?>
 
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -106,6 +122,108 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="url" class="regular-text" id="bhg_post_submit_redirect" name="bhg_post_submit_redirect" value="<?php echo isset( $settings['post_submit_redirect'] ) ? esc_attr( $settings['post_submit_redirect'] ) : ''; ?>" placeholder="<?php echo esc_attr( bhg_t( 'post_submit_redirect_placeholder', 'https://example.com/thank-you' ) ); ?>">
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'tournament_points_heading', 'Tournament Points' ) ); ?></th>
+<td>
+<table class="widefat striped" style="max-width: 420px;">
+<thead>
+<tr>
+<th><?php echo esc_html( bhg_t( 'placement', 'Placement' ) ); ?></th>
+<th><?php echo esc_html( bhg_t( 'points', 'Points' ) ); ?></th>
+</tr>
+</thead>
+<tbody>
+<?php for ( $i = 1; $i <= 8; $i++ ) : ?>
+<tr>
+<td><?php echo esc_html( sprintf( bhg_t( 'placement_number', 'Place %d' ), $i ) ); ?></td>
+<td><input type="number" min="0" class="small-text" name="bhg_tournament_points[<?php echo esc_attr( $i ); ?>]" value="<?php echo isset( $points_config[ $i ] ) ? esc_attr( $points_config[ $i ] ) : '0'; ?>" /></td>
+</tr>
+<?php endfor; ?>
+</tbody>
+</table>
+<p class="description"><?php echo esc_html( bhg_t( 'tournament_points_description', 'Adjust the points awarded for each placement. Additional placements default to 0 points.' ) ); ?></p>
+<p>
+<label for="bhg_tournament_points_scope"><strong><?php echo esc_html( bhg_t( 'points_scope_label', 'Recalculate existing hunts' ) ); ?></strong></label>
+<select id="bhg_tournament_points_scope" name="bhg_tournament_points_scope">
+<option value="none"><?php echo esc_html( bhg_t( 'do_not_recalculate', 'Do not recalculate' ) ); ?></option>
+<option value="active"><?php echo esc_html( bhg_t( 'recalculate_active', 'Active hunts' ) ); ?></option>
+<option value="closed"><?php echo esc_html( bhg_t( 'recalculate_closed', 'Closed hunts' ) ); ?></option>
+<option value="all"><?php echo esc_html( bhg_t( 'recalculate_all', 'All hunts' ) ); ?></option>
+</select>
+</p>
+<p class="description"><?php echo esc_html( bhg_t( 'points_scope_help', 'Choose which hunts should update their stored points after saving.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'title_block_styling', 'Title Block Styling' ) ); ?></th>
+<td>
+<p><label for="bhg_design_title_block_background"><?php echo esc_html( bhg_t( 'background_color', 'Background color' ) ); ?></label><br>
+<input type="text" id="bhg_design_title_block_background" name="bhg_design[title_block_background]" value="<?php echo esc_attr( $design_config['title_block_background'] ); ?>" class="regular-text" placeholder="#ffffff"></p>
+<p><label for="bhg_design_title_block_radius"><?php echo esc_html( bhg_t( 'border_radius', 'Border radius' ) ); ?></label><br>
+<input type="text" id="bhg_design_title_block_radius" name="bhg_design[title_block_radius]" value="<?php echo esc_attr( $design_config['title_block_radius'] ); ?>" class="regular-text" placeholder="8px"></p>
+<p><label for="bhg_design_title_block_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label><br>
+<input type="text" id="bhg_design_title_block_padding" name="bhg_design[title_block_padding]" value="<?php echo esc_attr( $design_config['title_block_padding'] ); ?>" class="regular-text" placeholder="12px"></p>
+<p><label for="bhg_design_title_block_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label><br>
+<input type="text" id="bhg_design_title_block_margin" name="bhg_design[title_block_margin]" value="<?php echo esc_attr( $design_config['title_block_margin'] ); ?>" class="regular-text" placeholder="12px 0"></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'heading_two_styling', 'H2 Styling' ) ); ?></th>
+<td>
+<p><label for="bhg_design_h2_font_size"><?php echo esc_html( bhg_t( 'font_size', 'Font size' ) ); ?></label><br>
+<input type="text" id="bhg_design_h2_font_size" name="bhg_design[h2_font_size]" value="<?php echo esc_attr( $design_config['h2_font_size'] ); ?>" class="regular-text" placeholder="1.5rem"></p>
+<p><label for="bhg_design_h2_font_weight"><?php echo esc_html( bhg_t( 'font_weight', 'Font weight' ) ); ?></label><br>
+<input type="text" id="bhg_design_h2_font_weight" name="bhg_design[h2_font_weight]" value="<?php echo esc_attr( $design_config['h2_font_weight'] ); ?>" class="regular-text" placeholder="700"></p>
+<p><label for="bhg_design_h2_color"><?php echo esc_html( bhg_t( 'text_color', 'Text color' ) ); ?></label><br>
+<input type="text" id="bhg_design_h2_color" name="bhg_design[h2_color]" value="<?php echo esc_attr( $design_config['h2_color'] ); ?>" class="regular-text" placeholder="#1e293b"></p>
+<p><label for="bhg_design_h2_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label><br>
+<input type="text" id="bhg_design_h2_padding" name="bhg_design[h2_padding]" value="<?php echo esc_attr( $design_config['h2_padding'] ); ?>" class="regular-text" placeholder="0"></p>
+<p><label for="bhg_design_h2_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label><br>
+<input type="text" id="bhg_design_h2_margin" name="bhg_design[h2_margin]" value="<?php echo esc_attr( $design_config['h2_margin'] ); ?>" class="regular-text" placeholder="0 0 12px"></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'heading_three_styling', 'H3 Styling' ) ); ?></th>
+<td>
+<p><label for="bhg_design_h3_font_size"><?php echo esc_html( bhg_t( 'font_size', 'Font size' ) ); ?></label><br>
+<input type="text" id="bhg_design_h3_font_size" name="bhg_design[h3_font_size]" value="<?php echo esc_attr( $design_config['h3_font_size'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_h3_font_weight"><?php echo esc_html( bhg_t( 'font_weight', 'Font weight' ) ); ?></label><br>
+<input type="text" id="bhg_design_h3_font_weight" name="bhg_design[h3_font_weight]" value="<?php echo esc_attr( $design_config['h3_font_weight'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_h3_color"><?php echo esc_html( bhg_t( 'text_color', 'Text color' ) ); ?></label><br>
+<input type="text" id="bhg_design_h3_color" name="bhg_design[h3_color]" value="<?php echo esc_attr( $design_config['h3_color'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_h3_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label><br>
+<input type="text" id="bhg_design_h3_padding" name="bhg_design[h3_padding]" value="<?php echo esc_attr( $design_config['h3_padding'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_h3_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label><br>
+<input type="text" id="bhg_design_h3_margin" name="bhg_design[h3_margin]" value="<?php echo esc_attr( $design_config['h3_margin'] ); ?>" class="regular-text"></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'description_styling', 'Description Styling' ) ); ?></th>
+<td>
+<p><label for="bhg_design_description_font_size"><?php echo esc_html( bhg_t( 'font_size', 'Font size' ) ); ?></label><br>
+<input type="text" id="bhg_design_description_font_size" name="bhg_design[description_font_size]" value="<?php echo esc_attr( $design_config['description_font_size'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_description_font_weight"><?php echo esc_html( bhg_t( 'font_weight', 'Font weight' ) ); ?></label><br>
+<input type="text" id="bhg_design_description_font_weight" name="bhg_design[description_font_weight]" value="<?php echo esc_attr( $design_config['description_font_weight'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_description_color"><?php echo esc_html( bhg_t( 'text_color', 'Text color' ) ); ?></label><br>
+<input type="text" id="bhg_design_description_color" name="bhg_design[description_color]" value="<?php echo esc_attr( $design_config['description_color'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_description_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label><br>
+<input type="text" id="bhg_design_description_padding" name="bhg_design[description_padding]" value="<?php echo esc_attr( $design_config['description_padding'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_description_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label><br>
+<input type="text" id="bhg_design_description_margin" name="bhg_design[description_margin]" value="<?php echo esc_attr( $design_config['description_margin'] ); ?>" class="regular-text"></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'body_text_styling', 'Body Text Styling' ) ); ?></th>
+<td>
+<p><label for="bhg_design_body_font_size"><?php echo esc_html( bhg_t( 'font_size', 'Font size' ) ); ?></label><br>
+<input type="text" id="bhg_design_body_font_size" name="bhg_design[body_font_size]" value="<?php echo esc_attr( $design_config['body_font_size'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_body_padding"><?php echo esc_html( bhg_t( 'padding', 'Padding' ) ); ?></label><br>
+<input type="text" id="bhg_design_body_padding" name="bhg_design[body_padding]" value="<?php echo esc_attr( $design_config['body_padding'] ); ?>" class="regular-text"></p>
+<p><label for="bhg_design_body_margin"><?php echo esc_html( bhg_t( 'margin', 'Margin' ) ); ?></label><br>
+<input type="text" id="bhg_design_body_margin" name="bhg_design[body_margin]" value="<?php echo esc_attr( $design_config['body_margin'] ); ?>" class="regular-text"></p>
+<p class="description"><?php echo esc_html( bhg_t( 'body_text_styling_help', 'Applies to standard text elements (paragraphs, spans, table cells).' ) ); ?></p>
 </td>
 </tr>
 </tbody>

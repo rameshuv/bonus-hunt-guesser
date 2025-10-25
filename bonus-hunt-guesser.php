@@ -3,14 +3,14 @@
  * Plugin Name: Bonus Hunt Guesser
  * Plugin URI: https://yourdomain.com/
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality
- * Version: 8.0.12
- * Requires at least: 5.5.5
+ * Version: 8.0.14
+ * Requires at least: 6.3.0
  * Requires PHP: 7.4
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser
  * Domain Path: /languages
  * License: GPLv2 or later
- * MySQL tested up to: 5.5.5
+ * Requires MySQL: 5.5.5
  *
  * @package Bonus_Hunt_Guesser
  */
@@ -138,12 +138,551 @@ return array_values( $normalized );
 }
 }
 
+if ( ! function_exists( 'bhg_get_default_tournament_points' ) ) {
+        /**
+         * Default tournament points mapping for the first eight placements.
+         *
+         * @return array<int,int> Default points per placement.
+         */
+        function bhg_get_default_tournament_points() {
+                return array(
+                        1 => 25,
+                        2 => 15,
+                        3 => 10,
+                        4 => 5,
+                        5 => 4,
+                        6 => 3,
+                        7 => 2,
+                        8 => 1,
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_normalize_tournament_points' ) ) {
+        /**
+         * Normalize a points configuration array.
+         *
+         * @param array $points Raw points array keyed by placement.
+         * @param int   $max    Maximum placement slots to consider.
+         *
+         * @return array<int,int> Normalized points mapping.
+         */
+        function bhg_normalize_tournament_points( $points, $max = 25 ) {
+                $defaults   = bhg_get_default_tournament_points();
+                $normalized = array();
+
+                if ( ! is_array( $points ) ) {
+                        $points = array();
+                }
+
+                for ( $i = 1; $i <= $max; $i++ ) {
+                        if ( isset( $points[ $i ] ) ) {
+                                $value = $points[ $i ];
+                        } elseif ( isset( $points[ (string) $i ] ) ) {
+                                $value = $points[ (string) $i ];
+                        } elseif ( isset( $defaults[ $i ] ) ) {
+                                $value = $defaults[ $i ];
+                        } else {
+                                $value = 0;
+                        }
+
+                        $normalized[ $i ] = max( 0, (int) $value );
+                }
+
+                return $normalized;
+        }
+}
+
+if ( ! function_exists( 'bhg_get_tournament_points_settings' ) ) {
+        /**
+         * Retrieve the configured tournament points mapping.
+         *
+         * @return array<int,int> Points per placement.
+         */
+        function bhg_get_tournament_points_settings() {
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                $points   = isset( $settings['tournament_points'] ) ? $settings['tournament_points'] : array();
+
+                return bhg_normalize_tournament_points( $points );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_points_for_position' ) ) {
+        /**
+         * Get the configured points for a specific placement.
+         *
+         * @param int $position Placement (1-indexed).
+         *
+         * @return int Points awarded for the placement.
+         */
+        function bhg_get_points_for_position( $position ) {
+                $position = (int) $position;
+                if ( $position <= 0 ) {
+                        return 0;
+                }
+
+                $points = bhg_get_tournament_points_settings();
+
+                return isset( $points[ $position ] ) ? (int) $points[ $position ] : 0;
+        }
+}
+
+if ( ! function_exists( 'bhg_get_default_design_settings' ) ) {
+        /**
+         * Default design tokens for shortcode styling.
+         *
+         * @return array<string,string> Default values (empty string indicates no override).
+         */
+        function bhg_get_default_design_settings() {
+                return array(
+                        'title_block_background' => '',
+                        'title_block_radius'     => '',
+                        'title_block_padding'    => '',
+                        'title_block_margin'     => '',
+                        'h2_font_size'           => '',
+                        'h2_font_weight'         => '',
+                        'h2_color'               => '',
+                        'h2_padding'             => '',
+                        'h2_margin'              => '',
+                        'h3_font_size'           => '',
+                        'h3_font_weight'         => '',
+                        'h3_color'               => '',
+                        'h3_padding'             => '',
+                        'h3_margin'              => '',
+                        'description_font_size'  => '',
+                        'description_font_weight'=> '',
+                        'description_color'      => '',
+                        'description_padding'    => '',
+                        'description_margin'     => '',
+                        'body_font_size'         => '',
+                        'body_padding'           => '',
+                        'body_margin'            => '',
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_design_settings' ) ) {
+        /**
+         * Retrieve shortcode design settings merged with defaults.
+         *
+         * @return array<string,string> Design tokens.
+         */
+        function bhg_get_design_settings() {
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                $design   = isset( $settings['design'] ) && is_array( $settings['design'] ) ? $settings['design'] : array();
+
+                return array_merge( bhg_get_default_design_settings(), $design );
+        }
+}
+
+if ( ! function_exists( 'bhg_sanitize_measurement_value' ) ) {
+        /**
+         * Sanitize a CSS measurement string (padding, margin, font-size).
+         *
+         * @param string $value Raw value.
+         * @param bool   $allow_percent Whether percentages are allowed.
+         *
+         * @return string Sanitized value or empty string on failure.
+         */
+        function bhg_sanitize_measurement_value( $value, $allow_percent = true ) {
+                $value = is_string( $value ) ? trim( $value ) : '';
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                $parts = preg_split( '/\s+/', $value );
+                if ( empty( $parts ) ) {
+                        return '';
+                }
+
+                $allowed_units = $allow_percent ? '(px|em|rem|%|vh|vw)?' : '(px|em|rem|vh|vw)?';
+                foreach ( $parts as $part ) {
+                        if ( ! preg_match( '/^-?\d+(?:\.\d+)?' . $allowed_units . '$/i', $part ) ) {
+                                return '';
+                        }
+                }
+
+                return implode( ' ', $parts );
+        }
+}
+
+if ( ! function_exists( 'bhg_sanitize_font_weight_value' ) ) {
+        /**
+         * Sanitize a CSS font-weight value.
+         *
+         * @param string $value Raw value.
+         *
+         * @return string Sanitized value or empty string.
+         */
+        function bhg_sanitize_font_weight_value( $value ) {
+                $value = is_string( $value ) ? trim( strtolower( $value ) ) : '';
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                $allowed_keywords = array( 'normal', 'bold', 'bolder', 'lighter' );
+                if ( in_array( $value, $allowed_keywords, true ) ) {
+                        return $value;
+                }
+
+                if ( preg_match( '/^(?:[1-9]00)$/', $value ) ) {
+                        return $value;
+                }
+
+                return '';
+        }
+}
+
+if ( ! function_exists( 'bhg_sanitize_color_value' ) ) {
+        /**
+         * Sanitize a color value, allowing hex colors or known keywords.
+         *
+         * @param string $value Raw value.
+         *
+         * @return string Sanitized value or empty string.
+         */
+        function bhg_sanitize_color_value( $value ) {
+                $value = is_string( $value ) ? trim( $value ) : '';
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                $hex = sanitize_hex_color( $value );
+                if ( $hex ) {
+                        return $hex;
+                }
+
+                $keywords = array( 'transparent', 'inherit', 'initial', 'currentcolor' );
+                if ( in_array( strtolower( $value ), $keywords, true ) ) {
+                        return strtolower( $value );
+                }
+
+                return '';
+        }
+}
+
+if ( ! function_exists( 'bhg_output_design_tokens' ) ) {
+        /**
+         * Output inline CSS variables for configured design settings.
+         *
+         * @return void
+         */
+        function bhg_output_design_tokens() {
+                if ( is_admin() ) {
+                        return;
+                }
+
+                $design = bhg_get_design_settings();
+                $map    = array(
+                        'title_block_background' => '--bhg-title-block-background',
+                        'title_block_radius'     => '--bhg-title-block-radius',
+                        'title_block_padding'    => '--bhg-title-block-padding',
+                        'title_block_margin'     => '--bhg-title-block-margin',
+                        'h2_font_size'           => '--bhg-h2-font-size',
+                        'h2_font_weight'         => '--bhg-h2-font-weight',
+                        'h2_color'               => '--bhg-h2-color',
+                        'h2_padding'             => '--bhg-h2-padding',
+                        'h2_margin'              => '--bhg-h2-margin',
+                        'h3_font_size'           => '--bhg-h3-font-size',
+                        'h3_font_weight'         => '--bhg-h3-font-weight',
+                        'h3_color'               => '--bhg-h3-color',
+                        'h3_padding'             => '--bhg-h3-padding',
+                        'h3_margin'              => '--bhg-h3-margin',
+                        'description_font_size'  => '--bhg-description-font-size',
+                        'description_font_weight'=> '--bhg-description-font-weight',
+                        'description_color'      => '--bhg-description-color',
+                        'description_padding'    => '--bhg-description-padding',
+                        'description_margin'     => '--bhg-description-margin',
+                        'body_font_size'         => '--bhg-body-font-size',
+                        'body_padding'           => '--bhg-body-padding',
+                        'body_margin'            => '--bhg-body-margin',
+                );
+
+                $css_vars = array();
+
+                foreach ( $map as $key => $var ) {
+                        if ( ! isset( $design[ $key ] ) ) {
+                                continue;
+                        }
+
+                        $value = $design[ $key ];
+
+                        switch ( $key ) {
+                                case 'title_block_background':
+                                case 'h2_color':
+                                case 'h3_color':
+                                case 'description_color':
+                                        $value = bhg_sanitize_color_value( $value );
+                                        break;
+                                case 'title_block_radius':
+                                case 'body_font_size':
+                                case 'body_padding':
+                                case 'body_margin':
+                                        $value = bhg_sanitize_measurement_value( $value );
+                                        break;
+                                case 'title_block_padding':
+                                case 'title_block_margin':
+                                case 'h2_padding':
+                                case 'h2_margin':
+                                case 'h3_padding':
+                                case 'h3_margin':
+                                case 'description_padding':
+                                case 'description_margin':
+                                        $value = bhg_sanitize_measurement_value( $value );
+                                        break;
+                                case 'h2_font_size':
+                                case 'h3_font_size':
+                                case 'description_font_size':
+                                        $value = bhg_sanitize_measurement_value( $value, false );
+                                        break;
+                                case 'h2_font_weight':
+                                case 'h3_font_weight':
+                                case 'description_font_weight':
+                                        $value = bhg_sanitize_font_weight_value( $value );
+                                        break;
+                                default:
+                                        $value = is_string( $value ) ? trim( $value ) : '';
+                        }
+
+                        if ( '' === $value ) {
+                                continue;
+                        }
+
+                        $css_vars[] = $var . ':' . $value;
+                }
+
+                if ( empty( $css_vars ) ) {
+                        return;
+                }
+
+                printf( '<style id="bhg-design-tokens">:root{%s}</style>', esc_html( implode( ';', $css_vars ) ) );
+        }
+        add_action( 'wp_head', 'bhg_output_design_tokens' );
+}
+
+if ( ! function_exists( 'bhg_get_default_notifications_settings' ) ) {
+        /**
+         * Default notification templates for winners, tournaments, and hunts.
+         *
+         * @return array<string,array<string,mixed>> Default settings per notification type.
+         */
+        function bhg_get_default_notifications_settings() {
+                return array(
+                        'winners'     => array(
+                                'enabled'     => 0,
+                                'bcc'         => '',
+                                'title'       => bhg_t( 'default_winner_subject', 'Results for {{hunt}}' ),
+                                'description' => 'Hi {{username}},<br><br>' . bhg_t( 'default_winner_body', 'The bonus hunt "{{hunt}}" has finished with a final balance of {{final}}.<br><br>Congratulations to {{winner}}! Full winners: {{winners}}.<br><br>Thank you for playing!' ),
+                        ),
+                        'tournaments' => array(
+                                'enabled'     => 0,
+                                'bcc'         => '',
+                                'title'       => bhg_t( 'default_tournament_subject', 'New Tournament: {{tournament}}' ),
+                                'description' => bhg_t( 'default_tournament_body', '<p>A new tournament, <strong>{{tournament}}</strong>, is now available.</p><p>{{description}}</p><p>Starts: {{start}}<br>Ends: {{end}}</p>' ),
+                        ),
+                        'hunts'       => array(
+                                'enabled'     => 0,
+                                'bcc'         => '',
+                                'title'       => bhg_t( 'default_hunt_subject', 'New Bonus Hunt: {{hunt}}' ),
+                                'description' => bhg_t( 'default_hunt_body', '<p>The bonus hunt <strong>{{hunt}}</strong> is live.</p><p>Starting balance: {{starting_balance}}<br>Bonuses: {{bonuses}}<br>Prizes: {{prizes}}</p>' ),
+                        ),
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_notifications_settings' ) ) {
+        /**
+         * Retrieve stored notification settings merged with defaults.
+         *
+         * @return array<string,array<string,mixed>> Notification settings.
+         */
+        function bhg_get_notifications_settings() {
+                $defaults = bhg_get_default_notifications_settings();
+                $stored   = get_option( 'bhg_notifications_settings', array() );
+                if ( ! is_array( $stored ) ) {
+                        $stored = array();
+                }
+
+                $normalized = array();
+                foreach ( $defaults as $type => $default ) {
+                        $current = isset( $stored[ $type ] ) && is_array( $stored[ $type ] ) ? $stored[ $type ] : array();
+                        $enabled = isset( $current['enabled'] ) ? (int) $current['enabled'] : (int) $default['enabled'];
+                        $bcc     = isset( $current['bcc'] ) ? sanitize_text_field( $current['bcc'] ) : $default['bcc'];
+                        $title   = isset( $current['title'] ) ? wp_kses_post( $current['title'] ) : $default['title'];
+                        $body    = isset( $current['description'] ) ? wp_kses_post( $current['description'] ) : $default['description'];
+
+                        $normalized[ $type ] = array(
+                                'enabled'     => $enabled ? 1 : 0,
+                                'bcc'         => $bcc,
+                                'title'       => $title,
+                                'description' => $body,
+                        );
+                }
+
+                return $normalized;
+        }
+}
+
+if ( ! function_exists( 'bhg_get_notification_settings' ) ) {
+        /**
+         * Retrieve notification settings for a given type.
+         *
+         * @param string $type Notification type key.
+         *
+         * @return array<string,mixed> Settings for the given type.
+         */
+        function bhg_get_notification_settings( $type ) {
+                $all = bhg_get_notifications_settings();
+
+                return isset( $all[ $type ] ) ? $all[ $type ] : array();
+        }
+}
+
+if ( ! function_exists( 'bhg_render_notification_template' ) ) {
+        /**
+         * Replace template tokens with values.
+         *
+         * @param string               $template Template string containing tokens.
+         * @param array<string,string> $tokens   Replacement map of token => value.
+         *
+         * @return string Rendered template.
+         */
+        function bhg_render_notification_template( $template, array $tokens ) {
+                if ( '' === $template ) {
+                        return '';
+                }
+
+                return strtr( $template, $tokens );
+        }
+}
+
+if ( ! function_exists( 'bhg_parse_bcc_list' ) ) {
+        /**
+         * Convert a BCC list string into an array of valid emails.
+         *
+         * @param string $bcc Raw BCC string.
+         *
+         * @return string[] Sanitized email addresses.
+         */
+        function bhg_parse_bcc_list( $bcc ) {
+                if ( ! is_string( $bcc ) || '' === trim( $bcc ) ) {
+                        return array();
+                }
+
+                $parts  = array_map( 'trim', preg_split( '/[,;\n]+/', $bcc ) );
+                $emails = array();
+                foreach ( $parts as $part ) {
+                        $email = sanitize_email( $part );
+                        if ( $email && is_email( $email ) ) {
+                                $emails[ $email ] = $email;
+                        }
+                }
+
+                return array_values( $emails );
+        }
+}
+
+if ( ! function_exists( 'bhg_prepare_notification_headers' ) ) {
+        /**
+         * Prepare email headers for plugin notifications.
+         *
+         * @param string $bcc Raw BCC string.
+         *
+         * @return string[] Headers array.
+         */
+        function bhg_prepare_notification_headers( $bcc ) {
+                $headers   = array( 'From: ' . BHG_Utils::get_email_from(), 'Content-Type: text/html; charset=UTF-8' );
+                $bcc_list  = bhg_parse_bcc_list( $bcc );
+                if ( ! empty( $bcc_list ) ) {
+                        $headers[] = 'Bcc: ' . implode( ',', $bcc_list );
+                }
+
+                return $headers;
+        }
+}
+
+if ( ! function_exists( 'bhg_recalculate_points_scope' ) ) {
+        /**
+         * Recalculate stored winner points for hunts and tournament standings.
+         *
+         * @param string $scope Scope value (all|active|closed).
+         *
+         * @return void
+         */
+        function bhg_recalculate_points_scope( $scope ) {
+                global $wpdb;
+
+                $scope = sanitize_key( $scope );
+                if ( ! in_array( $scope, array( 'all', 'active', 'closed' ), true ) ) {
+                        return;
+                }
+
+                $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+
+                $query  = "SELECT id, winners_count FROM {$hunts_table}";
+                $params = array();
+                if ( 'active' === $scope ) {
+                        $query   .= " WHERE status = %s";
+                        $params[] = 'open';
+                } elseif ( 'closed' === $scope ) {
+                        $query   .= " WHERE status = %s";
+                        $params[] = 'closed';
+                }
+
+                $hunts = empty( $params ) ? $wpdb->get_results( $query ) : $wpdb->get_results( $wpdb->prepare( $query, $params ) );
+
+                if ( ! empty( $hunts ) ) {
+                        $points = bhg_get_tournament_points_settings();
+                        foreach ( $hunts as $hunt ) {
+                                $hunt_id = isset( $hunt->id ) ? (int) $hunt->id : 0;
+                                if ( $hunt_id <= 0 ) {
+                                        continue;
+                                }
+
+                                $winners = $wpdb->get_results(
+                                        $wpdb->prepare(
+                                                "SELECT id, position FROM {$winners_table} WHERE hunt_id = %d",
+                                                $hunt_id
+                                        )
+                                );
+
+                                if ( empty( $winners ) ) {
+                                        continue;
+                                }
+
+                                foreach ( $winners as $winner ) {
+                                        $winner_id = isset( $winner->id ) ? (int) $winner->id : 0;
+                                        $position  = isset( $winner->position ) ? (int) $winner->position : 0;
+                                        if ( $winner_id <= 0 || $position <= 0 ) {
+                                                continue;
+                                        }
+
+                                        $points_value = isset( $points[ $position ] ) ? (int) $points[ $position ] : 0;
+                                        $wpdb->update(
+                                                $winners_table,
+                                                array( 'points' => $points_value ),
+                                                array( 'id' => $winner_id ),
+                                                array( '%d' ),
+                                                array( '%d' )
+                                        );
+                                }
+                        }
+                }
+
+                $tournament_ids = $wpdb->get_col( 'SELECT id FROM ' . esc_sql( $wpdb->prefix . 'bhg_tournaments' ) );
+                if ( ! empty( $tournament_ids ) && class_exists( 'BHG_Models' ) ) {
+                        BHG_Models::recalculate_tournament_results( array_map( 'intval', $tournament_ids ) );
+                }
+        }
+}
+
 // Ensure canonical DB class is loaded.
 require_once __DIR__ . '/includes/class-bhg-db.php';
 
 // Define plugin constants.
-define( 'BHG_VERSION', '8.0.12' );
-define( 'BHG_MIN_WP', '5.5.5' );
+define( 'BHG_VERSION', '8.0.14' );
+define( 'BHG_MIN_WP', '6.3.0' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -426,9 +965,10 @@ function bhg_init_plugin() {
 			exit;
 		}
 	);
-		add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
-		add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
-		add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+        add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
+        add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
+        add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+        add_action( 'admin_post_bhg_save_notifications', 'bhg_handle_notifications_save' );
 }
 
 // Early table check on init.
@@ -453,8 +993,9 @@ function bhg_handle_settings_save() {
 									exit;
 	}
 
-		// Sanitize and validate data.
-		$settings = array();
+        // Sanitize and validate data.
+        $settings     = array();
+        $recalc_scope = 'none';
 
 	if ( isset( $_POST['bhg_default_tournament_period'] ) ) {
 			$period = sanitize_key( wp_unslash( $_POST['bhg_default_tournament_period'] ) );
@@ -491,12 +1032,12 @@ function bhg_handle_settings_save() {
 									exit;
 	}
 
-	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
-			$allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
-		if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
-				$settings['allow_guess_changes'] = $allow;
-		}
-	}
+        if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
+                        $allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
+                if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
+                                $settings['allow_guess_changes'] = $allow;
+                }
+        }
 
 $ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
 $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
@@ -520,13 +1061,141 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                 }
         }
 
-                // Save settings.
-                $existing = get_option( 'bhg_plugin_settings', array() );
-                update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+        // Tournament points configuration.
+        if ( isset( $_POST['bhg_tournament_points'] ) && is_array( $_POST['bhg_tournament_points'] ) ) {
+                $raw_points = wp_unslash( $_POST['bhg_tournament_points'] );
+                $points     = array();
+                foreach ( $raw_points as $position => $value ) {
+                        $position = (int) $position;
+                        if ( $position <= 0 ) {
+                                continue;
+                        }
+                        $points[ $position ] = max( 0, (int) $value );
+                }
 
-				// Redirect back to settings page.
-								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
-								exit;
+                if ( ! empty( $points ) ) {
+                        $settings['tournament_points'] = bhg_normalize_tournament_points( $points );
+                }
+        }
+
+        if ( isset( $_POST['bhg_tournament_points_scope'] ) ) {
+                $scope = sanitize_key( wp_unslash( $_POST['bhg_tournament_points_scope'] ) );
+                if ( in_array( $scope, array( 'all', 'active', 'closed', 'none' ), true ) ) {
+                        $recalc_scope = $scope;
+                }
+        }
+
+        // Design/CSS settings.
+        $design_defaults = bhg_get_default_design_settings();
+        $design_values   = array();
+        if ( isset( $_POST['bhg_design'] ) && is_array( $_POST['bhg_design'] ) ) {
+                $design_values = wp_unslash( $_POST['bhg_design'] );
+        }
+
+        $design_settings = array();
+        foreach ( $design_defaults as $key => $default_value ) {
+                $raw = isset( $design_values[ $key ] ) ? $design_values[ $key ] : '';
+                switch ( $key ) {
+                        case 'title_block_background':
+                        case 'h2_color':
+                        case 'h3_color':
+                        case 'description_color':
+                                $sanitized = bhg_sanitize_color_value( $raw );
+                                break;
+                        case 'h2_font_weight':
+                        case 'h3_font_weight':
+                        case 'description_font_weight':
+                                $sanitized = bhg_sanitize_font_weight_value( $raw );
+                                break;
+                        case 'title_block_padding':
+                        case 'title_block_margin':
+                        case 'h2_padding':
+                        case 'h2_margin':
+                        case 'h3_padding':
+                        case 'h3_margin':
+                        case 'description_padding':
+                        case 'description_margin':
+                        case 'body_padding':
+                        case 'body_margin':
+                                $sanitized = bhg_sanitize_measurement_value( $raw );
+                                break;
+                        case 'h2_font_size':
+                        case 'h3_font_size':
+                        case 'description_font_size':
+                        case 'body_font_size':
+                                $sanitized = bhg_sanitize_measurement_value( $raw, false );
+                                break;
+                        case 'title_block_radius':
+                                $sanitized = bhg_sanitize_measurement_value( $raw );
+                                break;
+                        default:
+                                $sanitized = is_string( $raw ) ? trim( $raw ) : '';
+                }
+
+                $design_settings[ $key ] = $sanitized;
+        }
+
+        if ( ! empty( $design_settings ) ) {
+                $settings['design'] = $design_settings;
+        }
+
+        // Save settings.
+        $existing     = get_option( 'bhg_plugin_settings', array() );
+        $merged       = array_merge( $existing, $settings );
+        update_option( 'bhg_plugin_settings', $merged );
+
+        if ( in_array( $recalc_scope, array( 'all', 'active', 'closed' ), true ) ) {
+                bhg_recalculate_points_scope( $recalc_scope );
+        }
+
+        // Redirect back to settings page.
+        $redirect_url = BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' );
+        if ( in_array( $recalc_scope, array( 'all', 'active', 'closed' ), true ) ) {
+                $redirect_url = add_query_arg( 'points_scope', $recalc_scope, $redirect_url );
+        }
+
+        wp_safe_redirect( $redirect_url );
+        exit;
+}
+
+/**
+ * Handle saving of notification templates.
+ *
+ * @return void
+ */
+function bhg_handle_notifications_save() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_perform_this_action', 'You do not have sufficient permissions to perform this action.' ) ) );
+        }
+
+        if ( ! check_admin_referer( 'bhg_notifications', 'bhg_notifications_nonce' ) ) {
+                wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-notifications&error=nonce_failed' ) );
+                exit;
+        }
+
+        $submitted = isset( $_POST['bhg_notifications'] ) && is_array( $_POST['bhg_notifications'] ) ? wp_unslash( $_POST['bhg_notifications'] ) : array();
+        $defaults  = bhg_get_default_notifications_settings();
+        $settings  = array();
+
+        foreach ( $defaults as $type => $default ) {
+                $row      = isset( $submitted[ $type ] ) && is_array( $submitted[ $type ] ) ? $submitted[ $type ] : array();
+                $enabled  = isset( $row['enabled'] ) ? (int) $row['enabled'] : 0;
+                $bcc      = isset( $row['bcc'] ) ? sanitize_text_field( $row['bcc'] ) : '';
+                $title    = isset( $row['title'] ) ? wp_kses_post( $row['title'] ) : '';
+                $body     = isset( $row['description'] ) ? wp_kses_post( $row['description'] ) : '';
+
+                $settings[ $type ] = array(
+                        'enabled'     => $enabled ? 1 : 0,
+                        'bcc'         => $bcc,
+                        'title'       => '' !== $title ? $title : $default['title'],
+                        'description' => '' !== $body ? $body : $default['description'],
+                );
+        }
+
+        update_option( 'bhg_notifications_settings', $settings );
+
+        wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-notifications&message=saved' ) );
+        exit;
 }
 
 // Canonical guess submit handler.
@@ -975,7 +1644,7 @@ LIMIT %d OFFSET %d",
 		echo '<thead><tr>';
 		echo '<th class="sortable" data-sort="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
 		echo '<th class="sortable" data-sort="username">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
-		echo '<th class="sortable" data-sort="wins">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
+           echo '<th class="sortable" data-sort="wins">' . esc_html( bhg_t( 'points', 'Points' ) ) . '</th>';
 		echo '</tr></thead><tbody>';
 
 	$pos = $offset + 1;

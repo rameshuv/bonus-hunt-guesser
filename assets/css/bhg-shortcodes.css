@@ -74,10 +74,11 @@
 .bhg-guess-form,
 .bhg-tournament-details {
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px;
-    margin: 12px 0;
+    border-radius: var(--bhg-title-block-radius, 8px);
+    padding: var(--bhg-title-block-padding, 12px);
+    margin: var(--bhg-title-block-margin, 12px 0);
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    background: var(--bhg-title-block-background, #fff);
 }
 
 .bhg-active-hunt {
@@ -159,10 +160,49 @@
 
 .bhg-prizes-block {
     margin-top: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--bhg-title-block-radius, 8px);
+    padding: var(--bhg-title-block-padding, 16px);
+    background: var(--bhg-title-block-background, #fff);
 }
 
 .bhg-prizes-shortcode {
     margin: 20px 0;
+}
+
+[class*="bhg-"] h2 {
+    font-size: var(--bhg-h2-font-size, inherit);
+    font-weight: var(--bhg-h2-font-weight, inherit);
+    color: var(--bhg-h2-color, inherit);
+    padding: var(--bhg-h2-padding, inherit);
+    margin: var(--bhg-h2-margin, inherit);
+}
+
+[class*="bhg-"] h3 {
+    font-size: var(--bhg-h3-font-size, inherit);
+    font-weight: var(--bhg-h3-font-weight, inherit);
+    color: var(--bhg-h3-color, inherit);
+    padding: var(--bhg-h3-padding, inherit);
+    margin: var(--bhg-h3-margin, inherit);
+}
+
+[class*="bhg-"] .bhg-description,
+[class*="bhg-"] .bhg-prize-description,
+[class*="bhg-"] p {
+    font-size: var(--bhg-description-font-size, inherit);
+    font-weight: var(--bhg-description-font-weight, inherit);
+    color: var(--bhg-description-color, inherit);
+    padding: var(--bhg-description-padding, inherit);
+    margin: var(--bhg-description-margin, inherit);
+}
+
+[class*="bhg-"] span,
+[class*="bhg-"] li,
+[class*="bhg-"] td,
+[class*="bhg-"] th {
+    font-size: var(--bhg-body-font-size, inherit);
+    padding: var(--bhg-body-padding, inherit);
+    margin: var(--bhg-body-margin, inherit);
 }
 
 .bhg-prizes-title {
@@ -179,10 +219,10 @@
 }
 
 .bhg-prize-card {
-    background: #fff;
+    background: var(--bhg-title-block-background, #fff);
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 16px;
+    border-radius: var(--bhg-title-block-radius, 8px);
+    padding: var(--bhg-title-block-padding, 16px);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
