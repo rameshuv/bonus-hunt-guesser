@@ -1,0 +1,164 @@
+.bhg-prizes-block {
+	margin: 2rem 0;
+}
+
+.bhg-prizes-block .bhg-prizes-title {
+	margin-bottom: 1rem;
+	font-size: 1.5rem;
+	font-weight: 600;
+}
+
+.bhg-prizes-grid {
+	display: grid;
+	gap: 1.5rem;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.bhg-prize-card {
+	background-color: #ffffff;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 12px;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.bhg-prize-card--custom {
+	border-style: initial;
+}
+
+.bhg-prize-card--has-border {
+	box-shadow: none;
+}
+
+.bhg-prize-card--has-background {
+	background-clip: padding-box;
+}
+
+.bhg-prize-card--has-image .bhg-prize-image {
+	overflow: hidden;
+}
+
+.bhg-prize-card--has-image .bhg-prize-image img {
+	display: block;
+	height: auto;
+	max-width: 100%;
+	width: 100%;
+}
+
+.bhg-prize-card .bhg-prize-body {
+	padding: 1.25rem;
+	flex: 1 1 auto;
+}
+
+.bhg-prize-title {
+	margin: 0 0 0.5rem;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+.bhg-prize-category {
+	margin-bottom: 0.75rem;
+	color: #5c6b7a;
+	font-size: 0.875rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.bhg-prize-description {
+	color: #3a4b5c;
+	font-size: 0.95rem;
+	line-height: 1.5;
+}
+
+.bhg-prizes-layout-carousel .bhg-prize-track-wrapper {
+	overflow: hidden;
+	position: relative;
+}
+
+.bhg-prizes-layout-carousel .bhg-prize-track {
+	display: flex;
+	gap: 1rem;
+	transition: transform 0.35s ease;
+	will-change: transform;
+}
+
+.bhg-prizes-layout-carousel .bhg-prize-track .bhg-prize-card {
+	flex: 0 0 100%;
+}
+
+.bhg-prize-carousel {
+	position: relative;
+}
+
+.bhg-prize-nav {
+	align-items: center;
+	background: rgba(0, 0, 0, 0.5);
+	border: 0;
+	border-radius: 999px;
+	color: #fff;
+	cursor: pointer;
+	display: inline-flex;
+	height: 40px;
+	justify-content: center;
+	padding: 0;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 40px;
+	z-index: 2;
+}
+
+.bhg-prize-nav span {
+	font-size: 1.5rem;
+	line-height: 1;
+}
+
+.bhg-prize-prev {
+	left: 0.75rem;
+}
+
+.bhg-prize-next {
+	right: 0.75rem;
+}
+
+.bhg-prize-nav:focus {
+	outline: 2px solid #0d6efd;
+	outline-offset: 2px;
+}
+
+.bhg-prize-dots {
+	align-items: center;
+	display: flex;
+	gap: 0.5rem;
+	justify-content: center;
+	margin-top: 1rem;
+}
+
+.bhg-prize-dot {
+	background: rgba(0, 0, 0, 0.2);
+	border: 0;
+	border-radius: 999px;
+	cursor: pointer;
+	height: 10px;
+	padding: 0;
+	transition: background 0.2s ease, transform 0.2s ease;
+	width: 10px;
+}
+
+.bhg-prize-dot.active,
+.bhg-prize-dot:focus {
+	background: #0d6efd;
+	transform: scale(1.2);
+}
+
+@media ( max-width: 640px ) {
+	.bhg-prizes-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.bhg-prize-nav {
+		display: none;
+	}
+}
