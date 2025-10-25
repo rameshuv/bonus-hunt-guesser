@@ -19,6 +19,22 @@
     background: #e3342f;
 }
 
+.bhg-leaderboard tr.bhg-winner-row td {
+    background-color: #f0fdf4;
+}
+
+.bhg-leaderboard tr.bhg-top-place-1 td {
+    box-shadow: inset 4px 0 0 #f59e0b;
+}
+
+.bhg-leaderboard tr.bhg-top-place-2 td {
+    box-shadow: inset 4px 0 0 #94a3b8;
+}
+
+.bhg-leaderboard tr.bhg-top-place-3 td {
+    box-shadow: inset 4px 0 0 #d97706;
+}
+
 .bhg-tabs {
     list-style: none;
     margin: 0;

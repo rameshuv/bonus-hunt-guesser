@@ -6,11 +6,11 @@
  * Version: 8.0.14
  * Requires at least: 6.3.0
  * Requires PHP: 7.4
+ * Requires MySQL: 5.5.5
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser
  * Domain Path: /languages
  * License: GPLv2 or later
- * MySQL tested up to: 5.5.5
  *
  * @package Bonus_Hunt_Guesser
  */

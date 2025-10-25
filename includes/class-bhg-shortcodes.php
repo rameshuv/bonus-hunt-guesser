@@ -37,9 +37,13 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
                                 add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
                                 add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
+                                add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
+                                add_shortcode( 'my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
+                                add_shortcode( 'my_prizes', array( $this, 'my_prizes_shortcode' ) );
+                                add_shortcode( 'my_rankings', array( $this, 'my_rankings_shortcode' ) );
 
-				// Legacy/aliases.
-				add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+                                // Legacy/aliases.
+                                add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
 				add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
 				add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
 		}
@@ -176,6 +180,44 @@ $wpdb->usermeta,
                 $size = strtolower( (string) $size );
 
                 return in_array( $size, array( 'small', 'medium', 'big' ), true ) ? $size : 'medium';
+        }
+
+        /**
+         * Build the HTML attribute containing highlight classes for leaderboard rows.
+         *
+         * @param bool $is_winner Whether the row represents a winner.
+         * @param int  $position  Placement position (1-based).
+         * @param int  $rank      Rank value, if available (1-based).
+         * @return string Attribute string beginning with a leading space or empty string.
+         */
+        private function build_row_highlight_attribute( $is_winner, $position = 0, $rank = 0 ) {
+                $classes  = array();
+                $position = max( 0, (int) $position );
+                $rank     = max( 0, (int) $rank );
+
+                if ( $is_winner ) {
+                        $classes[] = 'bhg-winner-row';
+                }
+
+                $top_marker = 0;
+                if ( $position > 0 && $position <= 3 ) {
+                        $top_marker = $position;
+                }
+                if ( $rank > 0 && $rank <= 3 && ( 0 === $top_marker || $rank < $top_marker ) ) {
+                        $top_marker = $rank;
+                }
+
+                if ( $top_marker > 0 ) {
+                        $classes[] = 'bhg-top-place-' . $top_marker;
+                }
+
+                if ( empty( $classes ) ) {
+                        return '';
+                }
+
+                $classes = array_unique( $classes );
+
+                return ' class="' . esc_attr( implode( ' ', $classes ) ) . '"';
         }
 
         /**
@@ -824,7 +866,7 @@ $wpdb->usermeta,
                                                                }
                                                                                                 $order_by_clause = sprintf( '%s %s', $orderby, $order );
                                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                                                               $sql  = "SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id FROM {$g} g LEFT JOIN {$u} u ON u.ID = g.user_id LEFT JOIN {$hunts_table} h ON h.id = g.hunt_id WHERE {$where_sql} ORDER BY {$order_by_clause} LIMIT %d OFFSET %d";
+                                $sql  = "SELECT g.user_id, g.guess, u.user_login, h.affiliate_site_id, h.winners_count FROM {$g} g LEFT JOIN {$u} u ON u.ID = g.user_id LEFT JOIN {$hunts_table} h ON h.id = g.hunt_id WHERE {$where_sql} ORDER BY {$order_by_clause} LIMIT %d OFFSET %d";
                                                                $rows = $wpdb->get_results( $wpdb->prepare( $sql, ...array_merge( $params, array( $per_page, $offset ) ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
                                                                $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
@@ -878,20 +920,25 @@ $wpdb->usermeta,
                        }
 						echo '</tr></thead><tbody>';
 
-												$pos       = $offset + 1;
-												$need_user = in_array( 'user', $fields, true );
-			foreach ( $rows as $r ) {
-				if ( $need_user ) {
-					$site_id                         = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
+                                                                                                $pos       = $offset + 1;
+                                                                                                $winners_count = 0;
+                                                                                                if ( ! empty( $rows ) && isset( $rows[0]->winners_count ) ) {
+                                                                                                        $winners_count = (int) $rows[0]->winners_count;
+                                                                                                }
+                                                                                                $need_user = in_array( 'user', $fields, true );
+                        foreach ( $rows as $r ) {
+                                if ( $need_user ) {
+                                        $site_id                         = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
 											$aff_dot = bhg_render_affiliate_dot( (int) $r->user_id, $site_id );
 											/* translators: %d: user ID. */
 											$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
 				}
 
-				echo '<tr>';
-				foreach ( $fields as $field ) {
-					if ( 'position' === $field ) {
-						echo '<td data-column="position">' . (int) $pos . '</td>';
+                                $row_attr = $this->build_row_highlight_attribute( ( $winners_count > 0 && $pos <= $winners_count ), $pos );
+                                echo '<tr' . $row_attr . '>';
+                                foreach ( $fields as $field ) {
+                                        if ( 'position' === $field ) {
+                                                echo '<td data-column="position">' . (int) $pos . '</td>';
 					} elseif ( 'user' === $field ) {
 																											echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 					} elseif ( 'guess' === $field ) {
@@ -2222,21 +2269,31 @@ $wpdb->usermeta,
 
 				// Details screen.
 				$details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
-			if ( $details_id > 0 ) {
-								$t = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
-								$r = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
-								$u = esc_sql( $this->sanitize_table( $wpdb->users ) );
-				if ( ! $t || ! $r || ! $u ) {
-					return '';
-				}
+                        if ( $details_id > 0 ) {
+                                $t        = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+                                $r        = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
+                                $u        = esc_sql( $this->sanitize_table( $wpdb->users ) );
+                                $aff_raw  = $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' );
+                                $aff_join = '';
+                                $aff_cols = ', NULL AS affiliate_name, NULL AS affiliate_url';
 
-					// db call ok; no-cache ok.
-										$tournament = $wpdb->get_row(
-											$wpdb->prepare(
-												"SELECT id, type, start_date, end_date, status FROM {$t} WHERE id = %d",
-												$details_id
-											)
-										);
+                                if ( $aff_raw ) {
+                                        $aff      = esc_sql( $aff_raw );
+                                        $aff_join = " LEFT JOIN {$aff} aff ON aff.id = t.affiliate_site_id";
+                                        $aff_cols = ', aff.name AS affiliate_name, aff.url AS affiliate_url';
+                                }
+
+                                if ( ! $t || ! $r || ! $u ) {
+                                        return '';
+                                }
+
+                                        // db call ok; no-cache ok.
+                                $tournament = $wpdb->get_row(
+                                        $wpdb->prepare(
+                                                "SELECT t.id, t.title, t.type, t.description, t.prizes, t.start_date, t.end_date, t.status, t.affiliate_site_id, t.affiliate_url_visible{$aff_cols} FROM {$t} t{$aff_join} WHERE t.id = %d",
+                                                $details_id
+                                        )
+                                );
 				if ( ! $tournament ) {
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
@@ -2279,19 +2336,55 @@ $wpdb->usermeta,
 					);
 				};
 
-					ob_start();
-					echo '<div class="bhg-tournament-details">';
-					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
-					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
-					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
-					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
-									$status_key = strtolower( (string) $tournament->status );
-									echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+                                        ob_start();
+                                        echo '<div class="bhg-tournament-details">';
+                                        echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
 
-				if ( ! $rows ) {
-					echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
-					echo '</div>';
-					return ob_get_clean();
+                                        $type_map   = array(
+                                                'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+                                                'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+                                                'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+                                                'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+                                                'alltime'   => bhg_t( 'alltime', 'All-time' ),
+                                        );
+                                        $type_key   = isset( $tournament->type ) ? sanitize_key( $tournament->type ) : '';
+                                        $type_label = isset( $type_map[ $type_key ] ) ? $type_map[ $type_key ] : ucfirst( $type_key );
+
+                                        echo '<h2>' . esc_html( $tournament->title ? $tournament->title : $type_label ) . '</h2>';
+
+                                        $start_label = ! empty( $tournament->start_date ) ? mysql2date( get_option( 'date_format' ), $tournament->start_date ) : bhg_t( 'label_emdash', '—' );
+                                        $end_label   = ! empty( $tournament->end_date ) ? mysql2date( get_option( 'date_format' ), $tournament->end_date ) : bhg_t( 'label_emdash', '—' );
+                                        $status_key  = strtolower( (string) $tournament->status );
+                                        $status_label = bhg_t( $status_key, ucfirst( $status_key ) );
+
+                                        echo '<p><strong>' . esc_html( bhg_t( 'label_type', 'Type' ) ) . ':</strong> ' . esc_html( $type_label ) . ' &nbsp; ';
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( $start_label ) . ' &nbsp; ';
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( $end_label ) . ' &nbsp; ';
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( $status_label ) . '</p>';
+
+                                        if ( ! empty( $tournament->description ) ) {
+                                                echo wp_kses_post( wpautop( $tournament->description ) );
+                                        }
+
+                                        if ( ! empty( $tournament->prizes ) ) {
+                                                echo '<h4>' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . '</h4>';
+                                                echo wp_kses_post( wpautop( $tournament->prizes ) );
+                                        }
+
+                                        $show_affiliate = ! empty( $tournament->affiliate_url_visible );
+                                        if ( $show_affiliate && ( ! empty( $tournament->affiliate_name ) || ! empty( $tournament->affiliate_url ) ) ) {
+                                                $aff_name = $tournament->affiliate_name ? $tournament->affiliate_name : bhg_t( 'label_affiliate_site', 'Affiliate Site' );
+                                                if ( ! empty( $tournament->affiliate_url ) ) {
+                                                        echo '<p><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> <a href="' . esc_url( $tournament->affiliate_url ) . '" target="_blank" rel="noopener nofollow">' . esc_html( $aff_name ) . '</a></p>';
+                                                } else {
+                                                        echo '<p><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> ' . esc_html( $aff_name ) . '</p>';
+                                                }
+                                        }
+
+                                if ( ! $rows ) {
+                                        echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
+                                        echo '</div>';
+                                        return ob_get_clean();
 				}
 
 					echo '<table class="bhg-leaderboard">';
@@ -2722,15 +2815,565 @@ $wpdb->usermeta,
                        if ( $edit_link ) {
                                $output .= '<p><a href="' . esc_url( $edit_link ) . '">' . esc_html( bhg_t( 'link_edit_profile', 'Edit Profile' ) ) . '</a></p>';
                        }
-                       $output .= '</div>';
+                      $output .= '</div>';
                        return $output;
                }
 
-					/**
-					 * Simple wins leaderboard with tabs.
-					 *
-					 * @param array $atts Shortcode attributes.
-					 * @return string HTML output.
+               /**
+                * Maybe block a profile shortcode if disabled or the user is not logged in.
+                *
+                * @param string $slug Shortcode slug.
+                * @return string Empty string when allowed, or an HTML notice otherwise.
+                */
+               private function maybe_block_profile_shortcode( $slug ) {
+                       $slug = sanitize_key( $slug );
+
+                       if ( ! is_user_logged_in() ) {
+                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+                       }
+
+                       if ( '' === $slug ) {
+                               return '';
+                       }
+
+                       if ( function_exists( 'bhg_is_profile_shortcode_enabled' ) && ! bhg_is_profile_shortcode_enabled( $slug ) ) {
+                               return '<p>' . esc_html( bhg_t( 'notice_shortcode_disabled', 'This section is currently disabled by the administrator.' ) ) . '</p>';
+                       }
+
+                       return '';
+               }
+
+               /**
+                * Ensure the shared stylesheet for profile shortcodes is loaded.
+                *
+                * @return void
+                */
+               private function enqueue_profile_assets() {
+                       wp_enqueue_style(
+                               'bhg-shortcodes',
+                               ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                               array(),
+                               defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                       );
+               }
+
+               /**
+                * Retrieve a summary of hunts the user has participated in.
+                *
+                * @param int $user_id User ID.
+                * @return array
+                */
+               private function get_user_hunt_summary( $user_id ) {
+                       static $cache = array();
+
+                       $user_id = (int) $user_id;
+                       if ( $user_id <= 0 ) {
+                               return array();
+                       }
+
+                       if ( isset( $cache[ $user_id ] ) ) {
+                               return $cache[ $user_id ];
+                       }
+
+                       global $wpdb;
+
+                       $hunts_table   = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+                       $guesses_table = $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' );
+
+                       if ( ! $hunts_table || ! $guesses_table ) {
+                               $cache[ $user_id ] = array();
+                               return array();
+                       }
+
+                       $hunts_table   = esc_sql( $hunts_table );
+                       $guesses_table = esc_sql( $guesses_table );
+
+                       $winners_raw   = $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' );
+                       $winner_join   = '';
+                       $winner_fields = ', NULL AS position, NULL AS points, NULL AS awarded_at';
+
+                       if ( $winners_raw ) {
+                               $winners_table = esc_sql( $winners_raw );
+                               $winner_join   = " LEFT JOIN {$winners_table} w ON w.hunt_id = h.id AND w.user_id = g.user_id";
+                               $winner_fields = ', w.position, w.points, w.created_at AS awarded_at';
+                       }
+
+                       $ranking_subquery = "(SELECT COUNT(*) FROM {$guesses_table} g2 WHERE g2.hunt_id = h.id AND ABS(h.final_balance - g2.guess) < ABS(h.final_balance - g.guess))";
+
+                       // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                       $sql = $wpdb->prepare(
+                               "SELECT h.id, h.title, h.status, h.final_balance, h.closed_at, h.starting_balance, h.num_bonuses, g.guess, g.created_at, g.updated_at{$winner_fields}, CASE WHEN h.final_balance IS NULL THEN NULL ELSE ABS(h.final_balance - g.guess) END AS diff, CASE WHEN h.final_balance IS NULL THEN NULL ELSE ({$ranking_subquery} + 1) END AS ranking FROM {$hunts_table} h INNER JOIN {$guesses_table} g ON g.hunt_id = h.id{$winner_join} WHERE g.user_id = %d AND g.id = (SELECT g2.id FROM {$guesses_table} g2 WHERE g2.hunt_id = h.id AND g2.user_id = g.user_id ORDER BY g2.id DESC LIMIT 1) ORDER BY COALESCE(h.closed_at, h.updated_at, h.created_at, g.created_at) DESC, h.id DESC",
+                               $user_id
+                       );
+
+                       $rows = $wpdb->get_results( $sql );
+
+                       $cache[ $user_id ] = $rows ? $rows : array();
+
+                       return $cache[ $user_id ];
+               }
+
+               /**
+                * Retrieve tournaments the user has results for.
+                *
+                * @param int $user_id User ID.
+                * @return array
+                */
+               private function get_user_tournament_summary( $user_id ) {
+                       static $cache = array();
+
+                       $user_id = (int) $user_id;
+                       if ( $user_id <= 0 ) {
+                               return array();
+                       }
+
+                       if ( isset( $cache[ $user_id ] ) ) {
+                               return $cache[ $user_id ];
+                       }
+
+                       global $wpdb;
+
+                       $tournaments_table = $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' );
+                       $results_table     = $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' );
+
+                       if ( ! $tournaments_table || ! $results_table ) {
+                               $cache[ $user_id ] = array();
+                               return array();
+                       }
+
+                       $tournaments_table = esc_sql( $tournaments_table );
+                       $results_table     = esc_sql( $results_table );
+
+                       $aff_raw  = $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' );
+                       $aff_join = '';
+                       $aff_cols = ', NULL AS affiliate_name, NULL AS affiliate_url';
+
+                       if ( $aff_raw ) {
+                               $aff_table = esc_sql( $aff_raw );
+                               $aff_join  = " LEFT JOIN {$aff_table} aff ON aff.id = t.affiliate_site_id";
+                               $aff_cols  = ', aff.name AS affiliate_name, aff.url AS affiliate_url';
+                       }
+
+                       $ranking_expr = "(SELECT COUNT(*) FROM {$results_table} r2 WHERE r2.tournament_id = r.tournament_id AND (r2.points > r.points OR (r2.points = r.points AND r2.wins > r.wins)))";
+
+                       // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                       $sql = $wpdb->prepare(
+                               "SELECT t.id, t.title, t.type, t.description, t.prizes, t.start_date, t.end_date, t.status, t.affiliate_site_id, t.affiliate_url_visible, r.wins, r.points, r.last_win_date{$aff_cols}, CASE WHEN r.points > 0 OR r.wins > 0 THEN ({$ranking_expr} + 1) ELSE NULL END AS ranking FROM {$results_table} r INNER JOIN {$tournaments_table} t ON t.id = r.tournament_id{$aff_join} WHERE r.user_id = %d ORDER BY COALESCE(t.end_date, t.start_date, r.last_win_date) DESC, t.id DESC",
+                               $user_id
+                       );
+
+                       $rows = $wpdb->get_results( $sql );
+
+                       $cache[ $user_id ] = $rows ? $rows : array();
+
+                       return $cache[ $user_id ];
+               }
+
+               /**
+                * Retrieve prize information for hunts the user has won.
+                *
+                * @param int $user_id User ID.
+                * @return array
+                */
+               private function get_user_prize_summary( $user_id ) {
+                       static $cache = array();
+
+                       $user_id = (int) $user_id;
+                       if ( $user_id <= 0 ) {
+                               return array();
+                       }
+
+                       if ( isset( $cache[ $user_id ] ) ) {
+                               return $cache[ $user_id ];
+                       }
+
+                       global $wpdb;
+
+                       $winners_table = $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' );
+                       $hunts_table   = $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' );
+
+                       if ( ! $winners_table || ! $hunts_table ) {
+                               $cache[ $user_id ] = array();
+                               return array();
+                       }
+
+                       $winners_table = esc_sql( $winners_table );
+                       $hunts_table   = esc_sql( $hunts_table );
+
+                       $sql = $wpdb->prepare(
+                               "SELECT w.hunt_id, w.position, w.points, w.created_at, h.title, h.closed_at FROM {$winners_table} w INNER JOIN {$hunts_table} h ON h.id = w.hunt_id WHERE w.user_id = %d ORDER BY COALESCE(h.closed_at, h.updated_at, h.created_at, w.created_at) DESC, w.position ASC",
+                               $user_id
+                       );
+
+                       $rows = $wpdb->get_results( $sql );
+
+                       if ( ! $rows ) {
+                               $cache[ $user_id ] = array();
+                               return array();
+                       }
+
+                       $prize_map = array();
+
+                       if ( class_exists( 'BHG_Prizes' ) ) {
+                               foreach ( $rows as $row ) {
+                                       $hunt_id = (int) $row->hunt_id;
+                                       if ( ! isset( $prize_map[ $hunt_id ] ) ) {
+                                               $prize_map[ $hunt_id ] = BHG_Prizes::get_prizes_for_hunt( $hunt_id );
+                                       }
+                               }
+                       }
+
+                       foreach ( $rows as $row ) {
+                               $hunt_id     = (int) $row->hunt_id;
+                               $position    = max( 0, (int) $row->position - 1 );
+                               $prize_entry = isset( $prize_map[ $hunt_id ][ $position ] ) ? $prize_map[ $hunt_id ][ $position ] : null;
+                               $row->prize  = $prize_entry;
+                       }
+
+                       $cache[ $user_id ] = $rows;
+
+                       return $cache[ $user_id ];
+               }
+
+               /**
+                * Profile shortcode: list hunts the current user has participated in.
+                *
+                * @param array $atts Shortcode attributes (unused).
+                * @return string
+                */
+               public function my_bonushunts_shortcode( $atts ) {
+                       unset( $atts );
+
+                       $maybe_block = $this->maybe_block_profile_shortcode( 'my_bonushunts' );
+                       if ( '' !== $maybe_block ) {
+                               return $maybe_block;
+                       }
+
+                       $user_id = get_current_user_id();
+                       if ( $user_id <= 0 ) {
+                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+                       }
+
+                       $rows = $this->get_user_hunt_summary( $user_id );
+
+                       $this->enqueue_profile_assets();
+
+                       if ( empty( $rows ) ) {
+                               return '<div class="bhg-my-bonushunts"><p>' . esc_html( bhg_t( 'notice_no_hunts_participated', 'You have not participated in any bonus hunts yet.' ) ) . '</p></div>';
+                       }
+
+                       ob_start();
+                       echo '<div class="bhg-my-bonushunts">';
+                       echo '<table class="bhg-leaderboard bhg-my-hunts">';
+                       echo '<thead><tr>';
+                       echo '<th>' . esc_html( bhg_t( 'label_bonushunt', 'Bonushunt' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_guess', 'Guess' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_rank', 'Rank' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_closed_at', 'Closed At' ) ) . '</th>';
+                       echo '</tr></thead><tbody>';
+
+                       foreach ( $rows as $row ) {
+                               $guess_display  = esc_html( bhg_format_currency( (float) $row->guess ) );
+                               $final_display  = null !== $row->final_balance ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $diff_display   = null !== $row->diff ? esc_html( bhg_format_currency( (float) abs( $row->diff ) ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $rank_display   = ( isset( $row->ranking ) && $row->ranking ) ? esc_html( number_format_i18n( (int) $row->ranking ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $position_disp  = ( isset( $row->position ) && $row->position ) ? esc_html( number_format_i18n( (int) $row->position ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $points_display = ( isset( $row->points ) && 0 < (int) $row->points ) ? esc_html( number_format_i18n( (int) $row->points ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $closed_display = ! empty( $row->closed_at ) ? esc_html( mysql2date( get_option( 'date_format' ), $row->closed_at ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $position_val   = isset( $row->position ) ? (int) $row->position : 0;
+                               $rank_val       = isset( $row->ranking ) ? (int) $row->ranking : 0;
+                               $row_attr       = $this->build_row_highlight_attribute( $position_val > 0, $position_val, $rank_val );
+
+                               echo '<tr' . $row_attr . '>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_bonushunt', 'Bonushunt' ) ) . '">' . esc_html( $row->title ) . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . $guess_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_final_balance', 'Final Balance' ) ) . '">' . $final_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . $diff_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . $position_disp . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . $points_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_closed_at', 'Closed At' ) ) . '">' . $closed_display . '</td>';
+                               echo '</tr>';
+                       }
+
+                       echo '</tbody></table>';
+                       echo '</div>';
+
+                       return ob_get_clean();
+               }
+
+               /**
+                * Profile shortcode: list tournaments where the user has results.
+                *
+                * @param array $atts Shortcode attributes (unused).
+                * @return string
+                */
+               public function my_tournaments_shortcode( $atts ) {
+                       unset( $atts );
+
+                       $maybe_block = $this->maybe_block_profile_shortcode( 'my_tournaments' );
+                       if ( '' !== $maybe_block ) {
+                               return $maybe_block;
+                       }
+
+                       $user_id = get_current_user_id();
+                       if ( $user_id <= 0 ) {
+                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+                       }
+
+                       $rows = $this->get_user_tournament_summary( $user_id );
+
+                       $this->enqueue_profile_assets();
+
+                       if ( empty( $rows ) ) {
+                               return '<div class="bhg-my-tournaments"><p>' . esc_html( bhg_t( 'notice_no_tournament_results', 'No tournament results available yet.' ) ) . '</p></div>';
+                       }
+
+                       $type_map = array(
+                               'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+                               'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+                               'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+                               'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+                               'alltime'   => bhg_t( 'alltime', 'All-time' ),
+                       );
+
+                       ob_start();
+                       echo '<div class="bhg-my-tournaments">';
+                       echo '<table class="bhg-leaderboard bhg-my-tournaments-table">';
+                       echo '<thead><tr>';
+                       echo '<th>' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_rank', 'Rank' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . '</th>';
+                       echo '</tr></thead><tbody>';
+
+                       foreach ( $rows as $row ) {
+                               $type_key   = isset( $row->type ) ? sanitize_key( $row->type ) : '';
+                               $type_label = isset( $type_map[ $type_key ] ) ? $type_map[ $type_key ] : ucfirst( $type_key );
+                               $rank_disp  = ( isset( $row->ranking ) && $row->ranking ) ? esc_html( number_format_i18n( (int) $row->ranking ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $points_disp = ( isset( $row->points ) && 0 < (int) $row->points ) ? esc_html( number_format_i18n( (int) $row->points ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $wins_disp   = ( isset( $row->wins ) && 0 < (int) $row->wins ) ? esc_html( number_format_i18n( (int) $row->wins ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $last_win    = ! empty( $row->last_win_date ) ? esc_html( mysql2date( get_option( 'date_format' ), $row->last_win_date ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $status_key  = strtolower( (string) $row->status );
+                               $status_disp = esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) );
+
+                               $affiliate_display = esc_html( bhg_t( 'label_emdash', '—' ) );
+                               if ( ! empty( $row->affiliate_url_visible ) && ( ! empty( $row->affiliate_name ) || ! empty( $row->affiliate_url ) ) ) {
+                                       $aff_name = $row->affiliate_name ? $row->affiliate_name : bhg_t( 'label_affiliate_site', 'Affiliate Site' );
+                                       if ( ! empty( $row->affiliate_url ) ) {
+                                               $affiliate_display = '<a href="' . esc_url( $row->affiliate_url ) . '" target="_blank" rel="noopener nofollow">' . esc_html( $aff_name ) . '</a>';
+                                       } else {
+                                               $affiliate_display = esc_html( $aff_name );
+                                       }
+                               }
+                               $rank_val = isset( $row->ranking ) ? (int) $row->ranking : 0;
+                               $wins_val = isset( $row->wins ) ? (int) $row->wins : 0;
+                               $row_attr = $this->build_row_highlight_attribute( $wins_val > 0, 0, $rank_val );
+
+                               echo '<tr' . $row_attr . '>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'sc_title', 'Title' ) ) . '">' . esc_html( $row->title ) . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_type', 'Type' ) ) . '">' . esc_html( $type_label ) . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_disp . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . $points_disp . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'sc_wins', 'Wins' ) ) . '">' . $wins_disp . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_last_win', 'Last win' ) ) . '">' . $last_win . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'sc_status', 'Status' ) ) . '">' . $status_disp . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . '">' . wp_kses_post( $affiliate_display ) . '</td>';
+                               echo '</tr>';
+                       }
+
+                       echo '</tbody></table>';
+                       echo '</div>';
+
+                       return ob_get_clean();
+               }
+
+               /**
+                * Profile shortcode: display prizes the user has won.
+                *
+                * @param array $atts Shortcode attributes (unused).
+                * @return string
+                */
+               public function my_prizes_shortcode( $atts ) {
+                       unset( $atts );
+
+                       $maybe_block = $this->maybe_block_profile_shortcode( 'my_prizes' );
+                       if ( '' !== $maybe_block ) {
+                               return $maybe_block;
+                       }
+
+                       $user_id = get_current_user_id();
+                       if ( $user_id <= 0 ) {
+                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+                       }
+
+                       $rows = $this->get_user_prize_summary( $user_id );
+
+                       $this->enqueue_profile_assets();
+
+                       if ( empty( $rows ) ) {
+                               return '<div class="bhg-my-prizes"><p>' . esc_html( bhg_t( 'notice_no_prizes_won', 'No prizes have been awarded yet.' ) ) . '</p></div>';
+                       }
+
+                       ob_start();
+                       echo '<div class="bhg-my-prizes">';
+                       echo '<table class="bhg-leaderboard bhg-my-prizes-table">';
+                       echo '<thead><tr>';
+                       echo '<th>' . esc_html( bhg_t( 'label_bonushunt', 'Bonushunt' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_prize', 'Prize' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_awarded', 'Awarded' ) ) . '</th>';
+                       echo '</tr></thead><tbody>';
+
+                       foreach ( $rows as $row ) {
+                               $prize_title    = ( isset( $row->prize ) && $row->prize && ! empty( $row->prize->title ) ) ? $row->prize->title : bhg_t( 'label_emdash', '—' );
+                               $position_value = isset( $row->position ) ? (int) $row->position : 0;
+                               $position_disp  = $position_value ? esc_html( number_format_i18n( $position_value ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $points_disp    = ( isset( $row->points ) && 0 < (int) $row->points ) ? esc_html( number_format_i18n( (int) $row->points ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $awarded        = ! empty( $row->created_at ) ? esc_html( mysql2date( get_option( 'date_format' ), $row->created_at ) ) : ( ! empty( $row->closed_at ) ? esc_html( mysql2date( get_option( 'date_format' ), $row->closed_at ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) );
+                               $row_attr       = $this->build_row_highlight_attribute( $position_value > 0, $position_value );
+
+                               echo '<tr' . $row_attr . '>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_bonushunt', 'Bonushunt' ) ) . '">' . esc_html( $row->title ) . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_prize', 'Prize' ) ) . '">' . esc_html( $prize_title ) . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . $position_disp . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . $points_disp . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_awarded', 'Awarded' ) ) . '">' . $awarded . '</td>';
+                               echo '</tr>';
+                       }
+
+                       echo '</tbody></table>';
+                       echo '</div>';
+
+                       return ob_get_clean();
+               }
+
+               /**
+                * Profile shortcode: combined summary of hunt and tournament rankings.
+                *
+                * @param array $atts Shortcode attributes (unused).
+                * @return string
+                */
+               public function my_rankings_shortcode( $atts ) {
+                       unset( $atts );
+
+                       $maybe_block = $this->maybe_block_profile_shortcode( 'my_rankings' );
+                       if ( '' !== $maybe_block ) {
+                               return $maybe_block;
+                       }
+
+                       $user_id = get_current_user_id();
+                       if ( $user_id <= 0 ) {
+                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+                       }
+
+                       $hunts       = $this->get_user_hunt_summary( $user_id );
+                       $tournaments = $this->get_user_tournament_summary( $user_id );
+
+                       $this->enqueue_profile_assets();
+
+                       $entries = array();
+
+                       foreach ( $hunts as $row ) {
+                               $timestamp = ! empty( $row->closed_at ) ? strtotime( $row->closed_at ) : ( ! empty( $row->updated_at ) ? strtotime( $row->updated_at ) : ( ! empty( $row->created_at ) ? strtotime( $row->created_at ) : time() ) );
+
+                               $entries[] = array(
+                                       'type'      => 'hunt',
+                                       'name'      => $row->title,
+                                       'rank'      => isset( $row->ranking ) ? (int) $row->ranking : 0,
+                                       'position'  => isset( $row->position ) ? (int) $row->position : 0,
+                                       'points'    => isset( $row->points ) ? (int) $row->points : 0,
+                                       'wins'      => 0,
+                                       'date'      => ! empty( $row->closed_at ) ? mysql2date( get_option( 'date_format' ), $row->closed_at ) : '',
+                                       'timestamp' => $timestamp ? $timestamp : time(),
+                               );
+                       }
+
+                       foreach ( $tournaments as $row ) {
+                               $timestamp = ! empty( $row->end_date ) ? strtotime( $row->end_date ) : ( ! empty( $row->last_win_date ) ? strtotime( $row->last_win_date ) : time() );
+
+                               $entries[] = array(
+                                       'type'      => 'tournament',
+                                       'name'      => $row->title,
+                                       'rank'      => isset( $row->ranking ) ? (int) $row->ranking : 0,
+                                       'position'  => 0,
+                                       'points'    => isset( $row->points ) ? (int) $row->points : 0,
+                                       'wins'      => isset( $row->wins ) ? (int) $row->wins : 0,
+                                       'date'      => ! empty( $row->end_date ) ? mysql2date( get_option( 'date_format' ), $row->end_date ) : ( ! empty( $row->last_win_date ) ? mysql2date( get_option( 'date_format' ), $row->last_win_date ) : '' ),
+                                       'timestamp' => $timestamp ? $timestamp : time(),
+                               );
+                       }
+
+                       if ( empty( $entries ) ) {
+                               return '<div class="bhg-my-rankings"><p>' . esc_html( bhg_t( 'notice_no_rankings_yet', 'No rankings are available yet.' ) ) . '</p></div>';
+                       }
+
+                       usort(
+                               $entries,
+                               static function ( $a, $b ) {
+                                       return $b['timestamp'] <=> $a['timestamp'];
+                               }
+                       );
+
+                       $type_labels = array(
+                               'hunt'       => bhg_t( 'label_bonushunt', 'Bonushunt' ),
+                               'tournament' => bhg_t( 'label_tournament', 'Tournament' ),
+                       );
+
+                       ob_start();
+                       echo '<div class="bhg-my-rankings">';
+                       echo '<table class="bhg-leaderboard bhg-my-rankings-table">';
+                       echo '<thead><tr>';
+                       echo '<th>' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_rank', 'Rank' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
+                       echo '<th>' . esc_html( bhg_t( 'label_date', 'Date' ) ) . '</th>';
+                       echo '</tr></thead><tbody>';
+
+                       foreach ( $entries as $entry ) {
+                               $type_label   = isset( $type_labels[ $entry['type'] ] ) ? $type_labels[ $entry['type'] ] : ucfirst( $entry['type'] );
+                               $rank_display = $entry['rank'] ? esc_html( number_format_i18n( (int) $entry['rank'] ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $pos_display  = $entry['position'] ? esc_html( number_format_i18n( (int) $entry['position'] ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $pts_display  = $entry['points'] ? esc_html( number_format_i18n( (int) $entry['points'] ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $wins_display = $entry['wins'] ? esc_html( number_format_i18n( (int) $entry['wins'] ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $date_display = $entry['date'] ? esc_html( $entry['date'] ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+                               $is_winner = ( $entry['position'] > 0 ) || ( $entry['wins'] > 0 ) || ( $entry['rank'] > 0 && $entry['rank'] <= 3 );
+                               $row_attr  = $this->build_row_highlight_attribute( $is_winner, $entry['position'], $entry['rank'] );
+
+                               echo '<tr' . $row_attr . '>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_type', 'Type' ) ) . '">' . esc_html( $type_label ) . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_name', 'Name' ) ) . '">' . esc_html( $entry['name'] ) . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . $pos_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . $pts_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'sc_wins', 'Wins' ) ) . '">' . $wins_display . '</td>';
+                               echo '<td data-label="' . esc_attr( bhg_t( 'label_date', 'Date' ) ) . '">' . $date_display . '</td>';
+                               echo '</tr>';
+                       }
+
+                       echo '</tbody></table>';
+                       echo '</div>';
+
+                       return ob_get_clean();
+               }
+
+                                        /**
+                                         * Simple wins leaderboard with tabs.
+                                         *
+                                         * @param array $atts Shortcode attributes.
+                                         * @return string HTML output.
 					 */
 		public function best_guessers_shortcode( $atts ) {
 			global $wpdb;
@@ -2851,12 +3494,13 @@ $wpdb->usermeta,
 				} else {
 					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
-					foreach ( $rows as $r ) {
-							/* translators: %d: user ID. */
-							$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
-							echo '<tr><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
-							++$pos;
-					}
+                                        foreach ( $rows as $r ) {
+                                                        /* translators: %d: user ID. */
+                                                        $user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
+                                                        $row_attr   = $this->build_row_highlight_attribute( $pos <= 3, $pos );
+                                                        echo '<tr' . $row_attr . '><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
+                                                        ++$pos;
+                                        }
 						echo '</tbody></table>';
 				}
 					echo '</div>';

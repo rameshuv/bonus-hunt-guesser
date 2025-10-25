@@ -69,7 +69,8 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_shortcodes', 'Shortcodes' ), bhg_t( 'menu_shortcodes', 'Shortcodes' ), $cap, 'bhg-shortcodes', array( $this, 'shortcodes' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
 		add_submenu_page( $slug, bhg_t( 'database', 'Database' ), bhg_t( 'database', 'Database' ), $cap, 'bhg-database', array( $this, 'database' ) );
 		add_submenu_page( $slug, bhg_t( 'settings', 'Settings' ), bhg_t( 'settings', 'Settings' ), $cap, 'bhg-settings', array( $this, 'settings' ) );
 		add_submenu_page(
@@ -219,19 +220,33 @@ class BHG_Admin {
 	/**
 	 * Render the advertising page.
 	 */
-	public function advertising() {
-		require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
-	}
+        public function advertising() {
+                require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
+        }
 
-	/**
-	 * Render the translations page.
-	 */
-	public function translations() {
-		$view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
-		if ( file_exists( $view ) ) {
-			require $view; } else {
-			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
-	}
+        /**
+         * Render the shortcodes help page.
+         */
+        public function shortcodes() {
+                $view = BHG_PLUGIN_DIR . 'admin/views/shortcodes.php';
+                if ( file_exists( $view ) ) {
+                        require $view;
+                } else {
+                        echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_shortcodes', 'Shortcodes' ) ) . '</h1><p>' . esc_html( bhg_t( 'shortcodes_help_unavailable', 'Shortcodes reference is not available.' ) ) . '</p></div>';
+                }
+        }
+
+        /**
+         * Render the translations page.
+         */
+        public function translations() {
+                $view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
+                if ( file_exists( $view ) ) {
+                        require $view;
+                } else {
+                        echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>';
+                }
+        }
 		/**
 		 * Render the database maintenance page.
 		 */
@@ -922,8 +937,9 @@ class BHG_Admin {
 			exit;
 		}
 			global $wpdb;
-			$t              = $wpdb->prefix . 'bhg_tournaments';
-			$id             = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+                        $t                 = $wpdb->prefix . 'bhg_tournaments';
+                        $id                = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+                        $is_new_tournament = 0 === $id;
 			$hunt_ids_input = isset( $_POST['hunt_ids'] ) ? wp_unslash( $_POST['hunt_ids'] ) : array();
 			$hunt_ids       = array();
 		if ( is_array( $hunt_ids_input ) ) {
@@ -940,10 +956,16 @@ class BHG_Admin {
 						$participants_mode = 'winners';
 		}
 
-					$hunt_link_mode = isset( $_POST['hunt_link_mode'] ) ? sanitize_key( wp_unslash( $_POST['hunt_link_mode'] ) ) : 'manual';
-		if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
-			$hunt_link_mode = 'manual';
-		}
+                $hunt_link_mode = isset( $_POST['hunt_link_mode'] ) ? sanitize_key( wp_unslash( $_POST['hunt_link_mode'] ) ) : 'manual';
+                if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
+                        $hunt_link_mode = 'manual';
+                }
+
+                $prizes_field = isset( $_POST['prizes'] ) ? wp_unslash( $_POST['prizes'] ) : '';
+                $prizes       = '' !== $prizes_field ? wp_kses_post( $prizes_field ) : '';
+
+                $affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+                $affiliate_visible = isset( $_POST['affiliate_url_visible'] ) ? (int) ( '1' === (string) wp_unslash( $_POST['affiliate_url_visible'] ) || 1 === (int) $_POST['affiliate_url_visible'] ) : 0;
 
 					$allowed_types  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
 					$raw_start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
@@ -952,16 +974,19 @@ class BHG_Admin {
 					$start_date = '' !== $raw_start_date ? $raw_start_date : null;
 					$end_date   = '' !== $raw_end_date ? $raw_end_date : null;
 
-					$data             = array(
-						'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
-						'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
-						'participants_mode' => $participants_mode,
-						'hunt_link_mode'    => $hunt_link_mode,
-						'start_date'        => $start_date,
-						'end_date'          => $end_date,
-						'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
-						'updated_at'        => current_time( 'mysql' ),
-					);
+                $data             = array(
+                        'title'               => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+                        'description'         => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
+                        'participants_mode'   => $participants_mode,
+                        'hunt_link_mode'      => $hunt_link_mode,
+                        'prizes'              => $prizes,
+                        'affiliate_site_id'   => $affiliate_site_id > 0 ? $affiliate_site_id : 0,
+                        'affiliate_url_visible' => $affiliate_visible ? 1 : 0,
+                        'start_date'          => $start_date,
+                        'end_date'            => $end_date,
+                        'status'              => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
+                        'updated_at'          => current_time( 'mysql' ),
+                );
 					$allowed_statuses = array( 'active', 'archived' );
 					if ( ! in_array( $data['status'], $allowed_statuses, true ) ) {
 							$data['status'] = 'active';
@@ -990,8 +1015,8 @@ class BHG_Admin {
 					if ( 'auto' === $hunt_link_mode ) {
 							$hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
 					}
-					try {
-							$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+                                        try {
+                                                        $format = array( '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s' );
 						if ( $id > 0 ) {
 							$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
 							$saved_id = $id;

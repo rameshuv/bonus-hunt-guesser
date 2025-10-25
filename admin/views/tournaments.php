@@ -75,20 +75,40 @@ if ( $search_term ) {
 $base_url       = remove_query_arg( array( 'paged' ) );
 $hunts_table    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 $all_hunts      = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$affiliate_sites = array();
+if ( class_exists( 'BHG_DB' ) ) {
+        $db = new BHG_DB();
+        if ( method_exists( $db, 'get_affiliate_websites' ) ) {
+                $affiliate_sites = $db->get_affiliate_websites();
+        }
+}
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
-		$hunt_link_mode = 'manual';
+                $hunt_link_mode = 'manual';
+}
+$type_labels   = array(
+        'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+        'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+        'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+        'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+        'alltime'   => bhg_t( 'alltime', 'All-time' ),
+);
+$type_value    = isset( $row->type ) ? sanitize_key( $row->type ) : '';
+if ( ! isset( $type_labels[ $type_value ] ) ) {
+        $type_value = 'monthly';
 }
 $hunts_row_style       = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
 $hunts_row_attr        = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
 $points_settings       = function_exists( 'bhg_get_points_settings' ) ? bhg_get_points_settings() : array();
 $active_points_context = isset( $_GET['bhg_points_context'] ) ? sanitize_key( wp_unslash( $_GET['bhg_points_context'] ) ) : 'all';
 if ( ! isset( $points_settings[ $active_points_context ] ) ) {
-		$active_points_context = 'all';
+                $active_points_context = 'all';
 }
 $current_points_map = isset( $points_settings[ $active_points_context ] ) ? $points_settings[ $active_points_context ] : array();
 $context_switch_url = remove_query_arg( array( 'bhg_points_context', 'paged', 'bhg_msg' ) );
+$affiliate_selected   = isset( $row->affiliate_site_id ) ? (int) $row->affiliate_site_id : 0;
+$affiliate_visibility = isset( $row->affiliate_url_visible ) ? (int) $row->affiliate_url_visible : 1;
 ?>
 <div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline">
@@ -275,19 +295,30 @@ endif;
 </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
+                <tr>
+                <th><label for="bhg_t_desc">
+                <?php
+                echo esc_html( bhg_t( 'description', 'Description' ) );
+                ?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-				?>
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_type"><?php echo esc_html( bhg_t( 'label_type', 'Type' ) ); ?></label></th>
+                <td>
+                                <select id="bhg_t_type" name="type">
+                                <?php foreach ( $type_labels as $type_key => $type_label ) : ?>
+                                                <option value="<?php echo esc_attr( $type_key ); ?>" <?php selected( $type_value, $type_key ); ?>><?php echo esc_html( $type_label ); ?></option>
+                                <?php endforeach; ?>
+                                </select>
+                                <p class="description"><?php echo esc_html( bhg_t( 'tournament_type_hint', 'Controls how this tournament is grouped in leaderboards (weekly, monthly, quarterly, yearly, or all-time).' ) ); ?></p>
+                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
+                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                                ?>
 				</label></th>
 				<td>
 						<?php $pmode = $row->participants_mode ?? 'winners'; ?>
@@ -295,13 +326,20 @@ endif;
 								<option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
 								<option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
 						</select>
-				</td>
-				</tr>
-				<tr>
-				<th><label for="bhg_t_start">
-		<?php
-		echo esc_html( bhg_t( 'label_start_date', 'Start Date' ) );
-		?>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th><label for="bhg_t_prizes"><?php echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) ); ?></label></th>
+                                <td>
+                                                <textarea id="bhg_t_prizes" class="large-text" rows="3" name="prizes"><?php echo esc_textarea( $row->prizes ?? '' ); ?></textarea>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'tournament_prizes_hint', 'Optional description of prizes awarded in this tournament (supports basic HTML).' ) ); ?></p>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th><label for="bhg_t_start">
+                <?php
+                echo esc_html( bhg_t( 'label_start_date', 'Start Date' ) );
+                ?>
 </label></th>
 		<td><input id="bhg_t_start" type="date" name="start_date" value="<?php echo esc_attr( $row->start_date ?? '' ); ?>" /></td>
 		</tr>
@@ -314,11 +352,11 @@ endif;
 		<td><input id="bhg_t_end" type="date" name="end_date" value="<?php echo esc_attr( $row->end_date ?? '' ); ?>" /></td>
 		</tr>
 				<tr>
-				<th><label for="bhg_t_status">
-				<?php
-				echo esc_html( bhg_t( 'sc_status', 'Status' ) );
-				?>
-				</label></th>
+                                <th><label for="bhg_t_status">
+                                <?php
+                                echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+                                ?>
+                                </label></th>
 				<td>
 						<?php
 						$st  = array( 'active', 'archived' );
@@ -328,14 +366,36 @@ endif;
 						<?php foreach ( $st as $v ) : ?>
 								<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
 						<?php endforeach; ?>
-						</select>
-				</td>
-				</tr>
-				<tr>
-								<th><label for="bhg_t_hunt_mode">
-								<?php
-								echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
-								?>
+                                                </select>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th><label for="bhg_t_affiliate"><?php echo esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Website' ) ); ?></label></th>
+                                <td>
+                                                <select id="bhg_t_affiliate" name="affiliate_site_id">
+                                                                <option value="0" <?php selected( 0, $affiliate_selected ); ?>><?php echo esc_html( bhg_t( 'option_none', 'None' ) ); ?></option>
+                                                                <?php foreach ( (array) $affiliate_sites as $site ) : ?>
+                                                                                <option value="<?php echo esc_attr( (int) $site->id ); ?>" <?php selected( $affiliate_selected, (int) $site->id ); ?>><?php echo esc_html( $site->name ); ?></option>
+                                                                <?php endforeach; ?>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'tournament_affiliate_hint', 'Select an affiliate website to associate with this tournament.' ) ); ?></p>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th scope="row"><?php echo esc_html( bhg_t( 'label_show_affiliate', 'Show affiliate URL' ) ); ?></th>
+                                <td>
+                                                <label>
+                                                                <input type="hidden" name="affiliate_url_visible" value="0" />
+                                                                <input type="checkbox" id="bhg_t_affiliate_visible" name="affiliate_url_visible" value="1" <?php checked( $affiliate_visibility, 1 ); ?> />
+                                                                <?php echo esc_html( bhg_t( 'tournament_affiliate_visibility', 'Display the affiliate website link on the frontend.' ) ); ?>
+                                                </label>
+                                </td>
+                                </tr>
+                                <tr>
+                                                                <th><label for="bhg_t_hunt_mode">
+                                                                <?php
+                                                                echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
+                                                                ?>
 								</label></th>
 								<td>
 												<fieldset>
