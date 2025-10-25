@@ -17,12 +17,19 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		/**
 		 * Handles shortcode registration and rendering.
 		 */
-	class BHG_Shortcodes {
+        class BHG_Shortcodes {
 
-			/**
-			 * Registers all shortcodes.
-			 */
-		public function __construct() {
+                        /**
+                         * Flag to prevent enqueueing prize assets multiple times per request.
+                         *
+                         * @var bool
+                         */
+                private $prize_assets_enqueued = false;
+
+                        /**
+                         * Registers all shortcodes.
+                         */
+                public function __construct() {
 				// Core shortcodes.
 				add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
 				add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
@@ -179,6 +186,83 @@ $wpdb->usermeta,
         }
 
         /**
+         * Locate a shortcode view file.
+         *
+         * @param string $view View identifier relative to the views directory.
+         * @return string
+         */
+        private function get_view_path( $view ) {
+                $view = trim( str_replace( array( '..', '\\' ), '', (string) $view ) );
+
+                if ( '' === $view ) {
+                        return '';
+                }
+
+                $candidates = array(
+                        BHG_PLUGIN_DIR . 'templates/' . $view . '.php',
+                        BHG_PLUGIN_DIR . 'includes/views/' . $view . '.php',
+                );
+
+                /**
+                 * Filters the candidate paths used to locate shortcode views.
+                 *
+                 * @param string[] $candidates Candidate file paths.
+                 * @param string   $view       Requested view identifier.
+                 */
+                $candidates = apply_filters( 'bhg_shortcode_view_paths', $candidates, $view );
+
+                foreach ( $candidates as $candidate ) {
+                        if ( ! $candidate ) {
+                                continue;
+                        }
+
+                        $candidate = wp_normalize_path( $candidate );
+
+                        if ( file_exists( $candidate ) ) {
+                                return $candidate;
+                        }
+                }
+
+                return '';
+        }
+
+        /**
+         * Ensure prize-specific assets are loaded.
+         */
+        private function enqueue_prize_assets() {
+                if ( $this->prize_assets_enqueued ) {
+                        return;
+                }
+
+                $base_url = defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ );
+                $version  = defined( 'BHG_VERSION' ) ? BHG_VERSION : null;
+
+                wp_enqueue_style(
+                        'bhg-shortcodes',
+                        $base_url . 'assets/css/bhg-shortcodes.css',
+                        array(),
+                        $version
+                );
+
+                wp_enqueue_style(
+                        'bhg-prizes',
+                        $base_url . 'assets/css/bhg-prizes.css',
+                        array( 'bhg-shortcodes' ),
+                        $version
+                );
+
+                wp_enqueue_script(
+                        'bhg-prizes',
+                        $base_url . 'assets/js/bhg-prizes.js',
+                        array(),
+                        $version,
+                        true
+                );
+
+                $this->prize_assets_enqueued = true;
+        }
+
+        /**
          * Render prizes section markup.
          *
          * @param array  $prizes Prize rows.
@@ -194,16 +278,31 @@ $wpdb->usermeta,
                 $layout = $this->normalize_prize_layout( $layout );
                 $size   = $this->normalize_prize_size( $size );
 
+                $this->enqueue_prize_assets();
+
+                $view          = $this->get_view_path( 'prizes/section' );
+                $title_text    = bhg_t( 'label_prizes', 'Prizes' );
+                $card_renderer = array( $this, 'render_prize_card' );
+                $count         = count( $prizes );
+
+                if ( $view ) {
+                        ob_start();
+                        include $view;
+
+                        return ob_get_clean();
+                }
+
                 ob_start();
                 echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
-                echo '<h4 class="bhg-prizes-title">' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . '</h4>';
+                if ( '' !== $title_text ) {
+                        echo '<h4 class="bhg-prizes-title">' . esc_html( $title_text ) . '</h4>';
+                }
 
                 if ( 'carousel' === $layout ) {
-                        $count    = count( $prizes );
                         $show_nav = $count > 1;
                         echo '<div class="bhg-prize-carousel" data-count="' . (int) $count . '">';
                         if ( $show_nav ) {
-                                echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '">&#10094;</button>';
+                                echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '"><span aria-hidden="true">&lsaquo;</span></button>';
                         }
                         echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
                         foreach ( $prizes as $prize ) {
@@ -211,10 +310,8 @@ $wpdb->usermeta,
                         }
                         echo '</div></div>';
                         if ( $show_nav ) {
-                                echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '">&#10095;</button>';
-                        }
-                        if ( $count > 1 ) {
-                                echo '<div class="bhg-prize-dots">';
+                                echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '"><span aria-hidden="true">&rsaquo;</span></button>';
+                                echo '<div class="bhg-prize-dots" role="tablist">';
                                 for ( $i = 0; $i < $count; $i++ ) {
                                         $active = 0 === $i ? ' active' : '';
                                         echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
@@ -251,8 +348,25 @@ $wpdb->usermeta,
                 $image_url  = BHG_Prizes::get_image_url( $prize, $size );
                 $category   = isset( $prize->category ) ? (string) $prize->category : '';
 
+                $classes = array( 'bhg-prize-card' );
+                if ( $style_attr ) {
+                        $classes[] = 'bhg-prize-card--custom';
+                }
+                if ( ! empty( $prize->css_border ) || ! empty( $prize->css_border_color ) ) {
+                        $classes[] = 'bhg-prize-card--has-border';
+                }
+                if ( ! empty( $prize->css_background ) ) {
+                        $classes[] = 'bhg-prize-card--has-background';
+                }
+                if ( $image_url ) {
+                        $classes[] = 'bhg-prize-card--has-image';
+                }
+
+                $classes    = array_map( 'sanitize_html_class', $classes );
+                $class_attr = trim( implode( ' ', array_filter( $classes ) ) );
+
                 ob_start();
-                echo '<div class="bhg-prize-card"' . $style_attr . '>';
+                echo '<div class="' . esc_attr( $class_attr ) . '"' . $style_attr . '>';
                 if ( $image_url ) {
                         echo '<div class="bhg-prize-image"><img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $prize->title ) . '"></div>';
                 }
