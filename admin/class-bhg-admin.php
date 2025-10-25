@@ -83,11 +83,14 @@ class BHG_Admin {
 			BHG_Demo::instance()->register_menu( $slug, $cap );
 		}
 
-                // NOTE: By default, WordPress adds a submenu item that duplicates the
-                // top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
-                // call removed this submenu, but it also inadvertently removed our
-                // custom “Dashboard” submenu. Removing the call ensures the Dashboard
-		// item remains visible under the "Bonus Hunt" menu.
+		// Rename WordPress' automatically added submenu to “Dashboard” so the
+		// default entry matches the customer requirement instead of repeating
+		// the parent menu title.
+		global $submenu;
+
+		if ( isset( $submenu[ $slug ][0] ) ) {
+			$submenu[ $slug ][0][0] = bhg_t( 'menu_dashboard', 'Dashboard' );
+		}
 	}
 
 		/**
