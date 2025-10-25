@@ -2,10 +2,10 @@
 
 Legend: ✅ satisfied · ⚠️ partially satisfied · ❌ missing / incorrect
 
-## Dev Spec (v8.0.13 → v8.0.14)
+## Dev Spec (v8.0.14)
 
 ### 0) Plugin Header
-- ✅ Header comment and runtime constants declare version 8.0.13 with the required WordPress 6.3.0 minimum and MySQL 5.5.5. (See `bonus-hunt-guesser.php`.)
+- ✅ Header comment and runtime constants declare version 8.0.14 with the required WordPress 6.3.5 minimum and MySQL 5.5.5. (See `bonus-hunt-guesser.php`.)
 
 ### 1) `bhg` Dashboard
 - ✅ Latest Hunts table shows three most recent hunts with title, bold winners (each on its own row with guess and difference), start balance, final balance, and closed timestamp. (See `admin/views/dashboard.php` and `assets/css/admin.css`.)
