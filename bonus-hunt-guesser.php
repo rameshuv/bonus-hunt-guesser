@@ -508,17 +508,28 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                 }
         }
 
-        if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
-                        $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
-                if ( '' === $redirect ) {
-                                $settings['post_submit_redirect'] = '';
-                } else {
-                                $url = esc_url_raw( $redirect );
-                        if ( ! empty( $url ) ) {
-                                                $settings['post_submit_redirect'] = $url;
-                        }
-                }
-        }
+	if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
+		$redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
+		if ( '' === $redirect ) {
+			$settings['post_submit_redirect'] = '';
+		} else {
+			$url = esc_url_raw( $redirect );
+			if ( ! empty( $url ) ) {
+				$settings['post_submit_redirect'] = $url;
+			}
+		}
+	}
+
+	$visibility_fields = array(
+		'show_my_bonushunts'  => 'bhg_show_my_bonushunts',
+		'show_my_tournaments' => 'bhg_show_my_tournaments',
+		'show_my_prizes'      => 'bhg_show_my_prizes',
+		'show_my_rankings'    => 'bhg_show_my_rankings',
+	);
+
+	foreach ( $visibility_fields as $option_key => $field_name ) {
+		$settings[ $option_key ] = isset( $_POST[ $field_name ] ) ? 1 : 0;
+	}
 
                 // Save settings.
                 $existing = get_option( 'bhg_plugin_settings', array() );

@@ -19,29 +19,193 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		 */
 	class BHG_Shortcodes {
 
-			/**
-			 * Registers all shortcodes.
-			 */
+		/**
+		* Cached plugin settings.
+		*
+		* @var array
+		*/
+		private $settings = array();
+
+		/**
+		* Registers all shortcodes.
+		*/
 		public function __construct() {
-				// Core shortcodes.
-				add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
-				add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
-				add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
-				add_shortcode( 'bhg_tournaments', array( $this, 'tournaments_shortcode' ) );
-				add_shortcode( 'bhg_winner_notifications', array( $this, 'winner_notifications_shortcode' ) );
-				add_shortcode( 'bhg_user_profile', array( $this, 'user_profile_shortcode' ) );
+			$this->settings = get_option( 'bhg_plugin_settings', array() );
 
-				// Addons.
-				add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
-				add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
-                                add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
-                                add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
-                                add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
+			// Core shortcodes.
+			add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
+			add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
+			add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+			add_shortcode( 'bhg_tournaments', array( $this, 'tournaments_shortcode' ) );
+			add_shortcode( 'bhg_winner_notifications', array( $this, 'winner_notifications_shortcode' ) );
+			add_shortcode( 'bhg_user_profile', array( $this, 'user_profile_shortcode' ) );
 
-				// Legacy/aliases.
-				add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
-				add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
-				add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
+			// Addons.
+			add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
+			add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
+			add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
+			add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
+			add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
+			add_shortcode( 'bhg_my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
+			add_shortcode( 'bhg_my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
+			add_shortcode( 'bhg_my_prizes', array( $this, 'my_prizes_shortcode' ) );
+			add_shortcode( 'bhg_my_rankings', array( $this, 'my_rankings_shortcode' ) );
+
+			// Legacy/aliases.
+			add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+			add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
+			add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
+		}
+
+		/**
+		* Retrieve a stored plugin setting with default fallback.
+		*
+		* @param string $key     Setting key.
+		* @param mixed  $default Default value.
+		*
+		* @return mixed
+		*/
+		private function get_setting( $key, $default = null ) {
+			return isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : $default;
+		}
+
+		/**
+		* Determine whether a dashboard section is enabled via settings.
+		*
+		* @param string $section Section slug (e.g. my_bonushunts).
+		*
+		* @return bool
+		*/
+		private function is_section_enabled( $section ) {
+			$option_key = 'show_' . $section;
+			$value      = $this->get_setting( $option_key, 1 );
+
+			return (int) $value === 1;
+		}
+
+		/**
+		* Ensure the shortcode stylesheet is loaded.
+		*
+		* @return void
+		*/
+		private function enqueue_shortcode_assets() {
+			$base_url = defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', dirname( __DIR__ ) . '/bonus-hunt-guesser.php' );
+
+			wp_enqueue_style(
+			'bhg-shortcodes',
+			$base_url . 'assets/css/bhg-shortcodes.css',
+			array(),
+			defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+			);
+		}
+
+		/**
+		* Render a template file with the provided context.
+		*
+		* @param string $template Template slug without extension.
+		* @param array  $context  Variables passed to the template.
+		*
+		* @return string
+		*/
+		private function render_template( $template, array $context = array() ) {
+			$template = trim( (string) $template );
+			if ( '' === $template ) {
+				return '';
+			}
+
+			$paths = array();
+			if ( function_exists( 'get_stylesheet_directory' ) ) {
+				$paths[] = trailingslashit( get_stylesheet_directory() ) . 'bonus-hunt-guesser/' . $template . '.php';
+			}
+			if ( function_exists( 'get_template_directory' ) ) {
+				$paths[] = trailingslashit( get_template_directory() ) . 'bonus-hunt-guesser/' . $template . '.php';
+			}
+			$plugin_dir = defined( 'BHG_PLUGIN_DIR' ) ? BHG_PLUGIN_DIR : dirname( __DIR__ );
+			$paths[]    = trailingslashit( $plugin_dir ) . 'templates/' . $template . '.php';
+
+			$located = '';
+			foreach ( $paths as $candidate ) {
+				if ( $candidate && file_exists( $candidate ) ) {
+					$located = $candidate;
+					break;
+				}
+			}
+
+			$located = apply_filters( 'bhg_shortcode_template', $located, $template, $context );
+			if ( ! $located || ! file_exists( $located ) ) {
+				return '';
+			}
+
+			$context = apply_filters( 'bhg_shortcode_template_context', $context, $template, $located );
+
+			ob_start();
+			if ( ! empty( $context ) ) {
+				extract( $context, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
+			}
+			include $located;
+
+			return (string) ob_get_clean();
+		}
+
+		/**
+		* Resolve the current page number from attributes and query vars.
+		*
+		* @param mixed  $default   Default paged value.
+		* @param string $query_var Query var to inspect.
+		*
+		* @return int
+		*/
+		private function resolve_paged( $default, $query_var ) {
+			$paged = max( 1, (int) $default );
+			if ( isset( $_GET[ $query_var ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$paged = max( 1, absint( wp_unslash( $_GET[ $query_var ] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
+		return $paged;
+		}
+
+		/**
+		* Build pagination links for shortcode tables.
+		*
+		* @param int    $total     Total number of items.
+		* @param int    $per_page  Items per page.
+		* @param int    $paged     Current page.
+		* @param string $query_var Query parameter for pagination.
+		*
+		* @return string
+		*/
+		private function build_pagination_links( $total, $per_page, $paged, $query_var ) {
+			$total_pages = (int) ceil( $total / max( 1, $per_page ) );
+			if ( $total_pages <= 1 ) {
+				return '';
+			}
+
+			$current_url = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$base_url    = $current_url ? esc_url_raw( wp_validate_redirect( $current_url, home_url( '/' ) ) ) : home_url( '/' );
+			$base_url    = remove_query_arg( $query_var, $base_url );
+
+			$add_args = array();
+			foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$key = sanitize_key( $key );
+			if ( $key === $query_var ) {
+				continue;
+			}
+			if ( is_scalar( $value ) ) {
+				$add_args[ $key ] = sanitize_text_field( wp_unslash( $value ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			}
+		}
+
+		$links = paginate_links(
+		array(
+		'base'     => add_query_arg( $query_var, '%#%', $base_url ),
+		'format'   => '',
+		'current'  => $paged,
+		'total'    => $total_pages,
+		'add_args' => $add_args,
+		)
+		);
+
+		return $links ? (string) $links : '';
 		}
 		/**
 		 * Validates a database table name against known tables.
@@ -2652,17 +2816,17 @@ $wpdb->usermeta,
 			return ob_get_clean();
 		}
 
-					/**
-					 * Minimal profile view: affiliate status badge.
-					 *
-					 * @param array $atts Shortcode attributes.
-					 * @return string HTML output.
-					 */
-               public function user_profile_shortcode( $atts ) {
-                       unset( $atts ); // Parameter unused but kept for shortcode signature.
-                       if ( ! is_user_logged_in() ) {
-                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
-                       }
+/**
+ * Minimal profile view: affiliate status badge.
+ *
+ * @param array $atts Shortcode attributes.
+ * @return string HTML output.
+ */
+public function user_profile_shortcode( $atts ) {
+unset( $atts ); // Parameter unused but kept for shortcode signature.
+if ( ! is_user_logged_in() ) {
+return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+}
                        wp_enqueue_style(
                                'bhg-shortcodes',
                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
@@ -2723,16 +2887,237 @@ $wpdb->usermeta,
                                $output .= '<p><a href="' . esc_url( $edit_link ) . '">' . esc_html( bhg_t( 'link_edit_profile', 'Edit Profile' ) ) . '</a></p>';
                        }
                        $output .= '</div>';
-                       return $output;
-               }
+return $output;
+}
 
-					/**
-					 * Simple wins leaderboard with tabs.
-					 *
-					 * @param array $atts Shortcode attributes.
-					 * @return string HTML output.
-					 */
-		public function best_guessers_shortcode( $atts ) {
+		/**
+		 * Render the "My Bonus Hunts" dashboard table.
+		 * 
+		 * @param array $atts Shortcode attributes.
+		 * @return string
+		 */
+		public function my_bonushunts_shortcode( $atts ) {
+			if ( ! $this->is_section_enabled( 'my_bonushunts' ) ) {
+				return '';
+			}
+
+			if ( ! is_user_logged_in() ) {
+				return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+			}
+
+			if ( ! class_exists( 'BHG_Models' ) ) {
+				return '';
+			}
+
+			$atts = shortcode_atts(
+			array(
+			'per_page' => 10,
+			'paged'    => 1,
+			),
+			$atts,
+			'bhg_my_bonushunts'
+			);
+
+			$per_page = max( 1, absint( $atts['per_page'] ) );
+			$paged    = $this->resolve_paged( isset( $atts['paged'] ) ? $atts['paged'] : 1, 'bhg_my_bonushunts_page' );
+
+			$data = BHG_Models::get_user_bonus_hunts(
+			get_current_user_id(),
+			array(
+			'per_page' => $per_page,
+			'paged'    => $paged,
+			)
+			);
+
+			$this->enqueue_shortcode_assets();
+
+			$pagination = $this->build_pagination_links( $data['total'], $data['per_page'], $data['paged'], 'bhg_my_bonushunts_page' );
+
+			return $this->render_template(
+			'shortcode-my-bonushunts',
+			array(
+			'hunts'      => isset( $data['items'] ) ? $data['items'] : array(),
+			'total'      => isset( $data['total'] ) ? (int) $data['total'] : 0,
+			'per_page'   => isset( $data['per_page'] ) ? (int) $data['per_page'] : $per_page,
+			'paged'      => isset( $data['paged'] ) ? (int) $data['paged'] : $paged,
+			'pagination' => $pagination,
+			)
+			);
+		}
+
+		/**
+		 * Render the "My Tournaments" dashboard table.
+		 * 
+		 * @param array $atts Shortcode attributes.
+		 * @return string
+		 */
+		public function my_tournaments_shortcode( $atts ) {
+			if ( ! $this->is_section_enabled( 'my_tournaments' ) ) {
+				return '';
+			}
+
+			if ( ! is_user_logged_in() ) {
+				return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+			}
+
+			if ( ! class_exists( 'BHG_Models' ) ) {
+				return '';
+			}
+
+			$atts = shortcode_atts(
+			array(
+			'per_page' => 10,
+			'paged'    => 1,
+			),
+			$atts,
+			'bhg_my_tournaments'
+			);
+
+			$per_page = max( 1, absint( $atts['per_page'] ) );
+			$paged    = $this->resolve_paged( isset( $atts['paged'] ) ? $atts['paged'] : 1, 'bhg_my_tournaments_page' );
+
+			$data = BHG_Models::get_user_tournament_results(
+			get_current_user_id(),
+			array(
+			'per_page' => $per_page,
+			'paged'    => $paged,
+			)
+			);
+
+			$this->enqueue_shortcode_assets();
+
+			$pagination = $this->build_pagination_links( $data['total'], $data['per_page'], $data['paged'], 'bhg_my_tournaments_page' );
+
+			return $this->render_template(
+			'shortcode-my-tournaments',
+			array(
+			'tournaments' => isset( $data['items'] ) ? $data['items'] : array(),
+			'total'       => isset( $data['total'] ) ? (int) $data['total'] : 0,
+			'per_page'    => isset( $data['per_page'] ) ? (int) $data['per_page'] : $per_page,
+			'paged'       => isset( $data['paged'] ) ? (int) $data['paged'] : $paged,
+			'pagination'  => $pagination,
+			)
+			);
+		}
+
+		/**
+		 * Render the "My Prizes" dashboard table.
+		 * 
+		 * @param array $atts Shortcode attributes.
+		 * @return string
+		 */
+		public function my_prizes_shortcode( $atts ) {
+			if ( ! $this->is_section_enabled( 'my_prizes' ) ) {
+				return '';
+			}
+
+			if ( ! is_user_logged_in() ) {
+				return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+			}
+
+			if ( ! class_exists( 'BHG_Models' ) ) {
+				return '';
+			}
+
+			$atts = shortcode_atts(
+			array(
+			'per_page' => 10,
+			'paged'    => 1,
+			),
+			$atts,
+			'bhg_my_prizes'
+			);
+
+			$per_page = max( 1, absint( $atts['per_page'] ) );
+			$paged    = $this->resolve_paged( isset( $atts['paged'] ) ? $atts['paged'] : 1, 'bhg_my_prizes_page' );
+
+			$data = BHG_Models::get_user_prizes(
+			get_current_user_id(),
+			array(
+			'per_page' => $per_page,
+			'paged'    => $paged,
+			)
+			);
+
+			$this->enqueue_shortcode_assets();
+
+			$pagination = $this->build_pagination_links( $data['total'], $data['per_page'], $data['paged'], 'bhg_my_prizes_page' );
+
+			return $this->render_template(
+			'shortcode-my-prizes',
+			array(
+			'prizes'     => isset( $data['items'] ) ? $data['items'] : array(),
+			'total'      => isset( $data['total'] ) ? (int) $data['total'] : 0,
+			'per_page'   => isset( $data['per_page'] ) ? (int) $data['per_page'] : $per_page,
+			'paged'      => isset( $data['paged'] ) ? (int) $data['paged'] : $paged,
+			'pagination' => $pagination,
+			)
+			);
+		}
+
+		/**
+		 * Render the "My Rankings" dashboard table.
+		 * 
+		 * @param array $atts Shortcode attributes.
+		 * @return string
+		 */
+		public function my_rankings_shortcode( $atts ) {
+			if ( ! $this->is_section_enabled( 'my_rankings' ) ) {
+				return '';
+			}
+
+			if ( ! is_user_logged_in() ) {
+				return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+			}
+
+			if ( ! class_exists( 'BHG_Models' ) ) {
+				return '';
+			}
+
+			$atts = shortcode_atts(
+			array(
+			'per_page' => 10,
+			'paged'    => 1,
+			),
+			$atts,
+			'bhg_my_rankings'
+			);
+
+			$per_page = max( 1, absint( $atts['per_page'] ) );
+			$paged    = $this->resolve_paged( isset( $atts['paged'] ) ? $atts['paged'] : 1, 'bhg_my_rankings_page' );
+
+			$data = BHG_Models::get_user_rankings(
+			get_current_user_id(),
+			array(
+			'per_page' => $per_page,
+			'paged'    => $paged,
+			)
+			);
+
+			$this->enqueue_shortcode_assets();
+
+			$pagination = $this->build_pagination_links( $data['total'], $data['per_page'], $data['paged'], 'bhg_my_rankings_page' );
+
+			return $this->render_template(
+			'shortcode-my-rankings',
+			array(
+			'rankings'   => isset( $data['items'] ) ? $data['items'] : array(),
+			'total'      => isset( $data['total'] ) ? (int) $data['total'] : 0,
+			'per_page'   => isset( $data['per_page'] ) ? (int) $data['per_page'] : $per_page,
+			'paged'      => isset( $data['paged'] ) ? (int) $data['paged'] : $paged,
+			'pagination' => $pagination,
+			)
+			);
+		}
+
+		/**
+		 * Simple wins leaderboard with tabs.
+		 * 
+		 * @param array $atts Shortcode attributes.
+		 * @return string HTML output.
+		 */
+
+public function best_guessers_shortcode( $atts ) {
 			global $wpdb;
 
 						$wins_tbl  = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
