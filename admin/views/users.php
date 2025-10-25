@@ -3,14 +3,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
+        wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
+
+global $wpdb;
 
 $paged    = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
 $per_page = 30;
 $search   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 if ( isset( $_GET['s'] ) ) {
-		check_admin_referer( 'bhg_users_search', 'bhg_users_search_nonce' );
+                check_admin_referer( 'bhg_users_search', 'bhg_users_search_nonce' );
 }
 $allowed_orderby = array( 'user_login', 'display_name', 'user_email' );
 $orderby         = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'user_login';
@@ -31,6 +33,12 @@ $args = array(
 $user_query = new WP_User_Query( $args );
 $users      = $user_query->get_results();
 $total      = $user_query->get_total();
+
+$affiliates_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+$affiliate_sites  = $wpdb->get_results( "SELECT id, name FROM {$affiliates_table} ORDER BY name ASC" );
+$has_affiliates   = ! empty( $affiliate_sites );
+$affiliate_column_count = $has_affiliates ? count( $affiliate_sites ) : 1;
+$total_columns          = 4 + $affiliate_column_count + 1; // username, name, real name, email, affiliates, actions.
 
 $base_url = remove_query_arg( array( 'paged' ) );
 ?>
@@ -91,26 +99,41 @@ $base_url = remove_query_arg( array( 'paged' ) );
 		);
 		?>
 		"><?php echo esc_html( bhg_t( 'label_email', 'Email' ) ); ?></a></th>
-		<th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
+		<?php if ( $has_affiliates ) : ?>
+			<?php foreach ( $affiliate_sites as $site ) : ?>
+				<?php $site_label = $site->name ? $site->name : sprintf( /* translators: %d: affiliate ID. */ esc_html( bhg_t( 'label_affiliate_site_number', 'Affiliate Site %d' ) ), (int) $site->id ); ?>
+				<th><?php echo esc_html( $site_label ); ?></th>
+			<?php endforeach; ?>
+		<?php else : ?>
+			<th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
+		<?php endif; ?>
 		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
 		<?php if ( empty( $users ) ) : ?>
-		<tr><td colspan="6"><?php echo esc_html( bhg_t( 'no_users_found', 'No users found.' ) ); ?></td></tr>
+		<tr><td colspan="<?php echo esc_attr( $total_columns ); ?>"><?php echo esc_html( bhg_t( 'no_users_found', 'No users found.' ) ); ?></td></tr>
 			<?php
 		else :
 			foreach ( $users as $u ) :
 				$form_id   = 'bhg-user-' . (int) $u->ID;
 				$real_name = get_user_meta( $u->ID, 'bhg_real_name', true );
-				$is_aff    = get_user_meta( $u->ID, 'bhg_is_affiliate', true );
+				$user_affiliates = function_exists( 'bhg_get_user_affiliate_websites' ) ? bhg_get_user_affiliate_websites( $u->ID ) : array();
+                                $user_affiliates = array_map( 'intval', (array) $user_affiliates );
 				?>
 		<tr>
 			<td><?php echo esc_html( $u->user_login ); ?></td>
 			<td><?php echo esc_html( $u->display_name ); ?></td>
 			<td><input type="text" name="bhg_real_name" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $real_name ); ?>" /></td>
 			<td><?php echo esc_html( $u->user_email ); ?></td>
-			<td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
+			<?php if ( $has_affiliates ) : ?>
+				<?php foreach ( $affiliate_sites as $site ) : ?>
+					<?php $site_id = isset( $site->id ) ? (int) $site->id : 0; ?>
+					<td class="bhg-text-center"><input type="checkbox" name="bhg_affiliate_sites[]" value="<?php echo esc_attr( $site_id ); ?>" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( in_array( $site_id, $user_affiliates, true ) ); ?> /></td>
+				<?php endforeach; ?>
+			<?php else : ?>
+				<td class="bhg-text-center"><?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+			<?php endif; ?>
 			<td>
 			<form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="bhg_save_user_meta" />
