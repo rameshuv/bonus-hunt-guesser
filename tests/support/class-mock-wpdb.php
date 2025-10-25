@@ -176,6 +176,8 @@ class MockWPDB {
                     'participants_mode' => $mode,
                     'winners_count'     => $winners,
                     'event_date'        => $event_date,
+                    'points'            => isset( $winner['points'] ) ? (int) $winner['points'] : 0,
+                    'status'            => $hunt['status'] ?? '',
                 );
             }
 

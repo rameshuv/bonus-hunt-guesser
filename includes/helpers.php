@@ -189,8 +189,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'menu_tournaments'                             => 'Tournaments',
 			'menu_users'                                   => 'Users',
 			'menu_affiliates'                              => 'Affiliate Websites',
-                        'menu_advertising'                             => 'Advertising',
-                        'menu_prizes'                                  => 'Prizes',
+			'menu_advertising'                             => 'Advertising',
+			'menu_prizes'                                  => 'Prizes',
 			'menu_translations'                            => 'Translations',
 			'menu_settings'                                => 'Settings',
 			'menu_database'                                => 'Database',
@@ -214,42 +214,42 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			// Form/field labels.
 			'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
-                        'label_prizes'                                 => 'Prizes',
-                        'category'                                     => 'Category',
+			'label_prizes'                                 => 'Prizes',
+			'category'                                     => 'Category',
 			'label_submit_guess'                           => 'Submit Guess',
-                        'label_guess'                                  => 'Guess',
-                        'label_unknown_user'                           => 'Unknown user',
-                        'label_username'                               => 'Username',
-                        'images'                                       => 'Images',
-                        'css_settings'                                 => 'CSS Settings',
-                        'border'                                       => 'Border',
-                        'border_color'                                 => 'Border Color',
-                        'padding'                                      => 'Padding',
-                        'margin'                                       => 'Margin',
-                        'background_color'                             => 'Background Color',
-                        'image_small'                                  => 'Small',
-                        'image_medium'                                 => 'Medium',
-                        'image_large'                                  => 'Big',
-                        'select_image'                                 => 'Select Image',
-                        'clear'                                        => 'Clear',
-                        'no_image_selected'                            => 'No image selected',
-                        'available'                                    => 'Available',
-                        'prize_list'                                   => 'Prize List',
-                        'no_prizes_yet'                                => 'No prizes found.',
-                        'add_new_prize'                                => 'Add New Prize',
-                        'edit_prize'                                   => 'Edit Prize',
-                        'add_prize'                                    => 'Add Prize',
-                        'update_prize'                                 => 'Update Prize',
-                        'prize_saved'                                  => 'Prize saved.',
-                        'prize_updated'                                => 'Prize updated.',
-                        'prize_deleted'                                => 'Prize deleted.',
-                        'prize_error'                                  => 'Unable to save prize.',
-                        'prize_slide_label'                            => 'Go to prize %d',
-                        'confirm_delete_prize'                         => 'Are you sure you want to delete this prize?',
-                        'label_position'                               => 'Position',
-                        'label_final_balance'                          => 'Final Balance',
-                        'label_difference'                             => 'Difference',
-                        'label_pagination'                             => 'Pagination',
+			'label_guess'                                  => 'Guess',
+			'label_unknown_user'                           => 'Unknown user',
+			'label_username'                               => 'Username',
+			'images'                                       => 'Images',
+			'css_settings'                                 => 'CSS Settings',
+			'border'                                       => 'Border',
+			'border_color'                                 => 'Border Color',
+			'padding'                                      => 'Padding',
+			'margin'                                       => 'Margin',
+			'background_color'                             => 'Background Color',
+			'image_small'                                  => 'Small',
+			'image_medium'                                 => 'Medium',
+			'image_large'                                  => 'Big',
+			'select_image'                                 => 'Select Image',
+			'clear'                                        => 'Clear',
+			'no_image_selected'                            => 'No image selected',
+			'available'                                    => 'Available',
+			'prize_list'                                   => 'Prize List',
+			'no_prizes_yet'                                => 'No prizes found.',
+			'add_new_prize'                                => 'Add New Prize',
+			'edit_prize'                                   => 'Edit Prize',
+			'add_prize'                                    => 'Add Prize',
+			'update_prize'                                 => 'Update Prize',
+			'prize_saved'                                  => 'Prize saved.',
+			'prize_updated'                                => 'Prize updated.',
+			'prize_deleted'                                => 'Prize deleted.',
+			'prize_error'                                  => 'Unable to save prize.',
+			'prize_slide_label'                            => 'Go to prize %d',
+			'confirm_delete_prize'                         => 'Are you sure you want to delete this prize?',
+			'label_position'                               => 'Position',
+			'label_final_balance'                          => 'Final Balance',
+			'label_difference'                             => 'Difference',
+			'label_pagination'                             => 'Pagination',
 			'label_leaderboard'                            => 'Leaderboard',
 			'label_best_guessers'                          => 'Best Guessers',
 			'label_leaderboard_history'                    => 'Leaderboard History',
@@ -325,9 +325,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_winner_notifications'                   => 'Winner Notifications',
 			'label_timeline'                               => 'Timeline',
 			'label_choose_hunt'                            => 'Choose a hunt:',
-                        'label_select_hunt'                            => 'Select a hunt',
-                        'label_guess_final_balance'                    => 'Your guess (final balance):',
-                        'button_apply'                                 => 'Apply',
+			'label_select_hunt'                            => 'Select a hunt',
+			'label_guess_final_balance'                    => 'Your guess (final balance):',
+			'button_apply'                                 => 'Apply',
 			'label_bonus_hunt_title'                       => 'Bonus Hunt Title',
 			'label_existing_bonus_hunts'                   => 'Existing Bonus Hunts',
 			'label_start_balance_euro'                     => 'Starting Balance (€)',
@@ -372,15 +372,15 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_timeline_colon'                         => 'Timeline:',
 			'label_user_hash'                              => 'user#%d',
 			'label_emdash'                                 => '—',
-                        'placeholder_enter_guess'                      => 'Enter your guess',
-                        'placeholder_custom_value'                     => 'Custom value',
-                        'select_multiple_tournaments_hint'             => 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.',
-                        'select_multiple_prizes_hint'                  => 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.',
-                        'post_submit_redirect_url'                     => 'Post-submit redirect URL',
-                        'post_submit_redirect_description'             => 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.',
-                        'post_submit_redirect_placeholder'             => 'https://example.com/thank-you',
+			'placeholder_enter_guess'                      => 'Enter your guess',
+			'placeholder_custom_value'                     => 'Custom value',
+			'select_multiple_tournaments_hint'             => 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.',
+			'select_multiple_prizes_hint'                  => 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.',
+			'post_submit_redirect_url'                     => 'Post-submit redirect URL',
+			'post_submit_redirect_description'             => 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.',
+			'post_submit_redirect_placeholder'             => 'https://example.com/thank-you',
 
-                        // Buttons.
+			// Buttons.
 			'button_save'                                  => 'Save',
 			'button_cancel'                                => 'Cancel',
 			'button_delete'                                => 'Delete',
@@ -388,25 +388,25 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'button_view'                                  => 'View',
 			'button_back'                                  => 'Back',
 			'button_create_new_bonus_hunt'                 => 'Create New Bonus Hunt',
-                        'button_results'                               => 'Results',
-                        'button_submit_guess'                          => 'Submit Guess',
-                        'button_edit_guess'                            => 'Edit Guess',
-                        'button_filter'                                => 'Filter',
+			'button_results'                               => 'Results',
+			'button_submit_guess'                          => 'Submit Guess',
+			'button_edit_guess'                            => 'Edit Guess',
+			'button_filter'                                => 'Filter',
 			'button_log_in'                                => 'Log in',
 			'button_view_edit'                             => 'View / Edit',
-                        'button_update'                                => 'Update',
-                        'close'                                        => 'Close',
-                        'delete'                                       => 'Delete',
-                        'previous'                                     => 'Previous',
-                        'next'                                         => 'Next',
-                        'disable_guessing'                             => 'Disable Guessing',
-                        'enable_guessing'                              => 'Enable Guessing',
+			'button_update'                                => 'Update',
+			'close'                                        => 'Close',
+			'delete'                                       => 'Delete',
+			'previous'                                     => 'Previous',
+			'next'                                         => 'Next',
+			'disable_guessing'                             => 'Disable Guessing',
+			'enable_guessing'                              => 'Enable Guessing',
 
 			// Notices / messages.
 			'notice_login_required'                        => 'You must be logged in to guess.',
-                        'notice_guess_saved'                           => 'Your guess has been saved.',
-                        'notice_guess_updated'                         => 'Your guess has been updated.',
-                        'guess_updated'                                => 'Your guess has been updated!',
+			'notice_guess_saved'                           => 'Your guess has been saved.',
+			'notice_guess_updated'                         => 'Your guess has been updated.',
+			'guess_updated'                                => 'Your guess has been updated!',
 			'notice_hunt_closed'                           => 'This bonus hunt is closed.',
 			'notice_invalid_guess'                         => 'Please enter a valid guess.',
 			'notice_ajax_error'                            => 'An error occurred. Please try again.',
@@ -435,8 +435,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'settings_saved'                               => 'Settings saved.',
 			'notice_profile_updated'                       => 'Profile updated.',
 			'notice_login_to_continue'                     => 'Please log in to continue.',
-                        'notice_no_active_hunts'                       => 'No active bonus hunts at the moment.',
-                        'notice_no_guesses_yet'                        => 'No guesses have been submitted for this hunt yet.',
+			'notice_no_active_hunts'                       => 'No active bonus hunts at the moment.',
+			'notice_no_guesses_yet'                        => 'No guesses have been submitted for this hunt yet.',
 			'notice_login_to_guess'                        => 'Please log in to submit your guess.',
 			'notice_no_open_hunt'                          => 'No open hunt found to guess.',
 			'notice_no_hunts_found'                        => 'No hunts found.',
@@ -471,18 +471,18 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'sc_hunt'                                      => 'Hunt',
 			'sc_guess'                                     => 'Guess',
 			'sc_final'                                     => 'Final',
-                        'sc_title'                                     => 'Title',
-                        'sc_start_balance'                             => 'Start Balance',
-                        'sc_final_balance'                             => 'Final Balance',
-                        'sc_winners'                                   => 'Winners',
-                        'sc_status'                                    => 'Status',
+			'sc_title'                                     => 'Title',
+			'sc_start_balance'                             => 'Start Balance',
+			'sc_final_balance'                             => 'Final Balance',
+			'sc_winners'                                   => 'Winners',
+			'sc_status'                                    => 'Status',
 			'sc_affiliate'                                 => 'Affiliate',
 			'sc_position'                                  => 'Position',
 			'sc_user'                                      => 'User',
-                        'sc_wins'                                      => 'Wins',
-                        'label_times_won'                              => 'Times Won',
-                        'sc_avg_rank'                                  => 'Avg Hunt Pos',
-                        'sc_avg_tournament_pos'                        => 'Avg Tournament Pos',
+			'sc_wins'                                      => 'Wins',
+			'label_times_won'                              => 'Times Won',
+			'sc_avg_rank'                                  => 'Avg Hunt Pos',
+			'sc_avg_tournament_pos'                        => 'Avg Tournament Pos',
 			'sc_start'                                     => 'Start',
 			'sc_end'                                       => 'End',
 			'sc_prizes'                                    => 'Prizes',
@@ -911,21 +911,21 @@ if ( ! function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
 	 * @param int $site_id Site ID.
 	 * @return bool
 	 */
-        function bhg_is_user_affiliate_for_site( $user_id, $site_id ) {
-                $user_id = (int) $user_id;
+	function bhg_is_user_affiliate_for_site( $user_id, $site_id ) {
+			$user_id = (int) $user_id;
 
-                if ( ! $site_id ) {
-                        return bhg_is_user_affiliate( $user_id );
-                }
+		if ( ! $site_id ) {
+				return bhg_is_user_affiliate( $user_id );
+		}
 
-                                $sites = bhg_get_user_affiliate_websites( $user_id );
+							$sites = bhg_get_user_affiliate_websites( $user_id );
 
-                if ( empty( $sites ) ) {
-                        return bhg_is_user_affiliate( $user_id );
-                }
+		if ( empty( $sites ) ) {
+				return bhg_is_user_affiliate( $user_id );
+		}
 
-                                return in_array( absint( $site_id ), array_map( 'absint', (array) $sites ), true );
-        }
+							return in_array( absint( $site_id ), array_map( 'absint', (array) $sites ), true );
+	}
 }
 
 if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
@@ -1066,7 +1066,7 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 			if ( false !== strpos( $tbl, 'bhg_translations' ) || false !== strpos( $tbl, 'bhg_affiliate_websites' ) ) {
 					continue; // keep; upsert below.
 			}
-$wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery
 		}
 
 		// Seed affiliate websites (idempotent upsert by slug).
@@ -1097,134 +1097,134 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 		}
 
 		// Seed hunts.
-                                $hunts_tbl = esc_sql( "{$p}bhg_bonus_hunts" );
-                if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $hunts_tbl ) ) === $hunts_tbl ) {
-                        $now          = current_time( 'mysql', 1 );
-                        $users_table  = esc_sql( $wpdb->users );
-                        $winners_tbl  = esc_sql( "{$p}bhg_hunt_winners" );
-                        $guesses_tbl  = esc_sql( "{$p}bhg_guesses" );
-                        $users        = $wpdb->get_col( "SELECT ID FROM {$users_table} ORDER BY ID ASC LIMIT 5" );
-                        if ( empty( $users ) ) {
-                                $users = array( 1 );
-                        }
-                        $open_winners_limit   = 3;
-                        $closed_winners_limit = 3;
+								$hunts_tbl = esc_sql( "{$p}bhg_bonus_hunts" );
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $hunts_tbl ) ) === $hunts_tbl ) {
+				$now         = current_time( 'mysql', 1 );
+				$users_table = esc_sql( $wpdb->users );
+				$winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
+				$guesses_tbl = esc_sql( "{$p}bhg_guesses" );
+				$users       = $wpdb->get_col( "SELECT ID FROM {$users_table} ORDER BY ID ASC LIMIT 5" );
+			if ( empty( $users ) ) {
+						$users = array( 1 );
+			}
+				$open_winners_limit   = 3;
+				$closed_winners_limit = 3;
 
-                        // Open hunt.
-                        $wpdb->insert(
-                                $hunts_tbl,
-                                array(
-                                        'title'             => __( 'Bonus Hunt – Demo Open', 'bonus-hunt-guesser' ),
-                                       'starting_balance'  => 2000.00,
-                                        'num_bonuses'       => 10,
-                                        'prizes'            => __( 'Gift card + swag', 'bonus-hunt-guesser' ),
-                                        'status'            => 'open',
-                                        'winners_count'     => $open_winners_limit,
-                                        'affiliate_site_id' => (int) $wpdb->get_var(
-                                                'SELECT id FROM ' . esc_sql( "{$p}bhg_affiliate_websites" ) . ' ORDER BY id ASC LIMIT 1'
-                                        ),
-                                        'created_at'        => $now,
-                                        'updated_at'        => $now,
-                                ),
-                                array( '%s', '%f', '%d', '%s', '%s', '%d', '%d', '%s', '%s' )
-                        );
-                        $open_id = (int) $wpdb->insert_id;
+				// Open hunt.
+				$wpdb->insert(
+					$hunts_tbl,
+					array(
+						'title'             => __( 'Bonus Hunt – Demo Open', 'bonus-hunt-guesser' ),
+						'starting_balance'  => 2000.00,
+						'num_bonuses'       => 10,
+						'prizes'            => __( 'Gift card + swag', 'bonus-hunt-guesser' ),
+						'status'            => 'open',
+						'winners_count'     => $open_winners_limit,
+						'affiliate_site_id' => (int) $wpdb->get_var(
+							'SELECT id FROM ' . esc_sql( "{$p}bhg_affiliate_websites" ) . ' ORDER BY id ASC LIMIT 1'
+						),
+						'created_at'        => $now,
+						'updated_at'        => $now,
+					),
+					array( '%s', '%f', '%d', '%s', '%s', '%d', '%d', '%s', '%s' )
+				);
+				$open_id = (int) $wpdb->insert_id;
 
-                        // Closed hunt.
-                        $final_balance = 1875.50;
-                        $closed_at     = gmdate( 'Y-m-d H:i:s', time() - 86400 );
-                        $wpdb->insert(
-                                $hunts_tbl,
-                                array(
-                                        'title'            => __( 'Bonus Hunt – Demo Closed', 'bonus-hunt-guesser' ),
-                                        'starting_balance' => 1500.00,
-                                        'num_bonuses'      => 8,
-                                        'prizes'           => __( 'T-shirt', 'bonus-hunt-guesser' ),
-                                        'status'           => 'closed',
-                                        'final_balance'    => $final_balance,
-                                        'winners_count'    => $closed_winners_limit,
-                                        'closed_at'        => $closed_at,
-                                        'created_at'       => $now,
-                                        'updated_at'       => $now,
-                                ),
-                                array( '%s', '%f', '%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s' )
-                        );
-                        $closed_id = (int) $wpdb->insert_id;
+				// Closed hunt.
+				$final_balance = 1875.50;
+				$closed_at     = gmdate( 'Y-m-d H:i:s', time() - 86400 );
+				$wpdb->insert(
+					$hunts_tbl,
+					array(
+						'title'            => __( 'Bonus Hunt – Demo Closed', 'bonus-hunt-guesser' ),
+						'starting_balance' => 1500.00,
+						'num_bonuses'      => 8,
+						'prizes'           => __( 'T-shirt', 'bonus-hunt-guesser' ),
+						'status'           => 'closed',
+						'final_balance'    => $final_balance,
+						'winners_count'    => $closed_winners_limit,
+						'closed_at'        => $closed_at,
+						'created_at'       => $now,
+						'updated_at'       => $now,
+					),
+					array( '%s', '%f', '%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s' )
+				);
+				$closed_id = (int) $wpdb->insert_id;
 
-                        // Seed guesses for open hunt.
-                        $val = 2100.00;
-                        foreach ( $users as $uid ) {
-                                $wpdb->insert(
-                                        $guesses_tbl,
-                                        array(
-                                                'hunt_id'    => $open_id,
-                                                'user_id'    => (int) $uid,
-                                                'guess'      => $val,
-                                                'created_at' => $now,
-                                                'updated_at' => $now,
-                                        ),
-                                        array( '%d', '%d', '%f', '%s', '%s' )
-                                );
-                                $val += 23.45;
-                        }
+				// Seed guesses for open hunt.
+				$val = 2100.00;
+			foreach ( $users as $uid ) {
+				$wpdb->insert(
+					$guesses_tbl,
+					array(
+						'hunt_id'    => $open_id,
+						'user_id'    => (int) $uid,
+						'guess'      => $val,
+						'created_at' => $now,
+						'updated_at' => $now,
+					),
+					array( '%d', '%d', '%f', '%s', '%s' )
+				);
+				$val += 23.45;
+			}
 
-                        // Seed guesses for closed hunt.
-                        $closed_guesses      = array( 1863.40, 1889.20, 1876.10, 1854.75, 1895.60 );
-                        $last_closed_guess   = $closed_guesses[ array_key_last( $closed_guesses ) ];
-                        $idx                 = 0;
-                        foreach ( $users as $uid ) {
-                                $guess_value = isset( $closed_guesses[ $idx ] ) ? $closed_guesses[ $idx ] : $last_closed_guess;
-                                $wpdb->insert(
-                                        $guesses_tbl,
-                                        array(
-                                                'hunt_id'    => $closed_id,
-                                                'user_id'    => (int) $uid,
-                                                'guess'      => (float) $guess_value,
-                                                'created_at' => $now,
-                                                'updated_at' => $now,
-                                        ),
-                                        array( '%d', '%d', '%f', '%s', '%s' )
-                                );
-                                ++$idx;
-                        }
+				// Seed guesses for closed hunt.
+				$closed_guesses    = array( 1863.40, 1889.20, 1876.10, 1854.75, 1895.60 );
+				$last_closed_guess = $closed_guesses[ array_key_last( $closed_guesses ) ];
+				$idx               = 0;
+			foreach ( $users as $uid ) {
+						$guess_value = isset( $closed_guesses[ $idx ] ) ? $closed_guesses[ $idx ] : $last_closed_guess;
+						$wpdb->insert(
+							$guesses_tbl,
+							array(
+								'hunt_id'    => $closed_id,
+								'user_id'    => (int) $uid,
+								'guess'      => (float) $guess_value,
+								'created_at' => $now,
+								'updated_at' => $now,
+							),
+							array( '%d', '%d', '%f', '%s', '%s' )
+						);
+						++$idx;
+			}
 
-                        // Populate winners for closed hunt.
-                        if ( $closed_id > 0 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $winners_tbl ) ) === $winners_tbl ) {
-                                $limit = max( 1, min( $closed_winners_limit, count( $users ) ) );
-                                $winners_sql = $wpdb->prepare(
-                                        "SELECT user_id, guess, (%f - guess) AS diff FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC LIMIT %d",
-                                        $final_balance,
-                                        $closed_id,
-                                        $final_balance,
-                                        $limit
-                                );
-                                $winner_rows = $wpdb->get_results( $winners_sql );
+				// Populate winners for closed hunt.
+			if ( $closed_id > 0 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $winners_tbl ) ) === $winners_tbl ) {
+							$limit       = max( 1, min( $closed_winners_limit, count( $users ) ) );
+							$winners_sql = $wpdb->prepare(
+								"SELECT user_id, guess, (%f - guess) AS diff FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC LIMIT %d",
+								$final_balance,
+								$closed_id,
+								$final_balance,
+								$limit
+							);
+							$winner_rows = $wpdb->get_results( $winners_sql );
 
-                                $position = 1;
-                                foreach ( (array) $winner_rows as $winner ) {
-                                        $user_id = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
-                                        if ( $user_id <= 0 ) {
-                                                continue;
-                                        }
+							$position = 1;
+				foreach ( (array) $winner_rows as $winner ) {
+					$user_id = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
+					if ( $user_id <= 0 ) {
+									continue;
+					}
 
-                                        $wpdb->insert(
-                                                $winners_tbl,
-                                                array(
-                                                        'hunt_id'    => $closed_id,
-                                                        'user_id'    => $user_id,
-                                                        'position'   => $position,
-                                                        'guess'      => isset( $winner->guess ) ? (float) $winner->guess : 0.0,
-                                                        'diff'       => isset( $winner->diff ) ? (float) $winner->diff : 0.0,
-                                                        'created_at' => $now,
-                                                ),
-                                                array( '%d', '%d', '%d', '%f', '%f', '%s' )
-                                        );
-                                        ++$position;
-                                }
-                        }
-                }
+							$wpdb->insert(
+								$winners_tbl,
+								array(
+									'hunt_id'    => $closed_id,
+									'user_id'    => $user_id,
+									'position'   => $position,
+									'guess'      => isset( $winner->guess ) ? (float) $winner->guess : 0.0,
+									'diff'       => isset( $winner->diff ) ? (float) $winner->diff : 0.0,
+									'created_at' => $now,
+								),
+								array( '%d', '%d', '%d', '%f', '%f', '%s' )
+							);
+					++$position;
+				}
+			}
+		}
 
-                // Tournaments + results based on closed hunts.
+				// Tournaments + results based on closed hunts.
 				$t_tbl = esc_sql( "{$p}bhg_tournaments" );
 				$r_tbl = esc_sql( "{$p}bhg_tournament_results" );
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $t_tbl ) ) === $t_tbl ) {
@@ -1233,11 +1233,11 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						$wpdb->delete( $r_tbl, '1=1' );
 			}
 
-                                                               $winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
-                                                               $closed      = $wpdb->get_results(
-                                                                       "SELECT h.closed_at, w.user_id FROM {$hunts_tbl} h INNER JOIN {$winners_tbl} w ON w.hunt_id = h.id WHERE h.status='closed'"
-                                                               );
-                       foreach ( $closed as $row ) {
+																$winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
+																$closed      = $wpdb->get_results(
+																	"SELECT h.closed_at, w.user_id FROM {$hunts_tbl} h INNER JOIN {$winners_tbl} w ON w.hunt_id = h.id WHERE h.status='closed'"
+																);
+			foreach ( $closed as $row ) {
 				$ts        = $row->closed_at ? strtotime( $row->closed_at ) : time();
 				$iso_year  = gmdate( 'o', $ts );
 				$week      = str_pad( gmdate( 'W', $ts ), 2, '0', STR_PAD_LEFT );
@@ -1286,10 +1286,10 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						return (int) $wpdb->insert_id;
 				};
 
-                                               $uid = isset( $row->user_id ) ? (int) $row->user_id : 0;
-                                               if ( $uid <= 0 ) {
-                                                       continue;
-                                               }
+									$uid = isset( $row->user_id ) ? (int) $row->user_id : 0;
+				if ( $uid <= 0 ) {
+							continue;
+				}
 				foreach ( array(
 					$ensure( 'weekly', $week_key ),
 					$ensure( 'monthly', $month_key ),
@@ -1351,8 +1351,395 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 	return;
 }
 
+/**
+ * Default visibility settings for profile shortcodes.
+ *
+ * @return array<string,int>
+ */
+function bhg_get_default_profile_shortcodes_visibility() {
+	return array(
+		'my_bonushunts'  => 1,
+		'my_tournaments' => 1,
+		'my_prizes'      => 1,
+		'my_rankings'    => 1,
+	);
+}
+
+/**
+ * Retrieve shortcode visibility preferences from the options table.
+ *
+ * @return array<string,int>
+ */
+function bhg_get_profile_shortcodes_visibility() {
+	$settings   = get_option( 'bhg_plugin_settings', array() );
+	$visibility = isset( $settings['shortcode_visibility'] ) && is_array( $settings['shortcode_visibility'] )
+		? array_map( 'intval', $settings['shortcode_visibility'] )
+		: array();
+
+	return wp_parse_args( $visibility, bhg_get_default_profile_shortcodes_visibility() );
+}
+
+/**
+ * Determine if a given profile shortcode is enabled.
+ *
+ * @param string $slug Shortcode slug (without brackets).
+ * @return bool
+ */
+function bhg_is_profile_shortcode_enabled( $slug ) {
+	$slug = sanitize_key( $slug );
+	if ( '' === $slug ) {
+		return false;
+	}
+
+	$visibility = bhg_get_profile_shortcodes_visibility();
+
+	return ! empty( $visibility[ $slug ] );
+}
+
+/**
+ * Default style panel configuration values.
+ *
+ * @return array<string,array>
+ */
+function bhg_get_default_style_panel_settings() {
+	return array(
+		'title_block' => array(
+			'background'    => '#ffffff',
+			'border'        => '1px solid #e2e8f0',
+			'border_radius' => '8px',
+			'padding'       => '16px',
+			'margin'        => '0 0 20px',
+		),
+		'h2'          => array(
+			'font_size'   => '24px',
+			'font_weight' => '700',
+			'color'       => '#1e293b',
+			'padding'     => '0 0 12px',
+			'margin'      => '0 0 12px',
+		),
+		'h3'          => array(
+			'font_size'   => '20px',
+			'font_weight' => '600',
+			'color'       => '#0f172a',
+			'padding'     => '0 0 10px',
+			'margin'      => '16px 0 10px',
+		),
+		'description' => array(
+			'font_size'   => '16px',
+			'font_weight' => '400',
+			'color'       => '#334155',
+			'padding'     => '0',
+			'margin'      => '0 0 12px',
+		),
+		'body_text'   => array(
+			'font_size' => '15px',
+			'padding'   => '0 0 10px',
+			'margin'    => '0 0 10px',
+		),
+	);
+}
+
+/**
+ * Retrieve merged style panel settings.
+ *
+ * @return array<string,array>
+ */
+function bhg_get_style_panel_settings() {
+	$settings = get_option( 'bhg_plugin_settings', array() );
+	$style    = isset( $settings['style_panel'] ) && is_array( $settings['style_panel'] ) ? $settings['style_panel'] : array();
+
+	return wp_parse_args( $style, bhg_get_default_style_panel_settings() );
+}
+
+/**
+ * Sanitize a CSS value for inline output.
+ *
+ * @param string $value Raw CSS string.
+ * @return string
+ */
+function bhg_sanitize_css_value( $value ) {
+	$value = is_string( $value ) ? trim( $value ) : '';
+
+	if ( '' === $value ) {
+		return '';
+	}
+
+	$value = preg_replace( '/[^#\d\w\s\.\-%(),]/u', '', $value );
+
+	return sanitize_text_field( $value );
+}
+
+/**
+ * Build inline CSS rules based on the style panel settings.
+ *
+ * @return string
+ */
+function bhg_build_style_panel_css() {
+	$style = bhg_get_style_panel_settings();
+
+	$title = isset( $style['title_block'] ) ? (array) $style['title_block'] : array();
+	$h2    = isset( $style['h2'] ) ? (array) $style['h2'] : array();
+	$h3    = isset( $style['h3'] ) ? (array) $style['h3'] : array();
+	$desc  = isset( $style['description'] ) ? (array) $style['description'] : array();
+	$body  = isset( $style['body_text'] ) ? (array) $style['body_text'] : array();
+
+	$rules = array();
+
+	$rules[] = sprintf(
+		'.bhg-hunt-card, .bhg-tournament-details, .bhg-guess-form, .bhg-prize-card {background:%1$s;border:%2$s;border-radius:%3$s;padding:%4$s;margin:%5$s;}',
+		bhg_sanitize_css_value( isset( $title['background'] ) ? $title['background'] : '#ffffff' ),
+		bhg_sanitize_css_value( isset( $title['border'] ) ? $title['border'] : '1px solid #e2e8f0' ),
+		bhg_sanitize_css_value( isset( $title['border_radius'] ) ? $title['border_radius'] : '8px' ),
+		bhg_sanitize_css_value( isset( $title['padding'] ) ? $title['padding'] : '16px' ),
+		bhg_sanitize_css_value( isset( $title['margin'] ) ? $title['margin'] : '0 0 20px' )
+	);
+
+	$rules[] = sprintf(
+		'.bhg-active-hunt h2, .bhg-leaderboard h2, .bhg-tournaments h2, .bhg-prizes-shortcode h2 {font-size:%1$s;font-weight:%2$s;color:%3$s;padding:%4$s;margin:%5$s;}',
+		bhg_sanitize_css_value( isset( $h2['font_size'] ) ? $h2['font_size'] : '24px' ),
+		bhg_sanitize_css_value( isset( $h2['font_weight'] ) ? $h2['font_weight'] : '700' ),
+		bhg_sanitize_css_value( isset( $h2['color'] ) ? $h2['color'] : '#1e293b' ),
+		bhg_sanitize_css_value( isset( $h2['padding'] ) ? $h2['padding'] : '0 0 12px' ),
+		bhg_sanitize_css_value( isset( $h2['margin'] ) ? $h2['margin'] : '0 0 12px' )
+	);
+
+	$rules[] = sprintf(
+		'.bhg-active-hunt h3, .bhg-hunt-card h3, .bhg-tournaments h3, .bhg-prizes-shortcode h3 {font-size:%1$s;font-weight:%2$s;color:%3$s;padding:%4$s;margin:%5$s;}',
+		bhg_sanitize_css_value( isset( $h3['font_size'] ) ? $h3['font_size'] : '20px' ),
+		bhg_sanitize_css_value( isset( $h3['font_weight'] ) ? $h3['font_weight'] : '600' ),
+		bhg_sanitize_css_value( isset( $h3['color'] ) ? $h3['color'] : '#0f172a' ),
+		bhg_sanitize_css_value( isset( $h3['padding'] ) ? $h3['padding'] : '0 0 10px' ),
+		bhg_sanitize_css_value( isset( $h3['margin'] ) ? $h3['margin'] : '16px 0 10px' )
+	);
+
+	$rules[] = sprintf(
+		'.bhg-shortcode-description, .bhg-prize-card p.description {font-size:%1$s;font-weight:%2$s;color:%3$s;padding:%4$s;margin:%5$s;}',
+		bhg_sanitize_css_value( isset( $desc['font_size'] ) ? $desc['font_size'] : '16px' ),
+		bhg_sanitize_css_value( isset( $desc['font_weight'] ) ? $desc['font_weight'] : '400' ),
+		bhg_sanitize_css_value( isset( $desc['color'] ) ? $desc['color'] : '#334155' ),
+		bhg_sanitize_css_value( isset( $desc['padding'] ) ? $desc['padding'] : '0' ),
+		bhg_sanitize_css_value( isset( $desc['margin'] ) ? $desc['margin'] : '0 0 12px' )
+	);
+
+	$rules[] = sprintf(
+		'.bhg-active-hunt p, .bhg-active-hunt span, .bhg-leaderboard p, .bhg-leaderboard span, .bhg-tournaments p, .bhg-tournaments span {font-size:%1$s;padding:%2$s;margin:%3$s;}',
+		bhg_sanitize_css_value( isset( $body['font_size'] ) ? $body['font_size'] : '15px' ),
+		bhg_sanitize_css_value( isset( $body['padding'] ) ? $body['padding'] : '0 0 10px' ),
+		bhg_sanitize_css_value( isset( $body['margin'] ) ? $body['margin'] : '0 0 10px' )
+	);
+
+	return implode( '', array_filter( $rules ) );
+}
+
+/**
+ * Default notification template configuration.
+ *
+ * @return array<string,array>
+ */
+function bhg_get_default_notification_settings() {
+	return array(
+		'winner'     => array(
+			'enabled'     => 0,
+			'subject'     => __( 'Results for {{hunt}}', 'bonus-hunt-guesser' ),
+			'description' => __( 'Hi {{username}},<br>We have closed {{hunt}} with a final balance of {{final}}.<br>Winners: {{winners}}.', 'bonus-hunt-guesser' ),
+			'bcc'         => '',
+		),
+		'tournament' => array(
+			'enabled'     => 0,
+			'subject'     => __( 'New tournament: {{tournament}}', 'bonus-hunt-guesser' ),
+			'description' => __( 'A new tournament "{{tournament}}" has been created.<br>Starts: {{start}}<br>Ends: {{end}}.', 'bonus-hunt-guesser' ),
+			'bcc'         => '',
+		),
+		'hunt'       => array(
+			'enabled'     => 0,
+			'subject'     => __( 'New bonus hunt: {{hunt}}', 'bonus-hunt-guesser' ),
+			'description' => __( 'A new bonus hunt "{{hunt}}" is now open with a starting balance of {{start_balance}} and {{num_bonuses}} bonuses.', 'bonus-hunt-guesser' ),
+			'bcc'         => '',
+		),
+	);
+}
+
+/**
+ * Retrieve notification templates merged with defaults.
+ *
+ * @return array<string,array>
+ */
+function bhg_get_notification_settings() {
+	$stored = get_option( 'bhg_notification_settings', array() );
+	if ( ! is_array( $stored ) ) {
+		$stored = array();
+	}
+
+	$merged = wp_parse_args( $stored, bhg_get_default_notification_settings() );
+
+	foreach ( $merged as $type => $config ) {
+		if ( ! is_array( $config ) ) {
+			$merged[ $type ] = bhg_get_default_notification_settings()[ $type ];
+			continue;
+		}
+
+		$merged[ $type ]['enabled']     = ! empty( $config['enabled'] ) ? 1 : 0;
+		$merged[ $type ]['subject']     = isset( $config['subject'] ) ? sanitize_text_field( $config['subject'] ) : '';
+		$merged[ $type ]['description'] = isset( $config['description'] ) ? wp_kses_post( $config['description'] ) : '';
+		$merged[ $type ]['bcc']         = isset( $config['bcc'] ) ? sanitize_text_field( $config['bcc'] ) : '';
+	}
+
+	return $merged;
+}
+
+/**
+ * Check whether a notification type is enabled.
+ *
+ * @param string $type Notification key.
+ * @return bool
+ */
+function bhg_is_notification_enabled( $type ) {
+	$settings = bhg_get_notification_settings();
+	$type     = sanitize_key( $type );
+
+	return ! empty( $settings[ $type ]['enabled'] );
+}
+
+/**
+ * Send notification emails to a list of recipients.
+ *
+ * @param string $type      Notification type key.
+ * @param array  $recipients Array of recipient arrays with 'email' and optional 'username'.
+ * @param array  $tokens     Associative array of replacement tokens (keys should include braces, e.g. {{hunt}}).
+ * @return void
+ */
+function bhg_send_notifications( $type, array $recipients, array $tokens = array() ) {
+	if ( empty( $recipients ) ) {
+		return;
+	}
+
+	if ( ! bhg_is_notification_enabled( $type ) ) {
+		return;
+	}
+
+	$settings = bhg_get_notification_settings();
+	$config   = isset( $settings[ $type ] ) ? $settings[ $type ] : array();
+
+	$subject_template = isset( $config['subject'] ) ? $config['subject'] : '';
+	$body_template    = isset( $config['description'] ) ? $config['description'] : '';
+
+	if ( '' === trim( $subject_template ) || '' === trim( $body_template ) ) {
+		return;
+	}
+
+	$headers   = array( 'From: ' . BHG_Utils::get_email_from(), 'Content-Type: text/html; charset=UTF-8' );
+	$bcc_field = isset( $config['bcc'] ) ? trim( (string) $config['bcc'] ) : '';
+
+	if ( '' !== $bcc_field ) {
+		$headers[] = 'Bcc: ' . $bcc_field;
+	}
+
+	foreach ( $recipients as $recipient ) {
+		if ( empty( $recipient['email'] ) ) {
+			continue;
+		}
+
+		$email = sanitize_email( $recipient['email'] );
+		if ( ! is_email( $email ) ) {
+			continue;
+		}
+
+		$replacements = $tokens;
+		$username     = isset( $recipient['username'] ) ? sanitize_text_field( $recipient['username'] ) : '';
+
+		if ( ! isset( $replacements['{{username}}'] ) ) {
+			$replacements['{{username}}'] = $username ? $username : $email;
+		}
+
+		$search  = array_keys( $replacements );
+		$replace = array_values( $replacements );
+
+		$subject = str_replace( $search, $replace, $subject_template );
+		$body    = str_replace( $search, $replace, $body_template );
+
+		wp_mail( $email, $subject, $body, $headers );
+	}
+}
+
+/**
+ * Default mapping of placement points.
+ *
+ * @return array<int,int>
+ */
+function bhg_get_default_points_map() {
+	$map = array();
+	for ( $i = 1; $i <= 25; $i++ ) {
+		$map[ $i ] = 0;
+	}
+
+	$map[1] = 25;
+	$map[2] = 15;
+	$map[3] = 10;
+	$map[4] = 5;
+	$map[5] = 4;
+	$map[6] = 3;
+	$map[7] = 2;
+	$map[8] = 1;
+
+	return $map;
+}
+
+/**
+ * Retrieve tournament points configuration.
+ *
+ * @return array<string,array<int,int>>
+ */
+function bhg_get_points_settings() {
+	$stored = get_option( 'bhg_points_settings', array() );
+	if ( ! is_array( $stored ) ) {
+		$stored = array();
+	}
+
+	$defaults = array(
+		'all'    => bhg_get_default_points_map(),
+		'active' => bhg_get_default_points_map(),
+		'closed' => bhg_get_default_points_map(),
+	);
+
+	foreach ( $stored as $context => $map ) {
+		if ( ! is_array( $map ) ) {
+			unset( $stored[ $context ] );
+			continue;
+		}
+
+		$clean = array();
+		foreach ( $map as $position => $points ) {
+			$position           = max( 1, (int) $position );
+			$clean[ $position ] = (int) $points;
+		}
+		$stored[ $context ] = wp_parse_args( $clean, bhg_get_default_points_map() );
+	}
+
+	return wp_parse_args( $stored, $defaults );
+}
+
+/**
+ * Fetch points for a finishing position under a context.
+ *
+ * @param int    $position Finishing place (1-based).
+ * @param string $context  Context (all|active|closed).
+ * @return int
+ */
+function bhg_get_points_for_position( $position, $context = 'all' ) {
+	$position = max( 1, (int) $position );
+	$context  = sanitize_key( $context );
+
+	$settings = bhg_get_points_settings();
+
+	if ( isset( $settings[ $context ][ $position ] ) ) {
+		return (int) $settings[ $context ][ $position ];
+	}
+
+	return isset( $settings['all'][ $position ] ) ? (int) $settings['all'][ $position ] : 0;
+}
+
 // Ensure default translations are seeded on load so newly added keys appear
 // in the Translations page without requiring manual intervention.
 if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-		bhg_seed_default_translations_if_empty();
+	bhg_seed_default_translations_if_empty();
 }

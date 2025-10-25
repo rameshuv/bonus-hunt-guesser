@@ -72,16 +72,23 @@ if ( $search_term ) {
 			)
 		);
 }
-$base_url = remove_query_arg( array( 'paged' ) );
-$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$base_url       = remove_query_arg( array( 'paged' ) );
+$hunts_table    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$all_hunts      = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
-        $hunt_link_mode = 'manual';
+		$hunt_link_mode = 'manual';
 }
-$hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
-$hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
+$hunts_row_style       = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
+$hunts_row_attr        = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
+$points_settings       = function_exists( 'bhg_get_points_settings' ) ? bhg_get_points_settings() : array();
+$active_points_context = isset( $_GET['bhg_points_context'] ) ? sanitize_key( wp_unslash( $_GET['bhg_points_context'] ) ) : 'all';
+if ( ! isset( $points_settings[ $active_points_context ] ) ) {
+		$active_points_context = 'all';
+}
+$current_points_map = isset( $points_settings[ $active_points_context ] ) ? $points_settings[ $active_points_context ] : array();
+$context_switch_url = remove_query_arg( array( 'bhg_points_context', 'paged', 'bhg_msg' ) );
 ?>
 <div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline">
@@ -306,88 +313,172 @@ endif;
 </label></th>
 		<td><input id="bhg_t_end" type="date" name="end_date" value="<?php echo esc_attr( $row->end_date ?? '' ); ?>" /></td>
 		</tr>
-                <tr>
-                <th><label for="bhg_t_status">
-                <?php
-                echo esc_html( bhg_t( 'sc_status', 'Status' ) );
-                ?>
-                </label></th>
-                <td>
-                        <?php
-                        $st  = array( 'active', 'archived' );
-                        $cur = $row->status ?? 'active';
-                        ?>
-                        <select id="bhg_t_status" name="status">
-                        <?php foreach ( $st as $v ) : ?>
-                                <option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
-                        <?php endforeach; ?>
-                        </select>
-                </td>
-                </tr>
-                <tr>
-                                <th><label for="bhg_t_hunt_mode">
-                                <?php
-                                echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
-                                ?>
-                                </label></th>
-                                <td>
-                                                <fieldset>
-                                                                <label>
-                                                                                <input type="radio" id="bhg_t_hunt_mode_manual" name="hunt_link_mode" value="manual" <?php checked( $hunt_link_mode, 'manual' ); ?> />
-                                                                                <?php echo esc_html( bhg_t( 'hunt_mode_manual', 'From Hunt admin (manual selection)' ) ); ?>
-                                                                </label><br />
-                                                                <label>
-                                                                                <input type="radio" id="bhg_t_hunt_mode_auto" name="hunt_link_mode" value="auto" <?php checked( $hunt_link_mode, 'auto' ); ?> />
-                                                                                <?php echo esc_html( bhg_t( 'hunt_mode_auto', 'All hunts within start/end period' ) ); ?>
-                                                                </label>
-                                                </fieldset>
-                                                <p class="description"><?php echo esc_html( bhg_t( 'hunt_mode_description', 'Choose how hunts are linked to this tournament.' ) ); ?></p>
-                                </td>
-                </tr>
-                <tr id="bhg_t_hunts_row"<?php echo $hunts_row_attr; ?>>
-                <th><label for="bhg_t_hunts">
-                <?php
-                echo esc_html( bhg_t( 'connected_bonus_hunts', 'Connected Bonus Hunts' ) );
-                ?>
-                </label></th>
-                <td>
-                        <select id="bhg_t_hunts" name="hunt_ids[]" multiple="multiple" size="5">
-                        <?php foreach ( $all_hunts as $hunt_option ) : ?>
-                                <option value="<?php echo esc_attr( (int) $hunt_option->id ); ?>" <?php selected( in_array( (int) $hunt_option->id, $linked_hunts, true ) ); ?>><?php echo esc_html( $hunt_option->title ); ?></option>
-                        <?php endforeach; ?>
-                        </select>
-                        <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
-                </td>
-                </tr>
-        </table>
-        <?php submit_button( $row ? bhg_t( 'update_tournament', 'Update Tournament' ) : bhg_t( 'create_tournament', 'Create Tournament' ) ); ?>
-        </form>
-        <script>
-        document.addEventListener( 'DOMContentLoaded', function() {
-                var modeInputs = document.querySelectorAll( 'input[name="hunt_link_mode"]' );
-                var huntsRow = document.getElementById( 'bhg_t_hunts_row' );
+				<tr>
+				<th><label for="bhg_t_status">
+				<?php
+				echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+				?>
+				</label></th>
+				<td>
+						<?php
+						$st  = array( 'active', 'archived' );
+						$cur = $row->status ?? 'active';
+						?>
+						<select id="bhg_t_status" name="status">
+						<?php foreach ( $st as $v ) : ?>
+								<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
+						<?php endforeach; ?>
+						</select>
+				</td>
+				</tr>
+				<tr>
+								<th><label for="bhg_t_hunt_mode">
+								<?php
+								echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
+								?>
+								</label></th>
+								<td>
+												<fieldset>
+																<label>
+																				<input type="radio" id="bhg_t_hunt_mode_manual" name="hunt_link_mode" value="manual" <?php checked( $hunt_link_mode, 'manual' ); ?> />
+																				<?php echo esc_html( bhg_t( 'hunt_mode_manual', 'From Hunt admin (manual selection)' ) ); ?>
+																</label><br />
+																<label>
+																				<input type="radio" id="bhg_t_hunt_mode_auto" name="hunt_link_mode" value="auto" <?php checked( $hunt_link_mode, 'auto' ); ?> />
+																				<?php echo esc_html( bhg_t( 'hunt_mode_auto', 'All hunts within start/end period' ) ); ?>
+																</label>
+												</fieldset>
+												<p class="description"><?php echo esc_html( bhg_t( 'hunt_mode_description', 'Choose how hunts are linked to this tournament.' ) ); ?></p>
+								</td>
+				</tr>
+				<tr id="bhg_t_hunts_row"<?php echo $hunts_row_attr; ?>>
+				<th><label for="bhg_t_hunts">
+				<?php
+				echo esc_html( bhg_t( 'connected_bonus_hunts', 'Connected Bonus Hunts' ) );
+				?>
+				</label></th>
+				<td>
+						<select id="bhg_t_hunts" name="hunt_ids[]" multiple="multiple" size="5">
+						<?php foreach ( $all_hunts as $hunt_option ) : ?>
+								<option value="<?php echo esc_attr( (int) $hunt_option->id ); ?>" <?php selected( in_array( (int) $hunt_option->id, $linked_hunts, true ) ); ?>><?php echo esc_html( $hunt_option->title ); ?></option>
+						<?php endforeach; ?>
+						</select>
+						<p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
+				</td>
+				</tr>
+		</table>
+		<?php submit_button( $row ? bhg_t( 'update_tournament', 'Update Tournament' ) : bhg_t( 'create_tournament', 'Create Tournament' ) ); ?>
+		</form>
 
-                if ( ! modeInputs.length || ! huntsRow ) {
-                        return;
-                }
+		<h2 class="bhg-margin-top-large"><?php echo esc_html( bhg_t( 'points_system', 'Tournament Points System' ) ); ?></h2>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-max-width-900">
+				<?php wp_nonce_field( 'bhg_save_points', 'bhg_save_points_nonce' ); ?>
+				<input type="hidden" name="action" value="bhg_save_points" />
+				<table class="form-table">
+						<tr>
+								<th scope="row"><label for="bhg_points_context"><?php echo esc_html( bhg_t( 'points_context', 'Context' ) ); ?></label></th>
+								<td>
+										<select id="bhg_points_context" name="points_context">
+												<?php
+												$contexts = array(
+													'all' => bhg_t( 'all_hunts', 'All Hunts (default)' ),
+													'active' => bhg_t( 'active_hunts', 'Active Hunts' ),
+													'closed' => bhg_t( 'closed_hunts', 'Closed Hunts' ),
+												);
+												foreach ( $contexts as $key => $label ) :
+													?>
+														<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $active_points_context, $key ); ?>><?php echo esc_html( $label ); ?></option>
+														<?php
+												endforeach;
+												?>
+										</select>
+										<p class="description"><?php echo esc_html( bhg_t( 'points_context_hint', 'Choose which hunt status this configuration applies to.' ) ); ?></p>
+								</td>
+						</tr>
+						<tr>
+								<th scope="row"><?php echo esc_html( bhg_t( 'placement_points', 'Placement Points' ) ); ?></th>
+								<td>
+										<table class="widefat striped" style="max-width:600px;">
+												<thead>
+														<tr>
+																<th><?php echo esc_html( bhg_t( 'label_position', 'Position' ) ); ?></th>
+																<th><?php echo esc_html( bhg_t( 'label_points', 'Points' ) ); ?></th>
+														</tr>
+												</thead>
+												<tbody>
+														<?php
+														for ( $i = 1; $i <= 25; $i++ ) :
+																$value = isset( $current_points_map[ $i ] ) ? (int) $current_points_map[ $i ] : 0;
+															?>
+																<tr>
+																		<td><?php echo esc_html( $i ); ?></td>
+																		<td><input type="number" name="points[<?php echo esc_attr( $i ); ?>]" value="<?php echo esc_attr( $value ); ?>" min="0" class="small-text" /></td>
+																</tr>
+																<?php endfor; ?>
+												</tbody>
+										</table>
+										<p class="description"><?php echo esc_html( bhg_t( 'points_table_hint', 'Specify how many points each placement earns (1–25).' ) ); ?></p>
+								</td>
+						</tr>
+						<tr>
+								<th scope="row"><?php echo esc_html( bhg_t( 'recalculate_points', 'Recalculate standings' ) ); ?></th>
+								<td>
+										<label>
+												<input type="checkbox" name="recalculate_points" value="1" />
+												<?php echo esc_html( bhg_t( 'recalculate_after_saving', 'Rebuild tournament standings after saving.' ) ); ?>
+										</label>
+										<br />
+										<label for="bhg_recalculate_scope"><?php echo esc_html( bhg_t( 'apply_to_scope', 'Apply to' ) ); ?></label>
+										<select id="bhg_recalculate_scope" name="recalculate_scope">
+												<option value="all"><?php echo esc_html( bhg_t( 'all_hunts', 'All Hunts' ) ); ?></option>
+												<option value="active"><?php echo esc_html( bhg_t( 'active_hunts', 'Active Hunts' ) ); ?></option>
+												<option value="closed"><?php echo esc_html( bhg_t( 'closed_hunts', 'Closed Hunts' ) ); ?></option>
+										</select>
+										<p class="description"><?php echo esc_html( bhg_t( 'recalculate_hint', 'Only enable if you want to immediately update existing leaderboards.' ) ); ?></p>
+								</td>
+						</tr>
+				</table>
+				<?php submit_button( bhg_t( 'save_settings', 'Save Settings' ) ); ?>
+		</form>
 
-                var toggleRow = function() {
-                        var selectedMode = 'manual';
-                        for ( var i = 0; i < modeInputs.length; i++ ) {
-                                if ( modeInputs[ i ].checked ) {
-                                        selectedMode = modeInputs[ i ].value;
-                                        break;
-                                }
-                        }
+		<script>
+		( function(){
+				var contextSelect = document.getElementById( 'bhg_points_context' );
+				if ( ! contextSelect ) {
+						return;
+				}
+				contextSelect.addEventListener( 'change', function(){
+						var base = <?php echo wp_json_encode( add_query_arg( 'bhg_points_context', '', $context_switch_url ) ); ?>;
+						window.location = base + encodeURIComponent( this.value );
+				} );
+		} )();
+		</script>
+		<script>
+		document.addEventListener( 'DOMContentLoaded', function() {
+				var modeInputs = document.querySelectorAll( 'input[name="hunt_link_mode"]' );
+				var huntsRow = document.getElementById( 'bhg_t_hunts_row' );
 
-                        huntsRow.style.display = ( 'auto' === selectedMode ) ? 'none' : '';
-                };
+				if ( ! modeInputs.length || ! huntsRow ) {
+						return;
+				}
 
-                for ( var j = 0; j < modeInputs.length; j++ ) {
-                        modeInputs[ j ].addEventListener( 'change', toggleRow );
-                }
+				var toggleRow = function() {
+						var selectedMode = 'manual';
+						for ( var i = 0; i < modeInputs.length; i++ ) {
+								if ( modeInputs[ i ].checked ) {
+										selectedMode = modeInputs[ i ].value;
+										break;
+								}
+						}
 
-                toggleRow();
-        } );
-        </script>
+						huntsRow.style.display = ( 'auto' === selectedMode ) ? 'none' : '';
+				};
+
+				for ( var j = 0; j < modeInputs.length; j++ ) {
+						modeInputs[ j ].addEventListener( 'change', toggleRow );
+				}
+
+				toggleRow();
+		} );
+		</script>
 </div>
