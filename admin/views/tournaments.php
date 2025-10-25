@@ -82,6 +82,23 @@ if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
 }
 $hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
 $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
+$form_context    = class_exists( 'BHG_Tournaments_Controller' ) ? BHG_Tournaments_Controller::get_admin_form_context( $row ? (int) $row->id : 0 ) : array();
+$affiliate_sites = isset( $form_context['affiliate_sites'] ) ? (array) $form_context['affiliate_sites'] : array();
+$prize_rows      = isset( $form_context['prize_rows'] ) ? (array) $form_context['prize_rows'] : ( class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array() );
+$selected_prizes = isset( $form_context['selected_prize_ids'] ) ? (array) $form_context['selected_prize_ids'] : array();
+$affiliate_url_value = isset( $row->affiliate_url ) ? (string) $row->affiliate_url : '';
+if ( '' === $affiliate_url_value && $row && ! empty( $row->affiliate_site_id ) ) {
+        foreach ( $affiliate_sites as $site_option ) {
+                if ( isset( $site_option->id ) && (int) $site_option->id === (int) $row->affiliate_site_id ) {
+                        if ( ! empty( $site_option->url ) && is_string( $site_option->url ) ) {
+                                $affiliate_url_value = (string) $site_option->url;
+                        }
+                        break;
+                }
+        }
+}
+$type_value = isset( $row->type ) ? sanitize_key( $row->type ) : 'monthly';
+$affiliate_visible_checked = isset( $row->affiliate_url_visible ) ? (int) $row->affiliate_url_visible : 1;
 ?>
 <div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline">
@@ -90,9 +107,13 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 	?>
 </h1>
 
-	<h2 class="bhg-margin-top-small">
-	<?php
-	echo esc_html( bhg_t( 'all_tournaments', 'All Tournaments' ) );
+        <?php if ( isset( $_GET['bhg_msg'] ) && 'invalid_affiliate_url' === sanitize_key( wp_unslash( $_GET['bhg_msg'] ) ) ) : ?>
+        <div class="notice notice-error is-dismissible"><p><?php echo esc_html( bhg_t( 'invalid_affiliate_url', 'Please enter a valid affiliate website URL.' ) ); ?></p></div>
+        <?php endif; ?>
+
+        <h2 class="bhg-margin-top-small">
+        <?php
+        echo esc_html( bhg_t( 'all_tournaments', 'All Tournaments' ) );
 	?>
 </h2>
 				<form method="get" class="search-form">
@@ -202,8 +223,17 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 						<td><?php echo esc_html( $r->end_date ); ?></td>
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 <td>
-<a class="button" href="<?php echo esc_url( add_query_arg( array( 'edit' => (int) $r->id ) ) ); ?>">
-								<?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
+<?php
+$edit_url = add_query_arg(
+        array(
+                'page' => 'bhg-tournaments',
+                'edit' => (int) $r->id,
+        ),
+        admin_url( 'admin.php' )
+);
+?>
+<a class="button" href="<?php echo esc_url( $edit_url ); ?>">
+                                                                <?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?>
 </a>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;">
 								<?php wp_nonce_field( 'bhg_tournament_close', 'bhg_tournament_close_nonce' ); ?>
@@ -269,30 +299,106 @@ endif;
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
 		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
-</label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-				?>
-				</label></th>
-				<td>
-						<?php $pmode = $row->participants_mode ?? 'winners'; ?>
-						<select id="bhg_t_pmode" name="participants_mode">
-								<option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
-								<option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
-						</select>
-				</td>
-				</tr>
-				<tr>
-				<th><label for="bhg_t_start">
-		<?php
+                <th><label for="bhg_t_desc">
+                <?php
+                echo esc_html( bhg_t( 'description', 'Description' ) );
+                ?>
+                </label></th>
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_type">
+                                <?php
+                                echo esc_html( bhg_t( 'label_type', 'Type' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <?php
+                                                $type_options = array(
+                                                        'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+                                                        'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+                                                        'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+                                                        'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+                                                        'alltime'   => bhg_t( 'label_all_time', 'All-Time' ),
+                                                );
+                                                ?>
+                                                <select id="bhg_t_type" name="type">
+                                                <?php foreach ( $type_options as $slug => $label ) : ?>
+                                                        <option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $type_value, $slug ); ?>><?php echo esc_html( $label ); ?></option>
+                                                <?php endforeach; ?>
+                                                </select>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_prizes">
+                                <?php
+                                echo esc_html( bhg_t( 'label_prizes_description', 'Prizes Description' ) );
+                                ?>
+                                </label></th>
+                                <td><textarea id="bhg_t_prizes" class="large-text" rows="3" name="prizes"><?php echo esc_textarea( $row->prizes ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_prize_ids">
+                                <?php
+                                echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <select id="bhg_t_prize_ids" name="prize_ids[]" multiple="multiple" size="5">
+                                                <?php foreach ( $prize_rows as $prize_row ) : ?>
+                                                        <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( in_array( (int) $prize_row->id, $selected_prizes, true ) ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
+                                                <?php endforeach; ?>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_prizes_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.' ) ); ?></p>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
+                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <?php $pmode = $row->participants_mode ?? 'winners'; ?>
+                                                <select id="bhg_t_pmode" name="participants_mode">
+                                                                <option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
+                                                                <option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
+                                                </select>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_affiliate">
+                                <?php
+                                echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <select id="bhg_t_affiliate" name="affiliate_site_id">
+                                                        <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                                        <?php foreach ( $affiliate_sites as $site_option ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $site_option->id ); ?>" <?php selected( isset( $row->affiliate_site_id ) ? (int) $row->affiliate_site_id : 0, (int) $site_option->id ); ?>><?php echo esc_html( $site_option->name ?? '' ); ?></option>
+                                                        <?php endforeach; ?>
+                                                </select>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_affiliate_url">
+                                <?php
+                                echo esc_html( bhg_t( 'affiliate_website_url', 'Affiliate Website URL' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <input type="url" id="bhg_t_affiliate_url" class="regular-text" name="affiliate_url" value="<?php echo esc_attr( $affiliate_url_value ); ?>" />
+                                                <p class="description"><?php echo esc_html( bhg_t( 'affiliate_url_hint', 'Provide a full URL (including https://) if you want to promote an affiliate website.' ) ); ?></p>
+                                </td>
+                </tr>
+                <tr>
+                                <th scope="row"><?php echo esc_html( bhg_t( 'affiliate_url_visibility', 'Affiliate URL Visibility' ) ); ?></th>
+                                <td><label><input type="checkbox" name="affiliate_url_visible" value="1" <?php checked( $affiliate_visible_checked, 1 ); ?> /> <?php echo esc_html( bhg_t( 'affiliate_url_visible_label', 'Display affiliate website on the frontend' ) ); ?></label></td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_start">
+                <?php
 		echo esc_html( bhg_t( 'label_start_date', 'Start Date' ) );
 		?>
 </label></th>
