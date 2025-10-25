@@ -520,6 +520,23 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                 }
         }
 
+        $current_scheme = function_exists( 'bhg_get_points_scheme' ) ? bhg_get_points_scheme() : array();
+        $points_scope   = isset( $_POST['bhg_points_scope'] ) ? sanitize_key( wp_unslash( $_POST['bhg_points_scope'] ) ) : ( isset( $current_scheme['scope'] ) ? $current_scheme['scope'] : 'closed' );
+        if ( ! in_array( $points_scope, array( 'active', 'closed', 'all' ), true ) ) {
+                $points_scope = 'closed';
+        }
+
+        $posted_points = isset( $_POST['bhg_points_position'] ) && is_array( $_POST['bhg_points_position'] ) ? wp_unslash( $_POST['bhg_points_position'] ) : array();
+        $point_values  = array();
+        for ( $i = 1; $i <= 8; $i++ ) {
+                $value = isset( $posted_points[ $i ] ) ? $posted_points[ $i ] : ( isset( $current_scheme['values'][ $i ] ) ? $current_scheme['values'][ $i ] : 0 );
+                $point_values[ $i ] = max( 0, (int) $value );
+        }
+        $settings['points_scheme'] = array(
+                'scope'  => $points_scope,
+                'values' => $point_values,
+        );
+
                 // Save settings.
                 $existing = get_option( 'bhg_plugin_settings', array() );
                 update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
@@ -853,15 +870,15 @@ function bhg_load_leaderboard_ajax() {
  * @return string Generated HTML.
  */
 function bhg_generate_leaderboard_html( $timeframe, $paged ) {
-		global $wpdb;
+                global $wpdb;
 
-		$per_page = 20;
-		$offset   = ( $paged - 1 ) * $per_page;
+                $per_page = 20;
+                $offset   = max( 0, ( $paged - 1 ) * $per_page );
 
-		$start_date = '';
-		$now        = time();
-	switch ( strtolower( $timeframe ) ) {
-		case 'monthly':
+                $start_date = '';
+                $now        = time();
+        switch ( strtolower( $timeframe ) ) {
+                case 'monthly':
 			$start_date = gmdate( 'Y-m-01 00:00:00', $now );
 			break;
 		case 'yearly':
@@ -873,123 +890,115 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		case 'all-time':
 		case 'all_time':
 		default:
-			$start_date = '';
-			break;
-	}
+                        $start_date = '';
+                        break;
+        }
 
-		$wpdb->bhg_guesses     = $wpdb->prefix . 'bhg_guesses';
-		$wpdb->bhg_bonus_hunts = $wpdb->prefix . 'bhg_bonus_hunts';
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+                $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                $users_table   = esc_sql( $wpdb->users );
 
-		$total_query = "SELECT COUNT(*) FROM (
-SELECT g.user_id
-FROM {$wpdb->bhg_guesses} g
-INNER JOIN {$wpdb->bhg_bonus_hunts} h ON h.id = g.hunt_id
-WHERE h.status='closed' AND h.final_balance IS NOT NULL";
-	if ( $start_date ) {
-			// db call ok; no-cache ok.
-			$total = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*) FROM (
-SELECT g.user_id
-FROM {$wpdb->bhg_guesses} g
-INNER JOIN {$wpdb->bhg_bonus_hunts} h ON h.id = g.hunt_id
-WHERE h.status='closed' AND h.final_balance IS NOT NULL
-AND h.updated_at >= %s
-AND NOT EXISTS (
-SELECT 1 FROM {$wpdb->bhg_guesses} g2
-WHERE g2.hunt_id = g.hunt_id
-AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-)
-GROUP BY g.user_id
-) t",
-					$start_date
-				)
-			);
+                $event_expression = 'COALESCE(hw.created_at, h.closed_at, h.updated_at, h.created_at)';
+                $conditions       = array( 'hw.points > 0' );
+                $params           = array();
 
-			// db call ok; no-cache ok.
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT g.user_id, u.user_login, COUNT(*) AS wins
-FROM {$wpdb->bhg_guesses} g
-INNER JOIN {$wpdb->bhg_bonus_hunts} h ON h.id = g.hunt_id
-INNER JOIN {$wpdb->users} u ON u.ID = g.user_id
-WHERE h.status='closed' AND h.final_balance IS NOT NULL
-AND h.updated_at >= %s
-AND NOT EXISTS (
-SELECT 1 FROM {$wpdb->bhg_guesses} g2
-WHERE g2.hunt_id = g.hunt_id
-AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-)
-GROUP BY g.user_id, u.user_login
-ORDER BY wins DESC, u.user_login ASC
-LIMIT %d OFFSET %d",
-					$start_date,
-					$per_page,
-					$offset
-				)
-			);
-	} else {
-			// db call ok; no-cache ok.
-			$total = (int) $wpdb->get_var(
-				"SELECT COUNT(*) FROM (
-SELECT g.user_id
-FROM {$wpdb->bhg_guesses} g
-INNER JOIN {$wpdb->bhg_bonus_hunts} h ON h.id = g.hunt_id
-WHERE h.status='closed' AND h.final_balance IS NOT NULL
-AND NOT EXISTS (
-SELECT 1 FROM {$wpdb->bhg_guesses} g2
-WHERE g2.hunt_id = g.hunt_id
-AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-)
-GROUP BY g.user_id
-) t"
-			);
+                $scope = function_exists( 'bhg_get_points_scope' ) ? bhg_get_points_scope() : 'closed';
+        if ( 'closed' === $scope ) {
+                        $conditions[] = "h.status = 'closed'";
+        } elseif ( 'active' === $scope ) {
+                        $conditions[] = "h.status = 'open'";
+        }
 
-			// db call ok; no-cache ok.
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT g.user_id, u.user_login, COUNT(*) AS wins
-FROM {$wpdb->bhg_guesses} g
-INNER JOIN {$wpdb->bhg_bonus_hunts} h ON h.id = g.hunt_id
-INNER JOIN {$wpdb->users} u ON u.ID = g.user_id
-WHERE h.status='closed' AND h.final_balance IS NOT NULL
-AND NOT EXISTS (
-SELECT 1 FROM {$wpdb->bhg_guesses} g2
-WHERE g2.hunt_id = g.hunt_id
-AND ABS(g2.guess - h.final_balance) < ABS(g.guess - h.final_balance)
-)
-GROUP BY g.user_id, u.user_login
-ORDER BY wins DESC, u.user_login ASC
-LIMIT %d OFFSET %d",
-					$per_page,
-					$offset
-				)
-			);
-	}
-	if ( ! $rows ) {
-		return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
-	}
+        if ( $start_date ) {
+                        $conditions[] = $event_expression . ' >= %s';
+                        $params[]     = $start_date;
+        }
 
-	ob_start();
-	echo '<table class="bhg-leaderboard bhg-table" data-timeframe="' . esc_attr( $timeframe ) . '">';
-		echo '<thead><tr>';
-		echo '<th class="sortable" data-sort="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
-		echo '<th class="sortable" data-sort="username">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
-		echo '<th class="sortable" data-sort="wins">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
-		echo '</tr></thead><tbody>';
+        $where_sql = '';
+        if ( ! empty( $conditions ) ) {
+                        $where_sql = 'WHERE ' . implode(
+                                ' AND ',
+                                array_map(
+                                        static function ( $condition ) {
+                                                return '(' . $condition . ')';
+                                        },
+                                        $conditions
+                                )
+                        );
+        }
 
-	$pos = $offset + 1;
-	foreach ( $rows as $row ) {
-								/* translators: %d: user ID. */
-								$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-				echo '<tr>';
-				echo '<td>' . (int) $pos . '</td>';
-				echo '<td>' . esc_html( $user_label ) . '</td>';
-				echo '<td>' . (int) $row->wins . '</td>';
-				echo '</tr>';
-				++$pos;
-	}
-	echo '</tbody></table>';
+        $count_sql = "SELECT COUNT(*) FROM (
+SELECT hw.user_id
+FROM {$winners_table} hw
+INNER JOIN {$hunts_table} h ON h.id = hw.hunt_id
+{$where_sql}
+GROUP BY hw.user_id
+) AS totals";
+
+        if ( ! empty( $params ) ) {
+                $count_query = array_merge( array( $count_sql ), $params );
+                $total       = (int) $wpdb->get_var( call_user_func_array( array( $wpdb, 'prepare' ), $count_query ) );
+        } else {
+                $total = (int) $wpdb->get_var( $count_sql );
+        }
+
+        if ( 0 === $total ) {
+                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+        }
+
+        $results_sql = "SELECT hw.user_id, u.user_login,
+               SUM(hw.points) AS total_points,
+               SUM(CASE WHEN hw.points > 0 THEN 1 ELSE 0 END) AS total_wins,
+               MAX({$event_expression}) AS last_event
+        FROM {$winners_table} hw
+        INNER JOIN {$hunts_table} h ON h.id = hw.hunt_id
+        INNER JOIN {$users_table} u ON u.ID = hw.user_id
+        {$where_sql}
+        GROUP BY hw.user_id, u.user_login
+        ORDER BY total_points DESC, total_wins DESC, u.user_login ASC
+        LIMIT %d OFFSET %d";
+
+        $results_params   = $params;
+        $results_params[] = $per_page;
+        $results_params[] = $offset;
+
+        if ( ! empty( $results_params ) ) {
+                $rows = $wpdb->get_results( call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $results_sql ), $results_params ) ) );
+        } else {
+                $rows = $wpdb->get_results( $wpdb->prepare( $results_sql, $per_page, $offset ) );
+        }
+
+        if ( ! $rows ) {
+                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+        }
+
+        ob_start();
+        echo '<table class="bhg-leaderboard bhg-table" data-timeframe="' . esc_attr( $timeframe ) . '">';
+                echo '<thead><tr>';
+                echo '<th class="sortable" data-column="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
+                echo '<th class="sortable" data-column="username">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
+                echo '<th class="sortable" data-column="points">' . esc_html( bhg_t( 'sc_points', 'Points' ) ) . '</th>';
+                echo '<th class="sortable" data-column="wins">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
+                echo '</tr></thead><tbody>';
+
+        $pos = $offset + 1;
+        foreach ( $rows as $row ) {
+                                                                /* translators: %d: user ID. */
+                                                                $user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+                                $row_classes = array( 'bhg-winner-row' );
+                                if ( $pos <= 3 ) {
+                                        $row_classes[] = 'bhg-rank-' . $pos;
+                                }
+                                $class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+                                echo '<tr' . $class_attr . '>';
+                                echo '<td data-column="position">' . (int) $pos . '</td>';
+                                echo '<td data-column="username">' . esc_html( $user_label ) . '</td>';
+                                echo '<td data-column="points">' . (int) $row->total_points . '</td>';
+                                echo '<td data-column="wins">' . (int) $row->total_wins . '</td>';
+                                echo '</tr>';
+                                ++$pos;
+        }
+        echo '</tbody></table>';
 
 	$pages = (int) ceil( $total / $per_page );
 	if ( $pages > 1 ) {

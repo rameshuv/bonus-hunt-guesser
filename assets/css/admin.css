@@ -61,6 +61,39 @@
     background-color: #d1fae5;
 }
 
+.bhg-rank-1 {
+    background-color: #fff7d6;
+}
+
+.bhg-rank-2 {
+    background-color: #e6f2ff;
+}
+
+.bhg-rank-3 {
+    background-color: #f2e8ff;
+}
+
+.bhg-points-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.bhg-points-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+}
+
+.bhg-points-label {
+    font-weight: 600;
+    margin-bottom: 0.25em;
+}
+
+.bhg-settings-section th {
+    padding-top: 1.5em;
+}
+
 /* Utility classes */
 .bhg-margin-top-small {
     margin-top: 1em;

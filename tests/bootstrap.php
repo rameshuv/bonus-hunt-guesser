@@ -54,6 +54,40 @@ if ( ! function_exists( 'bhg_log' ) ) {
     }
 }
 
+if ( ! function_exists( 'bhg_get_points_scheme' ) ) {
+    function bhg_get_points_scheme() {
+        return array(
+            'scope'  => 'closed',
+            'values' => array(
+                1 => 10,
+                2 => 8,
+                3 => 6,
+                4 => 5,
+                5 => 4,
+                6 => 3,
+                7 => 2,
+                8 => 1,
+            ),
+        );
+    }
+}
+
+if ( ! function_exists( 'bhg_get_points_scope' ) ) {
+    function bhg_get_points_scope() {
+        $scheme = bhg_get_points_scheme();
+        return isset( $scheme['scope'] ) ? $scheme['scope'] : 'closed';
+    }
+}
+
+if ( ! function_exists( 'bhg_get_points_for_position' ) ) {
+    function bhg_get_points_for_position( $position ) {
+        $scheme   = bhg_get_points_scheme();
+        $position = (int) $position;
+
+        return isset( $scheme['values'][ $position ] ) ? (int) $scheme['values'][ $position ] : 0;
+    }
+}
+
 if ( ! function_exists( 'wp_list_pluck' ) ) {
     function wp_list_pluck( $input_list, $field ) {
         $values = array();

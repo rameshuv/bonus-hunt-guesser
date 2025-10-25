@@ -61,6 +61,21 @@ final class CloseHuntTest extends TestCase {
             $this->assertEqualsWithDelta( $expected_diff, (float) $this->wpdb->hunt_winners[ $index ]['diff'], 0.00001 );
         }
 
+        $expected_points = array( 10, 8, 6 );
+        foreach ( $expected_points as $index => $expected_points_value ) {
+            $this->assertArrayHasKey( 'points', $this->wpdb->hunt_winners[ $index ] );
+            $this->assertSame( $expected_points_value, (int) $this->wpdb->hunt_winners[ $index ]['points'] );
+        }
+
+        $expected_points_map = array(
+            101 => 10,
+            102 => 6,
+            103 => 8,
+        );
+
+        $points_map = $this->collectTournamentPoints( $tournament_id );
+        $this->assertSame( $expected_points_map, $points_map );
+
         $second_call_winners = BHG_Models::close_hunt( $hunt_id, 1000.00 );
 
         $this->assertCount( 3, $this->wpdb->hunt_winners );
@@ -69,6 +84,10 @@ final class CloseHuntTest extends TestCase {
         foreach ( $wins_after_second_call as $wins ) {
             $this->assertSame( 1, $wins );
         }
+
+        $points_after_second_call = $this->collectTournamentPoints( $tournament_id );
+
+        $this->assertSame( $expected_points_map, $points_after_second_call );
 
         sort( $first_call_winners );
         sort( $second_call_winners );
@@ -119,11 +138,25 @@ final class CloseHuntTest extends TestCase {
         $positions = array_column( $this->wpdb->hunt_winners, 'position' );
         $this->assertSame( range( 1, count( $guesser_ids ) ), $positions );
 
+        $points = array_column( $this->wpdb->hunt_winners, 'points' );
+        $this->assertSame( array( 10, 8, 6, 5 ), $points );
+
         $wins = $this->collectTournamentWins( $tournament_id );
         $this->assertCount( count( $guesser_ids ), $wins );
         foreach ( $wins as $win_count ) {
             $this->assertSame( 1, $win_count );
         }
+
+        $expected_points_map = array(
+            201 => 8,
+            202 => 10,
+            203 => 6,
+            204 => 5,
+        );
+
+        $points_map = $this->collectTournamentPoints( $tournament_id );
+        ksort( $expected_points_map );
+        $this->assertSame( $expected_points_map, $points_map );
     }
 
     public function test_recalculate_tournament_results_respects_participants_mode(): void {
@@ -166,8 +199,10 @@ final class CloseHuntTest extends TestCase {
 
         BHG_Models::close_hunt( $hunt_id, 1000.00 );
 
-        $winners_wins = $this->collectTournamentWins( $winners_tournament );
-        $all_wins     = $this->collectTournamentWins( $all_tournament );
+        $winners_wins    = $this->collectTournamentWins( $winners_tournament );
+        $all_wins        = $this->collectTournamentWins( $all_tournament );
+        $winners_points  = $this->collectTournamentPoints( $winners_tournament );
+        $all_points      = $this->collectTournamentPoints( $all_tournament );
 
         $this->assertCount( 2, $winners_wins );
         $this->assertCount( 4, $all_wins );
@@ -176,11 +211,15 @@ final class CloseHuntTest extends TestCase {
 
         BHG_Models::recalculate_tournament_results( array( $winners_tournament, $all_tournament ) );
 
-        $recalc_winners = $this->collectTournamentWins( $winners_tournament );
-        $recalc_all     = $this->collectTournamentWins( $all_tournament );
+        $recalc_winners        = $this->collectTournamentWins( $winners_tournament );
+        $recalc_all            = $this->collectTournamentWins( $all_tournament );
+        $recalc_winners_points = $this->collectTournamentPoints( $winners_tournament );
+        $recalc_all_points     = $this->collectTournamentPoints( $all_tournament );
 
         $this->assertSame( $winners_wins, $recalc_winners );
         $this->assertSame( $all_wins, $recalc_all );
+        $this->assertSame( $winners_points, $recalc_winners_points );
+        $this->assertSame( $all_points, $recalc_all_points );
     }
 
     /**
@@ -191,16 +230,62 @@ final class CloseHuntTest extends TestCase {
      * @return int[]
      */
     private function collectTournamentWins( $tournament_id ) {
-        $wins = array();
+        $tallies = $this->collectTournamentTallies( $tournament_id );
+
+        return array_map(
+            static function ( $entry ) {
+                return $entry['wins'];
+            },
+            $tallies
+        );
+    }
+
+    /**
+     * Collect tournament points for assertions.
+     *
+     * @param int $tournament_id Tournament identifier.
+     *
+     * @return int[]
+     */
+    private function collectTournamentPoints( $tournament_id ) {
+        $tallies = $this->collectTournamentTallies( $tournament_id );
+
+        return array_map(
+            static function ( $entry ) {
+                return $entry['points'];
+            },
+            $tallies
+        );
+    }
+
+    /**
+     * Collect raw tournament tallies for assertions.
+     *
+     * @param int $tournament_id Tournament identifier.
+     *
+     * @return array<int, array{wins:int, points:int}>
+     */
+    private function collectTournamentTallies( $tournament_id ) {
+        $tallies = array();
 
         foreach ( $this->wpdb->tournament_results as $row ) {
             if ( (int) $row['tournament_id'] !== (int) $tournament_id ) {
                 continue;
             }
 
-            $wins[ (int) $row['user_id'] ] = (int) $row['wins'];
+            $user_id = (int) $row['user_id'];
+            if ( $user_id <= 0 ) {
+                continue;
+            }
+
+            $tallies[ $user_id ] = array(
+                'wins'   => isset( $row['wins'] ) ? (int) $row['wins'] : 0,
+                'points' => isset( $row['points'] ) ? (int) $row['points'] : 0,
+            );
         }
 
-        return $wins;
+        ksort( $tallies );
+
+        return $tallies;
     }
 }

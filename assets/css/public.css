@@ -118,6 +118,22 @@
     opacity: 1;
 }
 
+.bhg-winner-row {
+    font-weight: 600;
+}
+
+.bhg-rank-1 {
+    background-color: #fff7d6;
+}
+
+.bhg-rank-2 {
+    background-color: #e6f2ff;
+}
+
+.bhg-rank-3 {
+    background-color: #f2e8ff;
+}
+
 /* Tab loading state */
 .bhg-tab-content.loading {
     opacity: 0.7;

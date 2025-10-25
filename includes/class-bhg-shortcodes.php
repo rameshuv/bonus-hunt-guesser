@@ -1846,7 +1846,7 @@ $wpdb->usermeta,
 
                         // Optional timeline filter.
                         $prep_where = array();
-                        $where      = array();
+                        $where      = array( 'hw.points > 0' );
                         $range      = $this->get_timeline_range( $timeline_filter );
                         if ( $range ) {
                                 $where[]      = 'COALESCE(hw.created_at, h.closed_at, h.created_at) BETWEEN %s AND %s';
@@ -1934,6 +1934,7 @@ $wpdb->usermeta,
                         $select_parts = array(
                                 'hw.user_id',
                                 'u.user_login',
+                                'SUM(hw.points) AS total_points',
                                 'COUNT(*) AS total_wins',
                         );
 
@@ -1949,7 +1950,7 @@ $wpdb->usermeta,
                                         $tournament_filter_join = $wpdb->prepare( ' WHERE tr.tournament_id = %d', $tournament_id );
                                 }
                                 $select_parts[] = 'tour_avg.avg_tournament_pos';
-                                $tour_join      = "LEFT JOIN (SELECT ranks.user_id, AVG(ranks.rank_position) AS avg_tournament_pos FROM (SELECT tr.user_id, tr.tournament_id, (SELECT 1 + COUNT(*) FROM {$r} tr2 WHERE tr2.tournament_id = tr.tournament_id AND (tr2.wins > tr.wins OR (tr2.wins = tr.wins AND tr2.user_id < tr.user_id))) AS rank_position FROM {$r} tr{$tournament_filter_join}) AS ranks GROUP BY ranks.user_id) AS tour_avg ON tour_avg.user_id = hw.user_id";
+                                $tour_join      = "LEFT JOIN (SELECT ranks.user_id, AVG(ranks.rank_position) AS avg_tournament_pos FROM (SELECT tr.user_id, tr.tournament_id, (SELECT 1 + COUNT(*) FROM {$r} tr2 WHERE tr2.tournament_id = tr.tournament_id AND (tr2.points > tr.points OR (tr2.points = tr.points AND tr2.user_id < tr.user_id))) AS rank_position FROM {$r} tr{$tournament_filter_join}) AS ranks GROUP BY ranks.user_id) AS tour_avg ON tour_avg.user_id = hw.user_id";
                         } else {
                                 $tour_join = '';
                         }
@@ -1999,7 +2000,8 @@ $wpdb->usermeta,
 
                         $orderby_key = $orderby_request;
                         $orderby_map = array(
-                                'wins'           => 'total_wins',
+                                'wins'           => 'total_points',
+                                'points'         => 'total_points',
                                 'user'           => 'u.user_login',
                                 'avg_hunt'       => 'avg_hunt_pos',
                                 'avg_tournament' => 'avg_tournament_pos',
@@ -2149,7 +2151,7 @@ $wpdb->usermeta,
                                 } elseif ( 'user' === $field ) {
                                         echo '<th><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</a></th>';
                                 } elseif ( 'wins' === $field ) {
-                                        echo '<th><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( bhg_t( 'label_times_won', 'Times Won' ) ) . '</a></th>';
+                                        echo '<th><a href="' . esc_url( $toggle( 'points' ) ) . '">' . esc_html( bhg_t( 'sc_points', 'Points' ) ) . '</a></th>';
                                 } elseif ( 'avg_hunt' === $field ) {
                                         echo '<th><a href="' . esc_url( $toggle( 'avg_hunt' ) ) . '">' . esc_html( bhg_t( 'sc_avg_rank', 'Avg Hunt Pos' ) ) . '</a></th>';
                                 } elseif ( 'avg_tournament' === $field ) {
@@ -2181,7 +2183,7 @@ $wpdb->usermeta,
 					} elseif ( 'user' === $field ) {
 						echo '<td>' . esc_html( $user_label ) . '</td>';
                                         } elseif ( 'wins' === $field ) {
-                                                echo '<td>' . (int) $row->total_wins . '</td>';
+                                                echo '<td>' . esc_html( (int) $row->total_points ) . '</td>';
                                         } elseif ( 'avg_hunt' === $field ) {
                                                 echo '<td>' . ( isset( $row->avg_hunt_pos ) ? esc_html( number_format_i18n( (float) $row->avg_hunt_pos, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                                         } elseif ( 'avg_tournament' === $field ) {
@@ -2241,18 +2243,19 @@ $wpdb->usermeta,
 					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
 
-					$orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
+                                        $orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'points';
 					$allowed_orders = array( 'asc', 'desc' );
 					$order          = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
 
-					$allowed = array(
-						'wins'        => 'r.wins',
-						'username'    => 'u.user_login',
-						'last_win_at' => 'r.last_win_date',
-					);
-					if ( ! isset( $allowed[ $orderby ] ) ) {
-							$orderby = 'wins';
-					}
+                                        $allowed = array(
+                                                'points'      => 'r.points',
+                                                'wins'        => 'r.points',
+                                                'username'    => 'u.user_login',
+                                                'last_win_at' => 'r.last_win_date',
+                                        );
+                                        if ( ! isset( $allowed[ $orderby ] ) ) {
+                                                        $orderby = 'points';
+                                        }
 					if ( ! in_array( $order, $allowed_orders, true ) ) {
 							$order = 'desc';
 					}
@@ -2260,7 +2263,7 @@ $wpdb->usermeta,
 					$order          = strtoupper( $order );
 
 																$query                                        = $wpdb->prepare(
-																	"SELECT r.user_id, r.wins, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY " . esc_sql( $orderby_column ) . ' ' . esc_sql( $order ) . ', r.user_id ASC',
+																	"SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY " . esc_sql( $orderby_column ) . ' ' . esc_sql( $order ) . ', r.user_id ASC',
 																	$tournament->id
 																);
 																										$rows = $wpdb->get_results( $query );
@@ -2298,7 +2301,7 @@ $wpdb->usermeta,
 					echo '<thead><tr>';
 									echo '<th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th>';
 									echo '<th><a href="' . esc_url( $toggle( 'username' ) ) . '">' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</a></th>';
-									echo '<th><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</a></th>';
+                                echo '<th><a href="' . esc_url( $toggle( 'points' ) ) . '">' . esc_html( bhg_t( 'sc_points', 'Points' ) ) . '</a></th>';
 									echo '<th><a href="' . esc_url( $toggle( 'last_win_at' ) ) . '">' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</a></th>';
 					echo '</tr></thead><tbody>';
 
@@ -2314,7 +2317,7 @@ $wpdb->usermeta,
 											(int) $row->user_id
 										)
 									) . '</td>';
-					echo '<td>' . (int) $row->wins . '</td>';
+                                        echo '<td>' . esc_html( isset( $row->points ) ? (int) $row->points : 0 ) . '</td>';
 					echo '<td>' . ( $row->last_win_date ? esc_html( mysql2date( get_option( 'date_format' ), $row->last_win_date ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 					echo '</tr>';
 				}
@@ -2780,22 +2783,22 @@ $wpdb->usermeta,
 						$params[] = $info['start'];
 						$params[] = $info['end'];
 					}
-										$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
+										$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.points) as total_points'
 										. " FROM {$wins_tbl} r"
 										. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
 										. " INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id"
 										. ' WHERE ' . $where . "\n                                                       GROUP BY u.ID, u.user_login";
 										// db call ok; no-cache ok.
 																				$sql = $wpdb->prepare( $sql, ...$params );
-										$sql                                        .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+										$sql                                        .= ' ORDER BY total_points DESC, u.user_login ASC LIMIT 50';
 																		$results[ $key ] = $wpdb->get_results( $sql );
 				} else {
-						$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.wins) as total_wins'
+						$sql = 'SELECT u.ID as user_id, u.user_login, SUM(r.points) as total_points'
 						. " FROM {$wins_tbl} r"
 						. " INNER JOIN {$users_tbl} u ON u.ID = r.user_id"
 						. ' GROUP BY u.ID, u.user_login';
 						// db call ok; no-cache ok.
-						$sql .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+						$sql .= ' ORDER BY total_points DESC, u.user_login ASC LIMIT 50';
 																$results[ $key ] = $wpdb->get_results( $sql );
 				}
 			}
@@ -2849,14 +2852,15 @@ $wpdb->usermeta,
 				if ( ! $rows ) {
 						echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 				} else {
-					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
+					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_points', 'Points' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
-					foreach ( $rows as $r ) {
-							/* translators: %d: user ID. */
-							$user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
-							echo '<tr><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
-							++$pos;
-					}
+                                        foreach ( $rows as $r ) {
+                                                        /* translators: %d: user ID. */
+                                                        $user_label = $r->user_login ? $r->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $r->user_id );
+                                                        $points     = isset( $r->total_points ) ? (int) $r->total_points : 0;
+                                                        echo '<tr><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . $points . '</td></tr>';
+                                                        ++$pos;
+                                        }
 						echo '</tbody></table>';
 				}
 					echo '</div>';

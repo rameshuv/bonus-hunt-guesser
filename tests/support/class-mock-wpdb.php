@@ -108,6 +108,28 @@ class MockWPDB {
             return $filtered;
         }
 
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournament_results' ) ) {
+            $tournament_id = $this->match_int( '/tournament_id\s*=\s*(\d+)/', $query );
+
+            $results = array();
+            foreach ( $this->tournament_results as $row ) {
+                if ( $tournament_id > 0 && (int) $row['tournament_id'] !== $tournament_id ) {
+                    continue;
+                }
+
+                $results[] = (object) array(
+                    'id'             => isset( $row['id'] ) ? (int) $row['id'] : 0,
+                    'tournament_id'  => (int) $row['tournament_id'],
+                    'user_id'        => (int) $row['user_id'],
+                    'wins'           => isset( $row['wins'] ) ? (int) $row['wins'] : 0,
+                    'points'         => isset( $row['points'] ) ? (int) $row['points'] : 0,
+                    'last_win_date'  => $row['last_win_date'] ?? null,
+                );
+            }
+
+            return $results;
+        }
+
         if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournaments' ) ) {
             $ids = array();
             if ( preg_match( '/WHERE id IN \(([^\)]+)\)/', $query, $matches ) ) {
@@ -173,6 +195,7 @@ class MockWPDB {
                 $results[] = (object) array(
                     'user_id'           => (int) $winner['user_id'],
                     'position'          => (int) $winner['position'],
+                    'points'            => isset( $winner['points'] ) ? (int) $winner['points'] : 0,
                     'participants_mode' => $mode,
                     'winners_count'     => $winners,
                     'event_date'        => $event_date,
@@ -191,6 +214,7 @@ class MockWPDB {
                     $results[] = (object) array(
                         'user_id'  => (int) $winner['user_id'],
                         'position' => isset( $winner['position'] ) ? (int) $winner['position'] : 0,
+                        'points'   => isset( $winner['points'] ) ? (int) $winner['points'] : 0,
                     );
                 }
             }

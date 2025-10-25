@@ -121,16 +121,17 @@ KEY tournament_id (tournament_id)
                                 ) {$charset_collate};";
 
 		// Tournament Results.
-		$sql[] = "CREATE TABLE `{$tres_table}` (
-						id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-						tournament_id BIGINT UNSIGNED NOT NULL,
-						user_id BIGINT UNSIGNED NOT NULL,
-						wins INT UNSIGNED NOT NULL DEFAULT 0,
-						last_win_date DATETIME NULL,
-						PRIMARY KEY  (id),
-						KEY tournament_id (tournament_id),
-						KEY user_id (user_id)
-				) {$charset_collate};";
+                                $sql[] = "CREATE TABLE `{$tres_table}` (
+                                                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                                tournament_id BIGINT UNSIGNED NOT NULL,
+                                                user_id BIGINT UNSIGNED NOT NULL,
+                                                wins INT UNSIGNED NOT NULL DEFAULT 0,
+                                                points INT UNSIGNED NOT NULL DEFAULT 0,
+                                                last_win_date DATETIME NULL,
+                                                PRIMARY KEY  (id),
+                                                KEY tournament_id (tournament_id),
+                                                KEY user_id (user_id)
+                                ) {$charset_collate};";
 
 		// Ads.
 		$sql[] = "CREATE TABLE `{$ads_table}` (
@@ -168,6 +169,7 @@ $sql[] = "CREATE TABLE `{$winners_table}` (
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    user_id BIGINT UNSIGNED NOT NULL,
                                    position INT UNSIGNED NOT NULL,
+                                   points INT UNSIGNED NOT NULL DEFAULT 0,
                                    guess DECIMAL(12,2) NOT NULL,
                                    diff DECIMAL(12,2) NOT NULL,
                                    created_at DATETIME NULL,
@@ -285,12 +287,13 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 			}
 
 												// Tournament results columns.
-			$trrneed = array(
-				'tournament_id' => 'ADD COLUMN tournament_id BIGINT UNSIGNED NOT NULL',
-				'user_id'       => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
-				'wins'          => 'ADD COLUMN wins INT UNSIGNED NOT NULL DEFAULT 0',
-				'last_win_date' => 'ADD COLUMN last_win_date DATETIME NULL',
-			);
+                        $trrneed = array(
+                                'tournament_id' => 'ADD COLUMN tournament_id BIGINT UNSIGNED NOT NULL',
+                                'user_id'       => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
+                                'wins'          => 'ADD COLUMN wins INT UNSIGNED NOT NULL DEFAULT 0',
+                                'points'        => 'ADD COLUMN points INT UNSIGNED NOT NULL DEFAULT 0',
+                                'last_win_date' => 'ADD COLUMN last_win_date DATETIME NULL',
+                        );
 			foreach ( $trrneed as $c => $alter ) {
 				if ( ! $this->column_exists( $tres_table, $c ) ) {
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -380,14 +383,15 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 			}
 
 												// Hunt winners columns / indexes.
-			$hwneed = array(
-				'hunt_id'    => 'ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL',
-				'user_id'    => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
-				'position'   => 'ADD COLUMN position INT UNSIGNED NOT NULL',
-				'guess'      => 'ADD COLUMN guess DECIMAL(12,2) NOT NULL',
-				'diff'       => 'ADD COLUMN diff DECIMAL(12,2) NOT NULL',
-				'created_at' => 'ADD COLUMN created_at DATETIME NULL',
-			);
+                        $hwneed = array(
+                                'hunt_id'    => 'ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL',
+                                'user_id'    => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
+                                'position'   => 'ADD COLUMN position INT UNSIGNED NOT NULL',
+                                'points'     => 'ADD COLUMN points INT UNSIGNED NOT NULL DEFAULT 0',
+                                'guess'      => 'ADD COLUMN guess DECIMAL(12,2) NOT NULL',
+                                'diff'       => 'ADD COLUMN diff DECIMAL(12,2) NOT NULL',
+                                'created_at' => 'ADD COLUMN created_at DATETIME NULL',
+                        );
 			foreach ( $hwneed as $c => $alter ) {
 				if ( ! $this->column_exists( $winners_table, $c ) ) {
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared

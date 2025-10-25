@@ -141,18 +141,26 @@ jQuery(document).ready(function($) {
         rows.sort(function(a, b) {
             var aVal = $(a).find('td[data-column="' + column + '"]').text().trim();
             var bVal = $(b).find('td[data-column="' + column + '"]').text().trim();
-            
-            // Numeric sorting for guess amounts
-            if (column === 'guess') {
-                aVal = parseFloat(aVal.replace(/[^\d.-]/g, ''));
-                bVal = parseFloat(bVal.replace(/[^\d.-]/g, ''));
+
+            var numericColumns = ['guess', 'points', 'wins', 'position'];
+            if (numericColumns.indexOf(column) !== -1) {
+                if (column === 'guess') {
+                    aVal = parseFloat(aVal.replace(/[^\d.-]/g, ''));
+                    bVal = parseFloat(bVal.replace(/[^\d.-]/g, ''));
+                } else {
+                    aVal = parseFloat(aVal.replace(/[^\d.-]/g, ''));
+                    bVal = parseFloat(bVal.replace(/[^\d.-]/g, ''));
+                }
+            } else {
+                aVal = aVal.toLowerCase();
+                bVal = bVal.toLowerCase();
             }
-            
+
             if (direction === 'asc') {
                 return aVal > bVal ? 1 : -1;
-            } else {
-                return aVal < bVal ? 1 : -1;
             }
+
+            return aVal < bVal ? 1 : -1;
         });
         
         $.each(rows, function(index, row) {
