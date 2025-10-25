@@ -16,6 +16,13 @@ if ( ! current_user_can( 'manage_options' ) ) {
 // Fetch existing settings.
 $settings = get_option( 'bhg_plugin_settings', array() );
 
+$visibility_defaults = array(
+'show_my_bonushunts'  => isset( $settings['show_my_bonushunts'] ) ? (int) $settings['show_my_bonushunts'] : 1,
+'show_my_tournaments' => isset( $settings['show_my_tournaments'] ) ? (int) $settings['show_my_tournaments'] : 1,
+'show_my_prizes'      => isset( $settings['show_my_prizes'] ) ? (int) $settings['show_my_prizes'] : 1,
+'show_my_rankings'    => isset( $settings['show_my_rankings'] ) ? (int) $settings['show_my_rankings'] : 1,
+);
+
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
 ?>
@@ -106,6 +113,34 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="url" class="regular-text" id="bhg_post_submit_redirect" name="bhg_post_submit_redirect" value="<?php echo isset( $settings['post_submit_redirect'] ) ? esc_attr( $settings['post_submit_redirect'] ) : ''; ?>" placeholder="<?php echo esc_attr( bhg_t( 'post_submit_redirect_placeholder', 'https://example.com/thank-you' ) ); ?>">
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'label_user_dashboard_sections', 'User dashboard sections' ) ); ?></th>
+<td>
+<fieldset>
+<legend class="screen-reader-text"><?php echo esc_html( bhg_t( 'label_user_dashboard_sections', 'User dashboard sections' ) ); ?></legend>
+<label for="bhg_show_my_bonushunts">
+<input type="checkbox" id="bhg_show_my_bonushunts" name="bhg_show_my_bonushunts" value="1" <?php checked( $visibility_defaults['show_my_bonushunts'], 1 ); ?>>
+<?php echo esc_html( bhg_t( 'label_section_my_bonushunts', 'Show "My Bonus Hunts"' ) ); ?>
+</label>
+<br>
+<label for="bhg_show_my_tournaments">
+<input type="checkbox" id="bhg_show_my_tournaments" name="bhg_show_my_tournaments" value="1" <?php checked( $visibility_defaults['show_my_tournaments'], 1 ); ?>>
+<?php echo esc_html( bhg_t( 'label_section_my_tournaments', 'Show "My Tournaments"' ) ); ?>
+</label>
+<br>
+<label for="bhg_show_my_prizes">
+<input type="checkbox" id="bhg_show_my_prizes" name="bhg_show_my_prizes" value="1" <?php checked( $visibility_defaults['show_my_prizes'], 1 ); ?>>
+<?php echo esc_html( bhg_t( 'label_section_my_prizes', 'Show "My Prizes"' ) ); ?>
+</label>
+<br>
+<label for="bhg_show_my_rankings">
+<input type="checkbox" id="bhg_show_my_rankings" name="bhg_show_my_rankings" value="1" <?php checked( $visibility_defaults['show_my_rankings'], 1 ); ?>>
+<?php echo esc_html( bhg_t( 'label_section_my_rankings', 'Show "My Rankings"' ) ); ?>
+</label>
+<p class="description"><?php echo esc_html( bhg_t( 'description_user_dashboard_sections', 'Toggle the availability of user-focused shortcodes on the frontend.' ) ); ?></p>
+</fieldset>
 </td>
 </tr>
 </tbody>

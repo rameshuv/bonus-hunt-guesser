@@ -498,8 +498,8 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
-$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
+$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_ads_enabled'] ) ) : '';
+$settings['ads_enabled'] = '1' === (string) $ads_enabled_value ? 1 : 0;
 
         if ( isset( $_POST['bhg_email_from'] ) ) {
                         $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
@@ -508,17 +508,28 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                 }
         }
 
-        if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
-                        $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
-                if ( '' === $redirect ) {
-                                $settings['post_submit_redirect'] = '';
-                } else {
-                                $url = esc_url_raw( $redirect );
-                        if ( ! empty( $url ) ) {
-                                                $settings['post_submit_redirect'] = $url;
-                        }
-                }
-        }
+	if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
+		$redirect = trim( sanitize_text_field( wp_unslash( $_POST['bhg_post_submit_redirect'] ) ) );
+		if ( '' === $redirect ) {
+			$settings['post_submit_redirect'] = '';
+		} else {
+			$url = esc_url_raw( $redirect );
+			if ( ! empty( $url ) ) {
+				$settings['post_submit_redirect'] = $url;
+			}
+		}
+	}
+
+	$visibility_fields = array(
+		'show_my_bonushunts'  => 'bhg_show_my_bonushunts',
+		'show_my_tournaments' => 'bhg_show_my_tournaments',
+		'show_my_prizes'      => 'bhg_show_my_prizes',
+		'show_my_rankings'    => 'bhg_show_my_rankings',
+	);
+
+	foreach ( $visibility_fields as $option_key => $field_name ) {
+		$settings[ $option_key ] = isset( $_POST[ $field_name ] ) ? 1 : 0;
+	}
 
                 // Save settings.
                 $existing = get_option( 'bhg_plugin_settings', array() );
@@ -583,7 +594,7 @@ function bhg_handle_submit_guess() {
         $redirect_setting = isset( $settings['post_submit_redirect'] ) ? $settings['post_submit_redirect'] : '';
         $redirect_target  = $redirect_setting ? wp_validate_redirect( $redirect_setting, '' ) : '';
         if ( isset( $_POST['redirect_to'] ) ) {
-                        $requested_redirect = trim( wp_unslash( $_POST['redirect_to'] ) );
+                        $requested_redirect = trim( sanitize_text_field( wp_unslash( $_POST['redirect_to'] ) ) );
                 if ( '' !== $requested_redirect ) {
                                 $maybe_redirect = wp_validate_redirect( $requested_redirect, '' );
                         if ( $maybe_redirect ) {
