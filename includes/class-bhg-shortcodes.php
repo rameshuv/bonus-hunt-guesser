@@ -2577,6 +2577,23 @@ $wpdb->usermeta,
                                 return '<div class="bhg-prizes-shortcode"><p>' . esc_html( bhg_t( 'no_prizes_yet', 'No prizes found.' ) ) . '</p></div>';
                         }
 
+                        wp_enqueue_style(
+                                'bhg-shortcodes',
+                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                array(),
+                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                        );
+
+                        if ( 'carousel' === $layout ) {
+                                wp_enqueue_script(
+                                        'bhg-shortcodes-js',
+                                        ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/js/bhg-shortcodes.js',
+                                        array(),
+                                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
+                                        true
+                                );
+                        }
+
                         $content = $this->render_prize_section( $prizes, $layout, $size );
 
                         if ( '' === $content ) {
