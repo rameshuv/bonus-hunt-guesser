@@ -66,16 +66,17 @@
     font-weight: 600;
 }
 
-.bhg-dashboard-winner {
-    display: block;
-}
-
-.bhg-dashboard-winner + .bhg-dashboard-winner {
-    margin-top: 4px;
-}
-
 .bhg-dashboard-winner-name {
     font-weight: 600;
+}
+
+.bhg-dashboard-winner-cell {
+    white-space: nowrap;
+}
+
+.bhg-dashboard-winner-guess,
+.bhg-dashboard-winner-diff {
+    margin-left: 6px;
 }
 
 /* Utility classes */
