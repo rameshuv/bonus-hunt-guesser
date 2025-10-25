@@ -402,9 +402,12 @@ if ( 'add' === $view ) :
                                                                                                 }
                                                                                                 // db call ok; no-cache ok.
                                                                                                 $tours = $wpdb->get_results(
-                                                                                                        "SELECT id, title FROM {$t_table} ORDER BY title ASC"
+                                                                                                        $wpdb->prepare(
+                                                                                                                "SELECT id, title FROM {$t_table} WHERE status = %s ORDER BY title ASC",
+                                                                                                                'active'
+                                                                                                        )
                                                                                                 );
-                                                                                                $selected_tournaments = array();
+$selected_tournaments = array();
                                                                                                 ?>
                                                 <select id="bhg_tournament" name="tournament_ids[]" multiple="multiple" size="5">
                                                                 <?php foreach ( $tours as $t ) : ?>
@@ -536,19 +539,40 @@ if ( 'edit' === $view ) :
 				<tr>
 						<th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
 						<td>
-												<?php
-												$t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-												if ( ! in_array( $t_table, $allowed_tables, true ) ) {
-																		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
-												}
-												// db call ok; no-cache ok.
-												$tours = $wpdb->get_results(
-													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
-												);
+												
+<?php
+                                                                                                $t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+                                                                                                if ( ! in_array( $t_table, $allowed_tables, true ) ) {
+                                                                                                                               wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+                                                                                                }
+                                                                                                // db call ok; no-cache ok.
                                                                                                 $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
-                                                                                                $prize_rows          = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
-                                                                                                $selected_prizes     = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( (int) $hunt->id ) : array();
+                                                                                                $tours               = $wpdb->get_results(
+                                                                                                        $wpdb->prepare(
+                                                                                                                "SELECT id, title FROM {$t_table} WHERE status = %s ORDER BY title ASC",
+                                                                                                                'active'
+                                                                                                        )
+                                                                                                );
+                                                                                                $tours        = is_array( $tours ) ? $tours : array();
+                                                                                                $existing_ids = wp_list_pluck( $tours, 'id' );
+                                                                                                $existing_ids = array_map( 'intval', (array) $existing_ids );
+                                                                                                $missing_ids  = array_diff( (array) $selected_tournaments, $existing_ids );
+                                                                                                if ( ! empty( $missing_ids ) ) {
+                                                                                                                $placeholders = implode( ',', array_fill( 0, count( $missing_ids ), '%d' ) );
+                                                                                                                $additional   = $wpdb->get_results(
+                                                                                                                        $wpdb->prepare(
+                                                                                                                                "SELECT id, title FROM {$t_table} WHERE id IN ({$placeholders}) ORDER BY title ASC",
+                                                                                                                                ...array_map( 'intval', $missing_ids )
+                                                                                                                        )
+                                                                                                                );
+                                                                                                                if ( $additional ) {
+                                                                                                                        $tours = array_merge( $tours, $additional );
+                                                                                                                }
+                                                                                                }
+                                                                                                $prize_rows      = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
+                                                                                                $selected_prizes = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( (int) $hunt->id ) : array();
                                                                                                 ?>
+
                                                 <select id="bhg_tournament" name="tournament_ids[]" multiple="multiple" size="5">
                                                                 <?php foreach ( $tours as $t ) : ?>
                                                                 <option value="<?php echo esc_attr( (int) $t->id ); ?>" <?php selected( in_array( (int) $t->id, $selected_tournaments, true ) ); ?>><?php echo esc_html( $t->title ); ?></option>

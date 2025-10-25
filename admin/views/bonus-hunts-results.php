@@ -123,11 +123,26 @@ if ( 'tournament' === $view_type ) {
 	if ( $wcount < 1 ) {
 			$wcount = 3;
 	}
+	$prize_lookup = array();
+	if ( class_exists( 'BHG_Prizes' ) ) {
+		$prize_rows = BHG_Prizes::get_prizes_for_hunt( $item_id );
+		if ( ! empty( $prize_rows ) ) {
+			$position = 1;
+			foreach ( $prize_rows as $prize_row ) {
+				$title = isset( $prize_row->title ) ? trim( (string) $prize_row->title ) : '';
+				if ( '' !== $title ) {
+					$prize_lookup[ $position ] = $title;
+				}
+				++$position;
+			}
+		}
+	}
 	$columns = array(
 		'sc_position' => bhg_t( 'sc_position', 'Position' ),
 		'sc_user'     => bhg_t( 'sc_user', 'User' ),
 		'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
 		'difference'  => bhg_t( 'difference', 'Difference' ),
+		'price'       => bhg_t( 'label_price', 'Price' ),
 	);
 }
 
@@ -214,7 +229,10 @@ $current   = $view_type . '-' . $item_id;
 						<td><?php echo (int) $r->wins; ?></td>
 					<?php else : ?>
 						<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+                                                <td><?php echo esc_html( bhg_format_currency( abs( (float) $r->diff ) ) ); ?></td>
+					<?php if ( 'hunt' === $view_type ) : ?>
+						<td><?php echo isset( $prize_lookup[ $pos ] ) ? esc_html( $prize_lookup[ $pos ] ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+					<?php endif; ?>
 					<?php endif; ?>
 				</tr>
 				<?php

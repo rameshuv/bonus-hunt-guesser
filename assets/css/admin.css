@@ -59,6 +59,30 @@
 
 .bhg-winner-row {
     background-color: #d1fae5;
+    font-weight: 600;
+}
+
+/* Ensure striped admin tables use a grey / white alternation */
+.widefat.striped tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.widefat.striped tbody tr:nth-child(even) {
+    background-color: #f6f7f7;
+}
+
+.bhg-latest-hunts-table .bhg-latest-hunt-winners {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.bhg-latest-hunts-table .bhg-latest-hunt-winners li {
+    margin: 0;
+}
+
+.bhg-latest-hunts-table .bhg-latest-hunt-winners li + li {
+    margin-top: 4px;
 }
 
 /* Utility classes */

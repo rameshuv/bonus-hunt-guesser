@@ -3,14 +3,14 @@
  * Plugin Name: Bonus Hunt Guesser
  * Plugin URI: https://yourdomain.com/
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality
- * Version: 8.0.12
- * Requires at least: 5.5.5
+ * Version: 8.0.14
+ * Requires at least: 6.3.5
  * Requires PHP: 7.4
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser
  * Domain Path: /languages
  * License: GPLv2 or later
- * MySQL tested up to: 5.5.5
+ * Requires MySQL: 5.5.5
  *
  * @package Bonus_Hunt_Guesser
  */
@@ -142,8 +142,8 @@ return array_values( $normalized );
 require_once __DIR__ . '/includes/class-bhg-db.php';
 
 // Define plugin constants.
-define( 'BHG_VERSION', '8.0.12' );
-define( 'BHG_MIN_WP', '5.5.5' );
+define( 'BHG_VERSION', '8.0.14' );
+define( 'BHG_MIN_WP', '6.3.5' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -1012,15 +1012,28 @@ LIMIT %d OFFSET %d",
  * @return bool True if user is an affiliate.
  */
 function bhg_is_affiliate( $user_id = null ) {
-	if ( ! $user_id ) {
-		$user_id = get_current_user_id();
-	}
+        if ( ! $user_id ) {
+                $user_id = get_current_user_id();
+        }
 
-	if ( ! $user_id ) {
-		return false;
-	}
+        if ( ! $user_id ) {
+                return false;
+        }
 
-		return (bool) get_user_meta( $user_id, 'bhg_is_affiliate', true );
+        $flag = (bool) get_user_meta( $user_id, 'bhg_is_affiliate', true );
+
+        if ( $flag ) {
+                return true;
+        }
+
+        if ( function_exists( 'bhg_get_user_affiliate_websites' ) ) {
+                $sites = bhg_get_user_affiliate_websites( $user_id );
+                if ( ! empty( $sites ) ) {
+                        return true;
+                }
+        }
+
+        return false;
 }
 
 // Add user profile fields for affiliate status.
@@ -1034,23 +1047,45 @@ add_action( 'edit_user_profile', 'bhg_extra_user_profile_fields' );
  * @return void
  */
 function bhg_extra_user_profile_fields( $user ) {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
+        if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+        }
 
-		$affiliate_status = get_user_meta( $user->ID, 'bhg_is_affiliate', true );
-	?>
-			<h3><?php esc_html_e( 'Bonus Hunt Guesser Information', 'bonus-hunt-guesser' ); ?></h3>
-	<table class="form-table">
-		<tr>
-							<th><label for="bhg_is_affiliate"><?php esc_html_e( 'Affiliate Status', 'bonus-hunt-guesser' ); ?></label></th>
-			<td>
-									<input type="checkbox" name="bhg_is_affiliate" id="bhg_is_affiliate" value="1" <?php checked( $affiliate_status, 1 ); ?> />
-									<span class="description"><?php esc_html_e( 'Check if this user is an affiliate.', 'bonus-hunt-guesser' ); ?></span>
-			</td>
-		</tr>
-	</table>
-	<?php
+        global $wpdb;
+
+        $sites_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+        $sites       = $wpdb->get_results( "SELECT id, name, status FROM {$sites_table} ORDER BY name ASC" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $selected    = function_exists( 'bhg_get_user_affiliate_websites' ) ? bhg_get_user_affiliate_websites( $user->ID ) : array();
+        $selected    = array_map( 'absint', (array) $selected );
+
+        ?>
+        <h3><?php esc_html_e( 'Bonus Hunt Guesser Information', 'bonus-hunt-guesser' ); ?></h3>
+        <table class="form-table">
+                <tr>
+                        <th><?php esc_html_e( 'Affiliate Websites', 'bonus-hunt-guesser' ); ?></th>
+                        <td>
+                                <?php if ( empty( $sites ) ) : ?>
+                                        <p class="description"><?php esc_html_e( 'No affiliate websites have been defined yet.', 'bonus-hunt-guesser' ); ?></p>
+                                <?php else : ?>
+                                        <fieldset>
+                                                <?php foreach ( $sites as $site ) :
+                                                        $site_id   = (int) $site->id;
+                                                        $is_active = isset( $site->status ) ? ( 'active' === $site->status ) : true;
+                                                        $label           = $site->name ? $site->name : sprintf( /* translators: %d: affiliate site ID. */ esc_html__( 'Affiliate Site #%d', 'bonus-hunt-guesser' ), $site_id );
+                                                        $inactive_suffix = $is_active ? '' : ' ' . esc_html__( '(inactive)', 'bonus-hunt-guesser' );
+                                                        ?>
+                                                        <label style="display:block;margin-bottom:4px;">
+                                                                <input type="checkbox" name="bhg_affiliate_sites[]" value="<?php echo esc_attr( $site_id ); ?>" <?php checked( in_array( $site_id, $selected, true ) ); ?> />
+                                                                <?php echo esc_html( $label ); ?><?php echo esc_html( $inactive_suffix ); ?>
+                                                        </label>
+                                                <?php endforeach; ?>
+                                        </fieldset>
+                                        <p class="description"><?php esc_html_e( 'Select the affiliate websites that apply to this user.', 'bonus-hunt-guesser' ); ?></p>
+                                <?php endif; ?>
+                        </td>
+                </tr>
+        </table>
+        <?php
 }
 
 add_action( 'personal_options_update', 'bhg_save_extra_user_profile_fields' );
@@ -1063,13 +1098,22 @@ add_action( 'edit_user_profile_update', 'bhg_save_extra_user_profile_fields' );
  * @return void|false Returns false if the user cannot be edited.
  */
 function bhg_save_extra_user_profile_fields( $user_id ) {
-	if ( ! current_user_can( 'edit_user', $user_id ) ) {
-			return false;
-	}
+        if ( ! current_user_can( 'edit_user', $user_id ) ) {
+                return false;
+        }
 
-				check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
+        check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
 
-		$affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
-		update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
+        $sites = isset( $_POST['bhg_affiliate_sites'] ) ? wp_unslash( $_POST['bhg_affiliate_sites'] ) : array();
+        $sites = is_array( $sites ) ? array_map( 'absint', $sites ) : array();
+        $sites = array_values( array_filter( array_unique( $sites ) ) );
+
+        if ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                bhg_set_user_affiliate_websites( $user_id, $sites );
+        } else {
+                update_user_meta( $user_id, 'bhg_affiliate_websites', $sites );
+        }
+
+        update_user_meta( $user_id, 'bhg_is_affiliate', empty( $sites ) ? 0 : 1 );
 }
 

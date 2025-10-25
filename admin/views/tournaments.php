@@ -74,9 +74,48 @@ if ( $search_term ) {
 }
 $base_url = remove_query_arg( array( 'paged' ) );
 $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$current_year    = (int) current_time( 'Y' );
+$year_start     = sprintf( '%04d-01-01 00:00:00', $current_year );
+$next_year_start = sprintf( '%04d-01-01 00:00:00', $current_year + 1 );
+$all_hunts = $wpdb->get_results(
+        $wpdb->prepare(
+                "SELECT id, title FROM {$hunts_table} WHERE ( (created_at IS NOT NULL AND created_at >= %s AND created_at < %s) OR (closed_at IS NOT NULL AND closed_at >= %s AND closed_at < %s) OR status <> %s ) ORDER BY COALESCE(closed_at, created_at) DESC, id DESC",
+                $year_start,
+                $next_year_start,
+                $year_start,
+                $next_year_start,
+                'closed'
+        )
+);
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
-$hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
+if ( ! empty( $linked_hunts ) ) {
+        $existing_ids     = wp_list_pluck( (array) $all_hunts, 'id' );
+        $existing_ids     = array_map( 'intval', (array) $existing_ids );
+        $missing_hunt_ids = array_diff( (array) $linked_hunts, $existing_ids );
+        if ( ! empty( $missing_hunt_ids ) ) {
+                $placeholders     = implode( ',', array_fill( 0, count( $missing_hunt_ids ), '%d' ) );
+                $additional_hunts = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT id, title FROM {$hunts_table} WHERE id IN ({$placeholders})",
+                                ...array_map( 'intval', $missing_hunt_ids )
+                        )
+                );
+                if ( $additional_hunts ) {
+                        $all_hunts = array_merge( $all_hunts, $additional_hunts );
+                }
+        }
+}
+if ( ! empty( $all_hunts ) ) {
+        $unique_hunts = array();
+        foreach ( $all_hunts as $hunt_row ) {
+                $hid = isset( $hunt_row->id ) ? (int) $hunt_row->id : 0;
+                if ( $hid && ! isset( $unique_hunts[ $hid ] ) ) {
+                        $unique_hunts[ $hid ] = $hunt_row;
+                }
+        }
+        $all_hunts = array_values( $unique_hunts );
+}
+$hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( wp_unslash( $row->hunt_link_mode ) ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
 }
@@ -268,18 +307,38 @@ endif;
 </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
+                <tr>
+                <th><label for="bhg_t_desc">
+                <?php
+                echo esc_html( bhg_t( 'description', 'Description' ) );
+                ?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_type"><?php echo esc_html( bhg_t( 'label_type', 'Type' ) ); ?></label></th>
+                                <td>
+                                                <?php
+                                                $type        = $row->type ?? 'monthly';
+                                                $type_options = array(
+                                                        'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+                                                        'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+                                                        'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+                                                        'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+                                                        'alltime'   => bhg_t( 'label_all_time', 'All-Time' ),
+                                                );
+                                                ?>
+                                                <select id="bhg_t_type" name="type">
+                                                <?php foreach ( $type_options as $value => $label ) : ?>
+                                                        <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $type, $value ); ?>><?php echo esc_html( $label ); ?></option>
+                                                <?php endforeach; ?>
+                                                </select>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
+                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
 				?>
 				</label></th>
 				<td>
