@@ -2222,23 +2222,24 @@ $wpdb->usermeta,
 
 				// Details screen.
 				$details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
-			if ( $details_id > 0 ) {
-								$t = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
-								$r = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
-								$u = esc_sql( $this->sanitize_table( $wpdb->users ) );
-				if ( ! $t || ! $r || ! $u ) {
-					return '';
-				}
+                        if ( $details_id > 0 ) {
+                                                                $t = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+                                                                $r = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
+                                                                $u = esc_sql( $this->sanitize_table( $wpdb->users ) );
+                                                                $w = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                                if ( ! $t || ! $r || ! $u || ! $w ) {
+                                        return '';
+                                }
 
-					// db call ok; no-cache ok.
-										$tournament = $wpdb->get_row(
-											$wpdb->prepare(
-												"SELECT id, type, start_date, end_date, status FROM {$t} WHERE id = %d",
-												$details_id
-											)
-										);
-				if ( ! $tournament ) {
-					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
+                                        // db call ok; no-cache ok.
+                                                                                $tournament = $wpdb->get_row(
+                                                                                        $wpdb->prepare(
+                                                                                                "SELECT t.id, t.title, t.description, t.prizes, t.type, t.start_date, t.end_date, t.status, t.affiliate_site_id, t.affiliate_url, t.affiliate_url_visible, aff.name AS affiliate_site_name, aff.url AS affiliate_site_url FROM {$t} t LEFT JOIN {$w} aff ON aff.id = t.affiliate_site_id WHERE t.id = %d",
+                                                                                                $details_id
+                                                                                        )
+                                                                                );
+                                if ( ! $tournament ) {
+                                        return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 				}
 
 					$orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
@@ -2279,19 +2280,71 @@ $wpdb->usermeta,
 					);
 				};
 
-					ob_start();
-					echo '<div class="bhg-tournament-details">';
-					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
-					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
-					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
-					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
-									$status_key = strtolower( (string) $tournament->status );
-									echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+                                        $prize_details = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes_for_tournament( (int) $tournament->id ) : array();
 
-				if ( ! $rows ) {
-					echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
-					echo '</div>';
-					return ob_get_clean();
+                                        ob_start();
+                                        echo '<div class="bhg-tournament-details">';
+                                        echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
+                                        $title_display = isset( $tournament->title ) && '' !== (string) $tournament->title ? $tournament->title : bhg_t( 'label_unnamed_tournament', 'Untitled tournament' );
+                                        echo '<h2>' . esc_html( $title_display ) . '</h2>';
+
+                                        $type_label = isset( $tournament->type ) ? $tournament->type : '';
+                                        $type_lookup = array(
+                                                'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+                                                'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+                                                'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+                                                'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+                                                'alltime'   => bhg_t( 'label_all_time', 'All-Time' ),
+                                        );
+                                        $type_label = isset( $type_lookup[ $type_label ] ) ? $type_lookup[ $type_label ] : ucfirst( (string) $type_label );
+
+                                        echo '<p><strong>' . esc_html( bhg_t( 'label_type', 'Type' ) ) . ':</strong> ' . esc_html( $type_label ) . ' &nbsp; ';
+
+                                        $start_display = isset( $tournament->start_date ) && $tournament->start_date ? mysql2date( get_option( 'date_format' ), $tournament->start_date ) : bhg_t( 'label_emdash', '—' );
+                                        $end_display   = isset( $tournament->end_date ) && $tournament->end_date ? mysql2date( get_option( 'date_format' ), $tournament->end_date ) : bhg_t( 'label_emdash', '—' );
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( $start_display ) . ' &nbsp; ';
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( $end_display ) . ' &nbsp; ';
+
+                                        $status_key = strtolower( (string) $tournament->status );
+                                        echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+
+                                        if ( ! empty( $tournament->description ) ) {
+                                                echo '<div class="bhg-tournament-description">' . wp_kses_post( wpautop( $tournament->description ) ) . '</div>';
+                                        }
+
+                                        if ( ! empty( $tournament->prizes ) ) {
+                                                echo '<div class="bhg-tournament-prizes-text"><strong>' . esc_html( bhg_t( 'label_prizes_description', 'Prizes Description' ) ) . ':</strong> ' . wp_kses_post( wpautop( $tournament->prizes ) ) . '</div>';
+                                        }
+
+                                        if ( ! empty( $prize_details ) ) {
+                                                echo '<div class="bhg-tournament-prize-list-wrapper"><strong>' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . ':</strong>';
+                                                echo '<ul class="bhg-tournament-prize-list">';
+                                                foreach ( $prize_details as $prize ) {
+                                                        $prize_title = isset( $prize->title ) ? $prize->title : '';
+                                                        if ( '' === $prize_title ) {
+                                                                $prize_title = bhg_t( 'label_prize', 'Prize' );
+                                                        }
+                                                        echo '<li>' . esc_html( $prize_title ) . '</li>';
+                                                }
+                                                echo '</ul></div>';
+                                        }
+
+                                        $affiliate_url = '';
+                                        if ( ! empty( $tournament->affiliate_url ) ) {
+                                                $affiliate_url = $tournament->affiliate_url;
+                                        } elseif ( ! empty( $tournament->affiliate_site_url ) ) {
+                                                $affiliate_url = $tournament->affiliate_site_url;
+                                        }
+
+                                        if ( (int) $tournament->affiliate_url_visible && $affiliate_url ) {
+                                                $link_label = ! empty( $tournament->affiliate_site_name ) ? $tournament->affiliate_site_name : $affiliate_url;
+                                                echo '<p><strong>' . esc_html( bhg_t( 'affiliate_website', 'Affiliate Website' ) ) . ':</strong> <a href="' . esc_url( $affiliate_url ) . '" target="_blank" rel="nofollow noopener">' . esc_html( $link_label ) . '</a></p>';
+                                        }
+
+                                if ( ! $rows ) {
+                                        echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
+                                        echo '</div>';
+                                        return ob_get_clean();
 				}
 
 					echo '<table class="bhg-leaderboard">';

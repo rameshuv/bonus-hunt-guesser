@@ -228,6 +228,7 @@ class BHG_Prizes {
 
                 $wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
                 $wpdb->delete( $wpdb->prefix . 'bhg_hunt_prizes', array( 'prize_id' => $id ), array( '%d' ) );
+                $wpdb->delete( $wpdb->prefix . 'bhg_tournament_prizes', array( 'prize_id' => $id ), array( '%d' ) );
 
                 return true;
         }
@@ -279,6 +280,126 @@ class BHG_Prizes {
                                 );
                         }
                 }
+        }
+
+        /**
+         * Associate prizes with a tournament.
+         *
+         * @param int   $tournament_id Tournament ID.
+         * @param int[] $prize_ids     Prize IDs.
+         * @return void
+         */
+        public static function set_tournament_prizes( $tournament_id, $prize_ids ) {
+                global $wpdb;
+
+                $tournament_id = absint( $tournament_id );
+                if ( $tournament_id <= 0 ) {
+                        return;
+                }
+
+                $table      = $wpdb->prefix . 'bhg_tournament_prizes';
+                $current    = self::get_tournament_prize_ids( $tournament_id );
+                $new        = array_map( 'absint', (array) $prize_ids );
+                $new        = array_filter( array_unique( $new ) );
+                $to_add     = array_diff( $new, $current );
+                $to_remove  = array_diff( $current, $new );
+
+                if ( ! empty( $to_remove ) ) {
+                        $placeholders = implode( ',', array_fill( 0, count( $to_remove ), '%d' ) );
+                        $params       = array_merge( array( $tournament_id ), array_values( $to_remove ) );
+                        $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                $wpdb->prepare(
+                                        "DELETE FROM {$table} WHERE tournament_id = %d AND prize_id IN ({$placeholders})",
+                                        ...$params
+                                )
+                        );
+                }
+
+                if ( ! empty( $to_add ) ) {
+                        $now = current_time( 'mysql' );
+                        foreach ( $to_add as $pid ) {
+                                $wpdb->insert(
+                                        $table,
+                                        array(
+                                                'tournament_id' => $tournament_id,
+                                                'prize_id'      => $pid,
+                                                'created_at'    => $now,
+                                        ),
+                                        array( '%d', '%d', '%s' )
+                                );
+                        }
+                }
+        }
+
+        /**
+         * Get prize IDs linked to a tournament.
+         *
+         * @param int $tournament_id Tournament ID.
+         * @return int[]
+         */
+        public static function get_tournament_prize_ids( $tournament_id ) {
+                global $wpdb;
+
+                $tournament_id = absint( $tournament_id );
+                if ( $tournament_id <= 0 ) {
+                        return array();
+                }
+
+                $table = $wpdb->prefix . 'bhg_tournament_prizes';
+
+                $ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                        $wpdb->prepare(
+                                "SELECT prize_id FROM {$table} WHERE tournament_id = %d ORDER BY created_at ASC, id ASC",
+                                $tournament_id
+                        )
+                );
+
+                return array_map( 'intval', array_filter( array_unique( (array) $ids ) ) );
+        }
+
+        /**
+         * Retrieve detailed prize rows for a tournament.
+         *
+         * @param int   $tournament_id Tournament ID.
+         * @param array $args          Optional args (category, active).
+         * @return array
+         */
+        public static function get_prizes_for_tournament( $tournament_id, $args = array() ) {
+                global $wpdb;
+
+                $tournament_id = absint( $tournament_id );
+                if ( $tournament_id <= 0 ) {
+                        return array();
+                }
+
+                $map_table   = $wpdb->prefix . 'bhg_tournament_prizes';
+                $prizes_table = $wpdb->prefix . 'bhg_prizes';
+
+                $where  = array( 'tp.tournament_id = %d' );
+                $params = array( $tournament_id );
+
+                if ( isset( $args['active'] ) && '' !== $args['active'] ) {
+                        $where[]  = 'p.active = %d';
+                        $params[] = $args['active'] ? 1 : 0;
+                }
+
+                if ( isset( $args['category'] ) && $args['category'] ) {
+                        $category = sanitize_key( $args['category'] );
+                        if ( in_array( $category, self::get_categories(), true ) ) {
+                                $where[]  = 'p.category = %s';
+                                $params[] = $category;
+                        }
+                }
+
+                $sql = "SELECT p.* FROM {$map_table} tp INNER JOIN {$prizes_table} p ON p.id = tp.prize_id";
+                if ( ! empty( $where ) ) {
+                        $sql .= ' WHERE ' . implode( ' AND ', $where );
+                }
+                $sql .= ' ORDER BY tp.created_at ASC, tp.id ASC';
+
+                return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                        $wpdb->prepare( $sql, $params )
+                );
         }
 
         /**

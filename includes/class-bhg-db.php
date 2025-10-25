@@ -60,8 +60,9 @@ class BHG_DB {
 $aff_websites_table = $wpdb->prefix . 'bhg_affiliate_websites';
 $winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
 $hunt_tours_table   = $wpdb->prefix . 'bhg_hunt_tournaments';
-$prizes_table       = $wpdb->prefix . 'bhg_prizes';
-$hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
+$prizes_table            = $wpdb->prefix . 'bhg_prizes';
+$hunt_prizes_table       = $wpdb->prefix . 'bhg_hunt_prizes';
+$tournament_prizes_table = $wpdb->prefix . 'bhg_tournament_prizes';
 
 		$sql = array();
 
@@ -109,6 +110,7 @@ KEY tournament_id (tournament_id)
                                                 hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual',
                                                 prizes TEXT NULL,
                                                 affiliate_site_id BIGINT UNSIGNED NULL,
+                                                affiliate_url VARCHAR(255) NULL,
                                                 affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1,
                                                 start_date DATE NULL,
                                                 end_date DATE NULL,
@@ -222,6 +224,18 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                                    KEY hunt_id (hunt_id)
                    ) {$charset_collate};";
 
+// Tournament prize map.
+$sql[] = "CREATE TABLE `{$tournament_prizes_table}` (
+                                   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                   tournament_id BIGINT UNSIGNED NOT NULL,
+                                   prize_id BIGINT UNSIGNED NOT NULL,
+                                   created_at DATETIME NULL,
+                                   PRIMARY KEY  (id),
+                                   UNIQUE KEY tournament_prize (tournament_id, prize_id),
+                                   KEY tournament_id (tournament_id),
+                                   KEY prize_id (prize_id)
+                   ) {$charset_collate};";
+
 		foreach ( $sql as $statement ) {
 				dbDelta( $statement );
 		}
@@ -272,6 +286,7 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                                 'hunt_link_mode'      => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
                                 'prizes'              => 'ADD COLUMN prizes TEXT NULL',
                                 'affiliate_site_id'   => 'ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL',
+                                'affiliate_url'       => 'ADD COLUMN affiliate_url VARCHAR(255) NULL',
                                 'affiliate_url_visible' => 'ADD COLUMN affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1',
                                 'start_date'          => 'ADD COLUMN start_date DATE NULL',
                                 'end_date'            => 'ADD COLUMN end_date DATE NULL',
