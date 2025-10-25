@@ -87,32 +87,39 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 							$message = 'error';
 
 			switch ( $action ) {
-				case 'bhg_create_bonus_hunt':
-						$title                         = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
-						$starting_balance              = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
-						$num_bonuses                   = absint( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
-									$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
-									$status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
+                                case 'bhg_create_bonus_hunt':
+                                                global $wpdb;
+                                                $title                         = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
+                                                $starting_balance              = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
+                                                $num_bonuses                   = absint( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
+                                                                        $prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
+                                                                        $status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
 									$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
-									$result = $db->create_bonus_hunt(
-										array(
-											'title'       => $title,
-											'starting_balance' => $starting_balance,
+                                                                        $result = $db->create_bonus_hunt(
+                                                                                array(
+                                                                                        'title'       => $title,
+                                                                                        'starting_balance' => $starting_balance,
 											'num_bonuses' => $num_bonuses,
 											'prizes'      => $prizes,
 											'status'      => $status,
 											'affiliate_site_id' => $affiliate_site_id,
 											'created_by'  => get_current_user_id(),
 											'created_at'  => current_time( 'mysql' ),
-										)
-									);
+                                                                                )
+                                                                        );
 
-										$message = $result ? 'success' : 'error';
-					break;
+                                                                                $message = $result ? 'success' : 'error';
+                                        if ( $result && class_exists( 'BHG_Bonus_Hunts' ) ) {
+                                                $created_id = isset( $wpdb->insert_id ) ? (int) $wpdb->insert_id : 0;
+                                                if ( $created_id > 0 ) {
+                                                        BHG_Bonus_Hunts::send_creation_notification( $created_id );
+                                                }
+                                        }
+                                        break;
 
-				case 'bhg_update_bonus_hunt':
-						$id               = absint( wp_unslash( $_POST['id'] ?? 0 ) );
+                                case 'bhg_update_bonus_hunt':
+                                                $id               = absint( wp_unslash( $_POST['id'] ?? 0 ) );
 						$title            = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
 						$starting_balance = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
 					$num_bonuses          = absint( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
@@ -134,14 +141,12 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 						)
 					);
 
-					if ( $result && 'closed' === $status && null !== $final_balance ) {
-						if ( class_exists( 'BHG_Models' ) ) {
-							$winner_ids = BHG_Models::close_hunt( $id, $final_balance );
-							if ( function_exists( 'bhg_send_hunt_results_email' ) ) {
-								bhg_send_hunt_results_email( $id, $winner_ids );
-							}
-						}
-					}
+                                        if ( $result && 'closed' === $status && null !== $final_balance && class_exists( 'BHG_Models' ) ) {
+                                                $winner_ids = BHG_Models::close_hunt( $id, $final_balance );
+                                                if ( class_exists( 'BHG_Bonus_Hunts' ) ) {
+                                                        BHG_Bonus_Hunts::send_results_notifications( $id, (array) $winner_ids, $final_balance );
+                                                }
+                                        }
 
 						$message = $result ? 'updated' : 'error';
 					break;

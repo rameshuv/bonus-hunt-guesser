@@ -221,8 +221,9 @@ spl_autoload_register(
 			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
                         'BHG_Ads'                    => 'includes/class-bhg-ads.php',
                         'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
-			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
-			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
+                        'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
+                        'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
+                        'BHG_Notifications'          => 'includes/class-bhg-notifications.php',
 		);
 
 		if ( isset( $class_map[ $class_name ] ) ) {
@@ -274,18 +275,22 @@ function bhg_activate_plugin() {
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
-	add_option(
-		'bhg_plugin_settings',
-		array(
-			'allow_guess_changes'       => 'yes',
-			'default_tournament_period' => 'monthly',
+        add_option(
+                'bhg_plugin_settings',
+                array(
+                        'allow_guess_changes'       => 'yes',
+                        'default_tournament_period' => 'monthly',
 			'min_guess_amount'          => 0,
 			'max_guess_amount'          => 100000,
 			'max_guesses'               => 1,
 			'ads_enabled'               => 1,
-			'email_from'                => get_bloginfo( 'admin_email' ),
-		)
-	);
+                        'email_from'                => get_bloginfo( 'admin_email' ),
+                )
+        );
+
+        if ( class_exists( 'BHG_Notifications' ) ) {
+                add_option( BHG_Notifications::OPTION_KEY, BHG_Notifications::get_defaults() );
+        }
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
@@ -428,7 +433,8 @@ function bhg_init_plugin() {
 	);
 		add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
 		add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
-		add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+        add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
+        add_action( 'admin_post_bhg_save_notifications', 'bhg_handle_save_notifications' );
 }
 
 // Early table check on init.
@@ -527,6 +533,32 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
 				// Redirect back to settings page.
 								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
 								exit;
+}
+
+/**
+ * Handle saving of notification templates.
+ *
+ * @return void
+ */
+function bhg_handle_save_notifications() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+                wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_perform_this_action', 'You do not have sufficient permissions to perform this action.' ) ) );
+        }
+
+        if ( ! check_admin_referer( 'bhg_notifications', 'bhg_notifications_nonce' ) ) {
+                wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-notifications&error=nonce_failed' ) );
+                exit;
+        }
+
+        $raw = isset( $_POST['notifications'] ) ? wp_unslash( $_POST['notifications'] ) : array();
+        $data = is_array( $raw ) ? $raw : array();
+
+        if ( class_exists( 'BHG_Notifications' ) ) {
+                BHG_Notifications::save_settings( $data );
+        }
+
+        wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-notifications&message=saved' ) );
+        exit;
 }
 
 // Canonical guess submit handler.
