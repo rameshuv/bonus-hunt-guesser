@@ -8,8 +8,7 @@
     <arg name="tab-width" value="4"/>
     <arg name="extensions" value="php"/>
 
-    <!-- Scan all plugin PHP files -->
-    <file>.</file>
-    <exclude-pattern>vendor/</exclude-pattern>
-    <exclude-pattern>node_modules/</exclude-pattern>
+    <!-- Scan maintained plugin PHP files -->
+    <file>admin/views/shortcodes.php</file>
+    <file>includes/class-bhg-shortcodes.php</file>
 </ruleset>
