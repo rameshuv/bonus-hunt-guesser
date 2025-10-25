@@ -297,7 +297,17 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_status'                                 => 'Status',
 			'label_status_colon'                           => 'Status:',
 			'label_wins'                                   => 'Wins',
-			'wins'                                         => 'Wins',
+                        'wins'                                         => 'Wins',
+                        'points'                                       => 'Points',
+                        'sc_points'                                    => 'Points',
+                        'label_points'                                 => 'Points',
+                        'label_points_scheme'                          => 'Points Scheme',
+                        'label_points_scope'                           => 'Points Scope',
+                        'label_scope_closed_hunts'                     => 'Closed Hunts',
+                        'label_scope_active_hunts'                     => 'Active Hunts',
+                        'label_scope_all_hunts'                        => 'All Hunts',
+                        'label_points_for_position'                    => 'Points for position %s',
+                        'points_scope_description'                     => 'Choose which hunts contribute to leaderboard point totals.',
 			'label_last_win'                               => 'Last win',
 			'label_all'                                    => 'All',
 			'label_weekly'                                 => 'Weekly',
@@ -803,7 +813,93 @@ function bhg_currency_symbol() {
  * @return string
  */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+                return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+}
+
+/**
+ * Retrieve the configured points scheme.
+ *
+ * The scheme defines the number of points assigned to finishing
+ * positions one through eight along with the hunt scope the points
+ * should consider.
+ *
+ * @return array{
+ *     scope:string,
+ *     values:array<int,int>
+ * }
+ */
+function bhg_get_points_scheme() {
+        static $cached = null;
+
+        if ( null !== $cached ) {
+                return $cached;
+        }
+
+        $defaults = array(
+                'scope'  => 'closed',
+                'values' => array(
+                        1 => 10,
+                        2 => 8,
+                        3 => 6,
+                        4 => 5,
+                        5 => 4,
+                        6 => 3,
+                        7 => 2,
+                        8 => 1,
+                ),
+        );
+
+        $settings = get_option( 'bhg_plugin_settings', array() );
+        $scheme   = isset( $settings['points_scheme'] ) && is_array( $settings['points_scheme'] ) ? $settings['points_scheme'] : array();
+
+        $scope = isset( $scheme['scope'] ) ? sanitize_key( $scheme['scope'] ) : $defaults['scope'];
+        if ( ! in_array( $scope, array( 'active', 'closed', 'all' ), true ) ) {
+                $scope = $defaults['scope'];
+        }
+
+        $values      = isset( $scheme['values'] ) && is_array( $scheme['values'] ) ? $scheme['values'] : array();
+        $normalized  = array();
+        for ( $i = 1; $i <= 8; $i++ ) {
+                $default_value = isset( $defaults['values'][ $i ] ) ? (int) $defaults['values'][ $i ] : 0;
+                $value         = isset( $values[ $i ] ) ? (int) $values[ $i ] : $default_value;
+                $normalized[ $i ] = max( 0, $value );
+        }
+
+        $cached = apply_filters(
+                'bhg_points_scheme',
+                array(
+                        'scope'  => $scope,
+                        'values' => $normalized,
+                )
+        );
+
+        return $cached;
+}
+
+/**
+ * Get the configured hunt scope for point calculations.
+ *
+ * @return string One of 'active', 'closed', or 'all'.
+ */
+function bhg_get_points_scope() {
+        $scheme = bhg_get_points_scheme();
+        return isset( $scheme['scope'] ) ? $scheme['scope'] : 'closed';
+}
+
+/**
+ * Get points assigned to a finishing position.
+ *
+ * @param int $position Finishing position (1-indexed).
+ * @return int Points for the given position.
+ */
+function bhg_get_points_for_position( $position ) {
+        $position = (int) $position;
+        if ( $position <= 0 ) {
+                return 0;
+        }
+
+        $scheme = bhg_get_points_scheme();
+        return isset( $scheme['values'][ $position ] ) ? (int) $scheme['values'][ $position ] : 0;
 }
 
 /**
@@ -1215,9 +1311,10 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
                                                         'position'   => $position,
                                                         'guess'      => isset( $winner->guess ) ? (float) $winner->guess : 0.0,
                                                         'diff'       => isset( $winner->diff ) ? (float) $winner->diff : 0.0,
+                                                        'points'     => function_exists( 'bhg_get_points_for_position' ) ? (int) bhg_get_points_for_position( $position ) : 0,
                                                         'created_at' => $now,
                                                 ),
-                                                array( '%d', '%d', '%d', '%f', '%f', '%s' )
+                                                array( '%d', '%d', '%d', '%f', '%f', '%d', '%s' )
                                         );
                                         ++$position;
                                 }
@@ -1235,17 +1332,17 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 
                                                                $winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
                                                                $closed      = $wpdb->get_results(
-                                                                       "SELECT h.closed_at, w.user_id FROM {$hunts_tbl} h INNER JOIN {$winners_tbl} w ON w.hunt_id = h.id WHERE h.status='closed'"
+                                                                       "SELECT h.closed_at, w.user_id, w.points FROM {$hunts_tbl} h INNER JOIN {$winners_tbl} w ON w.hunt_id = h.id WHERE h.status='closed'"
                                                                );
                        foreach ( $closed as $row ) {
-				$ts        = $row->closed_at ? strtotime( $row->closed_at ) : time();
-				$iso_year  = gmdate( 'o', $ts );
-				$week      = str_pad( gmdate( 'W', $ts ), 2, '0', STR_PAD_LEFT );
-				$week_key  = $iso_year . '-W' . $week;
-				$month_key = gmdate( 'Y-m', $ts );
-				$year_key  = gmdate( 'Y', $ts );
+                                $ts        = $row->closed_at ? strtotime( $row->closed_at ) : time();
+                                $iso_year  = gmdate( 'o', $ts );
+                                $week      = str_pad( gmdate( 'W', $ts ), 2, '0', STR_PAD_LEFT );
+                                $week_key  = $iso_year . '-W' . $week;
+                                $month_key = gmdate( 'Y-m', $ts );
+                                $year_key  = gmdate( 'Y', $ts );
 
-				$ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
+                                $ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
 						$now   = current_time( 'mysql', 1 );
 						$start = $now;
 						$end   = $now;
@@ -1290,21 +1387,23 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
                                                if ( $uid <= 0 ) {
                                                        continue;
                                                }
-				foreach ( array(
-					$ensure( 'weekly', $week_key ),
-					$ensure( 'monthly', $month_key ),
-					$ensure( 'yearly', $year_key ),
-				) as $tid ) {
-					if ( $tid && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
-									$insert_sql = $wpdb->prepare(
-										"INSERT INTO {$r_tbl} (tournament_id, user_id, wins) VALUES (%d, %d, 1) ON DUPLICATE KEY UPDATE wins = wins + 1",
-										$tid,
-										$uid
-									);
-									$wpdb->query( $insert_sql );
-					}
-				}
-			}
+                               $points_value = isset( $row->points ) ? (int) $row->points : 0;
+                                foreach ( array(
+                                        $ensure( 'weekly', $week_key ),
+                                        $ensure( 'monthly', $month_key ),
+                                        $ensure( 'yearly', $year_key ),
+                                ) as $tid ) {
+                                        if ( $tid && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
+                                                                        $insert_sql = $wpdb->prepare(
+                                                                                "INSERT INTO {$r_tbl} (tournament_id, user_id, wins, points) VALUES (%d, %d, 1, %d) ON DUPLICATE KEY UPDATE wins = wins + 1, points = points + VALUES(points)",
+                                                                                $tid,
+                                                                                $uid,
+                                                                                $points_value
+                                                                        );
+                                                                        $wpdb->query( $insert_sql );
+                                        }
+                                }
+                        }
 		}
 	}
 

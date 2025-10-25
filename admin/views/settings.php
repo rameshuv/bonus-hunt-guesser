@@ -15,6 +15,17 @@ if ( ! current_user_can( 'manage_options' ) ) {
 
 // Fetch existing settings.
 $settings = get_option( 'bhg_plugin_settings', array() );
+$points_scheme = function_exists( 'bhg_get_points_scheme' ) ? bhg_get_points_scheme() : array();
+$points_scope  = isset( $points_scheme['scope'] ) ? $points_scheme['scope'] : 'closed';
+$points_values = array();
+if ( isset( $points_scheme['values'] ) && is_array( $points_scheme['values'] ) ) {
+        $points_values = $points_scheme['values'];
+}
+for ( $i = 1; $i <= 8; $i++ ) {
+        if ( ! isset( $points_values[ $i ] ) ) {
+                $points_values[ $i ] = 0;
+        }
+}
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
@@ -106,6 +117,37 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="url" class="regular-text" id="bhg_post_submit_redirect" name="bhg_post_submit_redirect" value="<?php echo isset( $settings['post_submit_redirect'] ) ? esc_attr( $settings['post_submit_redirect'] ) : ''; ?>" placeholder="<?php echo esc_attr( bhg_t( 'post_submit_redirect_placeholder', 'https://example.com/thank-you' ) ); ?>">
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
+</td>
+</tr>
+<tr class="bhg-settings-section">
+<th colspan="2"><h2><?php echo esc_html( bhg_t( 'label_points_scheme', 'Points Scheme' ) ); ?></h2></th>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_points_scope"><?php echo esc_html( bhg_t( 'label_points_scope', 'Points Scope' ) ); ?></label></th>
+<td>
+<select name="bhg_points_scope" id="bhg_points_scope">
+        <option value="closed" <?php selected( $points_scope, 'closed' ); ?>><?php echo esc_html( bhg_t( 'label_scope_closed_hunts', 'Closed Hunts' ) ); ?></option>
+        <option value="active" <?php selected( $points_scope, 'active' ); ?>><?php echo esc_html( bhg_t( 'label_scope_active_hunts', 'Active Hunts' ) ); ?></option>
+        <option value="all" <?php selected( $points_scope, 'all' ); ?>><?php echo esc_html( bhg_t( 'label_scope_all_hunts', 'All Hunts' ) ); ?></option>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'points_scope_description', 'Choose which hunts contribute to leaderboard point totals.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'label_points', 'Points' ) ); ?></th>
+<td>
+<div class="bhg-points-grid">
+<?php for ( $i = 1; $i <= 8; $i++ ) : ?>
+        <?php
+        $field_id = 'bhg_points_position_' . $i;
+        $label    = sprintf( bhg_t( 'label_points_for_position', 'Points for position %s' ), number_format_i18n( $i ) );
+        ?>
+        <label for="<?php echo esc_attr( $field_id ); ?>" class="bhg-points-item">
+                <span class="bhg-points-label"><?php echo esc_html( $label ); ?></span>
+                <input type="number" min="0" step="1" id="<?php echo esc_attr( $field_id ); ?>" name="bhg_points_position[<?php echo esc_attr( $i ); ?>]" value="<?php echo esc_attr( $points_values[ $i ] ); ?>" class="small-text">
+        </label>
+<?php endfor; ?>
+</div>
 </td>
 </tr>
 </tbody>

@@ -18,6 +18,7 @@ class BHG_Bonus_Hunts {
                 global $wpdb;
                 $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
                 $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
                 $users_table   = esc_sql( $wpdb->users );
 		$limit         = max( 1, (int) $limit );
 
@@ -39,16 +40,13 @@ class BHG_Bonus_Hunts {
 			$winners_count       = max( 1, (int) $h->winners_count );
                         $winners = $wpdb->get_results(
                                 $wpdb->prepare(
-                                        "SELECT g.user_id, u.display_name, g.guess,
-                                                (%f - g.guess) AS diff
-                                        FROM {$guesses_table} g
-                                        LEFT JOIN {$users_table} u ON u.ID = g.user_id
-                                        WHERE g.hunt_id = %d
-                                        ORDER BY ABS(%f - g.guess) ASC, g.id ASC
+                                        "SELECT hw.user_id, u.display_name, hw.guess, hw.diff, hw.points, hw.position
+                                        FROM {$winners_table} hw
+                                        LEFT JOIN {$users_table} u ON u.ID = hw.user_id
+                                        WHERE hw.hunt_id = %d
+                                        ORDER BY hw.position ASC
                                         LIMIT %d",
-                                        $h->final_balance,
                                         $h->id,
-                                        $h->final_balance,
                                         $winners_count
                                 )
                         );
@@ -90,6 +88,7 @@ class BHG_Bonus_Hunts {
                 global $wpdb;
                 $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
                 $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
                 $users_table   = esc_sql( $wpdb->users );
 		$hunt          = self::get_hunt( $hunt_id );
 
@@ -99,9 +98,10 @@ class BHG_Bonus_Hunts {
 		if ( null !== $hunt->final_balance ) {
                                                   return $wpdb->get_results(
                                                           $wpdb->prepare(
-                                                                  "SELECT g.*, u.display_name, (%f - g.guess) AS diff
+                                                                  "SELECT g.*, u.display_name, (%f - g.guess) AS diff, hw.position AS winner_position, hw.points AS winner_points
                                                                           FROM {$guesses_table} g
                                                                           LEFT JOIN {$users_table} u ON u.ID = g.user_id
+                                                                          LEFT JOIN {$winners_table} hw ON hw.hunt_id = g.hunt_id AND hw.user_id = g.user_id
                                                                           WHERE g.hunt_id = %d
                                                                           ORDER BY ABS(%f - g.guess) ASC, g.id ASC",
                                                                   $hunt->final_balance,
@@ -109,13 +109,14 @@ class BHG_Bonus_Hunts {
                                                                   $hunt->final_balance
                                                           )
                                                   );
-		}
+                }
 
                                                   return $wpdb->get_results(
                                                           $wpdb->prepare(
-                                                                  "SELECT g.*, u.display_name, NULL AS diff
+                                                                  "SELECT g.*, u.display_name, NULL AS diff, hw.position AS winner_position, hw.points AS winner_points
                                                                                   FROM {$guesses_table} g
                                                                                   LEFT JOIN {$users_table} u ON u.ID = g.user_id
+                                                                                  LEFT JOIN {$winners_table} hw ON hw.hunt_id = g.hunt_id AND hw.user_id = g.user_id
                                                                                   WHERE g.hunt_id = %d
                                                                                   ORDER BY g.created_at ASC, g.id ASC",
                                                                   $hunt_id
