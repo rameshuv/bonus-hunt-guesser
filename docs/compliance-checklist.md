@@ -3,11 +3,11 @@
 Legend: ✅ implemented · ⚠️ partially implemented · ❌ missing / incorrect
 
 ## 0) Plugin Header
-- ❌ Header comment and runtime constants diverge from the spec (header lists version 8.0.14 and WP min 6.3.0 while constants keep 8.0.12 / 5.5.5). Ref: `bonus-hunt-guesser.php` L3-L15, L145-L146.
+- ✅ Header comment and runtime constants match the requested version 8.0.13 and WordPress minimum 6.3.0. Ref: `bonus-hunt-guesser.php` L3-L15, L145-L146.
 
 ## Backend (Oct 20 spec)
 1. **bhg dashboard**
-   - ❌ Winners are still bundled inside a single cell instead of separate table rows, though usernames render in `<strong>`. Ref: `admin/views/dashboard.php` L82-L127.
+   - ✅ Winners render on individual rows with bold usernames beneath each hunt. Ref: `admin/views/dashboard.php` L82-L127.
 
 2. **bhg-bonus-hunts**
    - ✅ Closed hunts expose a “Results” button and include a participants table with removal controls and profile links. Ref: `admin/views/bonus-hunts.php` L240-L279, L600-L665.
