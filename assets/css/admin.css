@@ -61,6 +61,33 @@
     background-color: #d1fae5;
 }
 
+.bhg-winner-row td {
+    font-weight: 600;
+}
+
+.bhg-winners-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.bhg-winners-list li {
+    margin: 0 0 4px 0;
+}
+
+.bhg-winners-list li:last-child {
+    margin-bottom: 0;
+}
+
+.bhg-winner-diff {
+    font-weight: 500;
+}
+
+.bhg-no-winners {
+    color: #6b7280;
+    font-weight: 500;
+}
+
 /* Utility classes */
 .bhg-margin-top-small {
     margin-top: 1em;
