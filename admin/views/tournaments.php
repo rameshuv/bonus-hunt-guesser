@@ -73,9 +73,55 @@ if ( $search_term ) {
 		);
 }
 $base_url = remove_query_arg( array( 'paged' ) );
-$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
-$linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$linked_hunts  = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$current_year  = function_exists( 'wp_date' ) ? (int) wp_date( 'Y' ) : (int) gmdate( 'Y' );
+$year_start    = sprintf( '%d-01-01 00:00:00', $current_year );
+$next_year     = sprintf( '%d-01-01 00:00:00', $current_year + 1 );
+$date_selector = 'COALESCE(closed_at, updated_at, created_at)';
+
+$all_hunts = array();
+$hunts_map = array();
+
+// db call ok; no-cache ok.
+$year_hunts = $wpdb->get_results(
+        $wpdb->prepare(
+                "SELECT id, title FROM {$hunts_table} WHERE {$date_selector} >= %s AND {$date_selector} < %s ORDER BY {$date_selector} DESC, title ASC",
+                $year_start,
+                $next_year
+        )
+);
+
+foreach ( (array) $year_hunts as $hunt_row ) {
+        $hunt_id = isset( $hunt_row->id ) ? (int) $hunt_row->id : 0;
+        if ( $hunt_id > 0 ) {
+                $hunts_map[ $hunt_id ] = $hunt_row;
+                $all_hunts[]           = $hunt_row;
+        }
+}
+
+$existing_ids = array_map( 'absint', array_keys( $hunts_map ) );
+
+if ( ! empty( $linked_hunts ) ) {
+        $linked_hunts   = array_values( array_map( 'absint', $linked_hunts ) );
+        $missing_hunt_ids = array_diff( $linked_hunts, $existing_ids );
+
+        if ( ! empty( $missing_hunt_ids ) ) {
+                $placeholders = implode( ',', array_fill( 0, count( $missing_hunt_ids ), '%d' ) );
+                $sql          = "SELECT id, title FROM {$hunts_table} WHERE id IN ({$placeholders}) ORDER BY title ASC";
+
+                // db call ok; no-cache ok.
+                $extra_hunts = $wpdb->get_results( $wpdb->prepare( $sql, $missing_hunt_ids ) );
+
+                foreach ( (array) $extra_hunts as $hunt_row ) {
+                        $hunt_id = isset( $hunt_row->id ) ? (int) $hunt_row->id : 0;
+                        if ( $hunt_id > 0 && ! isset( $hunts_map[ $hunt_id ] ) ) {
+                                $hunts_map[ $hunt_id ] = $hunt_row;
+                                $all_hunts[]           = $hunt_row;
+                        }
+                }
+        }
+}
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
@@ -268,19 +314,45 @@ endif;
 </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
+                <tr>
+                <th><label for="bhg_t_desc">
+                <?php
+                echo esc_html( bhg_t( 'description', 'Description' ) );
+                ?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-				?>
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_type">
+                <?php
+                echo esc_html( bhg_t( 'tournament_type', 'Tournament Type' ) );
+                ?>
+                </label></th>
+                <td>
+                        <?php
+                        $settings          = get_option( 'bhg_plugin_settings', array() );
+                        $default_type      = isset( $settings['default_tournament_period'] ) ? sanitize_key( $settings['default_tournament_period'] ) : 'monthly';
+                        $current_type      = isset( $row->type ) ? sanitize_key( $row->type ) : $default_type;
+                        $available_types   = array(
+                                'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+                                'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+                                'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+                                'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+                                'alltime'   => bhg_t( 'alltime', 'All-time' ),
+                        );
+                        ?>
+                        <select id="bhg_t_type" name="type">
+                        <?php foreach ( $available_types as $type_key => $type_label ) : ?>
+                                <option value="<?php echo esc_attr( $type_key ); ?>" <?php selected( $current_type, $type_key ); ?>><?php echo esc_html( $type_label ); ?></option>
+                        <?php endforeach; ?>
+                        </select>
+                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
+                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                                ?>
 				</label></th>
 				<td>
 						<?php $pmode = $row->participants_mode ?? 'winners'; ?>

@@ -400,11 +400,20 @@ if ( 'add' === $view ) :
                                                                                                 if ( ! in_array( $t_table, $allowed_tables, true ) ) {
                                                                                                                                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
                                                                                                 }
-                                                                                                // db call ok; no-cache ok.
-                                                                                                $tours = $wpdb->get_results(
-                                                                                                        "SELECT id, title FROM {$t_table} ORDER BY title ASC"
-                                                                                                );
                                                                                                 $selected_tournaments = array();
+                                                                                                $where_parts           = array( 'status = %s' );
+                                                                                                $query_params          = array( 'active' );
+
+                                                                                                if ( ! empty( $selected_tournaments ) ) {
+                                                                                                        $placeholders   = implode( ',', array_fill( 0, count( $selected_tournaments ), '%d' ) );
+                                                                                                        $where_parts[]  = "id IN ({$placeholders})";
+                                                                                                        $query_params   = array_merge( $query_params, $selected_tournaments );
+                                                                                                }
+
+                                                                                                $sql = "SELECT id, title FROM {$t_table} WHERE " . implode( ' OR ', $where_parts ) . ' ORDER BY title ASC';
+
+                                                                                                // db call ok; no-cache ok.
+                                                                                                $tours = $wpdb->get_results( $wpdb->prepare( $sql, $query_params ) );
                                                                                                 ?>
                                                 <select id="bhg_tournament" name="tournament_ids[]" multiple="multiple" size="5">
                                                                 <?php foreach ( $tours as $t ) : ?>
@@ -541,11 +550,21 @@ if ( 'edit' === $view ) :
 												if ( ! in_array( $t_table, $allowed_tables, true ) ) {
 																		wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 												}
-												// db call ok; no-cache ok.
-												$tours = $wpdb->get_results(
-													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
-												);
                                                                                                 $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+
+                                                                                                $where_parts  = array( 'status = %s' );
+                                                                                                $query_params = array( 'active' );
+
+                                                                                                if ( ! empty( $selected_tournaments ) ) {
+                                                                                                        $placeholders   = implode( ',', array_fill( 0, count( $selected_tournaments ), '%d' ) );
+                                                                                                        $where_parts[]  = "id IN ({$placeholders})";
+                                                                                                        $query_params   = array_merge( $query_params, $selected_tournaments );
+                                                                                                }
+
+                                                                                                $sql = "SELECT id, title FROM {$t_table} WHERE " . implode( ' OR ', $where_parts ) . ' ORDER BY title ASC';
+
+                                                                                                // db call ok; no-cache ok.
+                                                                                                $tours = $wpdb->get_results( $wpdb->prepare( $sql, $query_params ) );
                                                                                                 $prize_rows          = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
                                                                                                 $selected_prizes     = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( (int) $hunt->id ) : array();
                                                                                                 ?>
