@@ -10,7 +10,7 @@
  * Text Domain: bonus-hunt-guesser
  * Domain Path: /languages
  * License: GPLv2 or later
- * MySQL tested up to: 5.5.5
+ * Requires MySQL: 5.5.5
  *
  * @package Bonus_Hunt_Guesser
  */

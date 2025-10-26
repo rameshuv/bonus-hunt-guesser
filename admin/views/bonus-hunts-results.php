@@ -123,12 +123,26 @@ if ( 'tournament' === $view_type ) {
 	if ( $wcount < 1 ) {
 			$wcount = 3;
 	}
-	$columns = array(
-		'sc_position' => bhg_t( 'sc_position', 'Position' ),
-		'sc_user'     => bhg_t( 'sc_user', 'User' ),
-		'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
-		'difference'  => bhg_t( 'difference', 'Difference' ),
-	);
+        $prize_titles = array();
+        if ( class_exists( 'BHG_Prizes' ) ) {
+                $prize_rows = BHG_Prizes::get_prizes_for_hunt( $item_id );
+                if ( $prize_rows ) {
+                        if ( function_exists( 'wp_list_pluck' ) ) {
+                                $prize_titles = array_values( wp_list_pluck( $prize_rows, 'title' ) );
+                        } else {
+                                foreach ( $prize_rows as $row ) {
+                                        $prize_titles[] = isset( $row->title ) ? $row->title : '';
+                                }
+                        }
+                }
+        }
+        $columns = array(
+                'sc_position' => bhg_t( 'sc_position', 'Position' ),
+                'sc_user'     => bhg_t( 'sc_user', 'User' ),
+                'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
+                'price'       => bhg_t( 'price', 'Price' ),
+                'difference'  => bhg_t( 'difference', 'Difference' ),
+        );
 }
 
 // Gather hunts and tournaments for the selector.
@@ -207,16 +221,25 @@ $current   = $view_type . '-' . $item_id;
 			foreach ( (array) $rows as $r ) :
 				$is_winner = $pos <= $wcount;
 				?>
-				<tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
-					<td><?php echo (int) $pos; ?></td>
-					<td><?php echo esc_html( $r->display_name ); ?></td>
-					<?php if ( 'tournament' === $view_type ) : ?>
-						<td><?php echo (int) $r->wins; ?></td>
-					<?php else : ?>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
-						<td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
-					<?php endif; ?>
-				</tr>
+                                <tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
+                                        <td><?php echo (int) $pos; ?></td>
+                                        <td><?php echo esc_html( $r->display_name ); ?></td>
+                                        <?php if ( 'tournament' === $view_type ) : ?>
+                                                <td><?php echo (int) $r->wins; ?></td>
+                                        <?php else : ?>
+                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
+                                                <td>
+                                                        <?php
+                                                        if ( $is_winner && isset( $prize_titles[ $pos - 1 ] ) && '' !== $prize_titles[ $pos - 1 ] ) {
+                                                                echo esc_html( $prize_titles[ $pos - 1 ] );
+                                                        } else {
+                                                                echo esc_html( bhg_t( 'label_emdash', '—' ) );
+                                                        }
+                                                        ?>
+                                                </td>
+                                                <td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+                                        <?php endif; ?>
+                                </tr>
 				<?php
 				++$pos;
 			endforeach;
