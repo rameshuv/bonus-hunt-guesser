@@ -20,8 +20,20 @@ if ( ! in_array( $table, $allowed_tables, true ) ) {
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
 $row     = $edit_id
-		? $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'bhg_tournaments WHERE id = %d', $edit_id ) )
-		: null;
+                ? $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . $wpdb->prefix . 'bhg_tournaments WHERE id = %d', $edit_id ) )
+                : null;
+
+$type_options = array(
+	'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+	'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+	'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+	'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+	'alltime'   => bhg_t( 'label_all_time', 'All-Time' ),
+);
+$current_type = isset( $row->type ) ? sanitize_key( (string) $row->type ) : 'monthly';
+if ( ! array_key_exists( $current_type, $type_options ) ) {
+	$current_type = 'monthly';
+}
 
 $search_term = '';
 if ( isset( $_GET['s'] ) ) {
@@ -290,10 +302,24 @@ endif;
 						</select>
 				</td>
 				</tr>
-				<tr>
-				<th><label for="bhg_t_start">
+		<tr>
+		<th><label for="bhg_t_type">
 		<?php
-		echo esc_html( bhg_t( 'label_start_date', 'Start Date' ) );
+		echo esc_html( bhg_t( 'label_type', 'Type' ) );
+		?>
+		</label></th>
+		<td>
+			<select id="bhg_t_type" name="type">
+			<?php foreach ( $type_options as $type_slug => $type_label ) : ?>
+				<option value="<?php echo esc_attr( $type_slug ); ?>" <?php selected( $current_type, $type_slug ); ?>><?php echo esc_html( $type_label ); ?></option>
+			<?php endforeach; ?>
+			</select>
+		</td>
+		</tr>
+                <tr>
+                <th><label for="bhg_t_start">
+                <?php
+                echo esc_html( bhg_t( 'label_start_date', 'Start Date' ) );
 		?>
 </label></th>
 		<td><input id="bhg_t_start" type="date" name="start_date" value="<?php echo esc_attr( $row->start_date ?? '' ); ?>" /></td>
