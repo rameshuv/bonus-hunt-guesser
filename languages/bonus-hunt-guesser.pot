@@ -561,7 +561,7 @@ msgid "Latest Hunts"
 msgstr ""
 
 #: admin/views/dashboard.php:28
-msgid "Bonushunt"
+msgid "Bonus Hunt"
 msgstr ""
 
 #: admin/views/dashboard.php:29

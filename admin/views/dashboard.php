@@ -71,7 +71,7 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																<table class="bhg-dashboard-table bhg-latest-hunts-table">
 																		<thead>
 																				<tr>
-																						<th><?php echo esc_html( bhg_t( 'label_bonushunt', 'Bonushunt' ) ); ?></th>
+<th><?php echo esc_html( bhg_t( 'label_bonushunt', 'Bonus Hunt' ) ); ?></th>
 																						<th><?php echo esc_html( bhg_t( 'label_all_winners', 'All Winners' ) ); ?></th>
 																						<th><?php echo esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ); ?></th>
 																						<th><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></th>
