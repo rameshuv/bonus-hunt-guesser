@@ -20,17 +20,37 @@ if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
 $order = ( isset( $_GET['order'] ) && 'desc' === strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) ) ? 'DESC' : 'ASC';
 
 $args = array(
-	'number'         => $per_page,
-	'offset'         => ( $paged - 1 ) * $per_page,
-	'orderby'        => $orderby,
-	'order'          => $order,
-	'search'         => $search ? '*' . $search . '*' : '',
-	'search_columns' => array( 'user_login', 'user_email', 'display_name' ),
+        'number'         => $per_page,
+        'offset'         => ( $paged - 1 ) * $per_page,
+        'orderby'        => $orderby,
+        'order'          => $order,
+        'search'         => $search ? '*' . $search . '*' : '',
+        'search_columns' => array( 'user_login', 'user_email', 'display_name' ),
 );
 
 $user_query = new WP_User_Query( $args );
 $users      = $user_query->get_results();
 $total      = $user_query->get_total();
+
+$affiliate_sites     = array();
+$affiliate_sites_map = array();
+
+if ( class_exists( 'BHG_DB' ) ) {
+        $db              = new BHG_DB();
+        $affiliate_sites = $db->get_affiliate_websites();
+}
+
+if ( ! is_array( $affiliate_sites ) ) {
+        $affiliate_sites = array();
+}
+
+foreach ( $affiliate_sites as $site ) {
+        if ( ! isset( $site->id ) ) {
+                continue;
+        }
+
+        $affiliate_sites_map[ (int) $site->id ] = $site;
+}
 
 $base_url = remove_query_arg( array( 'paged' ) );
 ?>
@@ -77,43 +97,71 @@ $base_url = remove_query_arg( array( 'paged' ) );
 		);
 		?>
 		"><?php echo esc_html( bhg_t( 'name', 'Name' ) ); ?></a></th>
-		<th><?php echo esc_html( bhg_t( 'label_real_name', 'Real Name' ) ); ?></th>
-		<th><a href="
-		<?php
-		echo esc_url(
-			add_query_arg(
+                <th><?php echo esc_html( bhg_t( 'label_real_name', 'Real Name' ) ); ?></th>
+                <th><a href="
+                <?php
+                echo esc_url(
+                        add_query_arg(
 				array(
 					'orderby' => 'user_email',
 					'order'   => 'ASC' === $order ? 'desc' : 'asc',
 				),
 				$base_url
 			)
-		);
-		?>
-		"><?php echo esc_html( bhg_t( 'label_email', 'Email' ) ); ?></a></th>
-		<th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
-		</tr>
-	</thead>
-	<tbody>
-		<?php if ( empty( $users ) ) : ?>
-		<tr><td colspan="6"><?php echo esc_html( bhg_t( 'no_users_found', 'No users found.' ) ); ?></td></tr>
-			<?php
-		else :
-			foreach ( $users as $u ) :
-				$form_id   = 'bhg-user-' . (int) $u->ID;
-				$real_name = get_user_meta( $u->ID, 'bhg_real_name', true );
-				$is_aff    = get_user_meta( $u->ID, 'bhg_is_affiliate', true );
-				?>
-		<tr>
-			<td><?php echo esc_html( $u->user_login ); ?></td>
-			<td><?php echo esc_html( $u->display_name ); ?></td>
+                );
+                ?>
+                "><?php echo esc_html( bhg_t( 'label_email', 'Email' ) ); ?></a></th>
+                <th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
+                <th><?php echo esc_html( bhg_t( 'label_affiliate_websites', 'Affiliate Websites' ) ); ?></th>
+                <th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                </tr>
+        </thead>
+        <tbody>
+                <?php if ( empty( $users ) ) : ?>
+                <tr><td colspan="7"><?php echo esc_html( bhg_t( 'no_users_found', 'No users found.' ) ); ?></td></tr>
+                        <?php
+                else :
+                        foreach ( $users as $u ) :
+                                $form_id   = 'bhg-user-' . (int) $u->ID;
+                                $real_name = get_user_meta( $u->ID, 'bhg_real_name', true );
+                                $is_aff    = get_user_meta( $u->ID, 'bhg_is_affiliate', true );
+                                $user_sites = function_exists( 'bhg_get_user_affiliate_websites' ) ? bhg_get_user_affiliate_websites( $u->ID ) : array();
+                                ?>
+                <tr>
+                        <td><?php echo esc_html( $u->user_login ); ?></td>
+                        <td><?php echo esc_html( $u->display_name ); ?></td>
 			<td><input type="text" name="bhg_real_name" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $real_name ); ?>" /></td>
-			<td><?php echo esc_html( $u->user_email ); ?></td>
-			<td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
-			<td>
-			<form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="bhg_save_user_meta" />
+                        <td><?php echo esc_html( $u->user_email ); ?></td>
+                        <td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
+                        <td>
+                        <?php if ( empty( $affiliate_sites_map ) ) : ?>
+                                <em><?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?></em>
+                        <?php else : ?>
+                                <ul class="bhg-affiliate-site-list">
+                                <?php foreach ( $affiliate_sites_map as $site_id => $site ) :
+                                        $site_name = isset( $site->name ) && '' !== $site->name ? $site->name : '';
+                                        $checked   = in_array( $site_id, (array) $user_sites, true );
+                                        ?>
+                                        <li>
+                                                <label>
+                                                        <input type="checkbox" name="bhg_affiliate_sites[]" value="<?php echo esc_attr( $site_id ); ?>" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $checked ); ?> />
+                                                        <?php
+                                                        if ( '' !== $site_name ) {
+                                                                echo esc_html( $site_name );
+                                                        } else {
+                                                                /* translators: %d: affiliate website ID. */
+                                                                echo esc_html( sprintf( bhg_t( 'label_affiliate_website_number', 'Affiliate Website %d' ), $site_id ) );
+                                                        }
+                                                        ?>
+                                                </label>
+                                        </li>
+                                <?php endforeach; ?>
+                                </ul>
+                        <?php endif; ?>
+                        </td>
+                        <td>
+                        <form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                                <input type="hidden" name="action" value="bhg_save_user_meta" />
 <input type="hidden" name="user_id" value="<?php echo esc_attr( (int) $u->ID ); ?>" />
 								<?php wp_nonce_field( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' ); ?>
 				<button type="submit" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button>

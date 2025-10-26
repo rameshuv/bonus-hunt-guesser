@@ -24,7 +24,7 @@ Date: 2025-09-12
 
 ## Stage-5 (Affiliate multi-site UX polish)
 - Hunt form: Affiliate Site dropdown saved to affiliate_site_id.
-- User profile: Affiliate Websites section with per-site flags (bhg_affiliate_website_{ID}).
+- User profile: Affiliate Websites section with per-site toggles stored via bhg_affiliate_websites meta.
 - Frontend dot: consistent per-hunt/per-site affiliate status display.
 
 

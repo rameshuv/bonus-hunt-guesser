@@ -11,6 +11,11 @@
 ## 8.0.14 — 2025-09-20
 - Bump plugin version constant and header metadata to 8.0.14.
 - Raise minimum supported WordPress version to 6.3.0 to match customer runtime target.
+- Refresh the Bonus Hunt dashboard with a "Latest Hunts" summary that lists every winner per hunt alongside balances and closure timestamps.
+- Extend bonus hunt admin tools with configurable winner counts, results exports that highlight winners, and a Price column populated from linked prizes.
+- Restore the tournaments admin form (title/description/type), add quarterly/all-time periods, and filter connected hunts to the current year while keeping existing links selectable.
+- Expand the Users admin to include search, sortable columns, pagination, and per-affiliate website toggles that stay in sync with the Affiliates module.
+- Add edit/remove actions to the Advertising table and support a "None" placement for shortcode-only banners.
 
 ## 8.0.11 — 2025-09-14
 - Version bump.
