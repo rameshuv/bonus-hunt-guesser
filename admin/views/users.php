@@ -3,8 +3,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
+        wp_die( esc_html( bhg_t( 'you_do_not_have_sufficient_permissions_to_access_this_page', 'You do not have sufficient permissions to access this page.' ) ) );
 }
+
+global $wpdb;
 
 $paged    = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
 $per_page = 30;
@@ -31,6 +33,9 @@ $args = array(
 $user_query = new WP_User_Query( $args );
 $users      = $user_query->get_results();
 $total      = $user_query->get_total();
+
+$aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+$aff_sites = $wpdb->get_results( "SELECT id, name, status FROM {$aff_table} ORDER BY name ASC" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name sanitized above.
 
 $base_url = remove_query_arg( array( 'paged' ) );
 ?>
@@ -91,8 +96,9 @@ $base_url = remove_query_arg( array( 'paged' ) );
 		);
 		?>
 		"><?php echo esc_html( bhg_t( 'label_email', 'Email' ) ); ?></a></th>
-		<th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
-		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                <th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
+                <th><?php echo esc_html( bhg_t( 'affiliate_websites', 'Affiliate Websites' ) ); ?></th>
+                <th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -110,8 +116,32 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			<td><?php echo esc_html( $u->display_name ); ?></td>
 			<td><input type="text" name="bhg_real_name" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $real_name ); ?>" /></td>
 			<td><?php echo esc_html( $u->user_email ); ?></td>
-			<td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
-			<td>
+                        <td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
+                        <td class="bhg-affiliate-sites-cell">
+                                <?php
+                                $user_sites = function_exists( 'bhg_get_user_affiliate_websites' ) ? bhg_get_user_affiliate_websites( (int) $u->ID ) : array();
+                                if ( empty( $aff_sites ) ) {
+                                        echo '<span class="description">' . esc_html( bhg_t( 'no_affiliate_sites_configured', 'No affiliate websites configured.' ) ) . '</span>';
+                                } else {
+                                        foreach ( $aff_sites as $site ) {
+                                                $site_id   = isset( $site->id ) ? (int) $site->id : 0;
+                                                $site_name = isset( $site->name ) ? $site->name : '';
+                                                $is_active = isset( $site->status ) ? ( 'active' === strtolower( (string) $site->status ) ) : false;
+                                                if ( $site_id <= 0 ) {
+                                                        continue;
+                                                }
+                                                $checked = in_array( $site_id, (array) $user_sites, true );
+                                                echo '<label class="bhg-affiliate-site-checkbox">';
+                                                echo '<input type="checkbox" name="bhg_affiliate_sites[]" value="' . esc_attr( $site_id ) . '" form="' . esc_attr( $form_id ) . '"' . checked( $checked, true, false ) . disabled( ! $is_active, true, false ) . ' /> ' . esc_html( $site_name );
+                                                if ( ! $is_active ) {
+                                                        echo ' <span class="description">' . esc_html( bhg_t( 'label_inactive', 'Inactive' ) ) . '</span>';
+                                                }
+                                                echo '</label>';
+                                        }
+                                }
+                                ?>
+                        </td>
+                        <td>
 			<form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="bhg_save_user_meta" />
 <input type="hidden" name="user_id" value="<?php echo esc_attr( (int) $u->ID ); ?>" />

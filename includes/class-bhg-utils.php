@@ -38,18 +38,112 @@ class BHG_Utils {
 	 *
 	 * @return array Plugin settings.
 	 */
-	public static function get_settings() {
-		$defaults = array(
-			'allow_guess_edit' => 1,
-			'ads_enabled'      => 1,
-			'email_from'       => get_bloginfo( 'admin_email' ),
-		);
-		$opt      = get_option( 'bhg_settings', array() );
-		if ( ! is_array( $opt ) ) {
-			$opt = array();
-		}
-		return wp_parse_args( $opt, $defaults );
-	}
+        public static function get_settings() {
+                $defaults = array(
+                        'allow_guess_edit' => 1,
+                        'ads_enabled'      => 1,
+                        'email_from'       => get_bloginfo( 'admin_email' ),
+                );
+                $opt      = get_option( 'bhg_settings', array() );
+                if ( ! is_array( $opt ) ) {
+                        $opt = array();
+                }
+                return wp_parse_args( $opt, $defaults );
+        }
+
+        /**
+         * Default notification settings for each channel.
+         *
+         * @return array<string,array<string,mixed>>
+         */
+        public static function get_notification_defaults() {
+                return array(
+                        'winners'    => array(
+                                'enabled' => 0,
+                                'subject' => bhg_t( 'notification_winners_subject', 'Congratulations on your Bonus Hunt win!' ),
+                                'body'    => bhg_t( 'notification_winners_body', 'Hi {{username}},<br>Congratulations on placing {{position}} in {{hunt}} with a guess of {{guess}} (difference {{difference}}). Final balance: {{final_balance}}.' ),
+                                'bcc'     => '',
+                        ),
+                        'bonushunt' => array(
+                                'enabled' => 0,
+                                'subject' => bhg_t( 'notification_bonushunt_subject', 'Results for {{hunt}}' ),
+                                'body'    => bhg_t( 'notification_bonushunt_body', 'Hi {{username}},<br>{{hunt}} has closed with a final balance of {{final_balance}}. Winners: {{winners}}.' ),
+                                'bcc'     => '',
+                        ),
+                        'tournament' => array(
+                                'enabled' => 0,
+                                'subject' => bhg_t( 'notification_tournament_subject', 'Tournament update for {{tournament}}' ),
+                                'body'    => bhg_t( 'notification_tournament_body', 'Hi {{username}},<br>You are ranked {{rank}} with {{wins}} wins in {{tournament}}.' ),
+                                'bcc'     => '',
+                        ),
+                );
+        }
+
+        /**
+         * Retrieve stored notification settings merged with defaults.
+         *
+         * @return array<string,array<string,mixed>>
+         */
+        public static function get_notification_settings() {
+                $defaults = self::get_notification_defaults();
+                $stored   = get_option( 'bhg_notification_settings', array() );
+                if ( ! is_array( $stored ) ) {
+                        $stored = array();
+                }
+
+                $settings = $defaults;
+                foreach ( $defaults as $key => $default ) {
+                        if ( isset( $stored[ $key ] ) && is_array( $stored[ $key ] ) ) {
+                                $current = $stored[ $key ];
+                                $settings[ $key ]['enabled'] = ! empty( $current['enabled'] ) ? 1 : 0;
+                                $settings[ $key ]['subject'] = isset( $current['subject'] ) ? sanitize_text_field( $current['subject'] ) : $default['subject'];
+                                $settings[ $key ]['body']    = isset( $current['body'] ) ? wp_kses_post( $current['body'] ) : $default['body'];
+                                $settings[ $key ]['bcc']     = isset( $current['bcc'] ) ? sanitize_text_field( $current['bcc'] ) : '';
+                        }
+                }
+
+                return $settings;
+        }
+
+        /**
+         * Normalize a BCC string into a list of sanitized email addresses.
+         *
+         * @param string|array $bcc Raw BCC input.
+         * @return array<int,string>
+         */
+        public static function sanitize_bcc_list( $bcc ) {
+                if ( is_array( $bcc ) ) {
+                        $bcc = implode( ',', $bcc );
+                }
+
+                $clean  = array();
+                $pieces = preg_split( '/[\s,;]+/', (string) $bcc );
+
+                foreach ( $pieces as $piece ) {
+                        $email = sanitize_email( $piece );
+                        if ( $email && is_email( $email ) ) {
+                                $clean[ $email ] = $email;
+                        }
+                }
+
+                return array_values( $clean );
+        }
+
+        /**
+         * Build email headers for plugin notifications.
+         *
+         * @param array<int,string> $bcc_list Optional BCC recipients.
+         * @return array<int,string>
+         */
+        public static function build_email_headers( array $bcc_list = array() ) {
+                $headers   = array( 'From: ' . self::get_email_from(), 'Content-Type: text/html; charset=UTF-8' );
+                $bcc_list  = array_filter( array_map( 'sanitize_email', $bcc_list ) );
+                if ( ! empty( $bcc_list ) ) {
+                        $headers[] = 'Bcc: ' . implode( ',', $bcc_list );
+                }
+
+                return $headers;
+        }
 
 	/**
 	 * Update plugin settings.

@@ -15,6 +15,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 
 // Fetch existing settings.
 $settings = get_option( 'bhg_plugin_settings', array() );
+$profile_blocks = isset( $settings['profile_blocks'] ) && is_array( $settings['profile_blocks'] ) ? $settings['profile_blocks'] : array();
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
@@ -106,6 +107,30 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="url" class="regular-text" id="bhg_post_submit_redirect" name="bhg_post_submit_redirect" value="<?php echo isset( $settings['post_submit_redirect'] ) ? esc_attr( $settings['post_submit_redirect'] ) : ''; ?>" placeholder="<?php echo esc_attr( bhg_t( 'post_submit_redirect_placeholder', 'https://example.com/thank-you' ) ); ?>">
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'profile_sections', 'Profile Sections' ) ); ?></th>
+<td>
+<fieldset>
+        <legend class="screen-reader-text"><?php echo esc_html( bhg_t( 'profile_sections', 'Profile Sections' ) ); ?></legend>
+        <?php
+        $blocks = array(
+                'my_bonushunts' => bhg_t( 'profile_block_my_bonushunts', 'Show “My Bonus Hunts” block' ),
+                'my_tournaments' => bhg_t( 'profile_block_my_tournaments', 'Show “My Tournaments” block' ),
+                'my_prizes' => bhg_t( 'profile_block_my_prizes', 'Show “My Prizes” block' ),
+                'my_rankings' => bhg_t( 'profile_block_my_rankings', 'Show “My Rankings” block' ),
+        );
+        foreach ( $blocks as $block_key => $label ) :
+                $option_name = 'bhg_profile_block_' . $block_key;
+                $is_enabled  = isset( $profile_blocks[ $block_key ] ) ? (int) $profile_blocks[ $block_key ] : 1;
+                ?>
+                <label style="display:block;margin-bottom:4px;">
+                        <input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>" value="1" <?php checked( $is_enabled, 1 ); ?> /> <?php echo esc_html( $label ); ?>
+                </label>
+        <?php endforeach; ?>
+        <p class="description"><?php echo esc_html( bhg_t( 'profile_section_description', 'Uncheck a section to hide it from the user profile shortcodes.' ) ); ?></p>
+</fieldset>
 </td>
 </tr>
 </tbody>
