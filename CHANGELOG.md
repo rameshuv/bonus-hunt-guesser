@@ -8,6 +8,10 @@
 
 # Changelog
 
+## 8.0.14 — 2025-09-20
+- Bump plugin version constant and header metadata to 8.0.14.
+- Raise minimum supported WordPress version to 6.3.0 to match customer runtime target.
+
 ## 8.0.11 — 2025-09-14
 - Version bump.
 
