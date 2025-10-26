@@ -388,9 +388,9 @@ $wpdb->usermeta,
 		       $final_balance = '' === $final_balance ? null : $final_balance;
 		       $has_final     = null !== $final_balance;
 
-		       if ( $has_final ) {
+                       if ( $has_final ) {
                                $sql = sprintf(
-                                       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, (%%f - g.guess) AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC, g.id ASC LIMIT %%d OFFSET %%d',
+                                       'SELECT g.id, g.user_id, g.guess, g.created_at, u.display_name, u.user_login, ABS(%%f - g.guess) AS diff FROM %1$s g LEFT JOIN %2$s u ON u.ID = g.user_id WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC, g.id ASC LIMIT %%d OFFSET %%d',
                                        $guesses_table,
                                        $users_table
                                );
@@ -1169,7 +1169,7 @@ $wpdb->usermeta,
 			$select_join_sql = $select_joins ? ' ' . implode( ' ', $select_joins ) . ' ' : ' ';
 			$where_sql       = implode( ' AND ', $where );
 
-        $sql = 'SELECT g.guess, g.created_at, g.user_id, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN (h.final_balance - g.guess) END AS difference';
+        $sql = 'SELECT g.guess, g.created_at, g.user_id, h.title, h.final_balance, h.affiliate_site_id, CASE WHEN h.final_balance IS NOT NULL THEN ABS(h.final_balance - g.guess) END AS difference';
         if ( $need_site ) {
                 $sql .= ', w.name AS site_name';
         }

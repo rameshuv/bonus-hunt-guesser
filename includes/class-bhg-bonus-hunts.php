@@ -40,7 +40,7 @@ class BHG_Bonus_Hunts {
                         $winners = $wpdb->get_results(
                                 $wpdb->prepare(
                                         "SELECT g.user_id, u.display_name, g.guess,
-                                                (%f - g.guess) AS diff
+                                                ABS(%f - g.guess) AS diff
                                         FROM {$guesses_table} g
                                         LEFT JOIN {$users_table} u ON u.ID = g.user_id
                                         WHERE g.hunt_id = %d
@@ -99,7 +99,7 @@ class BHG_Bonus_Hunts {
 		if ( null !== $hunt->final_balance ) {
                                                   return $wpdb->get_results(
                                                           $wpdb->prepare(
-                                                                  "SELECT g.*, u.display_name, (%f - g.guess) AS diff
+                                                                  "SELECT g.*, u.display_name, ABS(%f - g.guess) AS diff
                                                                           FROM {$guesses_table} g
                                                                           LEFT JOIN {$users_table} u ON u.ID = g.user_id
                                                                           WHERE g.hunt_id = %d
