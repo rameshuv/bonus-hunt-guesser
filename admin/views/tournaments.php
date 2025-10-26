@@ -274,11 +274,36 @@ endif;
 		echo esc_html( bhg_t( 'description', 'Description' ) );
 		?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
+                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+                </tr>
+                <tr>
+                <th><label for="bhg_t_type"><?php echo esc_html( bhg_t( 'label_type', 'Type' ) ); ?></label></th>
+                <td>
+                <?php
+                $type_value   = isset( $row->type ) ? sanitize_key( $row->type ) : '';
+                $type_options = array(
+                        'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+                        'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+                        'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+                        'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+                        'alltime'   => bhg_t( 'all_time', 'All Time' ),
+                );
+                if ( ! array_key_exists( $type_value, $type_options ) ) {
+                        $type_value = '';
+                }
+                ?>
+                <select id="bhg_t_type" name="type">
+                        <option value=""><?php echo esc_html( bhg_t( 'label_auto_detect', 'Auto-detect' ) ); ?></option>
+                        <?php foreach ( $type_options as $value => $label ) : ?>
+                        <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $type_value, $value ); ?>><?php echo esc_html( $label ); ?></option>
+                        <?php endforeach; ?>
+                </select>
+                <p class="description"><?php echo esc_html( bhg_t( 'tournament_type_help', 'Choose how the leaderboard timeframe is grouped.' ) ); ?></p>
+                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
 				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
 				?>
 				</label></th>

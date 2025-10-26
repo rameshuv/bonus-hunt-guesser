@@ -20,6 +20,7 @@ class BHG_Admin {
 	public function __construct() {
 		// Menus.
 		add_action( 'admin_menu', array( $this, 'menu' ) );
+		add_filter( 'submenu_file', array( $this, 'highlight_dashboard_submenu' ), 10, 2 );
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
 
@@ -45,8 +46,9 @@ class BHG_Admin {
 	 * Register admin menus and pages.
 	 */
 	public function menu() {
-		$cap  = 'manage_options';
-		$slug = 'bhg';
+		$cap            = 'manage_options';
+		$slug           = 'bhg';
+		$dashboard_slug = 'bhg-dashboard';
 
 		add_menu_page(
 			bhg_t( 'bonus_hunt', 'Bonus Hunt' ),
@@ -58,7 +60,7 @@ class BHG_Admin {
 			55
 		);
 
-		add_submenu_page( $slug, bhg_t( 'menu_dashboard', 'Dashboard' ), bhg_t( 'menu_dashboard', 'Dashboard' ), $cap, $slug, array( $this, 'dashboard' ) );
+		add_submenu_page( $slug, bhg_t( 'menu_dashboard', 'Dashboard' ), bhg_t( 'menu_dashboard', 'Dashboard' ), $cap, $dashboard_slug, array( $this, 'dashboard' ) );
                 add_submenu_page( $slug, bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), $cap, 'bhg-bonus-hunts', array( $this, 'bonus_hunts' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_prizes', 'Prizes' ), bhg_t( 'menu_prizes', 'Prizes' ), $cap, 'bhg-prizes', array( $this, 'prizes' ) );
                 add_submenu_page( $slug, bhg_t( 'button_results', 'Results' ), bhg_t( 'button_results', 'Results' ), $cap, 'bhg-bonus-hunts-results', array( $this, 'bonus_hunts_results' ) );
@@ -81,21 +83,37 @@ class BHG_Admin {
 		if ( class_exists( 'BHG_Demo' ) ) {
 			BHG_Demo::instance()->register_menu( $slug, $cap );
 		}
-
-                // NOTE: By default, WordPress adds a submenu item that duplicates the
-                // top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
-                // call removed this submenu, but it also inadvertently removed our
-                // custom “Dashboard” submenu. Removing the call ensures the Dashboard
-		// item remains visible under the "Bonus Hunt" menu.
+		remove_submenu_page( $slug, $slug );
 	}
+
+		/**
+		 * Ensure the Dashboard submenu entry stays selected when viewing the top-level page.
+		 *
+		 * @param string $submenu_file Current submenu slug.
+		 * @param string $parent_file  Current parent slug.
+		 * @return string
+		 */
+		public function highlight_dashboard_submenu( $submenu_file, $parent_file ) {
+			if ( 'bhg' !== $parent_file ) {
+				return $submenu_file;
+			}
+
+			$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only context.
+
+			if ( 'bhg' === $page || '' === $page || 'bhg-dashboard' === $page ) {
+				return 'bhg-dashboard';
+			}
+
+			return $submenu_file;
+		}
 
 		/**
 		 * Enqueue admin assets on BHG screens.
 		 *
 		 * @param string $hook Current admin page hook.
 		 */
-	public function assets( $hook ) {
-		if ( false !== strpos( $hook, 'bhg' ) ) {
+		public function assets( $hook ) {
+			if ( false !== strpos( $hook, 'bhg' ) ) {
 			wp_enqueue_style(
 				'bhg-admin',
 				BHG_PLUGIN_URL . 'assets/css/admin.css',
@@ -572,7 +590,6 @@ $tournament_ids = array_map( 'intval', array_unique( $tournament_ids ) );
 					(int) $hunt_id
 				)
 			);
-
 
                         if ( ! empty( $winners ) && ! empty( $tournament_ids ) ) {
                                 foreach ( $tournament_ids as $tournament_id ) {
