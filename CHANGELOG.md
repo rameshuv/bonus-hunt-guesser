@@ -7,6 +7,7 @@
 - Note: For MySQL 5.5.5 in strict mode, `DATETIME` defaults of `0000-00-00 00:00:00` may require disabling NO_ZERO_DATE / NO_ZERO_IN_DATE or adjusting defaults.
 
 # 8.0.14 — 2025-09-20
+- Platform: minimum WordPress requirement set to 6.3.0 and documented MySQL requirement of 5.5.5 in the plugin header.
 - Dashboard: latest hunts table now renders each winner on its own line with bold usernames and improved styling.
 - Results: added a "Price" column with prize assignments, bolded winners, and consistent difference formatting.
 - Bonus hunts admin: tournament pickers show only active tournaments (while preserving existing links) and edit view keeps previously linked inactive tournaments selectable.
