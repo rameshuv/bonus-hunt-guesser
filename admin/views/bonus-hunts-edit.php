@@ -31,8 +31,23 @@ $affs = $wpdb->get_results(
 $sel  = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 
 $t_table              = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-$tournaments          = $wpdb->get_results( "SELECT id, title FROM {$t_table} ORDER BY title ASC" );
 $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+if ( ! empty( $selected_tournaments ) ) {
+        $selected_tournaments = array_values( array_filter( array_map( 'absint', (array) $selected_tournaments ) ) );
+}
+
+$tournament_sql    = "SELECT id, title FROM {$t_table} WHERE status = %s";
+$tournament_params = array( 'active' );
+
+if ( ! empty( $selected_tournaments ) ) {
+        $placeholders       = implode( ', ', array_fill( 0, count( $selected_tournaments ), '%d' ) );
+        $tournament_sql    .= " OR id IN ( {$placeholders} )";
+        $tournament_params  = array_merge( $tournament_params, $selected_tournaments );
+}
+
+$tournament_sql .= ' ORDER BY title ASC';
+
+$tournaments = $wpdb->get_results( $wpdb->prepare( $tournament_sql, $tournament_params ) );
 
 $paged    = max( 1, absint( wp_unslash( $_GET['ppaged'] ?? '' ) ) );
 $per_page = 30;
