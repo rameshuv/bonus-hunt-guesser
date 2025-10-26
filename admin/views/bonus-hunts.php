@@ -402,7 +402,10 @@ if ( 'add' === $view ) :
                                                                                                 }
                                                                                                 // db call ok; no-cache ok.
                                                                                                 $tours = $wpdb->get_results(
-                                                                                                        "SELECT id, title FROM {$t_table} ORDER BY title ASC"
+                                                                                                        $wpdb->prepare(
+                                                                                                                "SELECT id, title FROM {$t_table} WHERE status = %s ORDER BY title ASC",
+                                                                                                                'active'
+                                                                                                        )
                                                                                                 );
                                                                                                 $selected_tournaments = array();
                                                                                                 ?>
@@ -543,9 +546,46 @@ if ( 'edit' === $view ) :
 												}
 												// db call ok; no-cache ok.
 												$tours = $wpdb->get_results(
-													"SELECT id, title FROM {$t_table} ORDER BY title ASC"
-												);
+        $wpdb->prepare(
+                "SELECT id, title FROM {$t_table} WHERE status = %s ORDER BY title ASC",
+                'active'
+        )
+);
                                                                                                 $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+                                                                                                if ( ! empty( $selected_tournaments ) ) {
+                                                                                                        $normalized_selected = array_map( 'absint', (array) $selected_tournaments );
+                                                                                                        $normalized_selected = array_filter( $normalized_selected );
+                                                                                                        if ( ! empty( $normalized_selected ) ) {
+                                                                                                                $existing_ids = array();
+                                                                                                                foreach ( (array) $tours as $tour_row ) {
+                                                                                                                        $existing_ids[ (int) $tour_row->id ] = true;
+                                                                                                                }
+                                                                                                                $missing_ids = array();
+                                                                                                                foreach ( $normalized_selected as $maybe_id ) {
+                                                                                                                        if ( $maybe_id && ! isset( $existing_ids[ $maybe_id ] ) ) {
+                                                                                                                                $missing_ids[] = $maybe_id;
+                                                                                                                        }
+                                                                                                                }
+                                                                                                                if ( ! empty( $missing_ids ) ) {
+                                                                                                                        $placeholders = implode( ',', array_fill( 0, count( $missing_ids ), '%d' ) );
+                                                                                                                        if ( $placeholders ) {
+                                                                                                                                $sql          = "SELECT id, title FROM {$t_table} WHERE id IN ($placeholders)";
+                                                                                                                                $prepared_sql = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql ), $missing_ids ) );
+                                                                                                                                $extra_rows   = $wpdb->get_results( $prepared_sql );
+                                                                                                                                if ( $extra_rows ) {
+                                                                                                                                        foreach ( $extra_rows as $extra_row ) {
+                                                                                                                                                $tid = isset( $extra_row->id ) ? (int) $extra_row->id : 0;
+                                                                                                                                                if ( $tid && ! isset( $existing_ids[ $tid ] ) ) {
+                                                                                                                                                        $tours[]              = $extra_row;
+                                                                                                                                                        $existing_ids[ $tid ] = true;
+                                                                                                                                                }
+                                                                                                                                        }
+                                                                                                                                }
+                                                                                                                        }
+                                                                                                                }
+                                                                                                        }
+                                                                                                }
+
                                                                                                 $prize_rows          = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
                                                                                                 $selected_prizes     = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( (int) $hunt->id ) : array();
                                                                                                 ?>

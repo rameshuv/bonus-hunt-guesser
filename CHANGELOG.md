@@ -6,6 +6,12 @@
 - Minor hardening in `[bhg_guess_form]` guest redirect URL construction (sanitizes host/URI).
 - Note: For MySQL 5.5.5 in strict mode, `DATETIME` defaults of `0000-00-00 00:00:00` may require disabling NO_ZERO_DATE / NO_ZERO_IN_DATE or adjusting defaults.
 
+# 8.0.14 — 2025-09-20
+- Dashboard: latest hunts table now renders each winner on its own line with bold usernames and improved styling.
+- Results: added a "Price" column with prize assignments, bolded winners, and consistent difference formatting.
+- Bonus hunts admin: tournament pickers show only active tournaments (while preserving existing links) and edit view keeps previously linked inactive tournaments selectable.
+- Tournaments admin: connected hunts list limits to current-year hunts plus existing links, and adds an explicit type selector covering weekly/monthly/quarterly/yearly/alltime options.
+
 # Changelog
 
 ## 8.0.11 — 2025-09-14

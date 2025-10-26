@@ -94,10 +94,9 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 
 																			$hunt_title  = isset( $h->title ) ? (string) $h->title : '';
 																			$start       = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
-																			$winners_out = '';
+																			$winner_items = array();
 
 																			if ( ! empty( $winners ) ) {
-																					$out = array();
 																				foreach ( $winners as $w ) {
 																					$user_id = isset( $w->user_id ) ? (int) $w->user_id : 0;
 																					$guess   = isset( $w->guess ) ? (float) $w->guess : 0.0;
@@ -110,24 +109,38 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																						$user_id
 																					);
 
-																					$out[] = sprintf(
-																						'%1$s %2$s %3$s (%4$s %5$s)',
-																						esc_html( $nm ),
-																						esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ),
-																						esc_html( bhg_format_currency( $guess ) ),
-																						esc_html( bhg_t( 'label_diff', 'diff' ) ),
-																						esc_html( bhg_format_currency( $diff ) )
+																					$winner_items[] = array(
+																						'name'  => $nm,
+																						'guess' => bhg_format_currency( $guess ),
+																						'diff'  => bhg_format_currency( abs( $diff ) ),
 																					);
 																				}
-																				$winners_out = implode( ' • ', $out );
-																			} else {
-																					$winners_out = bhg_t( 'no_winners_yet', 'No winners yet' );
 																			}
 
 																			?>
-																				<tr>
-																						<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
-																						<td><?php echo esc_html( $winners_out ); ?></td>
+																			<tr>
+																				<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
+																				<td>
+																					<?php if ( ! empty( $winner_items ) ) : ?>
+																					<ul class="bhg-dashboard-winners">
+																						<?php foreach ( $winner_items as $item ) : ?>
+																						<li class="bhg-dashboard-winner">
+																							<strong><?php echo esc_html( $item['name'] ); ?></strong>
+																							<span class="bhg-dashboard-guess">
+																								<?php echo esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ); ?>
+																								<?php echo esc_html( $item['guess'] ); ?>
+																							</span>
+																							<span class="bhg-dashboard-diff">
+																								(<?php echo esc_html( bhg_t( 'label_diff', 'diff' ) ); ?>
+																								<?php echo esc_html( $item['diff'] ); ?>)
+																							</span>
+																						</li>
+																						<?php endforeach; ?>
+																					</ul>
+																					<?php else : ?>
+																					<span class="bhg-dashboard-no-winners"><?php echo esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) ); ?></span>
+																					<?php endif; ?>
+																				</td>
 																																<td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
 																						<td>
 																						<?php

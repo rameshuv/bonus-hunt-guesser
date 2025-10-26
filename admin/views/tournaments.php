@@ -73,9 +73,46 @@ if ( $search_term ) {
 		);
 }
 $base_url = remove_query_arg( array( 'paged' ) );
-$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+$hunts_table    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+if ( function_exists( 'bhg_normalize_int_list' ) ) {
+        $linked_hunts = bhg_normalize_int_list( $linked_hunts );
+} else {
+        $linked_hunts = array_map( 'absint', (array) $linked_hunts );
+}
+
+$year_start     = gmdate( 'Y-01-01 00:00:00' );
+$next_year      = gmdate( 'Y-01-01 00:00:00', strtotime( '+1 year' ) );
+$all_hunts      = $wpdb->get_results(
+        $wpdb->prepare(
+                "SELECT id, title FROM {$hunts_table} WHERE ( (closed_at IS NOT NULL AND closed_at >= %s AND closed_at < %s) OR (closed_at IS NULL AND (created_at IS NULL OR created_at >= %s)) ) ORDER BY COALESCE(closed_at, updated_at, created_at) DESC, id DESC",
+                $year_start,
+                $next_year,
+                $year_start
+        )
+);
+
+if ( ! empty( $linked_hunts ) ) {
+        $placeholders = implode( ',', array_fill( 0, count( $linked_hunts ), '%d' ) );
+        if ( $placeholders ) {
+                $sql          = "SELECT id, title FROM {$hunts_table} WHERE id IN ($placeholders)";
+                $prepared_sql = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql ), $linked_hunts ) );
+                $extra_hunts  = $wpdb->get_results( $prepared_sql );
+                if ( $extra_hunts ) {
+                        $existing_ids = array();
+                        foreach ( (array) $all_hunts as $hunt_option ) {
+                                $existing_ids[ (int) $hunt_option->id ] = true;
+                        }
+                        foreach ( $extra_hunts as $extra_hunt ) {
+                                $hid = isset( $extra_hunt->id ) ? (int) $extra_hunt->id : 0;
+                                if ( $hid && ! isset( $existing_ids[ $hid ] ) ) {
+                                        $all_hunts[]            = $extra_hunt;
+                                        $existing_ids[ $hid ] = true;
+                                }
+                        }
+                }
+        }
+}
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
@@ -276,20 +313,34 @@ endif;
 </label></th>
 		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
 		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-				?>
-				</label></th>
-				<td>
-						<?php $pmode = $row->participants_mode ?? 'winners'; ?>
-						<select id="bhg_t_pmode" name="participants_mode">
-								<option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
-								<option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
-						</select>
-				</td>
-				</tr>
+                <tr>
+                                <th><label for="bhg_t_type"><?php echo esc_html( bhg_t( 'label_type', 'Type' ) ); ?></label></th>
+                                <td>
+                                                <?php
+                                                $type_value   = isset( $row->type ) ? sanitize_key( $row->type ) : 'monthly';
+                                                $type_options = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+                                                ?>
+                                                <select id="bhg_t_type" name="type">
+                                                <?php foreach ( $type_options as $type_option ) : ?>
+                                                                <option value="<?php echo esc_attr( $type_option ); ?>" <?php selected( $type_value, $type_option ); ?>><?php echo esc_html( bhg_t( $type_option, ucfirst( $type_option ) ) ); ?></option>
+                                                <?php endforeach; ?>
+                                                </select>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
+                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <?php $pmode = $row->participants_mode ?? 'winners'; ?>
+                                                <select id="bhg_t_pmode" name="participants_mode">
+                                                                <option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
+                                                                <option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
+                                                </select>
+                                </td>
+                                </tr>
 				<tr>
 				<th><label for="bhg_t_start">
 		<?php

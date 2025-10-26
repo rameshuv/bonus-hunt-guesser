@@ -61,6 +61,30 @@
     background-color: #d1fae5;
 }
 
+.bhg-winner-row td {
+    font-weight: 600;
+}
+
+.bhg-dashboard-winners {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.bhg-dashboard-winner + .bhg-dashboard-winner {
+    margin-top: 4px;
+}
+
+.bhg-dashboard-guess {
+    margin-left: 0.35rem;
+}
+
+.bhg-dashboard-diff {
+    color: #047857;
+    font-size: 12px;
+    margin-left: 0.35rem;
+}
+
 /* Utility classes */
 .bhg-margin-top-small {
     margin-top: 1em;
