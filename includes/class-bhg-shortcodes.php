@@ -2,7 +2,7 @@
 /**
  * Shortcodes for Bonus Hunt Guesser.
  *
- * PHP 7.4 safe, WP 5.5.5+ compatible.
+ * PHP 7.4 safe, WP 6.3.0+ compatible.
  * Registers all shortcodes on init (once) and avoids parse errors.
  *
  * @package Bonus_Hunt_Guesser

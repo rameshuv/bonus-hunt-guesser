@@ -1,4 +1,9 @@
 
+## 8.0.14 — 2025-09-16
+
+- Updated plugin metadata for the 8.0.14 release, including the minimum WordPress version (6.3.0) and MySQL requirement.
+- Synced documentation and inline notes to reflect the new minimum version and ensured the text domain loader uses the canonical languages directory path.
+
 ## [Stage-1] Hygiene & Safety — 2025-09-03
 
 - Standardized sanitization of `$_GET` / query args for leaderboard: `orderby`, `order`, `paged`, `hunt_id`.
