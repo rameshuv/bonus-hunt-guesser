@@ -4,7 +4,7 @@
  * Plugin URI: https://yourdomain.com/
  * Description: Bonus hunt management system with tournaments, leaderboards, and user guessing functionality
  * Version: 8.0.14
- * Requires at least: 6.3.0
+ * Requires at least: 6.3.5
  * Requires PHP: 7.4
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser
@@ -105,37 +105,37 @@ if ( ! function_exists( 'bhg_parse_amount' ) ) {
 
 if ( ! function_exists( 'bhg_sanitize_tournament_id' ) ) {
 
-/**
- * Sanitize a tournament ID value.
- *
- * @param mixed $tid Raw tournament ID.
- * @return int Sanitized ID.
- */
-function bhg_sanitize_tournament_id( $tid ) {
-return max( 0, absint( $tid ) );
-}
+	/**
+	 * Sanitize a tournament ID value.
+	 *
+	 * @param mixed $tid Raw tournament ID.
+	 * @return int Sanitized ID.
+	 */
+	function bhg_sanitize_tournament_id( $tid ) {
+		return max( 0, absint( $tid ) );
+	}
 }
 
 if ( ! function_exists( 'bhg_sanitize_tournament_ids' ) ) {
-/**
- * Sanitize a list of tournament IDs.
- *
- * @param mixed $ids Raw IDs or array of IDs.
- * @return int[] Sanitized, unique IDs.
- */
-function bhg_sanitize_tournament_ids( $ids ) {
-$ids        = is_array( $ids ) ? $ids : array( $ids );
-$normalized = array();
+	/**
+	 * Sanitize a list of tournament IDs.
+	 *
+	 * @param mixed $ids Raw IDs or array of IDs.
+	 * @return int[] Sanitized, unique IDs.
+	 */
+	function bhg_sanitize_tournament_ids( $ids ) {
+		$ids        = is_array( $ids ) ? $ids : array( $ids );
+		$normalized = array();
 
-foreach ( $ids as $id ) {
-$id = bhg_sanitize_tournament_id( $id );
-if ( $id > 0 ) {
-$normalized[ $id ] = $id;
-}
-}
+		foreach ( $ids as $id ) {
+			$id = bhg_sanitize_tournament_id( $id );
+			if ( $id > 0 ) {
+				$normalized[ $id ] = $id;
+			}
+		}
 
-return array_values( $normalized );
-}
+		return array_values( $normalized );
+	}
 }
 
 // Ensure canonical DB class is loaded.
@@ -143,7 +143,7 @@ require_once __DIR__ . '/includes/class-bhg-db.php';
 
 // Define plugin constants.
 define( 'BHG_VERSION', '8.0.14' );
-define( 'BHG_MIN_WP', '6.3.0' );
+define( 'BHG_MIN_WP', '6.3.5' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -219,8 +219,8 @@ spl_autoload_register(
 			'BHG_Utils'                  => 'includes/class-bhg-utils.php',
 			'BHG_Models'                 => 'includes/class-bhg-models.php',
 			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
-                        'BHG_Ads'                    => 'includes/class-bhg-ads.php',
-                        'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
+			'BHG_Ads'                    => 'includes/class-bhg-ads.php',
+			'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
 			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
 			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
 		);
@@ -355,11 +355,11 @@ function bhg_enqueue_public_assets() {
 				'max_guess_amount' => $max_guess,
 				'i18n'             => array(
 					'guess_required'            => bhg_t( 'guess_required', 'Please enter a guess.' ),
-                                        'guess_numeric'             => bhg_t( 'guess_numeric', 'Please enter a valid number.' ),
-                                        'guess_range'               => $guess_range,
-                                        'guess_submitted'           => bhg_t( 'guess_submitted', 'Your guess has been submitted!' ),
-                                        'guess_updated'             => bhg_t( 'notice_guess_updated', 'Your guess has been updated.' ),
-                                        'ajax_error'                => bhg_t( 'ajax_error', 'An error occurred. Please try again.' ),
+					'guess_numeric'             => bhg_t( 'guess_numeric', 'Please enter a valid number.' ),
+					'guess_range'               => $guess_range,
+					'guess_submitted'           => bhg_t( 'guess_submitted', 'Your guess has been submitted!' ),
+					'guess_updated'             => bhg_t( 'notice_guess_updated', 'Your guess has been updated.' ),
+					'ajax_error'                => bhg_t( 'ajax_error', 'An error occurred. Please try again.' ),
 					'affiliate_user'            => bhg_t( 'affiliate_user', 'Affiliate' ),
 					'non_affiliate_user'        => bhg_t( 'non_affiliate_user', 'Non-affiliate' ),
 					'error_loading_leaderboard' => bhg_t( 'error_loading_leaderboard', 'Error loading leaderboard.' ),
@@ -498,31 +498,35 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
-$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
+	$ads_enabled_value = filter_input( INPUT_POST, 'bhg_ads_enabled', FILTER_SANITIZE_NUMBER_INT );
+	if ( null === $ads_enabled_value ) {
+		$ads_enabled_value = '';
+	}
+	$settings['ads_enabled'] = '1' === (string) $ads_enabled_value ? 1 : 0;
 
-        if ( isset( $_POST['bhg_email_from'] ) ) {
-                        $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
-                if ( $email_from ) {
-                                $settings['email_from'] = $email_from;
-                }
-        }
+	if ( isset( $_POST['bhg_email_from'] ) ) {
+					$email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
+		if ( $email_from ) {
+						$settings['email_from'] = $email_from;
+		}
+	}
 
-        if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
-                        $redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
-                if ( '' === $redirect ) {
-                                $settings['post_submit_redirect'] = '';
-                } else {
-                                $url = esc_url_raw( $redirect );
-                        if ( ! empty( $url ) ) {
-                                                $settings['post_submit_redirect'] = $url;
-                        }
-                }
-        }
+	$redirect_raw = filter_input( INPUT_POST, 'bhg_post_submit_redirect', FILTER_UNSAFE_RAW );
+	if ( null !== $redirect_raw ) {
+		$redirect = trim( wp_unslash( $redirect_raw ) );
+		if ( '' === $redirect ) {
+						$settings['post_submit_redirect'] = '';
+		} else {
+				$url = esc_url_raw( $redirect );
+			if ( ! empty( $url ) ) {
+									$settings['post_submit_redirect'] = $url;
+			}
+		}
+	}
 
-                // Save settings.
-                $existing = get_option( 'bhg_plugin_settings', array() );
-                update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+				// Save settings.
+				$existing = get_option( 'bhg_plugin_settings', array() );
+				update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
 				// Redirect back to settings page.
 								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
@@ -575,23 +579,24 @@ function bhg_handle_submit_guess() {
 	} else {
 		$guess = is_numeric( $raw_guess ) ? (float) $raw_guess : -1.0;
 	}
-        $settings         = get_option( 'bhg_plugin_settings', array() );
-        $min_guess        = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
-        $max_guess        = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
-        $max              = isset( $settings['max_guesses'] ) ? (int) $settings['max_guesses'] : 1;
-        $allow_edit       = isset( $settings['allow_guess_changes'] ) && 'yes' === $settings['allow_guess_changes'];
-        $redirect_setting = isset( $settings['post_submit_redirect'] ) ? $settings['post_submit_redirect'] : '';
-        $redirect_target  = $redirect_setting ? wp_validate_redirect( $redirect_setting, '' ) : '';
-        if ( isset( $_POST['redirect_to'] ) ) {
-                        $requested_redirect = trim( wp_unslash( $_POST['redirect_to'] ) );
-                if ( '' !== $requested_redirect ) {
-                                $maybe_redirect = wp_validate_redirect( $requested_redirect, '' );
-                        if ( $maybe_redirect ) {
-                                                $redirect_target = $maybe_redirect;
-                        }
-                }
-        }
-        $did_update       = false;
+		$settings           = get_option( 'bhg_plugin_settings', array() );
+		$min_guess          = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
+		$max_guess          = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
+		$max                = isset( $settings['max_guesses'] ) ? (int) $settings['max_guesses'] : 1;
+		$allow_edit         = isset( $settings['allow_guess_changes'] ) && 'yes' === $settings['allow_guess_changes'];
+		$redirect_setting   = isset( $settings['post_submit_redirect'] ) ? $settings['post_submit_redirect'] : '';
+		$redirect_target    = $redirect_setting ? wp_validate_redirect( $redirect_setting, '' ) : '';
+	$requested_redirect_raw = filter_input( INPUT_POST, 'redirect_to', FILTER_UNSAFE_RAW );
+	if ( null !== $requested_redirect_raw ) {
+		$requested_redirect = trim( wp_unslash( $requested_redirect_raw ) );
+		if ( '' !== $requested_redirect ) {
+						$maybe_redirect = wp_validate_redirect( $requested_redirect, '' );
+			if ( $maybe_redirect ) {
+								$redirect_target = $maybe_redirect;
+			}
+		}
+	}
+		$did_update = false;
 
 	if ( $guess < $min_guess || $guess > $max_guess ) {
 		if ( wp_doing_ajax() ) {
@@ -663,37 +668,37 @@ function bhg_handle_submit_guess() {
 					);
 					wp_cache_set( $last_guess_key, $gid );
 			}
-                        if ( $gid ) {
-                                                                // db call ok; no-cache ok.
-                                                                                                                               $wpdb->update(
-                                                                                                                               $wpdb->bhg_guesses,
-                                                                                                                               array(
-                                                                                                                               'guess'      => $guess,
-                                                                                                                               'updated_at' => current_time( 'mysql' ),
-                                                                                                                               ),
-                                                                                                                               array( 'id' => $gid ),
-                                                                                                                               array( '%f', '%s' ),
-                                                                                                                               array( '%d' )
-                                                                                                                               );
-                                                                wp_cache_delete( $count_cache_key );
-                                if ( ! empty( $last_guess_key ) ) {
-                                                wp_cache_delete( $last_guess_key );
-                                }
-                                $did_update = true;
-                                if ( wp_doing_ajax() ) {
-                                        wp_send_json_success(
-                                                array(
-                                                        'status'   => 'updated',
-                                                        'message'  => bhg_t( 'notice_guess_updated', 'Your guess has been updated.' ),
-                                                        'redirect' => $redirect_target,
-                                                )
-                                        );
-                                }
-                                                                $referer = wp_get_referer();
-                                                                $target  = $redirect_target ? $redirect_target : ( $referer ? $referer : home_url() );
-                                                                wp_safe_redirect( $target );
-                                                        exit;
-                        }
+			if ( $gid ) {
+													// db call ok; no-cache ok.
+																													$wpdb->update(
+																														$wpdb->bhg_guesses,
+																														array(
+																															'guess'      => $guess,
+																															'updated_at' => current_time( 'mysql' ),
+																														),
+																														array( 'id' => $gid ),
+																														array( '%f', '%s' ),
+																														array( '%d' )
+																													);
+													wp_cache_delete( $count_cache_key );
+				if ( ! empty( $last_guess_key ) ) {
+							wp_cache_delete( $last_guess_key );
+				}
+					$did_update = true;
+				if ( wp_doing_ajax() ) {
+								wp_send_json_success(
+									array(
+										'status'   => 'updated',
+										'message'  => bhg_t( 'notice_guess_updated', 'Your guess has been updated.' ),
+										'redirect' => $redirect_target,
+									)
+								);
+				}
+													$referer = wp_get_referer();
+													$target  = $redirect_target ? $redirect_target : ( $referer ? $referer : home_url() );
+													wp_safe_redirect( $target );
+											exit;
+			}
 		}
 		if ( wp_doing_ajax() ) {
 				wp_send_json_error( bhg_t( 'you_have_reached_the_maximum_number_of_guesses', 'You have reached the maximum number of guesses.' ) );
@@ -719,20 +724,20 @@ function bhg_handle_submit_guess() {
 			wp_cache_delete( $last_guess_key );
 	}
 
-        if ( wp_doing_ajax() ) {
-                wp_send_json_success(
-                        array(
-                                'status'   => $did_update ? 'updated' : 'created',
-                                'message'  => $did_update ? bhg_t( 'notice_guess_updated', 'Your guess has been updated.' ) : bhg_t( 'notice_guess_saved', 'Your guess has been saved.' ),
-                                'redirect' => $redirect_target,
-                        )
-                );
-        }
+	if ( wp_doing_ajax() ) {
+			wp_send_json_success(
+				array(
+					'status'   => $did_update ? 'updated' : 'created',
+					'message'  => $did_update ? bhg_t( 'notice_guess_updated', 'Your guess has been updated.' ) : bhg_t( 'notice_guess_saved', 'Your guess has been saved.' ),
+					'redirect' => $redirect_target,
+				)
+			);
+	}
 
-                $referer = wp_get_referer();
-                $target  = $redirect_target ? $redirect_target : ( $referer ? $referer : home_url() );
-                wp_safe_redirect( $target );
-        exit;
+				$referer = wp_get_referer();
+				$target  = $redirect_target ? $redirect_target : ( $referer ? $referer : home_url() );
+				wp_safe_redirect( $target );
+		exit;
 }
 
 // Frontend ads rendering.

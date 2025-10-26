@@ -9,7 +9,7 @@
 # Changelog
 
 ## 8.0.14 — 2025-09-19
-- Align plugin metadata with the 8.0.14 release (bump version constant, require WordPress 6.3.0+, note MySQL 5.5.5).
+- Align plugin metadata with the 8.0.14 release (bump version constant, require WordPress 6.3.5+, note MySQL 5.5.5).
 - Limit Bonus Hunt tournament selection to active tournaments while retaining existing associations.
 - Restrict tournament hunt linking to current-year hunts (plus already linked entries) and expose the tournament type selector/column.
 - Display absolute guess differences for hunt winner summaries across dashboard and results views.
