@@ -24,9 +24,9 @@ if ( ! function_exists( 'bhg_get_latest_closed_hunts' ) ) {
 global $wpdb;
 
 $hunts_table       = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$hunts_count       = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$hunts_table}" );
+$hunts_count       = (int) $wpdb->get_var( /* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name sanitized via esc_sql above. */ 'SELECT COUNT(*) FROM ' . $hunts_table );
 $tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-$tournaments_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$tournaments_table}" );
+$tournaments_count = (int) $wpdb->get_var( /* phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name sanitized via esc_sql above. */ 'SELECT COUNT(*) FROM ' . $tournaments_table );
 
 $user_counts = count_users();
 $users_count = isset( $user_counts['total_users'] ) ? (int) $user_counts['total_users'] : 0;
@@ -97,34 +97,35 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																			$winners_out = '';
 
 																			if ( ! empty( $winners ) ) {
-																			$items = array();
-																			foreach ( $winners as $w ) {
-																			$user_id = isset( $w->user_id ) ? (int) $w->user_id : 0;
-																			$guess   = isset( $w->guess ) ? (float) $w->guess : 0.0;
-																			$diff    = isset( $w->diff ) ? (float) $w->diff : 0.0;
+																				$items = array();
+																				foreach ( $winners as $w ) {
+																					$user_id = isset( $w->user_id ) ? (int) $w->user_id : 0;
+																					$guess   = isset( $w->guess ) ? (float) $w->guess : 0.0;
+																					$diff    = isset( $w->diff ) ? (float) $w->diff : 0.0;
 
-																			$u  = $user_id ? get_userdata( $user_id ) : false;
-																			$nm = $u ? $u->user_login : sprintf(
-																			/* translators: %d: user ID. */
-																			esc_html( bhg_t( 'label_user_number', 'User #%d' ) ),
-																			$user_id
-																			);
+																					$u  = $user_id ? get_userdata( $user_id ) : false;
+																					$nm = $u ? $u->user_login : sprintf(
+																					/* translators: %d: user ID. */
+																						esc_html( bhg_t( 'label_user_number', 'User #%d' ) ),
+																						$user_id
+																					);
 
-																			$items[] = sprintf(
-																			'<li class="bhg-dashboard-winner"><strong class="bhg-dashboard-winner-name">%1$s</strong> <span class="bhg-dashboard-winner-meta">%2$s %3$s</span></li>',
-																			esc_html( $nm ),
-																			esc_html( bhg_format_currency( $guess ) ),
-																			esc_html( sprintf(
-																			/* translators: %s: formatted currency value. */
-																			bhg_t( 'diff_value', '(%s diff)' ),
-																			bhg_format_currency( $diff )
-																			) )
-																			);
-																			}
-																			$winners_out = $items ? '<ul class="bhg-dashboard-winners">' . implode( '', $items ) . '</ul>' : '';
-																			}
- else {
-																			$winners_out = '';
+																					$items[] = sprintf(
+																						'<li class="bhg-dashboard-winner"><strong class="bhg-dashboard-winner-name">%1$s</strong> <span class="bhg-dashboard-winner-meta">%2$s %3$s</span></li>',
+																						esc_html( $nm ),
+																						esc_html( bhg_format_currency( $guess ) ),
+																						esc_html(
+																							sprintf(
+																							/* translators: %s: formatted currency value. */
+																								bhg_t( 'diff_value', '(%s diff)' ),
+																								bhg_format_currency( $diff )
+																							)
+																						)
+																					);
+																				}
+																				$winners_out = $items ? '<ul class="bhg-dashboard-winners">' . implode( '', $items ) . '</ul>' : '';
+																			} else {
+																																						$winners_out = '';
 																			}
 
 																			?>
@@ -133,9 +134,9 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																						<td>
 																			<?php
 																			if ( '' !== $winners_out ) {
-																			        echo wp_kses_post( $winners_out );
+																					echo wp_kses_post( $winners_out );
 																			} else {
-																			        echo esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) );
+																					echo esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) );
 																			}
 																			?>
 																			</td>
