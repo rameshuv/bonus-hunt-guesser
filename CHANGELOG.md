@@ -8,6 +8,10 @@
 
 # Changelog
 
+## 8.0.14 — 2025-09-21
+- Align plugin header metadata with customer release checklist (version 8.0.14, WordPress 6.3.0 minimum, MySQL requirement field).
+- Updated documentation to reflect WordPress 6.3.x baseline support.
+
 ## 8.0.11 — 2025-09-14
 - Version bump.
 
