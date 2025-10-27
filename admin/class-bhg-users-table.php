@@ -1,191 +1,254 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 if ( ! class_exists( 'WP_List_Table' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+    require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
 class BHG_Users_Table extends WP_List_Table {
 
-	private $items_data  = array();
-	private $total_items = 0;
-	private $per_page    = 30;
+    /**
+     * Items per page.
+     *
+     * @var int
+     */
+    private $per_page = 30;
 
-	public function __construct() {
-		parent::__construct(
-			array(
-				'singular' => 'bhg_user',
-				'plural'   => 'bhg_users',
-				'ajax'     => false,
-			)
-		);
-	}
+    /**
+     * Constructor.
+     */
+    public function __construct() {
+        parent::__construct(
+            array(
+                'singular' => 'bhg_user',
+                'plural'   => 'bhg_users',
+                'ajax'     => false,
+            )
+        );
+    }
 
-	public function get_columns() {
-		return array(
-			'id'       => __( 'ID', 'bonus-hunt-guesser' ),
-			'username' => __( 'Username', 'bonus-hunt-guesser' ),
-			'email'    => __( 'Email', 'bonus-hunt-guesser' ),
-			'role'     => __( 'Role', 'bonus-hunt-guesser' ),
-			'guesses'  => __( 'Guesses', 'bonus-hunt-guesser' ),
-			'wins'     => __( 'Wins', 'bonus-hunt-guesser' ),
-			'profile'  => __( 'Profile', 'bonus-hunt-guesser' ),
-		);
-	}
+    /**
+     * Retrieve table columns.
+     *
+     * @return array
+     */
+    public function get_columns() {
+        return array(
+            'username'     => bhg_t( 'label_username', 'Username' ),
+            'display_name' => bhg_t( 'name', 'Name' ),
+            'real_name'    => bhg_t( 'label_real_name', 'Real Name' ),
+            'email'        => bhg_t( 'label_email', 'Email' ),
+            'affiliate'    => bhg_t( 'affiliate_user', 'Affiliate' ),
+            'actions'      => bhg_t( 'label_actions', 'Actions' ),
+        );
+    }
 
-	public function get_sortable_columns() {
-		return array(
-			'username' => array( 'username', true ),
-			'email'    => array( 'email', false ),
-			'role'     => array( 'role', false ),
-			'guesses'  => array( 'guesses', false ),
-			'wins'     => array( 'wins', false ),
-		);
-	}
+    /**
+     * Define sortable columns.
+     *
+     * @return array
+     */
+    protected function get_sortable_columns() {
+        return array(
+            'username'     => array( 'username', true ),
+            'display_name' => array( 'display_name', false ),
+            'email'        => array( 'email', false ),
+        );
+    }
 
-	public function column_default( $item, $column_name ) {
-		switch ( $column_name ) {
-			case 'id':
-				return (int) $item['id'];
-			case 'username':
-				return esc_html( $item['username'] );
-			case 'email':
-				return esc_html( $item['email'] );
-			case 'role':
-				return esc_html( $item['role'] );
-			case 'guesses':
-				return (int) $item['guesses'];
-			case 'wins':
-				return (int) $item['wins'];
-			case 'profile':
-				$url = esc_url( admin_url( 'user-edit.php?user_id=' . (int) $item['id'] ) );
-				return '<a class="button" href="' . $url . '">' . esc_html__( 'Edit', 'bonus-hunt-guesser' ) . '</a>';
-		}
-		return '';
-	}
+    /**
+     * Message to show when table is empty.
+     */
+    public function no_items() {
+        esc_html_e( 'No users found.', 'bonus-hunt-guesser' );
+    }
 
-	public function prepare_items() {
-								$paged = isset( $_REQUEST['paged'] ) ? max( 1, absint( wp_unslash( $_REQUEST['paged'] ) ) ) : 1;
-				$orderby               = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'username';
-				$order                 = isset( $_REQUEST['order'] ) && in_array( strtolower( wp_unslash( $_REQUEST['order'] ) ), array( 'asc', 'desc' ), true )
-						? strtoupper( wp_unslash( $_REQUEST['order'] ) )
-						: 'ASC';
-				$search                = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '';
+    /**
+     * Render the username column.
+     *
+     * @param array $item Current row.
+     * @return string
+     */
+    protected function column_username( $item ) {
+        $user_id  = (int) $item['id'];
+        $edit_url = esc_url( admin_url( 'user-edit.php?user_id=' . $user_id ) );
+        $username = esc_html( $item['username'] );
 
-		// Whitelist orderby
-		$allowed = array( 'username', 'email', 'role', 'guesses', 'wins' );
-		if ( ! in_array( $orderby, $allowed, true ) ) {
-			$orderby = 'username';
-		}
+        return sprintf( '<strong><a class="row-title" href="%1$s">%2$s</a></strong>', $edit_url, $username );
+    }
 
-		// Fetch users via WP_User_Query
-		$args = array(
-			'number'  => $this->per_page,
-			'offset'  => ( $paged - 1 ) * $this->per_page,
-			'fields'  => array( 'ID', 'user_login', 'user_email', 'roles' ),
-			'orderby' => in_array( $orderby, array( 'username', 'email' ), true ) ? ( 'username' === $orderby ? 'login' : 'email' ) : 'login',
-			'order'   => $order,
-		);
-		if ( $search ) {
-			$args['search']         = '*' . $search . '*';
-			$args['search_columns'] = array( 'user_login', 'user_email' );
-		}
+    /**
+     * Render the display name column.
+     *
+     * @param array $item Current row.
+     * @return string
+     */
+    protected function column_display_name( $item ) {
+        return esc_html( $item['display_name'] );
+    }
 
-		$query             = new WP_User_Query( $args );
-		$users             = (array) $query->get_results();
-		$this->total_items = (int) $query->get_total();
+    /**
+     * Render the real name column.
+     *
+     * @param array $item Current row.
+     * @return string
+     */
+    protected function column_real_name( $item ) {
+        $form_id = esc_attr( $item['form_id'] );
+        $value   = esc_attr( $item['real_name'] );
 
-		// Build base items
-		$items = array();
-		$ids   = array();
-		foreach ( $users as $u ) {
-			if ( $u instanceof WP_User ) {
-				$roles         = (array) $u->roles;
-				$role          = $roles ? reset( $roles ) : '';
-				$uid           = (int) $u->ID;
-				$ids[]         = $uid;
-				$items[ $uid ] = array(
-					'id'       => $uid,
-					'username' => $u->user_login,
-					'email'    => $u->user_email,
-					'role'     => $role,
-					'guesses'  => 0,
-					'wins'     => 0,
-				);
-			}
-		}
+        return sprintf( '<input type="text" name="bhg_real_name" class="regular-text" form="%1$s" value="%2$s" />', $form_id, $value );
+    }
 
-				global $wpdb;
-		if ( ! empty( $ids ) ) {
-				$g_table = $wpdb->prefix . 'bhg_guesses';
-				$w_table = $wpdb->prefix . 'bhg_tournament_results';
+    /**
+     * Render the email column.
+     *
+     * @param array $item Current row.
+     * @return string
+     */
+    protected function column_email( $item ) {
+        $email = sanitize_email( $item['email'] );
+        if ( empty( $email ) ) {
+            return '';
+        }
 
-				// Guesses per user.
-				$placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
-				$sql_g        = 'SELECT user_id, COUNT(*) c FROM `' . $g_table . '` WHERE user_id IN (' . $placeholders . ') GROUP BY user_id';
-				$g_counts     = $wpdb->get_results( $wpdb->prepare( $sql_g, $ids ) );
-			foreach ( (array) $g_counts as $row ) {
-						$uid = (int) $row->user_id;
-				if ( isset( $items[ $uid ] ) ) {
-					$items[ $uid ]['guesses'] = (int) $row->c;
-				}
-			}
+        return sprintf( '<a href="mailto:%1$s">%1$s</a>', esc_html( $email ) );
+    }
 
-				// Wins per user (if table exists).
-				$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $w_table ) );
-			if ( $exists ) {
-							$placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
-							$sql_w        = 'SELECT user_id, SUM(wins) c FROM `' . $w_table . '` WHERE user_id IN (' . $placeholders . ') GROUP BY user_id';
-							$w_counts     = $wpdb->get_results( $wpdb->prepare( $sql_w, $ids ) );
-				foreach ( (array) $w_counts as $row ) {
-						$uid = (int) $row->user_id;
-					if ( isset( $items[ $uid ] ) ) {
-							$items[ $uid ]['wins'] = (int) $row->c;
-					}
-				}
-			}
-		}
+    /**
+     * Render the affiliate toggle column.
+     *
+     * @param array $item Current row.
+     * @return string
+     */
+    protected function column_affiliate( $item ) {
+        $form_id    = esc_attr( $item['form_id'] );
+        $field_id   = 'bhg-affiliate-' . (int) $item['id'];
+        $checked    = checked( (int) $item['affiliate'], 1, false );
+        $label_text = esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) );
 
-		// Server-side sort for role/guesses/wins
-		if ( in_array( $orderby, array( 'role', 'guesses', 'wins' ), true ) ) {
-			$items = array_values( $items );
-			usort(
-				$items,
-				function ( $a, $b ) use ( $orderby, $order ) {
-					$av = $a[ $orderby ];
-					$bv = $b[ $orderby ];
-					if ( $av === $bv ) {
-						return 0;
-					}
-					if ( 'ASC' === $order ) {
-						return ( $av < $bv ) ? -1 : 1;
-					}
-					return ( $av > $bv ) ? -1 : 1;
-				}
-			);
-		} else {
-			$items = array_values( $items );
-		}
+        return sprintf(
+            '<label class="screen-reader-text" for="%1$s">%2$s</label><input type="checkbox" id="%1$s" name="bhg_is_affiliate" form="%3$s" value="1" %4$s />',
+            esc_attr( $field_id ),
+            $label_text,
+            $form_id,
+            $checked
+        );
+    }
 
-		$this->items           = $items;
-		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns(), 'username' );
+    /**
+     * Render actions column.
+     *
+     * @param array $item Current row.
+     * @return string
+     */
+    protected function column_actions( $item ) {
+        $form_id   = esc_attr( $item['form_id'] );
+        $user_id   = (int) $item['id'];
+        $action    = esc_url( admin_url( 'admin-post.php' ) );
+        $nonce     = wp_nonce_field( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce', true, false );
+        $view_url  = esc_url( admin_url( 'user-edit.php?user_id=' . $user_id ) );
+        $save_text = esc_html( bhg_t( 'button_save', 'Save' ) );
+        $view_text = esc_html( bhg_t( 'view_edit', 'View / Edit' ) );
 
-		$this->set_pagination_args(
-			array(
-				'total_items' => $this->total_items,
-				'per_page'    => $this->per_page,
-				'total_pages' => ceil( $this->total_items / $this->per_page ),
-			)
-		);
-	}
+        return sprintf(
+            '<form id="%1$s" method="post" action="%2$s"><input type="hidden" name="action" value="bhg_save_user_meta" /><input type="hidden" name="user_id" value="%3$d" />%4$s<button type="submit" class="button button-primary">%5$s</button></form><a class="button" href="%6$s">%7$s</a>',
+            $form_id,
+            $action,
+            $user_id,
+            $nonce,
+            $save_text,
+            $view_url,
+            $view_text
+        );
+    }
 
-	public function extra_tablenav( $which ) {
-		if ( 'top' === $which ) {
-			echo '<div class="alignleft actions">';
-			$this->search_box( __( 'Search users', 'bonus-hunt-guesser' ), 'bhg-users' );
-			echo '</div>';
-		}
-	}
+    /**
+     * Fallback column rendering.
+     *
+     * @param array  $item        Current row.
+     * @param string $column_name Column name.
+     * @return string
+     */
+    public function column_default( $item, $column_name ) {
+        if ( isset( $item[ $column_name ] ) ) {
+            return esc_html( $item[ $column_name ] );
+        }
+
+        return '';
+    }
+
+    /**
+     * Prepare table items.
+     */
+    public function prepare_items() {
+        $paged   = isset( $_REQUEST['paged'] ) ? max( 1, absint( wp_unslash( $_REQUEST['paged'] ) ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
+        $orderby = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'username'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
+        $order   = isset( $_REQUEST['order'] ) && 'desc' === strtolower( sanitize_key( wp_unslash( $_REQUEST['order'] ) ) ) ? 'DESC' : 'ASC'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
+        $search  = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
+
+        $allowed_orderby = array( 'username', 'display_name', 'email' );
+        if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
+            $orderby = 'username';
+        }
+
+        $order_map = array(
+            'username'     => 'login',
+            'display_name' => 'display_name',
+            'email'        => 'email',
+        );
+
+        $args = array(
+            'number'  => $this->per_page,
+            'offset'  => ( $paged - 1 ) * $this->per_page,
+            'orderby' => $order_map[ $orderby ],
+            'order'   => $order,
+            'fields'  => 'all_with_meta',
+        );
+
+        if ( '' !== $search ) {
+            $args['search']         = '*' . $search . '*';
+            $args['search_columns'] = array( 'user_login', 'user_email' );
+        }
+
+        $user_query = new WP_User_Query( $args );
+        $users      = $user_query->get_results();
+        $total      = (int) $user_query->get_total();
+
+        $items = array();
+
+        foreach ( (array) $users as $user ) {
+            if ( ! $user instanceof WP_User ) {
+                continue;
+            }
+
+            $user_id   = (int) $user->ID;
+            $form_id   = 'bhg-user-' . $user_id;
+            $real_name = get_user_meta( $user_id, 'bhg_real_name', true );
+            $affiliate = (int) get_user_meta( $user_id, 'bhg_is_affiliate', true );
+
+            $items[] = array(
+                'id'           => $user_id,
+                'username'     => $user->user_login,
+                'display_name' => $user->display_name,
+                'real_name'    => $real_name,
+                'email'        => $user->user_email,
+                'affiliate'    => $affiliate,
+                'form_id'      => $form_id,
+            );
+        }
+
+        $this->items = $items;
+
+        $this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
+        $this->set_pagination_args(
+            array(
+                'total_items' => $total,
+                'per_page'    => $this->per_page,
+                'total_pages' => max( 1, (int) ceil( $total / $this->per_page ) ),
+            )
+        );
+    }
 }
