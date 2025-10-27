@@ -763,6 +763,42 @@ msgstr ""
 msgid "Allow Guess Changes"
 msgstr ""
 
+#: admin/views/settings.php:94
+msgid "Default Prize Layout"
+msgstr ""
+
+#: admin/views/settings.php:97
+msgid "Grid"
+msgstr ""
+
+#: admin/views/settings.php:98
+msgid "Carousel"
+msgstr ""
+
+#: admin/views/settings.php:100
+msgid "Choose how prizes display on active hunts and shortcodes when no design is specified."
+msgstr ""
+
+#: admin/views/settings.php:104
+msgid "Default Prize Card Size"
+msgstr ""
+
+#: admin/views/settings.php:107
+msgid "Small"
+msgstr ""
+
+#: admin/views/settings.php:108
+msgid "Medium"
+msgstr ""
+
+#: admin/views/settings.php:109
+msgid "Big"
+msgstr ""
+
+#: admin/views/settings.php:111
+msgid "Controls the image size used for prize cards when no shortcode override is provided."
+msgstr ""
+
 #: admin/views/settings.php:127
 msgid "Allow users to change their guesses before a bonus hunt closes."
 msgstr ""

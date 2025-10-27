@@ -2,6 +2,11 @@
 
 Requires at least: WordPress 6.3.0
 
+## Settings
+
+- **Default Prize Layout** — choose whether active hunts and prize shortcodes render prizes in a grid or carousel when no shortcode override is provided.
+- **Default Prize Card Size** — pick the default image size (`small`, `medium`, or `big`) used for prize cards across the frontend.
+
 ## Shortcodes
 
 ### `[bhg_user_guesses]`

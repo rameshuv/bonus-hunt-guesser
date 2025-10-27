@@ -492,14 +492,28 @@ function bhg_handle_settings_save() {
 	}
 
 	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
-			$allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
+		$allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
 		if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
-				$settings['allow_guess_changes'] = $allow;
+			$settings['allow_guess_changes'] = $allow;
 		}
 	}
 
-$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
-$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
+	if ( isset( $_POST['bhg_prize_layout'] ) ) {
+		$layout = sanitize_key( wp_unslash( $_POST['bhg_prize_layout'] ) );
+		if ( in_array( $layout, array( 'grid', 'carousel' ), true ) ) {
+			$settings['prize_layout'] = $layout;
+		}
+	}
+
+	if ( isset( $_POST['bhg_prize_size'] ) ) {
+		$size = sanitize_key( wp_unslash( $_POST['bhg_prize_size'] ) );
+		if ( in_array( $size, array( 'small', 'medium', 'big' ), true ) ) {
+			$settings['prize_size'] = $size;
+		}
+	}
+
+	$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
+	$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
 
         if ( isset( $_POST['bhg_email_from'] ) ) {
                         $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );

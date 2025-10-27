@@ -91,6 +91,27 @@ foreach ( $currencies as $key => $label ) :
 </td>
 </tr>
 <tr>
+<th scope="row"><label for="bhg_prize_layout"><?php echo esc_html( bhg_t( 'default_prize_layout', 'Default Prize Layout' ) ); ?></label></th>
+<td>
+<select name="bhg_prize_layout" id="bhg_prize_layout">
+<option value="grid" <?php selected( isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid', 'grid' ); ?>><?php echo esc_html( bhg_t( 'layout_grid', 'Grid' ) ); ?></option>
+<option value="carousel" <?php selected( isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid', 'carousel' ); ?>><?php echo esc_html( bhg_t( 'layout_carousel', 'Carousel' ) ); ?></option>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'default_prize_layout_description', 'Choose how prizes display on active hunts and shortcodes when no design is specified.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_prize_size"><?php echo esc_html( bhg_t( 'default_prize_size', 'Default Prize Card Size' ) ); ?></label></th>
+<td>
+<select name="bhg_prize_size" id="bhg_prize_size">
+<option value="small" <?php selected( isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium', 'small' ); ?>><?php echo esc_html( bhg_t( 'size_small', 'Small' ) ); ?></option>
+<option value="medium" <?php selected( isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium', 'medium' ); ?>><?php echo esc_html( bhg_t( 'size_medium', 'Medium' ) ); ?></option>
+<option value="big" <?php selected( isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium', 'big' ); ?>><?php echo esc_html( bhg_t( 'size_big', 'Big' ) ); ?></option>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'default_prize_size_description', 'Controls the image size used for prize cards when no shortcode override is provided.' ) ); ?></p>
+</td>
+</tr>
+<tr>
 <th scope="row"><label for="bhg_ads_enabled"><?php echo esc_html( bhg_t( 'ads_enabled', 'Enable Ads' ) ); ?></label></th>
 <td>
 <input type="hidden" name="bhg_ads_enabled" value="0">
