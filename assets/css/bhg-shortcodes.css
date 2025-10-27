@@ -569,6 +569,13 @@
     background-color: #f9fafb;
 }
 
+.bhg-leaderboard tr.bhg-top-three,
+.bhg-tournaments tr.bhg-top-three,
+.bhg-user-guesses tr.bhg-top-three,
+.bhg-hunts tr.bhg-top-three {
+    background-color: #fefce8;
+}
+
 .bhg-leaderboard tr:hover,
 .bhg-tournaments tr:hover,
 .bhg-user-guesses tr:hover,

@@ -67,6 +67,10 @@
     color: inherit;
 }
 
+.bhg-top-three {
+    background-color: #fefce8;
+}
+
 /* Utility classes */
 .bhg-margin-top-small {
     margin-top: 1em;

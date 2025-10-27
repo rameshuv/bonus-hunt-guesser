@@ -212,9 +212,191 @@ function bhg_sanitize_css_color( $value ) {
         return '';
 }
 
+/**
+ * Retrieve the default tournament points map.
+ *
+ * @return int[] Indexed by finishing position (1-based).
+ */
+function bhg_get_default_tournament_points_map() {
+        return array(
+                1 => 25,
+                2 => 15,
+                3 => 10,
+                4 => 5,
+                5 => 4,
+                6 => 3,
+                7 => 2,
+                8 => 1,
+        );
+}
+
+/**
+ * Normalize a raw tournament points map.
+ *
+ * @param array $map Raw map keyed by finishing position.
+ * @return int[] Sanitized points map.
+ */
+function bhg_normalize_tournament_points_map( $map ) {
+        $defaults = bhg_get_default_tournament_points_map();
+        $normalized = $defaults;
+
+        if ( ! is_array( $map ) ) {
+                return $normalized;
+        }
+
+        foreach ( $defaults as $position => $points ) {
+                if ( isset( $map[ $position ] ) ) {
+                        $value = (int) $map[ $position ];
+                        if ( $value < 0 ) {
+                                $value = 0;
+                        }
+                        $normalized[ $position ] = $value;
+                        continue;
+                }
+
+                $string_key = (string) $position;
+                if ( isset( $map[ $string_key ] ) ) {
+                        $value = (int) $map[ $string_key ];
+                        if ( $value < 0 ) {
+                                $value = 0;
+                        }
+                        $normalized[ $position ] = $value;
+                }
+        }
+
+        return $normalized;
+}
+
+/**
+ * Get the active tournament points map from plugin settings.
+ *
+ * @return int[] Indexed by finishing position (1-based).
+ */
+function bhg_get_tournament_points_map() {
+        $settings = get_option( 'bhg_plugin_settings', array() );
+        $raw      = isset( $settings['tournament_points'] ) ? $settings['tournament_points'] : array();
+
+        return bhg_normalize_tournament_points_map( $raw );
+}
+
+/**
+ * Retrieve the configured points for a finishing position.
+ *
+ * @param int $position Finishing position (1-based).
+ * @return int Points awarded.
+ */
+function bhg_get_points_for_position( $position ) {
+        $position = max( 1, (int) $position );
+        $map      = bhg_get_tournament_points_map();
+
+        return isset( $map[ $position ] ) ? (int) $map[ $position ] : 0;
+}
+
+/**
+ * Get the tournament points scope (active, closed, or all hunts).
+ *
+ * @return string Scope keyword.
+ */
+function bhg_get_tournament_points_scope() {
+        $settings = get_option( 'bhg_plugin_settings', array() );
+        $raw      = isset( $settings['tournament_points_scope'] ) ? sanitize_key( $settings['tournament_points_scope'] ) : '';
+        $allowed  = array( 'active', 'closed', 'all' );
+
+        if ( in_array( $raw, $allowed, true ) ) {
+                return $raw;
+        }
+
+        return 'closed';
+}
+
+/**
+ * Determine whether a hunt status should be counted for points aggregation.
+ *
+ * @param string $hunt_status Hunt status keyword.
+ * @return bool Whether the hunt should contribute points.
+ */
+function bhg_points_scope_allows_status( $hunt_status ) {
+        $scope      = bhg_get_tournament_points_scope();
+        $hunt_state = ( 'closed' === $hunt_status ) ? 'closed' : 'open';
+
+        if ( 'all' === $scope ) {
+                return true;
+        }
+
+        if ( 'closed' === $scope ) {
+                return 'closed' === $hunt_state;
+        }
+
+        // Scope "active" matches open hunts.
+        return 'open' === $hunt_state;
+}
+
+/**
+ * Sanitize an array of tournament prize identifiers.
+ *
+ * @param mixed $input Raw input from form or storage.
+ * @return int[] Unique prize identifiers.
+ */
+function bhg_sanitize_tournament_prize_ids( $input ) {
+        $ids = array();
+        $values = is_array( $input ) ? $input : array( $input );
+
+        foreach ( $values as $value ) {
+                $id = absint( $value );
+                if ( $id > 0 ) {
+                        $ids[ $id ] = $id;
+                }
+        }
+
+        return array_values( $ids );
+}
+
+/**
+ * Decode a stored tournament prizes field into prize identifiers.
+ *
+ * @param string $value Stored field value (JSON encoded).
+ * @return int[] Prize identifiers.
+ */
+function bhg_parse_tournament_prizes_field( $value ) {
+        if ( '' === $value || null === $value ) {
+                return array();
+        }
+
+        $decoded = json_decode( (string) $value, true );
+
+        if ( ! is_array( $decoded ) ) {
+                return array();
+        }
+
+        return bhg_sanitize_tournament_prize_ids( $decoded );
+}
+
+/**
+ * Retrieve tournament prize identifiers for a given tournament.
+ *
+ * @param int $tournament_id Tournament identifier.
+ * @return int[] Prize identifiers.
+ */
+function bhg_get_tournament_prize_ids( $tournament_id ) {
+        global $wpdb;
+
+        $tournament_id = absint( $tournament_id );
+
+        if ( $tournament_id <= 0 ) {
+                return array();
+        }
+
+        $table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $value = $wpdb->get_var( $wpdb->prepare( "SELECT prizes FROM {$table} WHERE id = %d", $tournament_id ) );
+
+        return bhg_parse_tournament_prizes_field( $value );
+}
+
 // Smart login redirect back to referring page.
 add_filter(
-	'login_redirect',
+        'login_redirect',
 	function ( $redirect_to, $requested_redirect_to, $user ) {
 		$r = isset( $_REQUEST['bhg_redirect'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['bhg_redirect'] ) ) : '';
 		if ( ! empty( $r ) ) {
@@ -408,6 +590,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'label_position'                               => 'Position',
                         'label_final_balance'                          => 'Final Balance',
                         'label_difference'                             => 'Difference',
+                        'label_points'                                 => 'Points',
                         'label_pagination'                             => 'Pagination',
 			'label_leaderboard'                            => 'Leaderboard',
 			'label_best_guessers'                          => 'Best Guessers',
@@ -427,7 +610,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_title_content'                          => 'Title/Content',
 			'label_placement'                              => 'Placement',
 			'label_placements'                             => 'Placements',
-			'label_visible_to'                             => 'Visible To',
+                        'label_visible_to'                             => 'Visible To',
+                        'label_show_affiliate_url'                     => 'Show affiliate URL on frontend',
+                        'label_show_affiliate_url_hint'                => 'Display the affiliate website URL on tournament details.',
 			'label_target_page_slugs'                      => 'Target Page Slugs',
 			'label_existing_ads'                           => 'Existing Ads',
 			'select_bulk_action'                           => 'Select bulk action',

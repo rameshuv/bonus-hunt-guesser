@@ -336,6 +336,68 @@ class BHG_Prizes {
         }
 
         /**
+         * Retrieve prizes by explicit identifiers while preserving order.
+         *
+         * @param int[] $ids  Prize identifiers.
+         * @param array $args Optional arguments (active_only => bool).
+         * @return array
+         */
+        public static function get_prizes_by_ids( $ids, $args = array() ) {
+                global $wpdb;
+
+                $ids = array_values( array_unique( array_map( 'absint', (array) $ids ) ) );
+
+                if ( empty( $ids ) ) {
+                        return array();
+                }
+
+                $table       = $wpdb->prefix . 'bhg_prizes';
+                $placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+                $where       = '';
+
+                if ( ! empty( $args['active_only'] ) ) {
+                        $where = 'AND active = 1';
+                }
+
+                $order_ids = implode( ',', array_map( 'intval', $ids ) );
+                $sql       = "SELECT * FROM {$table} WHERE id IN ({$placeholders}) {$where}";
+
+                if ( $order_ids ) {
+                        $sql .= " ORDER BY FIELD(id, {$order_ids})";
+                }
+
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+                return $wpdb->get_results( $wpdb->prepare( $sql, ...$ids ) );
+        }
+
+        /**
+         * Retrieve tournament prizes using stored prize identifiers.
+         *
+         * @param int   $tournament_id Tournament identifier.
+         * @param array $args          Optional args (active_only => bool).
+         * @return array
+         */
+        public static function get_prizes_for_tournament( $tournament_id, $args = array() ) {
+                $tournament_id = absint( $tournament_id );
+
+                if ( $tournament_id <= 0 ) {
+                        return array();
+                }
+
+                if ( ! function_exists( 'bhg_get_tournament_prize_ids' ) ) {
+                        return array();
+                }
+
+                $ids = bhg_get_tournament_prize_ids( $tournament_id );
+
+                if ( empty( $ids ) ) {
+                        return array();
+                }
+
+                return self::get_prizes_by_ids( $ids, $args );
+        }
+
+        /**
          * Format CSS inline style attribute based on prize settings.
          *
          * @param object $prize Prize row.

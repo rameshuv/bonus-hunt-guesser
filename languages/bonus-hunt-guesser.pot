@@ -1762,6 +1762,18 @@ msgstr ""
 msgid "<p>Hi {{user_name}},</p><p>The bonus hunt \"{{hunt_title}}\" has closed. The final balance was {{final_balance}}.</p><p>Thanks for taking part!</p>"
 msgstr ""
 
+#. Default translation key: label_points
+msgid "Points"
+msgstr ""
+
+#. Default translation key: label_show_affiliate_url
+msgid "Show affiliate URL on frontend"
+msgstr ""
+
+#. Default translation key: label_show_affiliate_url_hint
+msgid "Display the affiliate website URL on tournament details."
+msgstr ""
+
 #. Default translation key: notification_default_subject_tournaments
 msgid "Tournament \"{{tournament_title}}\" results"
 msgstr ""

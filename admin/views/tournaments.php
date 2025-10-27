@@ -105,15 +105,28 @@ $prepared    = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( arr
 $all_hunts   = $wpdb->get_results( $prepared );
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
-		$hunt_link_mode = 'manual';
+                $hunt_link_mode = 'manual';
 }
 $hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
 $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
+
+$affiliate_sites = array();
+if ( class_exists( 'BHG_DB' ) ) {
+        $db = new BHG_DB();
+        if ( method_exists( $db, 'get_affiliate_websites' ) ) {
+                $affiliate_sites = $db->get_affiliate_websites();
+        }
+}
+$selected_affiliate   = $row && isset( $row->affiliate_site_id ) ? (int) $row->affiliate_site_id : 0;
+$affiliate_visible    = $row && isset( $row->affiliate_url_visible ) ? (int) $row->affiliate_url_visible : 1;
+$affiliate_visible    = $affiliate_visible ? 1 : 0;
+$prize_rows           = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
+$selected_prizes      = ( $row && function_exists( 'bhg_get_tournament_prize_ids' ) ) ? bhg_get_tournament_prize_ids( (int) $row->id ) : array();
 ?>
 <div class="wrap bhg-wrap">
-	<h1 class="wp-heading-inline">
-	<?php
-	echo esc_html( bhg_t( 'menu_tournaments', 'Tournaments' ) );
+        <h1 class="wp-heading-inline">
+        <?php
+        echo esc_html( bhg_t( 'menu_tournaments', 'Tournaments' ) );
 	?>
 </h1>
 
@@ -374,11 +387,11 @@ endif;
 		<td><input id="bhg_t_end" type="date" name="end_date" value="<?php echo esc_attr( $row->end_date ?? '' ); ?>" /></td>
 		</tr>
 				<tr>
-				<th><label for="bhg_t_status">
-				<?php
-				echo esc_html( bhg_t( 'sc_status', 'Status' ) );
-				?>
-				</label></th>
+                                <th><label for="bhg_t_status">
+                                <?php
+                                echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+                                ?>
+                                </label></th>
 				<td>
 						<?php
 						$st  = array( 'active', 'archived' );
@@ -389,13 +402,57 @@ endif;
 								<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
 						<?php endforeach; ?>
 						</select>
-				</td>
-				</tr>
-				<tr>
-								<th><label for="bhg_t_hunt_mode">
-								<?php
-								echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
-								?>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th><label for="bhg_t_affiliate">
+                                <?php
+                                echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <select id="bhg_t_affiliate" name="affiliate_site_id">
+                                                        <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                                        <?php foreach ( (array) $affiliate_sites as $site ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $site->id ); ?>" <?php selected( $selected_affiliate, (int) $site->id ); ?>><?php echo esc_html( $site->name ); ?></option>
+                                                        <?php endforeach; ?>
+                                                </select>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th><label for="bhg_t_affiliate_visible">
+                                <?php
+                                echo esc_html( bhg_t( 'label_show_affiliate_url', 'Show affiliate URL on frontend' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <label><input type="checkbox" id="bhg_t_affiliate_visible" name="affiliate_url_visible" value="1" <?php checked( $affiliate_visible, 1 ); ?> /> <?php echo esc_html( bhg_t( 'label_show_affiliate_url_hint', 'Display the affiliate website URL on tournament details.' ) ); ?></label>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th><label for="bhg_t_prizes">
+                                <?php
+                                echo esc_html( bhg_t( 'label_prizes', 'Prizes' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <?php if ( empty( $prize_rows ) ) : ?>
+                                                        <p><?php echo esc_html( bhg_t( 'no_prizes_yet', 'No prizes found.' ) ); ?></p>
+                                                <?php else : ?>
+                                                        <select id="bhg_t_prizes" name="tournament_prize_ids[]" multiple="multiple" size="5">
+                                                                <?php foreach ( $prize_rows as $prize_row ) : ?>
+                                                                        <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( in_array( (int) $prize_row->id, (array) $selected_prizes, true ) ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
+                                                                <?php endforeach; ?>
+                                                        </select>
+                                                        <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_prizes_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.' ) ); ?></p>
+                                                <?php endif; ?>
+                                </td>
+                                </tr>
+                                <tr>
+                                                                <th><label for="bhg_t_hunt_mode">
+                                                                <?php
+                                                                echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
+                                                                ?>
 								</label></th>
 								<td>
 												<fieldset>

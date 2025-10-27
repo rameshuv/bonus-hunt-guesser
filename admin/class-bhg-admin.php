@@ -867,7 +867,7 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                         $start_date = '' !== $raw_start_date ? $raw_start_date : null;
                         $end_date   = '' !== $raw_end_date ? $raw_end_date : null;
 
-                        $data = array(
+                $data = array(
                                 'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
                                 'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
                                 'participants_mode' => $participants_mode,
@@ -900,30 +900,54 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                                 $resolved_type = $this->infer_tournament_type( $start_date, $end_date );
                         }
 
-$data['type'] = $resolved_type;
+                        $data['type'] = $resolved_type;
 
-if ( 'auto' === $hunt_link_mode ) {
-        $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
-}
-try {
-$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
-if ( $id > 0 ) {
-$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
-$saved_id = $id;
-} else {
-$data['created_at'] = current_time( 'mysql' );
-$format[]           = '%s';
-$wpdb->insert( $t, $data, $format );
-$saved_id = (int) $wpdb->insert_id;
-}
+                        $affiliate_site_id     = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+                        $affiliate_url_visible = isset( $_POST['affiliate_url_visible'] ) ? 1 : 0;
 
-if ( function_exists( 'bhg_set_tournament_hunts' ) && $saved_id > 0 ) {
-bhg_set_tournament_hunts( $saved_id, $hunt_ids );
-}
+                        $prize_ids = array();
+                        if ( isset( $_POST['tournament_prize_ids'] ) ) {
+                                $raw_prize_ids = wp_unslash( $_POST['tournament_prize_ids'] );
+                                if ( function_exists( 'bhg_sanitize_tournament_prize_ids' ) ) {
+                                        $prize_ids = bhg_sanitize_tournament_prize_ids( $raw_prize_ids );
+                                } else {
+                                        $raw_prize_ids = is_array( $raw_prize_ids ) ? $raw_prize_ids : array( $raw_prize_ids );
+                                        foreach ( $raw_prize_ids as $raw_id ) {
+                                                $prize_id = absint( $raw_id );
+                                                if ( $prize_id > 0 ) {
+                                                        $prize_ids[ $prize_id ] = $prize_id;
+                                                }
+                                        }
+                                        $prize_ids = array_values( $prize_ids );
+                                }
+                        }
 
-wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
-exit;
-} catch ( Throwable $e ) {
+                        $data['affiliate_site_id']     = $affiliate_site_id;
+                        $data['affiliate_url_visible'] = $affiliate_url_visible;
+                        $data['prizes']                = $prize_ids ? wp_json_encode( $prize_ids ) : '[]';
+
+                        if ( 'auto' === $hunt_link_mode ) {
+                                $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
+                        }
+                        try {
+                                $format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s' );
+                                if ( $id > 0 ) {
+                                        $wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
+                                        $saved_id = $id;
+                                } else {
+                                        $data['created_at'] = current_time( 'mysql' );
+                                        $format[]           = '%s';
+                                        $wpdb->insert( $t, $data, $format );
+                                        $saved_id = (int) $wpdb->insert_id;
+                                }
+
+                                if ( function_exists( 'bhg_set_tournament_hunts' ) && $saved_id > 0 ) {
+                                        bhg_set_tournament_hunts( $saved_id, $hunt_ids );
+                                }
+
+                                wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                                exit;
+                        } catch ( Throwable $e ) {
 				if ( function_exists( 'error_log' ) ) {
 					error_log( '[BHG] tournament save error: ' . $e->getMessage() );
 				}

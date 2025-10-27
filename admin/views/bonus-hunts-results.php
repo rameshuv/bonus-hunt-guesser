@@ -91,17 +91,18 @@ if ( 'tournament' === $view_type ) {
 	}
         $rows         = $wpdb->get_results(
                 $wpdb->prepare(
-                        "SELECT r.wins, u.display_name FROM {$tres_table} r JOIN {$users_table} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY r.wins DESC, r.id ASC",
+                        "SELECT r.wins, r.points, u.display_name FROM {$tres_table} r JOIN {$users_table} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY r.points DESC, r.wins DESC, u.ID ASC",
                         $item_id
                 )
         );
-	$result_title = $tournament->title;
-	$wcount       = 3;
-	$columns      = array(
-		'sc_position' => bhg_t( 'sc_position', 'Position' ),
-		'sc_user'     => bhg_t( 'sc_user', 'User' ),
-		'wins'        => bhg_t( 'wins', 'Wins' ),
-	);
+        $result_title = $tournament->title;
+        $wcount       = 3;
+        $columns      = array(
+                'sc_position' => bhg_t( 'sc_position', 'Position' ),
+                'sc_user'     => bhg_t( 'sc_user', 'User' ),
+                'points'      => bhg_t( 'label_points', 'Points' ),
+                'wins'        => bhg_t( 'wins', 'Wins' ),
+        );
 } else {
 	if ( empty( $hunt ) ) {
                     echo '<div class="wrap bhg-wrap"><h1>' . esc_html( bhg_t( 'hunt_not_found', 'Hunt not found' ) ) . '</h1></div>';
@@ -221,6 +222,17 @@ $current   = $view_type . '-' . $item_id;
                                 $price_output    = bhg_t( 'label_emdash', '—' );
                                 $position_output = esc_html( (string) (int) $pos );
                                 $user_output     = esc_html( $r->display_name );
+                                $row_classes     = array();
+
+                                if ( $is_winner ) {
+                                        $row_classes[] = 'bhg-winner-row';
+                                }
+
+                                if ( $pos <= 3 ) {
+                                        $row_classes[] = 'bhg-top-three';
+                                }
+
+                                $row_class_attr = $row_classes ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
 
                                 if ( 'tournament' !== $view_type ) {
                                         $index = $pos - 1;
@@ -234,15 +246,20 @@ $current   = $view_type . '-' . $item_id;
                                         $user_output     = '<strong>' . $user_output . '</strong>';
                                 }
                                 ?>
-                                <tr<?php echo $is_winner ? ' class="bhg-winner-row"' : ''; ?>>
+                                <tr<?php echo wp_kses_post( $row_class_attr ); ?>>
                                         <td><?php echo wp_kses_post( $position_output ); ?></td>
                                         <td><?php echo wp_kses_post( $user_output ); ?></td>
                                         <?php if ( 'tournament' === $view_type ) :
-                                                $wins_output = esc_html( (string) (int) $r->wins );
+                                                $points_value = isset( $r->points ) ? (int) $r->points : 0;
+                                                $wins_value   = isset( $r->wins ) ? (int) $r->wins : 0;
+                                                $points_output = esc_html( (string) $points_value );
+                                                $wins_output   = esc_html( (string) $wins_value );
                                                 if ( $is_winner ) {
-                                                        $wins_output = '<strong>' . $wins_output . '</strong>';
+                                                        $points_output = '<strong>' . $points_output . '</strong>';
+                                                        $wins_output   = '<strong>' . $wins_output . '</strong>';
                                                 }
                                                 ?>
+                                                <td><?php echo wp_kses_post( $points_output ); ?></td>
                                                 <td><?php echo wp_kses_post( $wins_output ); ?></td>
                                         <?php else :
                                                 $guess_value = esc_html( bhg_format_currency( (float) $r->guess ) );
