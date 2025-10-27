@@ -276,18 +276,22 @@ function bhg_activate_plugin() {
 	add_option( 'bhg_version', BHG_VERSION );
         add_option(
                 'bhg_plugin_settings',
-                array(
-                        'allow_guess_changes'       => 'yes',
-                        'default_tournament_period' => 'monthly',
-                        'min_guess_amount'          => 0,
-                        'max_guess_amount'          => 100000,
-                        'max_guesses'               => 1,
-                        'ads_enabled'               => 1,
-                        'email_from'                => get_bloginfo( 'admin_email' ),
-                        'prize_layout'              => 'grid',
-                        'prize_size'                => 'medium',
-                )
-        );
+array(
+'allow_guess_changes'       => 'yes',
+'default_tournament_period' => 'monthly',
+'min_guess_amount'          => 0,
+'max_guess_amount'          => 100000,
+'max_guesses'               => 1,
+'ads_enabled'               => 1,
+'email_from'                => get_bloginfo( 'admin_email' ),
+'prize_layout'              => 'grid',
+'prize_size'                => 'medium',
+'profile_show_my_bonushunts'  => 1,
+'profile_show_my_tournaments' => 1,
+'profile_show_my_prizes'      => 1,
+'profile_show_my_rankings'    => 1,
+)
+);
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
@@ -516,8 +520,19 @@ function bhg_handle_settings_save() {
                 }
         }
 
-$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
-$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
+        $ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
+        $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
+
+        $profile_blocks = array(
+                'profile_show_my_bonushunts',
+                'profile_show_my_tournaments',
+                'profile_show_my_prizes',
+                'profile_show_my_rankings',
+        );
+
+        foreach ( $profile_blocks as $block_key ) {
+                $settings[ $block_key ] = isset( $_POST[ $block_key ] ) ? 1 : 0;
+        }
 
         if ( isset( $_POST['bhg_email_from'] ) ) {
                         $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );

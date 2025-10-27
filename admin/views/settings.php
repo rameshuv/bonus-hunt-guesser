@@ -119,6 +119,31 @@ foreach ( $sizes as $key => $label ) :
 </td>
 </tr>
 <tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'profile_sections_visibility', 'Profile Sections Visibility' ) ); ?></th>
+<td>
+<fieldset>
+<legend class="screen-reader-text"><span><?php echo esc_html( bhg_t( 'profile_sections_visibility', 'Profile Sections Visibility' ) ); ?></span></legend>
+<?php
+$profile_blocks = array(
+        'profile_show_my_bonushunts'  => bhg_t( 'label_my_bonus_hunts', 'My Bonus Hunts' ),
+        'profile_show_my_tournaments' => bhg_t( 'label_my_tournaments', 'My Tournaments' ),
+        'profile_show_my_prizes'      => bhg_t( 'label_my_prizes', 'My Prizes' ),
+        'profile_show_my_rankings'    => bhg_t( 'label_my_rankings', 'My Rankings' ),
+);
+foreach ( $profile_blocks as $key => $label ) :
+        $enabled = isset( $settings[ $key ] ) ? (int) $settings[ $key ] : 1;
+        $message = sprintf( bhg_t( 'label_show_block', 'Show %s section' ), $label );
+        ?>
+<label>
+        <input type="checkbox" name="<?php echo esc_attr( $key ); ?>" value="1" <?php checked( $enabled ); ?>>
+        <?php echo esc_html( $message ); ?>
+</label><br>
+<?php endforeach; ?>
+<p class="description"><?php echo esc_html( bhg_t( 'profile_visibility_hint', 'Uncheck to hide a section from the user profile shortcodes.' ) ); ?></p>
+</fieldset>
+</td>
+</tr>
+<tr>
 <th scope="row"><label for="bhg_allow_guess_changes"><?php echo esc_html( bhg_t( 'allow_guess_changes', 'Allow Guess Changes' ) ); ?></label></th>
 <td>
 <select name="bhg_allow_guess_changes" id="bhg_allow_guess_changes">
