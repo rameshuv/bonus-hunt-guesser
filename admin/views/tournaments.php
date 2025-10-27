@@ -74,8 +74,52 @@ if ( $search_term ) {
 }
 $base_url = remove_query_arg( array( 'paged' ) );
 $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+if ( ! empty( $linked_hunts ) ) {
+	$linked_hunts = array_map( 'absint', (array) $linked_hunts );
+	$linked_hunts = array_values( array_filter( $linked_hunts ) );
+}
+
+$all_hunts_map = array();
+$date_expr      = 'COALESCE(closed_at, updated_at, created_at)';
+$year_start     = gmdate( 'Y-01-01 00:00:00' );
+$year_end       = gmdate( 'Y-12-31 23:59:59' );
+
+$year_query = $wpdb->prepare(
+        "SELECT id, title FROM {$hunts_table} WHERE {$date_expr} BETWEEN %s AND %s ORDER BY {$date_expr} DESC, id DESC",
+        $year_start,
+        $year_end
+);
+$year_hunts = $wpdb->get_results( $year_query );
+
+if ( ! empty( $year_hunts ) ) {
+	foreach ( $year_hunts as $hunt_option ) {
+		$hid = isset( $hunt_option->id ) ? (int) $hunt_option->id : 0;
+		if ( $hid > 0 && ! isset( $all_hunts_map[ $hid ] ) ) {
+			$all_hunts_map[ $hid ] = $hunt_option;
+		}
+	}
+}
+
+if ( ! empty( $linked_hunts ) ) {
+	$placeholders = implode( ', ', array_fill( 0, count( $linked_hunts ), '%d' ) );
+	$linked_query = $wpdb->prepare(
+		"SELECT id, title FROM {$hunts_table} WHERE id IN ({$placeholders}) ORDER BY {$date_expr} DESC, id DESC",
+		$linked_hunts
+	);
+	$linked_rows  = $wpdb->get_results( $linked_query );
+
+	if ( ! empty( $linked_rows ) ) {
+		foreach ( $linked_rows as $hunt_option ) {
+			$hid = isset( $hunt_option->id ) ? (int) $hunt_option->id : 0;
+			if ( $hid > 0 && ! isset( $all_hunts_map[ $hid ] ) ) {
+				$all_hunts_map[ $hid ] = $hunt_option;
+			}
+		}
+	}
+}
+
+$all_hunts = array_values( $all_hunts_map );
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
@@ -276,25 +320,53 @@ endif;
 </label></th>
 		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
 		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-				?>
-				</label></th>
-				<td>
-						<?php $pmode = $row->participants_mode ?? 'winners'; ?>
-						<select id="bhg_t_pmode" name="participants_mode">
-								<option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
-								<option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
-						</select>
-				</td>
-				</tr>
-				<tr>
-				<th><label for="bhg_t_start">
-		<?php
-		echo esc_html( bhg_t( 'label_start_date', 'Start Date' ) );
-		?>
+                <tr>
+                                <th><label for="bhg_t_pmode">
+                                <?php
+                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <?php $pmode = $row->participants_mode ?? 'winners'; ?>
+                                                <select id="bhg_t_pmode" name="participants_mode">
+                                                                <option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
+                                                                <option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
+                                                </select>
+                                </td>
+                                </tr>
+                <tr>
+                                <th><label for="bhg_t_type">
+                                <?php
+                                echo esc_html( bhg_t( 'label_type', 'Type' ) );
+                                ?>
+                                </label></th>
+                                <td>
+                                                <?php
+                                                $type_value   = isset( $row->type ) ? sanitize_key( $row->type ) : 'monthly';
+                                                $type_options = array(
+                                                        'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+                                                        'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+                                                        'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+                                                        'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+                                                        'alltime'   => bhg_t( 'alltime', 'All-time' ),
+                                                );
+                                                if ( ! isset( $type_options[ $type_value ] ) ) {
+                                                        $type_value = 'monthly';
+                                                }
+                                                ?>
+                                                <select id="bhg_t_type" name="type">
+                                                <?php foreach ( $type_options as $slug => $label ) : ?>
+                                                                <option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $type_value, $slug ); ?>><?php echo esc_html( $label ); ?></option>
+                                                <?php endforeach; ?>
+                                                </select>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'tournament_type_help', 'Choose how the tournament period is classified.' ) ); ?></p>
+                                </td>
+                </tr>
+                <tr>
+                                <th><label for="bhg_t_start">
+                <?php
+                echo esc_html( bhg_t( 'label_start_date', 'Start Date' ) );
+                ?>
 </label></th>
 		<td><input id="bhg_t_start" type="date" name="start_date" value="<?php echo esc_attr( $row->start_date ?? '' ); ?>" /></td>
 		</tr>
