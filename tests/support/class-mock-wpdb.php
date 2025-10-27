@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 
 class MockWPDB {
     public $prefix = 'wp_';

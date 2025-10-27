@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 if ( ! defined( 'ABSPATH' ) ) {
     define( 'ABSPATH', __DIR__ . '/../' );
 }
