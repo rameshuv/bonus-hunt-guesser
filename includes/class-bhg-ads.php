@@ -19,7 +19,7 @@ class BHG_Ads {
 	 *
 	 * @var string[]
 	 */
-	private static $allowed_placements = array( 'none', 'footer', 'bottom', 'sidebar', 'shortcode' );
+	private static $allowed_placements = array( 'footer', 'bottom', 'sidebar', 'shortcode' );
 
 	/**
 	 * Retrieve allowed ad placements.
@@ -27,7 +27,15 @@ class BHG_Ads {
 	 * @return string[]
 	 */
 	public static function get_allowed_placements() {
-		return self::$allowed_placements;
+		$placements = array_unique( array_merge( array( 'none' ), self::$allowed_placements ) );
+		$placements = array_map( 'sanitize_key', $placements );
+
+		/**
+		 * Filters the list of allowed ad placement identifiers.
+		 *
+		 * @param string[] $placements Allowed placement identifiers.
+		 */
+		return apply_filters( 'bhg_ads_allowed_placements', $placements );
 	}
 
 	/**
@@ -221,7 +229,7 @@ class BHG_Ads {
 		}
 
 		$placement = sanitize_key( $placement );
-		if ( ! in_array( $placement, self::$allowed_placements, true ) ) {
+		if ( ! in_array( $placement, self::get_allowed_placements(), true ) ) {
 			return array();
 		}
 
@@ -325,7 +333,7 @@ class BHG_Ads {
 		if ( ! $row ) {
 			return '';
 		}
-		if ( ! in_array( $row->placement, self::$allowed_placements, true ) ) {
+		if ( ! in_array( $row->placement, self::get_allowed_placements(), true ) ) {
 			return '';
 		}
 
