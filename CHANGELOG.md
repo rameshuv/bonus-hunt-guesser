@@ -12,6 +12,7 @@
 - Rename the default Bonus Hunt submenu entry to "Dashboard" to match customer wording.
 - Highlight winners consistently (bold names, absolute differences) and display associated prizes on hunt results.
 - Add winner highlight styling improvements and bump minimum WordPress requirement to 6.3.0.
+- Restore sorting support for the Tournaments "Type" column so administrators can organize events by schedule category.
 
 ## 8.0.11 — 2025-09-14
 - Version bump.

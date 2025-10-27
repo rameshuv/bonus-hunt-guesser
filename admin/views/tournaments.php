@@ -31,11 +31,12 @@ if ( isset( $_GET['s'] ) ) {
 $orderby_param   = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order_param     = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
 $allowed_orderby = array(
-	'id'         => 'id',
-	'title'      => 'title',
-	'start_date' => 'start_date',
-	'end_date'   => 'end_date',
-	'status'     => 'status',
+        'id'         => 'id',
+        'title'      => 'title',
+        'type'       => 'type',
+        'start_date' => 'start_date',
+        'end_date'   => 'end_date',
+        'status'     => 'status',
 );
 $orderby_column  = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'id';
 $order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
