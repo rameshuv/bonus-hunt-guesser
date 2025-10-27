@@ -364,6 +364,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_type'                                   => 'Type',
 			'label_details'                                => 'Details',
 			'label_show_details'                           => 'Show details',
+			'label_bonus_hunt'                             => 'Bonushunt',
 			'label_bonus_hunts'                            => 'Bonus Hunts',
 			'label_overall'                                => 'Overall',
 			'label_all_time'                               => 'All-Time',
