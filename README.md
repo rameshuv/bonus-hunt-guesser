@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser
 
-Requires at least: WordPress 5.5.5
+Requires at least: WordPress 6.3.0
 
 ## Shortcodes
 
