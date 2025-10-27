@@ -6,6 +6,10 @@
 - Minor hardening in `[bhg_guess_form]` guest redirect URL construction (sanitizes host/URI).
 - Note: For MySQL 5.5.5 in strict mode, `DATETIME` defaults of `0000-00-00 00:00:00` may require disabling NO_ZERO_DATE / NO_ZERO_IN_DATE or adjusting defaults.
 
+# 8.0.14 — 2025-09-20
+- Update plugin metadata to reflect WordPress 6.3+ baseline and MySQL requirement.
+- Bump internal version constant for release packaging.
+
 # Changelog
 
 ## 8.0.11 — 2025-09-14
