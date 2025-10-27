@@ -135,6 +135,19 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 				</th>
 				<th>
 				<?php
+				$n = ( 'type' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+				echo '<a href="' . esc_url(
+					add_query_arg(
+						array(
+							'orderby' => 'type',
+							'order'   => $n,
+						)
+					)
+				) . '">' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</a>';
+				?>
+				</th>
+				<th>
+				<?php
 				$n = ( 'start_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
 				echo '<a href="' . esc_url(
 					add_query_arg(
@@ -186,7 +199,7 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 		</thead>
 		<tbody>
 				<?php if ( empty( $rows ) ) : ?>
-				<tr><td colspan="7"><em>
+				<tr><td colspan="8"><em>
 						<?php
 						echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
 						?>
@@ -198,6 +211,11 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 		<tr>
 <td><?php echo esc_html( (int) $r->id ); ?></td>
 			<td><?php echo esc_html( $r->title ); ?></td>
+			<?php
+			$type_slug  = isset( $r->type ) ? sanitize_key( (string) $r->type ) : '';
+			$type_label = '' !== $type_slug ? bhg_t( $type_slug, ucfirst( $type_slug ) ) : bhg_t( 'label_emdash', '—' );
+			?>
+			<td><?php echo esc_html( $type_label ); ?></td>
 			<td><?php echo esc_html( $r->start_date ); ?></td>
 						<td><?php echo esc_html( $r->end_date ); ?></td>
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
@@ -265,7 +283,7 @@ endif;
 		<?php
 		echo esc_html( bhg_t( 'sc_title', 'Title' ) );
 		?>
-</label></th>
+                </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
 		<tr>
@@ -273,8 +291,35 @@ endif;
 		<?php
 		echo esc_html( bhg_t( 'description', 'Description' ) );
 		?>
-</label></th>
+				</label></th>
 		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+		</tr>
+		<tr>
+				<th><label for="bhg_t_type">
+				<?php
+				echo esc_html( bhg_t( 'label_type', 'Type' ) );
+				?>
+</label></th>
+				<td>
+					<?php
+					$type_value   = isset( $row->type ) ? sanitize_key( (string) $row->type ) : 'monthly';
+					$type_options = array(
+						'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+						'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+						'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+						'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+						'alltime'   => bhg_t( 'alltime', 'All-time' ),
+					);
+					if ( ! array_key_exists( $type_value, $type_options ) ) {
+						$type_value = 'monthly';
+					}
+					?>
+					<select id="bhg_t_type" name="type">
+					<?php foreach ( $type_options as $slug => $label ) : ?>
+						<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $type_value, $slug ); ?>><?php echo esc_html( $label ); ?></option>
+					<?php endforeach; ?>
+					</select>
+				</td>
 		</tr>
 		<tr>
 				<th><label for="bhg_t_pmode">
