@@ -70,7 +70,7 @@ class BHG_Utils {
 	 * @return string Email address.
 	 */
 	public static function get_email_from() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
+                $settings = bhg_get_plugin_settings();
 		$email    = isset( $settings['email_from'] ) ? $settings['email_from'] : get_bloginfo( 'admin_email' );
 		$email    = sanitize_email( $email );
 

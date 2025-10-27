@@ -239,6 +239,7 @@ require_once BHG_PLUGIN_DIR . 'includes/helpers.php';
 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
 
 add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
+add_action( 'plugins_loaded', 'bhg_ensure_plugin_settings_defaults', 2 );
 /**
  * Seed default translations on version change.
  *
@@ -247,11 +248,59 @@ add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
  * @return void
  */
 function bhg_maybe_seed_translations() {
-		bhg_seed_default_translations_if_empty();
-		$stored_version = get_option( 'bhg_version' );
-	if ( BHG_VERSION !== $stored_version ) {
-			update_option( 'bhg_version', BHG_VERSION );
-	}
+                bhg_seed_default_translations_if_empty();
+                $stored_version = get_option( 'bhg_version' );
+        if ( BHG_VERSION !== $stored_version ) {
+                        update_option( 'bhg_version', BHG_VERSION );
+        }
+}
+
+/**
+ * Ensure stored plugin settings include new defaults for backward compatibility.
+ *
+ * @return void
+ */
+function bhg_ensure_plugin_settings_defaults() {
+        $defaults = bhg_get_plugin_settings_defaults();
+        $stored   = get_option( 'bhg_plugin_settings', array() );
+
+        if ( ! is_array( $stored ) ) {
+                $stored = array();
+        }
+
+        $needs_update = false;
+
+        foreach ( $defaults as $key => $default_value ) {
+                if ( ! array_key_exists( $key, $stored ) ) {
+                        $stored[ $key ] = $default_value;
+                        $needs_update   = true;
+                        continue;
+                }
+
+                if ( 'email_from' === $key ) {
+                        $email = sanitize_email( $stored[ $key ] );
+                        if ( ! $email ) {
+                                $stored[ $key ] = $default_value;
+                                $needs_update   = true;
+                        } else {
+                                $stored[ $key ] = $email;
+                        }
+                        continue;
+                }
+
+                if ( 'tournament_points' === $key ) {
+                        $normalized = bhg_normalize_tournament_points_map( $stored[ $key ] );
+                        if ( $normalized !== $stored[ $key ] ) {
+                                $stored[ $key ] = $normalized;
+                                $needs_update   = true;
+                        }
+                        continue;
+                }
+        }
+
+        if ( $needs_update ) {
+                update_option( 'bhg_plugin_settings', $stored );
+        }
 }
 
 // Activation hook: create tables and set default options.
@@ -274,18 +323,7 @@ function bhg_activate_plugin() {
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
-	add_option(
-		'bhg_plugin_settings',
-		array(
-			'allow_guess_changes'       => 'yes',
-			'default_tournament_period' => 'monthly',
-			'min_guess_amount'          => 0,
-			'max_guess_amount'          => 100000,
-			'max_guesses'               => 1,
-			'ads_enabled'               => 1,
-			'email_from'                => get_bloginfo( 'admin_email' ),
-		)
-	);
+        add_option( 'bhg_plugin_settings', bhg_get_plugin_settings_defaults() );
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
@@ -318,7 +356,7 @@ add_action( 'wp_enqueue_scripts', 'bhg_enqueue_public_assets' );
  * @return void
  */
 function bhg_enqueue_public_assets() {
-                $settings  = get_option( 'bhg_plugin_settings', array() );
+                $settings  = bhg_get_plugin_settings();
                 $min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
                 $max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 
@@ -378,7 +416,7 @@ add_action( 'wp_enqueue_scripts', 'bhg_output_global_style_settings', 30 );
  * @return void
  */
 function bhg_output_global_style_settings() {
-        $settings = get_option( 'bhg_plugin_settings', array() );
+        $settings = bhg_get_plugin_settings();
 
         if ( ! is_array( $settings ) ) {
                 return;
@@ -683,7 +721,7 @@ function bhg_handle_settings_save() {
         }
 
                 // Save settings.
-                $existing = get_option( 'bhg_plugin_settings', array() );
+                $existing = bhg_get_plugin_settings();
                 update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
 				// Redirect back to settings page.
@@ -737,7 +775,7 @@ function bhg_handle_submit_guess() {
 	} else {
 		$guess = is_numeric( $raw_guess ) ? (float) $raw_guess : -1.0;
 	}
-        $settings         = get_option( 'bhg_plugin_settings', array() );
+        $settings         = bhg_get_plugin_settings();
         $min_guess        = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
         $max_guess        = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
         $max              = isset( $settings['max_guesses'] ) ? (int) $settings['max_guesses'] : 1;

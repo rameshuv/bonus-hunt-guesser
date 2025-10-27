@@ -55,7 +55,91 @@ function bhg_slugify( $text ) {
  * @return string
  */
 function bhg_admin_cap() {
-	return apply_filters( 'bhg_admin_capability', 'manage_options' );
+        return apply_filters( 'bhg_admin_capability', 'manage_options' );
+}
+
+if ( ! function_exists( 'bhg_get_plugin_settings_defaults' ) ) {
+        /**
+         * Retrieve the default plugin settings used when no option is stored yet.
+         *
+         * @return array
+         */
+        function bhg_get_plugin_settings_defaults() {
+                $defaults = array(
+                        'allow_guess_changes'       => 'yes',
+                        'default_tournament_period' => 'monthly',
+                        'min_guess_amount'          => 0,
+                        'max_guess_amount'          => 100000,
+                        'max_guesses'               => 1,
+                        'currency'                  => 'eur',
+                        'prize_layout'              => 'grid',
+                        'prize_size'                => 'medium',
+                        'post_submit_redirect'      => '',
+                        'ads_enabled'               => 1,
+                        'email_from'                => get_bloginfo( 'admin_email' ),
+                        'tournament_points'         => bhg_get_default_tournament_points_map(),
+                        'tournament_points_scope'   => 'closed',
+                        'css_title_background'      => '',
+                        'css_title_radius'          => '',
+                        'css_title_padding'         => '',
+                        'css_title_margin'          => '',
+                        'css_h2_font_size'          => '',
+                        'css_h2_font_weight'        => '',
+                        'css_h2_color'              => '',
+                        'css_h2_padding'            => '',
+                        'css_h2_margin'             => '',
+                        'css_h3_font_size'          => '',
+                        'css_h3_font_weight'        => '',
+                        'css_h3_color'              => '',
+                        'css_h3_padding'            => '',
+                        'css_h3_margin'             => '',
+                        'css_description_font_size' => '',
+                        'css_description_font_weight' => '',
+                        'css_description_color'     => '',
+                        'css_description_padding'   => '',
+                        'css_description_margin'    => '',
+                        'css_body_font_size'        => '',
+                        'css_body_padding'          => '',
+                        'css_body_margin'           => '',
+                );
+
+                /**
+                 * Filter the default plugin settings before they are used.
+                 *
+                 * @param array $defaults Default settings.
+                 */
+                return apply_filters( 'bhg_plugin_settings_defaults', $defaults );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_plugin_settings' ) ) {
+        /**
+         * Retrieve plugin settings merged with defaults for backward compatibility.
+         *
+         * @return array
+         */
+        function bhg_get_plugin_settings() {
+                $defaults = bhg_get_plugin_settings_defaults();
+                $stored   = get_option( 'bhg_plugin_settings', array() );
+
+                if ( ! is_array( $stored ) ) {
+                        $stored = array();
+                }
+
+                $settings = wp_parse_args( $stored, $defaults );
+
+                if ( empty( $settings['email_from'] ) || ! is_email( $settings['email_from'] ) ) {
+                        $settings['email_from'] = isset( $defaults['email_from'] ) ? $defaults['email_from'] : '';
+                }
+
+                /**
+                 * Filter the normalized plugin settings.
+                 *
+                 * @param array $settings Current settings merged with defaults.
+                 * @param array $defaults Default settings array.
+                 */
+                return apply_filters( 'bhg_plugin_settings', $settings, $defaults );
+        }
 }
 
 if ( ! function_exists( 'bhg_get_cache_version' ) ) {
@@ -461,7 +545,7 @@ function bhg_normalize_tournament_points_map( $map ) {
  * @return int[] Indexed by finishing position (1-based).
  */
 function bhg_get_tournament_points_map() {
-        $settings = get_option( 'bhg_plugin_settings', array() );
+        $settings = bhg_get_plugin_settings();
         $raw      = isset( $settings['tournament_points'] ) ? $settings['tournament_points'] : array();
 
         return bhg_normalize_tournament_points_map( $raw );
@@ -486,7 +570,7 @@ function bhg_get_points_for_position( $position ) {
  * @return string Scope keyword.
  */
 function bhg_get_tournament_points_scope() {
-        $settings = get_option( 'bhg_plugin_settings', array() );
+        $settings = bhg_get_plugin_settings();
         $raw      = isset( $settings['tournament_points_scope'] ) ? sanitize_key( $settings['tournament_points_scope'] ) : '';
         $allowed  = array( 'active', 'closed', 'all' );
 
@@ -1404,7 +1488,7 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
+                $settings = bhg_get_plugin_settings();
 		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
 		$map      = array(
 			'usd' => '$',
@@ -1876,7 +1960,7 @@ add_action( 'bhg_tournament_closed', 'bhg_send_tournament_notifications', 10, 1 
  * @return bool True if the guess is within the allowed range.
  */
 function bhg_validate_guess( $guess ) {
-	$settings  = get_option( 'bhg_plugin_settings', array() );
+        $settings  = bhg_get_plugin_settings();
 	$min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
 	$max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 

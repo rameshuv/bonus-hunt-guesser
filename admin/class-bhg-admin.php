@@ -1057,7 +1057,7 @@ exit;
                  */
         private function infer_tournament_type( $start_date, $end_date ) {
                         $allowed = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
-                        $settings = get_option( 'bhg_plugin_settings', array() );
+                        $settings = bhg_get_plugin_settings();
                         $default  = isset( $settings['default_tournament_period'] ) ? sanitize_key( $settings['default_tournament_period'] ) : 'monthly';
                         if ( ! in_array( $default, $allowed, true ) ) {
                                 $default = 'monthly';

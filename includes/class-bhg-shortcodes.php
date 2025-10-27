@@ -968,7 +968,7 @@ $wpdb->usermeta,
                          * @return string HTML output.
                          */
                public function active_hunt_shortcode( $atts ) {
-		$settings             = get_option( 'bhg_plugin_settings', array() );
+                $settings             = bhg_get_plugin_settings();
 		$default_prize_layout = isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid';
 		$default_prize_size   = isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium';
 
@@ -1326,7 +1326,7 @@ $wpdb->usermeta,
 					)
 				) : ''; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-                        $settings        = get_option( 'bhg_plugin_settings' );
+                        $settings        = bhg_get_plugin_settings();
                         $min             = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
                         $max             = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
                         $redirect_target = ! empty( $settings['post_submit_redirect'] ) ? wp_validate_redirect( $settings['post_submit_redirect'], '' ) : '';
@@ -2959,7 +2959,7 @@ $wpdb->usermeta,
                                         return $this->render_message_block( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ), 'bhg-tournaments' );
                                 }
 
-                                        $settings             = get_option( 'bhg_plugin_settings', array() );
+                                        $settings             = bhg_get_plugin_settings();
                                         $default_prize_layout = isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid';
                                         $default_prize_size   = isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium';
 
@@ -3382,7 +3382,7 @@ $wpdb->usermeta,
                                 $args['active'] = in_array( $active, array( 'yes', '1' ), true ) ? 1 : 0;
                         }
 
-                        $settings            = get_option( 'bhg_plugin_settings', array() );
+                        $settings            = bhg_get_plugin_settings();
                         $default_prize_layout = isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid';
                         $default_prize_size   = isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium';
 

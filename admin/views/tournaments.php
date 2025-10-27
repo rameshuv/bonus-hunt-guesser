@@ -316,7 +316,7 @@ endif;
 		<?php
 		$type_value = isset( $row->type ) ? sanitize_key( $row->type ) : '';
 		if ( ! isset( $type_labels[ $type_value ] ) ) {
-				$settings     = get_option( 'bhg_plugin_settings', array() );
+                            $settings     = bhg_get_plugin_settings();
 				$default_type = isset( $settings['default_tournament_period'] ) ? sanitize_key( $settings['default_tournament_period'] ) : 'monthly';
 			if ( ! isset( $type_labels[ $default_type ] ) ) {
 					$default_type = 'monthly';

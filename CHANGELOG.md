@@ -20,6 +20,8 @@
 - Added per-affiliate website toggles to the Users admin list and user profile, syncing assignments when affiliate sites are removed.
 - Added default prize layout and card size settings that drive active hunt prize rendering and `[bhg_prizes]` defaults so prizes surface automatically on active hunts.
 - Introduced a global CSS/color panel with new inline styling that standardizes title blocks, headings, and description typography across frontend shortcodes.
+- Centralized plugin settings retrieval to merge and sanitize defaults for legacy installs, including tournament points, prize layouts, and notification email settings.
+- Added PHPUnit coverage that exercises the plugin settings defaults to guard backward compatibility for upgrades.
 
 ## 8.0.11 — 2025-09-14
 - Version bump.

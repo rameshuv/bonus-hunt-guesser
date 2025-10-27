@@ -9,6 +9,7 @@ Requires at least: WordPress 6.3.0
 - **Global CSS & Color Panel** — configure title block backgrounds, heading typography, and description/body spacing shared across frontend shortcodes.
 - **Notifications** — manage hunt, winner, and tournament email templates (subject, HTML body, and BCC recipients) from the Bonus Hunt → Notifications screen.
 - **Shortcodes Reference** — review supported shortcodes, attributes, and usage examples from the Bonus Hunt → Shortcodes screen.
+- **Legacy Defaults** — older installations automatically merge any missing settings (tournament points, prize layout, notification email sender, etc.) during upgrades so new features inherit safe defaults.
 
 ## Shortcodes
 
@@ -47,4 +48,8 @@ List tournaments or show details.
   3. Edit the same tournament (leaving the type selector untouched) and change another field such as the title or description.
   4. Save the changes, refresh the shortcode output, and verify the tournament still appears in the monthly view (demonstrating the stored type was preserved).
   5. Repeat with a weekly-length tournament to confirm the shortcode timeline tabs continue filtering correctly after edits.
+
+## Automated Testing
+
+- `composer install && vendor/bin/phpunit` — runs the close-hunt regression suite plus plugin settings default coverage that guards backward compatibility for legacy option rows.
 
