@@ -299,17 +299,21 @@ $wpdb->usermeta,
 			 * @return string HTML output.
 			 */
                public function active_hunt_shortcode( $atts ) {
-                        $atts = shortcode_atts(
-                                array(
-                                        'prize_layout' => 'grid',
-                                        'prize_size'   => 'medium',
-                                ),
-                                $atts,
-                                'bhg_active_hunt'
-                        );
+                       $settings       = get_option( 'bhg_plugin_settings', array() );
+                       $default_layout = isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid';
+                       $default_size   = isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium';
 
-                        $prize_layout = $this->normalize_prize_layout( isset( $atts['prize_layout'] ) ? $atts['prize_layout'] : 'grid' );
-                        $prize_size   = $this->normalize_prize_size( isset( $atts['prize_size'] ) ? $atts['prize_size'] : 'medium' );
+                       $atts = shortcode_atts(
+                               array(
+                                       'prize_layout' => $default_layout,
+                                       'prize_size'   => $default_size,
+                               ),
+                               $atts,
+                               'bhg_active_hunt'
+                       );
+
+                       $prize_layout = $this->normalize_prize_layout( $atts['prize_layout'] );
+                       $prize_size   = $this->normalize_prize_size( $atts['prize_size'] );
 
 			       global $wpdb;
 			       $hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
@@ -2545,16 +2549,20 @@ $wpdb->usermeta,
                                 return '';
                         }
 
-                        $atts = shortcode_atts(
-                                array(
-                                        'category' => '',
-                                        'design'   => 'grid',
-                                        'size'     => 'medium',
-                                        'active'   => 'yes',
-                                ),
-                                $atts,
-                                'bhg_prizes'
-                        );
+                       $settings       = get_option( 'bhg_plugin_settings', array() );
+                       $default_layout = isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid';
+                       $default_size   = isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium';
+
+                       $atts = shortcode_atts(
+                               array(
+                                       'category' => '',
+                                       'design'   => $default_layout,
+                                       'size'     => $default_size,
+                                       'active'   => 'yes',
+                               ),
+                               $atts,
+                               'bhg_prizes'
+                       );
 
                         $args = array();
 
@@ -2568,8 +2576,8 @@ $wpdb->usermeta,
                                 $args['active'] = in_array( $active, array( 'yes', '1' ), true ) ? 1 : 0;
                         }
 
-                        $layout = $this->normalize_prize_layout( isset( $atts['design'] ) ? $atts['design'] : 'grid' );
-                        $size   = $this->normalize_prize_size( isset( $atts['size'] ) ? $atts['size'] : 'medium' );
+                       $layout = $this->normalize_prize_layout( $atts['design'] );
+                       $size   = $this->normalize_prize_size( $atts['size'] );
 
                         $prizes = BHG_Prizes::get_prizes( $args );
 

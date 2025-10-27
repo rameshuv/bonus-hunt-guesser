@@ -82,6 +82,43 @@ foreach ( $currencies as $key => $label ) :
 <td><input type="number" class="small-text" id="bhg_max_guess_amount" name="bhg_max_guess_amount" value="<?php echo isset( $settings['max_guess_amount'] ) ? esc_attr( $settings['max_guess_amount'] ) : '100000'; ?>" min="0"></td>
 </tr>
 <tr>
+<th scope="row"><label for="bhg_prize_layout"><?php echo esc_html( bhg_t( 'label_prize_layout', 'Prize Layout' ) ); ?></label></th>
+<td>
+<select name="bhg_prize_layout" id="bhg_prize_layout">
+<?php
+$current_layout = isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid';
+$layouts        = array(
+        'grid'      => bhg_t( 'layout_grid', 'Grid' ),
+        'carousel'  => bhg_t( 'layout_carousel', 'Carousel' ),
+);
+foreach ( $layouts as $key => $label ) :
+        ?>
+<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $current_layout, $key ); ?>><?php echo esc_html( $label ); ?></option>
+<?php endforeach; ?>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_layout_description', 'Choose how prizes display on active hunts.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_prize_size"><?php echo esc_html( bhg_t( 'label_prize_size', 'Prize Card Size' ) ); ?></label></th>
+<td>
+<select name="bhg_prize_size" id="bhg_prize_size">
+<?php
+$current_size = isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium';
+$sizes        = array(
+        'small'  => bhg_t( 'size_small', 'Small' ),
+        'medium' => bhg_t( 'size_medium', 'Medium' ),
+        'big'    => bhg_t( 'size_big', 'Big' ),
+);
+foreach ( $sizes as $key => $label ) :
+        ?>
+<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $current_size, $key ); ?>><?php echo esc_html( $label ); ?></option>
+<?php endforeach; ?>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_size_description', 'Control the image size used for prize cards.' ) ); ?></p>
+</td>
+</tr>
+<tr>
 <th scope="row"><label for="bhg_allow_guess_changes"><?php echo esc_html( bhg_t( 'allow_guess_changes', 'Allow Guess Changes' ) ); ?></label></th>
 <td>
 <select name="bhg_allow_guess_changes" id="bhg_allow_guess_changes">

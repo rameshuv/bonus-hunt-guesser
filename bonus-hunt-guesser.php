@@ -274,18 +274,20 @@ function bhg_activate_plugin() {
 
 	// Set default options.
 	add_option( 'bhg_version', BHG_VERSION );
-	add_option(
-		'bhg_plugin_settings',
-		array(
-			'allow_guess_changes'       => 'yes',
-			'default_tournament_period' => 'monthly',
-			'min_guess_amount'          => 0,
-			'max_guess_amount'          => 100000,
-			'max_guesses'               => 1,
-			'ads_enabled'               => 1,
-			'email_from'                => get_bloginfo( 'admin_email' ),
-		)
-	);
+        add_option(
+                'bhg_plugin_settings',
+                array(
+                        'allow_guess_changes'       => 'yes',
+                        'default_tournament_period' => 'monthly',
+                        'min_guess_amount'          => 0,
+                        'max_guess_amount'          => 100000,
+                        'max_guesses'               => 1,
+                        'ads_enabled'               => 1,
+                        'email_from'                => get_bloginfo( 'admin_email' ),
+                        'prize_layout'              => 'grid',
+                        'prize_size'                => 'medium',
+                )
+        );
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
@@ -491,12 +493,28 @@ function bhg_handle_settings_save() {
 									exit;
 	}
 
-	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
-			$allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
-		if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
-				$settings['allow_guess_changes'] = $allow;
-		}
-	}
+        if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
+                        $allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
+                if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
+                                $settings['allow_guess_changes'] = $allow;
+                }
+        }
+
+        $valid_prize_layouts = array( 'grid', 'carousel' );
+        if ( isset( $_POST['bhg_prize_layout'] ) ) {
+                $layout = sanitize_key( wp_unslash( $_POST['bhg_prize_layout'] ) );
+                if ( in_array( $layout, $valid_prize_layouts, true ) ) {
+                        $settings['prize_layout'] = $layout;
+                }
+        }
+
+        $valid_prize_sizes = array( 'small', 'medium', 'big' );
+        if ( isset( $_POST['bhg_prize_size'] ) ) {
+                $size = sanitize_key( wp_unslash( $_POST['bhg_prize_size'] ) );
+                if ( in_array( $size, $valid_prize_sizes, true ) ) {
+                        $settings['prize_size'] = $size;
+                }
+        }
 
 $ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
 $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
