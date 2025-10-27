@@ -50,27 +50,74 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 				add_action( 'admin_post_bhg_delete_guess', array( $this, 'delete_guess' ) );
 		}
 
-		/**
-		 * Retrieve data for bonus hunt admin views.
-		 *
-		 * @return array
-		 */
-		public function get_admin_view_vars() {
-			$db = new BHG_DB();
+	/**
+	 * Retrieve data for bonus hunt admin views.
+	 *
+	 * @return array
+	 */
+	public function get_admin_view_vars() {
+		$db = new BHG_DB();
 
-						return array(
-							'bonus_hunts'        => $db->get_all_bonus_hunts(),
-							'affiliate_websites' => $db->get_affiliate_websites(),
-						);
+		return array(
+			'bonus_hunts'        => $db->get_all_bonus_hunts(),
+			'affiliate_websites' => $db->get_affiliate_websites(),
+		);
+	}
+
+	/**
+	 * Retrieve the latest hunts with winner information for dashboard displays.
+	 *
+	 * @param int $limit Number of hunts to fetch.
+	 * @return array
+	 */
+	public function get_latest_hunts( $limit = 3 ) {
+		$limit = max( 1, (int) $limit );
+
+		if ( ! class_exists( 'BHG_Bonus_Hunts' ) ) {
+			$file = BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts.php';
+			if ( file_exists( $file ) ) {
+				require_once $file;
+			}
 		}
 
+		if ( class_exists( 'BHG_Bonus_Hunts' ) && method_exists( 'BHG_Bonus_Hunts', 'get_latest_hunts_with_winners' ) ) {
+			$hunts = BHG_Bonus_Hunts::get_latest_hunts_with_winners( $limit );
+			if ( is_array( $hunts ) ) {
+				return $hunts;
+			}
+		}
 
-		/**
-		 * Handle bonus hunt form submissions.
-		 *
-		 * @return void
-		 */
-		public function handle_form_submissions() {
+		$results = array();
+
+		if ( function_exists( 'bhg_get_latest_closed_hunts' ) ) {
+			$legacy_hunts = bhg_get_latest_closed_hunts( $limit );
+
+			foreach ( (array) $legacy_hunts as $hunt ) {
+				$hunt_id       = isset( $hunt->id ) ? (int) $hunt->id : 0;
+				$winners_limit = isset( $hunt->winners_count ) ? (int) $hunt->winners_count : 0;
+				$winners_limit = $winners_limit > 0 ? $winners_limit : 25;
+				$winners       = array();
+
+				if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
+					$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_limit );
+				}
+
+				$results[] = array(
+					'hunt'    => $hunt,
+					'winners' => $winners,
+				);
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Handle bonus hunt form submissions.
+	 *
+	 * @return void
+	 */
+	public function handle_form_submissions() {
 			if ( empty( $_POST['action'] ) ) {
 						return;
 			}
