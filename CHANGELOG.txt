@@ -9,6 +9,7 @@ Date: 2025-09-12
 - Filtered the tournament edit “Connected Bonus Hunts” multiselect to current-year hunts while keeping already-linked entries visible.
 - Added per-affiliate website toggles on the Users admin screen and profile editor, with cleanup when affiliate sites are deleted.
 - Added default prize layout and card size settings so active hunts and the `[bhg_prizes]` shortcode automatically display linked prizes without manual overrides.
+- Introduced a global CSS/color panel with inline styling so frontend title blocks, headings, and descriptions share consistent typography.
 
 ## Stage-1 (Hotfix & Hardening)
 - Always run DB migrations on init via bhg_check_tables() → fixes missing tournament columns.

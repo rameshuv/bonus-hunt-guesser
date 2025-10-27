@@ -17,6 +17,7 @@
 - Filtered the tournament edit Connected Bonus Hunts selector to current-year hunts while always including already-linked entries.
 - Added per-affiliate website toggles to the Users admin list and user profile, syncing assignments when affiliate sites are removed.
 - Added default prize layout and card size settings that drive active hunt prize rendering and `[bhg_prizes]` defaults so prizes surface automatically on active hunts.
+- Introduced a global CSS/color panel with new inline styling that standardizes title blocks, headings, and description typography across frontend shortcodes.
 
 ## 8.0.11 — 2025-09-14
 - Version bump.

@@ -318,9 +318,9 @@ add_action( 'wp_enqueue_scripts', 'bhg_enqueue_public_assets' );
  * @return void
  */
 function bhg_enqueue_public_assets() {
-		$settings  = get_option( 'bhg_plugin_settings', array() );
-		$min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
-		$max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
+                $settings  = get_option( 'bhg_plugin_settings', array() );
+                $min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
+                $max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 
 		wp_register_style(
 			'bhg-public',
@@ -367,8 +367,68 @@ function bhg_enqueue_public_assets() {
 			)
 		);
 
-	wp_enqueue_style( 'bhg-public' );
-	wp_enqueue_script( 'bhg-public' );
+wp_enqueue_style( 'bhg-public' );
+wp_enqueue_script( 'bhg-public' );
+}
+
+add_action( 'wp_enqueue_scripts', 'bhg_output_global_style_settings', 30 );
+/**
+ * Output inline CSS variables for global styling controls.
+ *
+ * @return void
+ */
+function bhg_output_global_style_settings() {
+        $settings = get_option( 'bhg_plugin_settings', array() );
+
+        if ( ! is_array( $settings ) ) {
+                return;
+        }
+
+        $map = array(
+                'css_title_background'         => '--bhg-title-background',
+                'css_title_radius'             => '--bhg-title-radius',
+                'css_title_padding'            => '--bhg-title-padding',
+                'css_title_margin'             => '--bhg-title-margin',
+                'css_h2_font_size'             => '--bhg-h2-font-size',
+                'css_h2_font_weight'           => '--bhg-h2-font-weight',
+                'css_h2_color'                 => '--bhg-h2-color',
+                'css_h2_padding'               => '--bhg-h2-padding',
+                'css_h2_margin'                => '--bhg-h2-margin',
+                'css_h3_font_size'             => '--bhg-h3-font-size',
+                'css_h3_font_weight'           => '--bhg-h3-font-weight',
+                'css_h3_color'                 => '--bhg-h3-color',
+                'css_h3_padding'               => '--bhg-h3-padding',
+                'css_h3_margin'                => '--bhg-h3-margin',
+                'css_description_font_size'    => '--bhg-description-font-size',
+                'css_description_font_weight'  => '--bhg-description-font-weight',
+                'css_description_color'        => '--bhg-description-color',
+                'css_description_padding'      => '--bhg-description-padding',
+                'css_description_margin'       => '--bhg-description-margin',
+                'css_body_font_size'           => '--bhg-body-font-size',
+                'css_body_padding'             => '--bhg-body-padding',
+                'css_body_margin'              => '--bhg-body-margin',
+        );
+
+        $declarations = array();
+
+        foreach ( $map as $setting_key => $css_var ) {
+                if ( isset( $settings[ $setting_key ] ) && '' !== $settings[ $setting_key ] ) {
+                        $value = trim( (string) $settings[ $setting_key ] );
+                        if ( '' !== $value ) {
+                                $declarations[] = $css_var . ': ' . $value . ';';
+                        }
+                }
+        }
+
+        if ( empty( $declarations ) ) {
+                return;
+        }
+
+        $css = '.bhg-styled{' . implode( '', $declarations ) . '}';
+
+        wp_register_style( 'bhg-global-styles', false );
+        wp_enqueue_style( 'bhg-global-styles' );
+        wp_add_inline_style( 'bhg-global-styles', $css );
 }
 
 // Initialize plugin.
@@ -505,15 +565,103 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	if ( isset( $_POST['bhg_prize_size'] ) ) {
-		$size = sanitize_key( wp_unslash( $_POST['bhg_prize_size'] ) );
-		if ( in_array( $size, array( 'small', 'medium', 'big' ), true ) ) {
-			$settings['prize_size'] = $size;
-		}
-	}
+        if ( isset( $_POST['bhg_prize_size'] ) ) {
+                $size = sanitize_key( wp_unslash( $_POST['bhg_prize_size'] ) );
+                if ( in_array( $size, array( 'small', 'medium', 'big' ), true ) ) {
+                        $settings['prize_size'] = $size;
+                }
+        }
 
-	$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
-	$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
+        if ( isset( $_POST['bhg_css_title_background'] ) ) {
+                $settings['css_title_background'] = bhg_sanitize_css_color( wp_unslash( $_POST['bhg_css_title_background'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_title_radius'] ) ) {
+                $settings['css_title_radius'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_title_radius'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_title_padding'] ) ) {
+                $settings['css_title_padding'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_title_padding'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_title_margin'] ) ) {
+                $settings['css_title_margin'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_title_margin'] ), true );
+        }
+
+        if ( isset( $_POST['bhg_css_h2_font_size'] ) ) {
+                $settings['css_h2_font_size'] = bhg_sanitize_css_font_size( wp_unslash( $_POST['bhg_css_h2_font_size'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_h2_font_weight'] ) ) {
+                $settings['css_h2_font_weight'] = bhg_sanitize_css_font_weight( wp_unslash( $_POST['bhg_css_h2_font_weight'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_h2_color'] ) ) {
+                $settings['css_h2_color'] = bhg_sanitize_css_color( wp_unslash( $_POST['bhg_css_h2_color'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_h2_padding'] ) ) {
+                $settings['css_h2_padding'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_h2_padding'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_h2_margin'] ) ) {
+                $settings['css_h2_margin'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_h2_margin'] ), true );
+        }
+
+        if ( isset( $_POST['bhg_css_h3_font_size'] ) ) {
+                $settings['css_h3_font_size'] = bhg_sanitize_css_font_size( wp_unslash( $_POST['bhg_css_h3_font_size'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_h3_font_weight'] ) ) {
+                $settings['css_h3_font_weight'] = bhg_sanitize_css_font_weight( wp_unslash( $_POST['bhg_css_h3_font_weight'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_h3_color'] ) ) {
+                $settings['css_h3_color'] = bhg_sanitize_css_color( wp_unslash( $_POST['bhg_css_h3_color'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_h3_padding'] ) ) {
+                $settings['css_h3_padding'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_h3_padding'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_h3_margin'] ) ) {
+                $settings['css_h3_margin'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_h3_margin'] ), true );
+        }
+
+        if ( isset( $_POST['bhg_css_description_font_size'] ) ) {
+                $settings['css_description_font_size'] = bhg_sanitize_css_font_size( wp_unslash( $_POST['bhg_css_description_font_size'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_description_font_weight'] ) ) {
+                $settings['css_description_font_weight'] = bhg_sanitize_css_font_weight( wp_unslash( $_POST['bhg_css_description_font_weight'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_description_color'] ) ) {
+                $settings['css_description_color'] = bhg_sanitize_css_color( wp_unslash( $_POST['bhg_css_description_color'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_description_padding'] ) ) {
+                $settings['css_description_padding'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_description_padding'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_description_margin'] ) ) {
+                $settings['css_description_margin'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_description_margin'] ), true );
+        }
+
+        if ( isset( $_POST['bhg_css_body_font_size'] ) ) {
+                $settings['css_body_font_size'] = bhg_sanitize_css_font_size( wp_unslash( $_POST['bhg_css_body_font_size'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_body_padding'] ) ) {
+                $settings['css_body_padding'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_body_padding'] ) );
+        }
+
+        if ( isset( $_POST['bhg_css_body_margin'] ) ) {
+                $settings['css_body_margin'] = bhg_sanitize_css_box_values( wp_unslash( $_POST['bhg_css_body_margin'] ), true );
+        }
+
+        $ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
+        $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
 
         if ( isset( $_POST['bhg_email_from'] ) ) {
                         $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );

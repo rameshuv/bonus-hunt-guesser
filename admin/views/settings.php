@@ -111,6 +111,157 @@ foreach ( $currencies as $key => $label ) :
 <p class="description"><?php echo esc_html( bhg_t( 'default_prize_size_description', 'Controls the image size used for prize cards when no shortcode override is provided.' ) ); ?></p>
 </td>
 </tr>
+<tr class="bhg-settings-section">
+<th colspan="2"><h2><?php echo esc_html( bhg_t( 'settings_global_css_panel', 'Global CSS & Color Panel' ) ); ?></h2></th>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_title_background"><?php echo esc_html( bhg_t( 'settings_title_background', 'Title Block Background Color' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_title_background" name="bhg_css_title_background" value="<?php echo isset( $settings['css_title_background'] ) ? esc_attr( $settings['css_title_background'] ) : ''; ?>" placeholder="#f8fafc">
+<p class="description"><?php echo esc_html( bhg_t( 'settings_title_background_help', 'Accepts HEX, RGB(A), or CSS variable values.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_title_radius"><?php echo esc_html( bhg_t( 'settings_title_radius', 'Title Block Border Radius' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_title_radius" name="bhg_css_title_radius" value="<?php echo isset( $settings['css_title_radius'] ) ? esc_attr( $settings['css_title_radius'] ) : ''; ?>" placeholder="8px">
+<p class="description"><?php echo esc_html( bhg_t( 'settings_box_value_help', 'Use CSS length values (e.g. 8px 8px 0 0).' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_title_padding"><?php echo esc_html( bhg_t( 'settings_title_padding', 'Title Block Padding' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_title_padding" name="bhg_css_title_padding" value="<?php echo isset( $settings['css_title_padding'] ) ? esc_attr( $settings['css_title_padding'] ) : ''; ?>" placeholder="12px 16px">
+<p class="description"><?php echo esc_html( bhg_t( 'settings_padding_help', 'Spacing inside the title block. Up to four CSS values supported.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_title_margin"><?php echo esc_html( bhg_t( 'settings_title_margin', 'Title Block Margin' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_title_margin" name="bhg_css_title_margin" value="<?php echo isset( $settings['css_title_margin'] ) ? esc_attr( $settings['css_title_margin'] ) : ''; ?>" placeholder="0 0 16px">
+<p class="description"><?php echo esc_html( bhg_t( 'settings_margin_help', 'Spacing outside the title block. Up to four CSS values supported.' ) ); ?></p>
+</td>
+</tr>
+<tr class="bhg-settings-subsection">
+<th colspan="2"><h3><?php echo esc_html( bhg_t( 'settings_h2_styling', 'H2 Styling' ) ); ?></h3></th>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h2_font_size"><?php echo esc_html( bhg_t( 'settings_font_size', 'Font Size' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h2_font_size" name="bhg_css_h2_font_size" value="<?php echo isset( $settings['css_h2_font_size'] ) ? esc_attr( $settings['css_h2_font_size'] ) : ''; ?>" placeholder="24px">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h2_font_weight"><?php echo esc_html( bhg_t( 'settings_font_weight', 'Font Weight' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h2_font_weight" name="bhg_css_h2_font_weight" value="<?php echo isset( $settings['css_h2_font_weight'] ) ? esc_attr( $settings['css_h2_font_weight'] ) : ''; ?>" placeholder="600">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h2_color"><?php echo esc_html( bhg_t( 'settings_font_color', 'Font Color' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h2_color" name="bhg_css_h2_color" value="<?php echo isset( $settings['css_h2_color'] ) ? esc_attr( $settings['css_h2_color'] ) : ''; ?>" placeholder="#0f172a">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h2_padding"><?php echo esc_html( bhg_t( 'settings_padding', 'Padding' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h2_padding" name="bhg_css_h2_padding" value="<?php echo isset( $settings['css_h2_padding'] ) ? esc_attr( $settings['css_h2_padding'] ) : ''; ?>" placeholder="0 0 8px">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h2_margin"><?php echo esc_html( bhg_t( 'settings_margin', 'Margin' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h2_margin" name="bhg_css_h2_margin" value="<?php echo isset( $settings['css_h2_margin'] ) ? esc_attr( $settings['css_h2_margin'] ) : ''; ?>" placeholder="0 0 12px">
+</td>
+</tr>
+<tr class="bhg-settings-subsection">
+<th colspan="2"><h3><?php echo esc_html( bhg_t( 'settings_h3_styling', 'H3 Styling' ) ); ?></h3></th>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h3_font_size"><?php echo esc_html( bhg_t( 'settings_font_size', 'Font Size' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h3_font_size" name="bhg_css_h3_font_size" value="<?php echo isset( $settings['css_h3_font_size'] ) ? esc_attr( $settings['css_h3_font_size'] ) : ''; ?>" placeholder="20px">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h3_font_weight"><?php echo esc_html( bhg_t( 'settings_font_weight', 'Font Weight' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h3_font_weight" name="bhg_css_h3_font_weight" value="<?php echo isset( $settings['css_h3_font_weight'] ) ? esc_attr( $settings['css_h3_font_weight'] ) : ''; ?>" placeholder="600">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h3_color"><?php echo esc_html( bhg_t( 'settings_font_color', 'Font Color' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h3_color" name="bhg_css_h3_color" value="<?php echo isset( $settings['css_h3_color'] ) ? esc_attr( $settings['css_h3_color'] ) : ''; ?>" placeholder="#1e293b">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h3_padding"><?php echo esc_html( bhg_t( 'settings_padding', 'Padding' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h3_padding" name="bhg_css_h3_padding" value="<?php echo isset( $settings['css_h3_padding'] ) ? esc_attr( $settings['css_h3_padding'] ) : ''; ?>" placeholder="0 0 6px">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_h3_margin"><?php echo esc_html( bhg_t( 'settings_margin', 'Margin' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_h3_margin" name="bhg_css_h3_margin" value="<?php echo isset( $settings['css_h3_margin'] ) ? esc_attr( $settings['css_h3_margin'] ) : ''; ?>" placeholder="0 0 10px">
+</td>
+</tr>
+<tr class="bhg-settings-subsection">
+<th colspan="2"><h3><?php echo esc_html( bhg_t( 'settings_description_styling', 'Description Text Styling' ) ); ?></h3></th>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_description_font_size"><?php echo esc_html( bhg_t( 'settings_font_size', 'Font Size' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_description_font_size" name="bhg_css_description_font_size" value="<?php echo isset( $settings['css_description_font_size'] ) ? esc_attr( $settings['css_description_font_size'] ) : ''; ?>" placeholder="16px">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_description_font_weight"><?php echo esc_html( bhg_t( 'settings_font_weight', 'Font Weight' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_description_font_weight" name="bhg_css_description_font_weight" value="<?php echo isset( $settings['css_description_font_weight'] ) ? esc_attr( $settings['css_description_font_weight'] ) : ''; ?>" placeholder="400">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_description_color"><?php echo esc_html( bhg_t( 'settings_font_color', 'Font Color' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_description_color" name="bhg_css_description_color" value="<?php echo isset( $settings['css_description_color'] ) ? esc_attr( $settings['css_description_color'] ) : ''; ?>" placeholder="#475569">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_description_padding"><?php echo esc_html( bhg_t( 'settings_padding', 'Padding' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_description_padding" name="bhg_css_description_padding" value="<?php echo isset( $settings['css_description_padding'] ) ? esc_attr( $settings['css_description_padding'] ) : ''; ?>" placeholder="0">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_description_margin"><?php echo esc_html( bhg_t( 'settings_margin', 'Margin' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_description_margin" name="bhg_css_description_margin" value="<?php echo isset( $settings['css_description_margin'] ) ? esc_attr( $settings['css_description_margin'] ) : ''; ?>" placeholder="0 0 12px">
+</td>
+</tr>
+<tr class="bhg-settings-subsection">
+<th colspan="2"><h3><?php echo esc_html( bhg_t( 'settings_body_text_styling', 'Paragraph & Span Defaults' ) ); ?></h3></th>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_body_font_size"><?php echo esc_html( bhg_t( 'settings_font_size', 'Font Size' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_body_font_size" name="bhg_css_body_font_size" value="<?php echo isset( $settings['css_body_font_size'] ) ? esc_attr( $settings['css_body_font_size'] ) : ''; ?>" placeholder="15px">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_body_padding"><?php echo esc_html( bhg_t( 'settings_padding', 'Padding' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_body_padding" name="bhg_css_body_padding" value="<?php echo isset( $settings['css_body_padding'] ) ? esc_attr( $settings['css_body_padding'] ) : ''; ?>" placeholder="0">
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_css_body_margin"><?php echo esc_html( bhg_t( 'settings_margin', 'Margin' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_css_body_margin" name="bhg_css_body_margin" value="<?php echo isset( $settings['css_body_margin'] ) ? esc_attr( $settings['css_body_margin'] ) : ''; ?>" placeholder="0 0 10px">
+</td>
+</tr>
 <tr>
 <th scope="row"><label for="bhg_ads_enabled"><?php echo esc_html( bhg_t( 'ads_enabled', 'Enable Ads' ) ); ?></label></th>
 <td>

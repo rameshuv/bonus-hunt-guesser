@@ -55,7 +55,161 @@ function bhg_slugify( $text ) {
  * @return string
  */
 function bhg_admin_cap() {
-	return apply_filters( 'bhg_admin_capability', 'manage_options' );
+        return apply_filters( 'bhg_admin_capability', 'manage_options' );
+}
+
+/**
+ * Sanitize a CSS length value.
+ *
+ * @param string $value      Raw value.
+ * @param bool   $allow_auto Allow the `auto` keyword.
+ * @return string Sanitized value or empty string if invalid.
+ */
+function bhg_sanitize_css_length( $value, $allow_auto = false ) {
+        $value = trim( (string) $value );
+
+        if ( '' === $value ) {
+                return '';
+        }
+
+        $lower    = strtolower( $value );
+        $keywords = array( 'inherit', 'initial', 'unset' );
+
+        if ( $allow_auto ) {
+                $keywords[] = 'auto';
+        }
+
+        if ( in_array( $lower, $keywords, true ) ) {
+                return $lower;
+        }
+
+        if ( preg_match( '/^-?(?:\d+|\d*\.\d+)(px|em|rem|vh|vw|vmin|vmax|ch|%)?$/i', $value, $matches ) ) {
+                $unit = isset( $matches[1] ) ? strtolower( $matches[1] ) : '';
+
+                if ( '' === $unit && 0.0 !== (float) $value ) {
+                        return '';
+                }
+
+                if ( '' === $unit ) {
+                        return '0';
+                }
+
+                return strtolower( $value );
+        }
+
+        return '';
+}
+
+/**
+ * Sanitize a multi-value CSS box shorthand.
+ *
+ * @param string $value      Raw value.
+ * @param bool   $allow_auto Allow the `auto` keyword.
+ * @return string Sanitized value or empty string if invalid.
+ */
+function bhg_sanitize_css_box_values( $value, $allow_auto = false ) {
+        $value = trim( (string) $value );
+
+        if ( '' === $value ) {
+                return '';
+        }
+
+        $parts     = preg_split( '/\s+/', $value );
+        $sanitized = array();
+
+        foreach ( $parts as $index => $part ) {
+                if ( $index >= 4 ) {
+                        break;
+                }
+
+                $clean = bhg_sanitize_css_length( $part, $allow_auto );
+
+                if ( '' === $clean && ! in_array( trim( $part ), array( '0', '0.0', '-0', '+0' ), true ) ) {
+                        return '';
+                }
+
+                $sanitized[] = '' === $clean ? '0' : $clean;
+        }
+
+        if ( empty( $sanitized ) ) {
+                return '';
+        }
+
+        return implode( ' ', $sanitized );
+}
+
+/**
+ * Sanitize a CSS font-size value.
+ *
+ * @param string $value Raw value.
+ * @return string Sanitized value or empty string if invalid.
+ */
+function bhg_sanitize_css_font_size( $value ) {
+        return bhg_sanitize_css_length( $value, false );
+}
+
+/**
+ * Sanitize a CSS font-weight value.
+ *
+ * @param string $value Raw value.
+ * @return string Sanitized value or empty string if invalid.
+ */
+function bhg_sanitize_css_font_weight( $value ) {
+        $value = trim( strtolower( (string) $value ) );
+
+        if ( '' === $value ) {
+                return '';
+        }
+
+        $keywords = array( 'normal', 'bold', 'bolder', 'lighter', 'inherit', 'initial', 'unset' );
+
+        if ( in_array( $value, $keywords, true ) ) {
+                return $value;
+        }
+
+        if ( preg_match( '/^[1-9]00$/', $value ) ) {
+                return $value;
+        }
+
+        return '';
+}
+
+/**
+ * Sanitize a CSS color value.
+ *
+ * @param string $value Raw value.
+ * @return string Sanitized value or empty string if invalid.
+ */
+function bhg_sanitize_css_color( $value ) {
+        $value = trim( (string) $value );
+
+        if ( '' === $value ) {
+                return '';
+        }
+
+        $hex = sanitize_hex_color( $value );
+
+        if ( $hex ) {
+                return $hex;
+        }
+
+        $lower = strtolower( $value );
+
+        if ( preg_match( '/^var\(--[a-z0-9_-]+\)$/', $lower ) ) {
+                return $lower;
+        }
+
+        if ( preg_match( '/^(rgba?|hsla?)\(\s*[0-9.,%\s]+\)$/', $lower ) ) {
+                return preg_replace( '/\s+/', ' ', $lower );
+        }
+
+        $keywords = array( 'transparent', 'inherit', 'initial', 'unset', 'currentcolor' );
+
+        if ( in_array( $lower, $keywords, true ) ) {
+                return $lower;
+        }
+
+        return '';
 }
 
 // Smart login redirect back to referring page.
@@ -557,11 +711,29 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'date'                                         => 'Date',
 			'default_tournament_period'                    => 'Default Tournament Period',
 			'default_period_for_tournament_calculations'   => 'Default period for tournament calculations.',
-			'default_prize_layout'                         => 'Default Prize Layout',
-			'default_prize_layout_description'             => 'Choose how prizes display on active hunts and shortcodes when no design is specified.',
-			'default_prize_size'                           => 'Default Prize Card Size',
-			'default_prize_size_description'               => 'Controls the image size used for prize cards when no shortcode override is provided.',
-			'delete_this_ad'                               => 'Delete this ad?',
+                        'default_prize_layout'                         => 'Default Prize Layout',
+                        'default_prize_layout_description'             => 'Choose how prizes display on active hunts and shortcodes when no design is specified.',
+                        'default_prize_size'                           => 'Default Prize Card Size',
+                        'default_prize_size_description'               => 'Controls the image size used for prize cards when no shortcode override is provided.',
+                        'settings_global_css_panel'                    => 'Global CSS & Color Panel',
+                        'settings_title_background'                    => 'Title Block Background Color',
+                        'settings_title_background_help'               => 'Accepts HEX, RGB(A), or CSS variable values.',
+                        'settings_title_radius'                        => 'Title Block Border Radius',
+                        'settings_box_value_help'                      => 'Use CSS length values (e.g. 8px 8px 0 0).',
+                        'settings_title_padding'                       => 'Title Block Padding',
+                        'settings_padding_help'                        => 'Spacing inside the title block. Up to four CSS values supported.',
+                        'settings_title_margin'                        => 'Title Block Margin',
+                        'settings_margin_help'                         => 'Spacing outside the title block. Up to four CSS values supported.',
+                        'settings_h2_styling'                          => 'H2 Styling',
+                        'settings_font_size'                           => 'Font Size',
+                        'settings_font_weight'                         => 'Font Weight',
+                        'settings_font_color'                          => 'Font Color',
+                        'settings_padding'                             => 'Padding',
+                        'settings_margin'                              => 'Margin',
+                        'settings_h3_styling'                          => 'H3 Styling',
+                        'settings_description_styling'                 => 'Description Text Styling',
+                        'settings_body_text_styling'                   => 'Paragraph & Span Defaults',
+                        'delete_this_ad'                               => 'Delete this ad?',
 			'delete_this_affiliate'                        => 'Delete this affiliate website?',
 			'delete_this_guess'                            => 'Delete this guess?',
 			'demo_tools'                                   => 'Demo Tools',

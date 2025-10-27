@@ -827,6 +827,78 @@ msgstr ""
 msgid "Default Prize Card Size"
 msgstr ""
 
+#: admin/views/settings.php:115
+msgid "Global CSS & Color Panel"
+msgstr ""
+
+#: admin/views/settings.php:118
+msgid "Title Block Background Color"
+msgstr ""
+
+#: admin/views/settings.php:121
+msgid "Accepts HEX, RGB(A), or CSS variable values."
+msgstr ""
+
+#: admin/views/settings.php:125
+msgid "Title Block Border Radius"
+msgstr ""
+
+#: admin/views/settings.php:128
+msgid "Use CSS length values (e.g. 8px 8px 0 0)."
+msgstr ""
+
+#: admin/views/settings.php:132
+msgid "Title Block Padding"
+msgstr ""
+
+#: admin/views/settings.php:135
+msgid "Spacing inside the title block. Up to four CSS values supported."
+msgstr ""
+
+#: admin/views/settings.php:139
+msgid "Title Block Margin"
+msgstr ""
+
+#: admin/views/settings.php:142
+msgid "Spacing outside the title block. Up to four CSS values supported."
+msgstr ""
+
+#: admin/views/settings.php:146
+msgid "H2 Styling"
+msgstr ""
+
+#: admin/views/settings.php:149 admin/views/settings.php:182 admin/views/settings.php:215 admin/views/settings.php:248
+msgid "Font Size"
+msgstr ""
+
+#: admin/views/settings.php:155 admin/views/settings.php:221
+msgid "Font Weight"
+msgstr ""
+
+#: admin/views/settings.php:161 admin/views/settings.php:227
+msgid "Font Color"
+msgstr ""
+
+#: admin/views/settings.php:167 admin/views/settings.php:233 admin/views/settings.php:254
+msgid "Padding"
+msgstr ""
+
+#: admin/views/settings.php:173 admin/views/settings.php:239 admin/views/settings.php:260
+msgid "Margin"
+msgstr ""
+
+#: admin/views/settings.php:179
+msgid "H3 Styling"
+msgstr ""
+
+#: admin/views/settings.php:212
+msgid "Description Text Styling"
+msgstr ""
+
+#: admin/views/settings.php:245
+msgid "Paragraph & Span Defaults"
+msgstr ""
+
 #: admin/views/settings.php:107
 msgid "Small"
 msgstr ""

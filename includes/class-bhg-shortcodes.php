@@ -199,8 +199,8 @@ $wpdb->usermeta,
                 $size   = $this->normalize_prize_size( $size );
 
                 ob_start();
-                echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
-                echo '<h4 class="bhg-prizes-title">' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . '</h4>';
+                echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . ' bhg-styled">';
+                echo $this->render_title_block( bhg_t( 'label_prizes', 'Prizes' ), 'h3', array( 'bhg-prizes-title' ) );
 
                 if ( 'carousel' === $layout ) {
                         $count    = count( $prizes );
@@ -286,14 +286,16 @@ $wpdb->usermeta,
                 unset( $atts ); // Parameter unused but kept for shortcode signature.
 
                 if ( is_user_logged_in() ) {
-								return '';
-			}
-				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
-				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+                                                                return '';
+                        }
+                                $raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+                                $base     = wp_validate_redirect( $raw, home_url( '/' ) );
+                                $redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
-                                                                                return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
-                                                                                . '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+                                $message = $this->render_description_text( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) );
+                                $button  = '<p class="bhg-description"><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+
+                                return $message . $button;
                 }
 
                 /**
@@ -308,6 +310,90 @@ $wpdb->usermeta,
                                 array(),
                                 defined( 'BHG_VERSION' ) ? BHG_VERSION : null
                         );
+                }
+
+                /**
+                 * Render a standardized title block.
+                 *
+                 * @param string       $title               Title text.
+                 * @param string       $tag                 Heading tag to use (h2, h3, h4).
+                 * @param array|string $additional_classes  Optional additional CSS classes.
+                 * @return string
+                 */
+                private function render_title_block( $title, $tag = 'h2', $additional_classes = array() ) {
+                        $tag = strtolower( (string) $tag );
+
+                        if ( ! in_array( $tag, array( 'h2', 'h3', 'h4' ), true ) ) {
+                                $tag = 'h3';
+                        }
+
+                        $heading_classes = array( 'bhg-heading', 'bhg-heading-' . $tag );
+
+                        foreach ( (array) $additional_classes as $class ) {
+                                $sanitized = sanitize_html_class( $class );
+                                if ( '' !== $sanitized ) {
+                                        $heading_classes[] = $sanitized;
+                                }
+                        }
+
+                        $heading_classes = array_unique( $heading_classes );
+                        $class_attr      = implode( ' ', $heading_classes );
+
+                        $output  = '<div class="bhg-title-block">';
+                        $output .= '<' . $tag . ' class="' . esc_attr( $class_attr ) . '">';
+                        $output .= esc_html( $title );
+                        $output .= '</' . $tag . '>';
+                        $output .= '</div>';
+
+                        return $output;
+                }
+
+                /**
+                 * Render a descriptive paragraph with standardized styling classes.
+                 *
+                 * @param string       $text                Text or HTML to output.
+                 * @param array|string $additional_classes  Optional classes.
+                 * @param bool         $allow_html          Whether to allow limited HTML.
+                 * @return string
+                 */
+                private function render_description_text( $text, $additional_classes = array(), $allow_html = false ) {
+                        $classes = array( 'bhg-description' );
+
+                        foreach ( (array) $additional_classes as $class ) {
+                                $sanitized = sanitize_html_class( $class );
+                                if ( '' !== $sanitized ) {
+                                        $classes[] = $sanitized;
+                                }
+                        }
+
+                        $classes   = array_unique( $classes );
+                        $class_attr = implode( ' ', $classes );
+
+                        $content = $allow_html ? wp_kses_post( $text ) : esc_html( $text );
+
+                        return '<p class="' . esc_attr( $class_attr ) . '">' . $content . '</p>';
+                }
+
+                /**
+                 * Render a message block wrapped in a styled container.
+                 *
+                 * @param string       $message             Message text.
+                 * @param array|string $wrapper_classes      Optional additional wrapper classes.
+                 * @return string
+                 */
+                private function render_message_block( $message, $wrapper_classes = array() ) {
+                        $classes = array( 'bhg-message', 'bhg-styled' );
+
+                        foreach ( (array) $wrapper_classes as $class ) {
+                                $sanitized = sanitize_html_class( $class );
+                                if ( '' !== $sanitized ) {
+                                        $classes[] = $sanitized;
+                                }
+                        }
+
+                        $classes = array_unique( $classes );
+
+                        return '<div class="' . esc_attr( implode( ' ', $classes ) ) . '">' . $this->render_description_text( $message ) . '</div>';
                 }
 
                 /**
@@ -545,11 +631,11 @@ $wpdb->usermeta,
 
                         ob_start();
 
-                        echo '<div class="bhg-my-bonushunts">';
-                        echo '<h3>' . esc_html( bhg_t( 'label_my_bonus_hunts', 'My Bonus Hunts' ) ) . '</h3>';
+                        echo '<div class="bhg-my-bonushunts bhg-styled">';
+                        echo $this->render_title_block( bhg_t( 'label_my_bonus_hunts', 'My Bonus Hunts' ), 'h2' );
 
                         if ( empty( $hunts ) ) {
-                                echo '<p>' . esc_html( bhg_t( 'notice_no_bonus_hunts_yet', 'You have not participated in any bonus hunts yet.' ) ) . '</p>';
+                                echo $this->render_description_text( bhg_t( 'notice_no_bonus_hunts_yet', 'You have not participated in any bonus hunts yet.' ) );
                         } else {
                                 echo '<table class="bhg-table bhg-my-hunts-table">';
                                 echo '<thead><tr>';
@@ -624,11 +710,11 @@ $wpdb->usermeta,
 
                         ob_start();
 
-                        echo '<div class="bhg-my-tournaments">';
-                        echo '<h3>' . esc_html( bhg_t( 'label_my_tournaments', 'My Tournaments' ) ) . '</h3>';
+                        echo '<div class="bhg-my-tournaments bhg-styled">';
+                        echo $this->render_title_block( bhg_t( 'label_my_tournaments', 'My Tournaments' ), 'h2' );
 
                         if ( empty( $tournaments ) ) {
-                                echo '<p>' . esc_html( bhg_t( 'notice_no_tournaments_yet', 'You have not joined any tournaments yet.' ) ) . '</p>';
+                                echo $this->render_description_text( bhg_t( 'notice_no_tournaments_yet', 'You have not joined any tournaments yet.' ) );
                         } else {
                                 echo '<table class="bhg-table bhg-my-tournaments-table">';
                                 echo '<thead><tr>';
@@ -710,11 +796,11 @@ $wpdb->usermeta,
 
                         ob_start();
 
-                        echo '<div class="bhg-my-prizes">';
-                        echo '<h3>' . esc_html( bhg_t( 'label_my_prizes', 'My Prizes' ) ) . '</h3>';
+                        echo '<div class="bhg-my-prizes bhg-styled">';
+                        echo $this->render_title_block( bhg_t( 'label_my_prizes', 'My Prizes' ), 'h2' );
 
                         if ( empty( $wins ) ) {
-                                echo '<p>' . esc_html( bhg_t( 'notice_no_prizes_yet', 'You have not won any prizes yet.' ) ) . '</p>';
+                                echo $this->render_description_text( bhg_t( 'notice_no_prizes_yet', 'You have not won any prizes yet.' ) );
                         } else {
                                 echo '<table class="bhg-table bhg-my-prizes-table">';
                                 echo '<thead><tr>';
@@ -775,14 +861,14 @@ $wpdb->usermeta,
 
                         ob_start();
 
-                        echo '<div class="bhg-my-rankings">';
-                        echo '<h3>' . esc_html( bhg_t( 'label_my_rankings', 'My Rankings' ) ) . '</h3>';
+                        echo '<div class="bhg-my-rankings bhg-styled">';
+                        echo $this->render_title_block( bhg_t( 'label_my_rankings', 'My Rankings' ), 'h2' );
 
                         if ( empty( $hunts ) && empty( $tournaments ) ) {
-                                echo '<p>' . esc_html( bhg_t( 'notice_no_rankings_yet', 'No rankings to display yet.' ) ) . '</p>';
+                                echo $this->render_description_text( bhg_t( 'notice_no_rankings_yet', 'No rankings to display yet.' ) );
                         } else {
                                 if ( ! empty( $hunts ) ) {
-                                        echo '<h4>' . esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ) . '</h4>';
+                                        echo '<h3 class="bhg-heading bhg-heading-h3">' . esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ) . '</h3>';
                                         echo '<table class="bhg-table bhg-my-rankings-hunts">';
                                         echo '<thead><tr>';
                                         echo '<th>' . esc_html( bhg_t( 'label_bonushunt', 'Bonushunt' ) ) . '</th>';
@@ -812,7 +898,7 @@ $wpdb->usermeta,
                                 }
 
                                 if ( ! empty( $tournaments ) ) {
-                                        echo '<h4>' . esc_html( bhg_t( 'label_tournaments', 'Tournaments' ) ) . '</h4>';
+                                        echo '<h3 class="bhg-heading bhg-heading-h3">' . esc_html( bhg_t( 'label_tournaments', 'Tournaments' ) ) . '</h3>';
                                         echo '<table class="bhg-table bhg-my-rankings-tournaments">';
                                         echo '<thead><tr>';
                                         echo '<th>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
@@ -903,8 +989,9 @@ $wpdb->usermeta,
                                wp_cache_set( $cache_key, $hunts, 'bhg', 300 );
                        }
 
-		       if ( empty( $hunts ) ) {
-                       return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
+                       if ( empty( $hunts ) ) {
+                               $message = $this->render_description_text( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) );
+                               return '<div class="bhg-active-hunt bhg-styled">' . $message . '</div>';
                        }
 
 		       $hunts_map = array();
@@ -1011,7 +1098,7 @@ $wpdb->usermeta,
 		       $hunt_site_id = isset( $selected_hunt->affiliate_site_id ) ? (int) $selected_hunt->affiliate_site_id : 0;
 
 		       ob_start();
-		       echo '<div class="bhg-active-hunt">';
+                       echo '<div class="bhg-active-hunt bhg-styled">';
 
 		       if ( count( $hunts ) > 1 ) {
 			       echo '<form class="bhg-hunt-selector" method="get">';
@@ -1038,8 +1125,8 @@ $wpdb->usermeta,
 			       echo '</form>';
 		       }
 
-		       echo '<div class="bhg-hunt-card">';
-		       echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
+                       echo '<div class="bhg-hunt-card">';
+                       echo $this->render_title_block( $selected_hunt->title, 'h2' );
                        echo '<ul class="bhg-hunt-meta">';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
@@ -1085,8 +1172,8 @@ $wpdb->usermeta,
                        echo '</div>';
 
 		       echo '<div class="bhg-table-wrapper">';
-		       if ( empty( $rows ) ) {
-			       echo '<p class="bhg-no-guesses">' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses have been submitted for this hunt yet.' ) ) . '</p>';
+                       if ( empty( $rows ) ) {
+                               echo $this->render_description_text( bhg_t( 'notice_no_guesses_yet', 'No guesses have been submitted for this hunt yet.' ), array( 'bhg-no-guesses' ) );
 		       } else {
 			       echo '<table class="bhg-leaderboard bhg-active-hunt-table">';
 			       echo '<thead><tr>';
@@ -1157,14 +1244,11 @@ $wpdb->usermeta,
 				$atts    = shortcode_atts( array( 'hunt_id' => 0 ), $atts, 'bhg_guess_form' );
 				$hunt_id = (int) $atts['hunt_id'];
 
-			if ( ! is_user_logged_in() ) {
-				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
-				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
+                        if ( ! is_user_logged_in() ) {
+                                $hint = $this->login_hint_shortcode();
 
-				return '<p>' . esc_html( bhg_t( 'notice_login_to_guess', 'Please log in to submit your guess.' ) ) . '</p>'
-				. '<p><a class="button button-primary" href="' . esc_url( wp_login_url( $redirect ) ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
-			}
+                                return '<div class="bhg-guess-form-wrapper bhg-styled">' . $hint . '</div>';
+                        }
 
 						global $wpdb;
 												$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
@@ -1187,14 +1271,16 @@ $wpdb->usermeta,
 					wp_cache_set( $cache_key, $open_hunts, 'bhg', 300 );
 			}
 
-			if ( $hunt_id <= 0 ) {
-				if ( ! $open_hunts ) {
-					return '<p>' . esc_html( bhg_t( 'notice_no_open_hunt', 'No open hunt found to guess.' ) ) . '</p>';
-				}
-				if ( count( $open_hunts ) === 1 ) {
-					$hunt_id = (int) $open_hunts[0]->id;
-				}
-			}
+                        if ( $hunt_id <= 0 ) {
+                                if ( ! $open_hunts ) {
+                                        $message = $this->render_description_text( bhg_t( 'notice_no_open_hunt', 'No open hunt found to guess.' ) );
+
+                                        return '<div class="bhg-guess-form-wrapper bhg-styled">' . $message . '</div>';
+                                }
+                                if ( count( $open_hunts ) === 1 ) {
+                                        $hunt_id = (int) $open_hunts[0]->id;
+                                }
+                        }
 
 						$user_id = get_current_user_id();
 						$table   = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
@@ -1232,8 +1318,9 @@ $wpdb->usermeta,
 				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
 			);
 
-			ob_start(); ?>
-                                                <form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                        ob_start(); ?>
+                        <div class="bhg-guess-form-wrapper bhg-styled">
+                                <form class="bhg-guess-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                                                                                                                                <input type="hidden" name="action" value="bhg_submit_guess">
                                                                                                                 <?php wp_nonce_field( 'bhg_submit_guess', 'bhg_submit_guess_nonce' ); ?>
                                                 <?php if ( $redirect_target ) : ?>
@@ -1271,10 +1358,11 @@ $wpdb->usermeta,
 					id="bhg-guess" name="guess" value="<?php echo esc_attr( $existing_guess ); ?>" required>
 				<div class="bhg-error-message"></div>
                                 <button type="submit" class="bhg-submit-btn button button-primary"><?php echo esc_html( $button_label ); ?></button>
-			</form>
-				<?php
-				return ob_get_clean();
-		}
+                        </form>
+                        </div>
+                                <?php
+                                return ob_get_clean();
+                }
 
 					/**
 					 * Displays a leaderboard for a hunt.
@@ -1317,9 +1405,9 @@ $wpdb->usermeta,
 												); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 						wp_cache_set( $cache_key, $hunt_id, 'bhg', 300 );
 				}
-				if ( $hunt_id <= 0 ) {
-						return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
-				}
+                                if ( $hunt_id <= 0 ) {
+                                                return $this->render_message_block( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ), 'bhg-leaderboard-wrapper' );
+                                }
 			}
 
 						$g = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_guesses' ) );
@@ -1381,7 +1469,7 @@ $wpdb->usermeta,
                                                                        wp_cache_set( $total_cache, $total, 'bhg', 300 );
                                                                }
                                                                if ( $total < 1 ) {
-                                                                                       return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
+                                                                                       return $this->render_message_block( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ), 'bhg-leaderboard-wrapper' );
                                                                }
 
                                                                                                 $hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
@@ -1419,7 +1507,7 @@ $wpdb->usermeta,
 						);
 
                                                ob_start();
-                                               echo '<div class="bhg-leaderboard-wrapper">';
+                                               echo '<div class="bhg-leaderboard-wrapper bhg-styled">';
                                                echo '<form method="get" class="bhg-search-form">';
                                                foreach ( $_GET as $raw_key => $v ) {
                                                        $key = sanitize_key( wp_unslash( $raw_key ) );
@@ -1567,10 +1655,10 @@ $wpdb->usermeta,
 
 			// Ensure hunts table has created_at column. If missing, inform admin to run upgrades manually.
 	$has_created_at = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$h} LIKE %s", 'created_at' ) );
-			if ( empty( $has_created_at ) ) {
-								error_log( 'Bonus Hunt Guesser: missing required column created_at in table ' . $h );
-								return '<p>' . esc_html( bhg_t( 'notice_db_update_required', 'Database upgrade required. Please run plugin upgrades.' ) ) . '</p>';
-			}
+                        if ( empty( $has_created_at ) ) {
+                                                                error_log( 'Bonus Hunt Guesser: missing required column created_at in table ' . $h );
+                                                                return $this->render_message_block( bhg_t( 'notice_db_update_required', 'Database upgrade required. Please run plugin upgrades.' ), 'bhg-user-guesses' );
+                        }
 
                         $order_column = 'id';
                         if ( $has_created_at ) {
@@ -1594,7 +1682,7 @@ $wpdb->usermeta,
                                 );
                         }
                         if ( $hunt_id <= 0 ) {
-                                return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
+                                return $this->render_message_block( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ), 'bhg-user-guesses' );
                         }
 
         $where  = array( 'g.hunt_id = %d' );
@@ -1770,7 +1858,7 @@ $wpdb->usermeta,
                         };
 
                         if ( ! $rows ) {
-                                return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
+                                return $this->render_message_block( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ), 'bhg-user-guesses' );
                         }
 
         $show_aff = $need_users;
@@ -1783,6 +1871,7 @@ $wpdb->usermeta,
         );
 
         ob_start();
+        echo '<div class="bhg-user-guesses-container bhg-styled">';
           echo '<form method="get" class="bhg-search-form">';
           foreach ( $_GET as $raw_key => $v ) {
                   $key = sanitize_key( wp_unslash( $raw_key ) );
@@ -1888,6 +1977,8 @@ $wpdb->usermeta,
           if ( $pagination ) {
                   echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
           }
+
+        echo '</div>';
 
           return ob_get_clean();
 		}
@@ -2055,7 +2146,7 @@ $wpdb->usermeta,
                         };
 
                         if ( ! $rows ) {
-                                return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
+                                return $this->render_message_block( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ), 'bhg-hunts-container' );
                         }
 
                         $show_site = $need_site_field;
@@ -2068,6 +2159,7 @@ $wpdb->usermeta,
                         );
 
                         ob_start();
+                        echo '<div class="bhg-hunts-container bhg-styled">';
                         echo '<form method="get" class="bhg-search-form">';
                         foreach ( $_GET as $raw_key => $v ) {
                                 $key = sanitize_key( wp_unslash( $raw_key ) );
@@ -2129,6 +2221,8 @@ $wpdb->usermeta,
                         if ( $pagination ) {
                                 echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
                         }
+
+                        echo '</div>';
 
                         return ob_get_clean();
 		}
@@ -2493,8 +2587,15 @@ $wpdb->usermeta,
                                 $total = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$prep_where ) );
                         }
 
+                        wp_enqueue_style(
+                                'bhg-shortcodes',
+                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                array(),
+                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                        );
+
                         if ( $total <= 0 ) {
-                                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+                                return $this->render_message_block( bhg_t( 'notice_no_data_available', 'No data available.' ), 'bhg-leaderboards' );
                         }
 
                         $select_parts = array(
@@ -2585,7 +2686,7 @@ $wpdb->usermeta,
                         // db call ok; no-cache ok.
                         $rows        = $wpdb->get_results( $query );
                         if ( ! $rows ) {
-                                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+                                return $this->render_message_block( bhg_t( 'notice_no_data_available', 'No data available.' ), 'bhg-leaderboards' );
                         }
                         $pages = (int) ceil( $total / $limit );
 
@@ -2621,14 +2722,8 @@ $wpdb->usermeta,
                                 return add_query_arg( $args, $base_url );
                         };
 
-                        wp_enqueue_style(
-                                'bhg-shortcodes',
-                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-                                array(),
-                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-                        );
-
                         ob_start();
+                        echo '<div class="bhg-leaderboards bhg-styled">';
                         echo '<form method="get" class="bhg-search-form">';
                         foreach ( $_GET as $raw_key => $v ) {
                                 $key = sanitize_key( wp_unslash( $raw_key ) );
@@ -2766,6 +2861,7 @@ $wpdb->usermeta,
 					++$pos;
 			}
                         echo '</tbody></table>';
+                        echo '</div>';
 
                         return ob_get_clean();
                 }
@@ -2803,9 +2899,9 @@ $wpdb->usermeta,
 												$details_id
 											)
 										);
-				if ( ! $tournament ) {
-					return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
-				}
+                                if ( ! $tournament ) {
+                                        return $this->render_message_block( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ), 'bhg-tournaments' );
+                                }
 
 					$orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
 					$allowed_orders = array( 'asc', 'desc' );
@@ -2846,7 +2942,7 @@ $wpdb->usermeta,
 				};
 
 					ob_start();
-					echo '<div class="bhg-tournament-details">';
+                                        echo '<div class="bhg-tournament-details bhg-styled">';
 					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
 					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
 					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
@@ -2855,7 +2951,7 @@ $wpdb->usermeta,
 									echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
 
 				if ( ! $rows ) {
-					echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
+                                echo $this->render_description_text( bhg_t( 'notice_no_results_yet', 'No results yet.' ) );
 					echo '</div>';
 					return ob_get_clean();
 				}
@@ -2975,7 +3071,7 @@ $wpdb->usermeta,
                        $query_args  = array_merge( $params, array( $limit, $offset ) );
                        $rows        = $wpdb->get_results( $wpdb->prepare( $sql, ...$query_args ) ); // db call ok; no-cache ok.
                        if ( ! $rows ) {
-                               return '<p>' . esc_html( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ) ) . '</p>';
+                               return $this->render_message_block( bhg_t( 'notice_no_tournaments_found', 'No tournaments found.' ), 'bhg-tournaments-list' );
                        }
 
                        $current_url = isset( $_SERVER['REQUEST_URI'] )
@@ -2988,6 +3084,7 @@ $wpdb->usermeta,
                        }
 
                        ob_start();
+                       echo '<div class="bhg-tournaments-list bhg-styled">';
                        echo '<form method="get" class="bhg-tournament-filters">';
                                                // Keep other query args.
                        foreach ( $_GET as $raw_key => $v ) {
@@ -3097,6 +3194,8 @@ $wpdb->usermeta,
                                }
                        }
 
+                       echo '</div>';
+
                        return ob_get_clean();
                }
 
@@ -3144,7 +3243,8 @@ $wpdb->usermeta,
                         $prizes = BHG_Prizes::get_prizes( $args );
 
                         if ( empty( $prizes ) ) {
-                                return '<div class="bhg-prizes-shortcode"><p>' . esc_html( bhg_t( 'no_prizes_yet', 'No prizes found.' ) ) . '</p></div>';
+                                $message = $this->render_description_text( bhg_t( 'no_prizes_yet', 'No prizes found.' ) );
+                                return '<div class="bhg-prizes-shortcode bhg-styled">' . $message . '</div>';
                         }
 
                         $content = $this->render_prize_section( $prizes, $layout, $size );
@@ -3153,7 +3253,7 @@ $wpdb->usermeta,
                                 return '';
                         }
 
-                        return '<div class="bhg-prizes-shortcode">' . $content . '</div>';
+                        return '<div class="bhg-prizes-shortcode bhg-styled">' . $content . '</div>';
                 }
 
 					/**
@@ -3182,19 +3282,19 @@ $wpdb->usermeta,
 						);
 										$hunts = $wpdb->get_results( $sql );
 
-			if ( ! $hunts ) {
-				return '<p>' . esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ) . '</p>';
-			}
+                        wp_enqueue_style(
+                                'bhg-shortcodes',
+                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                array(),
+                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                        );
 
-			wp_enqueue_style(
-				'bhg-shortcodes',
-				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				array(),
-				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-			);
+                        if ( ! $hunts ) {
+                                return $this->render_message_block( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ), 'bhg-winner-notifications' );
+                        }
 
 			ob_start();
-			echo '<div class="bhg-winner-notifications">';
+                        echo '<div class="bhg-winner-notifications bhg-styled">';
 			foreach ( $hunts as $hunt ) {
 				$winners = function_exists( 'bhg_get_top_winners_for_hunt' )
 				? bhg_get_top_winners_for_hunt( $hunt->id, (int) $hunt->winners_count )
@@ -3231,7 +3331,7 @@ $wpdb->usermeta,
                public function user_profile_shortcode( $atts ) {
                        unset( $atts ); // Parameter unused but kept for shortcode signature.
                        if ( ! is_user_logged_in() ) {
-                               return '<p>' . esc_html( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ) ) . '</p>';
+                               return $this->render_message_block( bhg_t( 'notice_login_view_content', 'Please log in to view this content.' ), 'bhg-user-profile' );
                        }
                        wp_enqueue_style(
                                'bhg-shortcodes',
@@ -3257,7 +3357,7 @@ $wpdb->usermeta,
                        if ( current_user_can( 'edit_user', $user_id ) ) {
                                $edit_link = get_edit_user_link( $user_id );
                        }
-                      $output  = '<div class="bhg-user-profile"><table class="bhg-user-profile-table">';
+                      $output  = '<div class="bhg-user-profile bhg-styled"><table class="bhg-user-profile-table">';
                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th><td>' . esc_html( $real_name ) . '</td></tr>';
                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
                       $output .= '<tr><th>' . esc_html( bhg_t( 'label_email', 'Email' ) ) . '</th><td>' . esc_html( $email ) . '</td></tr>';
