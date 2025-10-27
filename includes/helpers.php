@@ -676,6 +676,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'inactive'                                     => 'Inactive',
 			'optimize_database_tables'                     => 'Optimize Database Tables',
 			'participants'                                 => 'Participants',
+			'submitted_at'                                 => 'Submitted',
 			'placement'                                    => 'Placement',
 			'play_responsibly'                             => 'Play responsibly.',
 			'please_enter_a_guess'                         => 'Please enter a guess.',

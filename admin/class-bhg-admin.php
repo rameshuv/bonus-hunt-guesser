@@ -342,7 +342,12 @@ class BHG_Admin {
                         }
                 }
                 $primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
-		$winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
+                $winners_count_raw     = isset( $_POST['winners_count'] ) ? absint( wp_unslash( $_POST['winners_count'] ) ) : 0;
+                if ( $winners_count_raw < 1 ) {
+                        $winners_count = 3;
+                } else {
+                        $winners_count = min( 25, $winners_count_raw );
+                }
 		$guessing_enabled      = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
                $final_balance_raw = isset( $_POST['final_balance'] ) ? wp_unslash( $_POST['final_balance'] ) : '';
                $final_balance     = null;
