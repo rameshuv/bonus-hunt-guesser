@@ -10,6 +10,8 @@
 
 ## 8.0.14 — 2025-09-16
 - Updated plugin header metadata (version 8.0.14, WordPress 6.3.0 minimum, MySQL requirement) and synced loader constants.
+- Added dedicated Shortcodes and Notifications admin pages, including saved notification templates for hunts, winners, and tournaments.
+- Implemented automated email dispatch when hunts and tournaments close with support for template tags and BCC recipients.
 - Updated plugin header description to match the customer delivery specification.
 - Normalized `load_plugin_textdomain()` path to match WordPress recommendations.
 - Ensured the automatic “Bonus Hunt” submenu entry displays the translated Dashboard label in wp-admin.

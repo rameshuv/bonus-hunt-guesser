@@ -10,6 +10,8 @@ Date: 2025-09-12
 - Added per-affiliate website toggles on the Users admin screen and profile editor, with cleanup when affiliate sites are deleted.
 - Added default prize layout and card size settings so active hunts and the `[bhg_prizes]` shortcode automatically display linked prizes without manual overrides.
 - Introduced a global CSS/color panel with inline styling so frontend title blocks, headings, and descriptions share consistent typography.
+- Added dedicated Shortcodes and Notifications admin pages with saved templates for hunt, winner, and tournament messaging.
+- Implemented automated notification delivery when hunts or tournaments close, including template tags and BCC recipient support.
 
 ## Stage-1 (Hotfix & Hardening)
 - Always run DB migrations on init via bhg_check_tables() → fixes missing tournament columns.

@@ -1570,3 +1570,203 @@ msgstr ""
 msgid "Select the affiliate websites this user belongs to."
 msgstr ""
 
+#. Default translation key: menu_shortcodes
+msgid "Shortcodes"
+msgstr ""
+
+#. Default translation key: menu_notifications
+msgid "Notifications"
+msgstr ""
+
+#. Default translation key: no_shortcodes_ui_found
+msgid "No shortcodes reference available."
+msgstr ""
+
+#. Default translation key: no_notifications_ui_found
+msgid "No notifications UI found."
+msgstr ""
+
+#. Default translation key: shortcodes_heading
+msgid "Shortcodes Reference"
+msgstr ""
+
+#. Default translation key: shortcodes_description
+msgid "Use these shortcodes to display Bonus Hunt data on the frontend."
+msgstr ""
+
+#. Default translation key: shortcodes_table_shortcode
+msgid "Shortcode"
+msgstr ""
+
+#. Default translation key: shortcodes_table_description
+msgid "Description"
+msgstr ""
+
+#. Default translation key: shortcodes_table_attributes
+msgid "Attributes"
+msgstr ""
+
+#. Default translation key: shortcodes_table_example
+msgid "Example"
+msgstr ""
+
+#. Default translation key: shortcode_desc_bhg_prizes
+msgid "Displays a list of prizes with optional design and sizing controls."
+msgstr ""
+
+#. Default translation key: shortcode_desc_bhg_active_hunt
+msgid "Shows the currently active bonus hunt with summary details."
+msgstr ""
+
+#. Default translation key: shortcode_desc_bhg_leaderboard
+msgid "Outputs the primary leaderboard for recent bonus hunt results."
+msgstr ""
+
+#. Default translation key: shortcode_desc_my_bonushunts
+msgid "Lists hunts the current user has participated in with ranking details."
+msgstr ""
+
+#. Default translation key: shortcode_desc_my_tournaments
+msgid "Lists tournaments the current user has participated in."
+msgstr ""
+
+#. Default translation key: shortcode_desc_my_prizes
+msgid "Shows prizes won by the current user."
+msgstr ""
+
+#. Default translation key: shortcode_desc_my_rankings
+msgid "Displays combined rankings for the current user across hunts and tournaments."
+msgstr ""
+
+#. Default translation key: shortcode_attr_category
+msgid "`category` – Filter prizes by category slug."
+msgstr ""
+
+#. Default translation key: shortcode_attr_design
+msgid "`design` – Choose between grid or carousel layouts."
+msgstr ""
+
+#. Default translation key: shortcode_attr_size
+msgid "`size` – Render prizes using small, medium, or big imagery."
+msgstr ""
+
+#. Default translation key: shortcode_attr_active
+msgid "`active` – Limit results to active items (yes/no)."
+msgstr ""
+
+#. Default translation key: shortcode_attr_layout
+msgid "`layout` – Choose the leaderboard layout (overall, monthly, yearly)."
+msgstr ""
+
+#. Default translation key: shortcode_attr_user
+msgid "`user` – Optional user ID to render another profile."
+msgstr ""
+
+#. Default translation key: shortcode_attr_none
+msgid "No attributes required."
+msgstr ""
+
+#. Default translation key: notifications_heading
+msgid "Notifications"
+msgstr ""
+
+#. Default translation key: notifications_description
+msgid "Configure the emails that are sent when hunts and tournaments close."
+msgstr ""
+
+#. Default translation key: notification_winners_heading
+msgid "Winners notifications"
+msgstr ""
+
+#. Default translation key: notification_hunts_heading
+msgid "Bonus hunt notifications"
+msgstr ""
+
+#. Default translation key: notification_tournaments_heading
+msgid "Tournament notifications"
+msgstr ""
+
+#. Default translation key: label_notification_enabled
+msgid "Enable notification"
+msgstr ""
+
+#. Default translation key: label_notification_subject
+msgid "Email subject"
+msgstr ""
+
+#. Default translation key: label_notification_body
+msgid "Email message (HTML allowed)"
+msgstr ""
+
+#. Default translation key: label_notification_bcc
+msgid "BCC recipients"
+msgstr ""
+
+#. Default translation key: notification_bcc_hint
+msgid "Separate multiple email addresses with commas or new lines."
+msgstr ""
+
+#. Default translation key: notification_tokens_heading
+msgid "Available template tags"
+msgstr ""
+
+#. Default translation key: notification_token_hunt_title
+msgid "{{hunt_title}} — Bonus hunt title"
+msgstr ""
+
+#. Default translation key: notification_token_final_balance
+msgid "{{final_balance}} — Final balance of the bonus hunt"
+msgstr ""
+
+#. Default translation key: notification_token_user_name
+msgid "{{user_name}} — Recipient display name"
+msgstr ""
+
+#. Default translation key: notification_token_user_guess
+msgid "{{user_guess}} — Recipient guess amount"
+msgstr ""
+
+#. Default translation key: notification_token_guess_difference
+msgid "{{guess_difference}} — Difference between guess and final balance"
+msgstr ""
+
+#. Default translation key: notification_token_tournament_title
+msgid "{{tournament_title}} — Tournament title"
+msgstr ""
+
+#. Default translation key: notification_token_user_wins
+msgid "{{user_wins}} — Total wins for the user"
+msgstr ""
+
+#. Default translation key: notification_token_results_table
+msgid "{{results_table}} — HTML table with tournament standings"
+msgstr ""
+
+#. Default translation key: notifications_saved
+msgid "Notifications saved."
+msgstr ""
+
+#. Default translation key: notification_default_subject_winners
+msgid "Congratulations on your Bonus Hunt win!"
+msgstr ""
+
+#. Default translation key: notification_default_body_winners
+msgid "<p>Hi {{user_name}},</p><p>Congratulations! You placed in the latest bonus hunt \"{{hunt_title}}\".</p><p>Your guess: {{user_guess}}<br>Final balance: {{final_balance}}<br>Difference: {{guess_difference}}</p><p>Thank you for playing!</p>"
+msgstr ""
+
+#. Default translation key: notification_default_subject_hunts
+msgid "The bonus hunt \"{{hunt_title}}\" has finished"
+msgstr ""
+
+#. Default translation key: notification_default_body_hunts
+msgid "<p>Hi {{user_name}},</p><p>The bonus hunt \"{{hunt_title}}\" has closed. The final balance was {{final_balance}}.</p><p>Thanks for taking part!</p>"
+msgstr ""
+
+#. Default translation key: notification_default_subject_tournaments
+msgid "Tournament \"{{tournament_title}}\" results"
+msgstr ""
+
+#. Default translation key: notification_default_body_tournaments
+msgid "<p>Hi {{user_name}},</p><p>The tournament \"{{tournament_title}}\" has concluded. You finished with {{user_wins}} wins.</p><p>{{results_table}}</p>"
+msgstr ""
+

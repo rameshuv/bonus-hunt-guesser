@@ -204,8 +204,8 @@ $has_all_mode = in_array( 'all', $tournament_modes, true );
 				}
 			}
 		}
-// Fetch winners based on proximity to final balance.
-                $query  = 'SELECT user_id, guess, (%f - guess) AS diff FROM ' . $guesses_tbl . ' WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC';
+               // Fetch winners based on proximity to final balance.
+               $query  = 'SELECT user_id, guess, (%f - guess) AS diff FROM ' . $guesses_tbl . ' WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC';
                 $params = array( (float) $final_balance, (int) $hunt_id, (float) $final_balance );
                 if ( ! $has_all_mode ) {
                         $query   .= ' LIMIT %d';
@@ -213,78 +213,89 @@ $has_all_mode = in_array( 'all', $tournament_modes, true );
                 }
 
                 $prepared = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $query ), $params ) );
-                $rows     = $wpdb->get_results( $prepared );
-if ( empty( $rows ) ) {
-			return array();
-		}
+               $rows     = $wpdb->get_results( $prepared );
+               if ( empty( $rows ) ) {
+                       return array();
+               }
 
-		// Record winners and update tournament results.
-		$position = 1;
-		foreach ( (array) $rows as $row ) {
-			$wpdb->insert(
-				$winners_tbl,
-				array(
-					'hunt_id'    => $hunt_id,
-					'user_id'    => (int) $row->user_id,
-					'position'   => $position,
-					'guess'      => (float) $row->guess,
-					'diff'       => (float) $row->diff,
-					'created_at' => $now,
-				),
-				array( '%d', '%d', '%d', '%f', '%f', '%s' )
-			);
+               // Record winners and update tournament results.
+               $position = 1;
+               foreach ( (array) $rows as $row ) {
+                       $wpdb->insert(
+                               $winners_tbl,
+                               array(
+                                       'hunt_id'    => $hunt_id,
+                                       'user_id'    => (int) $row->user_id,
+                                       'position'   => $position,
+                                       'guess'      => (float) $row->guess,
+                                       'diff'       => (float) $row->diff,
+                                       'created_at' => $now,
+                               ),
+                               array( '%d', '%d', '%d', '%f', '%f', '%s' )
+                       );
 
-if ( ! empty( $tournament_ids ) ) {
-				foreach ( $tournament_ids as $tournament_id ) {
-					$mode = isset( $tournament_modes[ $tournament_id ] ) ? $tournament_modes[ $tournament_id ] : 'winners';
+                       if ( ! empty( $tournament_ids ) ) {
+                               foreach ( $tournament_ids as $tournament_id ) {
+                                       $mode = isset( $tournament_modes[ $tournament_id ] ) ? $tournament_modes[ $tournament_id ] : 'winners';
 
-					if ( 'all' !== $mode && $position > $winners_count ) {
-						continue;
-					}
+                                       if ( 'all' !== $mode && $position > $winners_count ) {
+                                               continue;
+                                       }
 
-					$existing = $wpdb->get_row(
-						$wpdb->prepare(
-							'SELECT id, wins FROM ' . $tres_tbl . ' WHERE tournament_id = %d AND user_id = %d',
-							(int) $tournament_id,
-							(int) $row->user_id
-						)
-					);
+                                       $existing = $wpdb->get_row(
+                                               $wpdb->prepare(
+                                                       'SELECT id, wins FROM ' . $tres_tbl . ' WHERE tournament_id = %d AND user_id = %d',
+                                                       (int) $tournament_id,
+                                                       (int) $row->user_id
+                                               )
+                                       );
 
-					if ( $existing ) {
-						$updated = $wpdb->update(
-							$tres_tbl,
-							array(
-								'wins'          => (int) $existing->wins + 1,
-								'last_win_date' => $now,
-							),
-							array( 'id' => (int) $existing->id ),
-							array( '%d', '%s' ),
-							array( '%d' )
-						);
+                                       if ( $existing ) {
+                                               $updated = $wpdb->update(
+                                                       $tres_tbl,
+                                                       array(
+                                                               'wins'          => (int) $existing->wins + 1,
+                                                               'last_win_date' => $now,
+                                                       ),
+                                                       array( 'id' => (int) $existing->id ),
+                                                       array( '%d', '%s' ),
+                                                       array( '%d' )
+                                               );
 
-						if ( false === $updated ) {
-							bhg_log( $wpdb->last_error );
-							return false;
-						}
-					} else {
-						$wpdb->insert(
-							$tres_tbl,
-							array(
-								'tournament_id' => (int) $tournament_id,
-								'user_id'       => (int) $row->user_id,
-								'wins'          => 1,
-								'last_win_date' => $now,
-							),
-							array( '%d', '%d', '%d', '%s' )
-						);
-					}
-				}
-			}
-++$position;
-		}
+                                               if ( false === $updated ) {
+                                                       bhg_log( $wpdb->last_error );
+                                                       return false;
+                                               }
+                                       } else {
+                                               $wpdb->insert(
+                                                       $tres_tbl,
+                                                       array(
+                                                               'tournament_id' => (int) $tournament_id,
+                                                               'user_id'       => (int) $row->user_id,
+                                                               'wins'          => 1,
+                                                               'last_win_date' => $now,
+                                                       ),
+                                                       array( '%d', '%d', '%d', '%s' )
+                                               );
+                                       }
+                               }
+                       }
 
-		return array_map( 'intval', wp_list_pluck( $rows, 'user_id' ) );
-	}
+                       ++$position;
+               }
+
+               $winner_ids = array_map( 'intval', wp_list_pluck( $rows, 'user_id' ) );
+
+               /**
+                * Fires after a hunt has been closed and winners persisted.
+                *
+                * @param int   $hunt_id    Hunt identifier.
+                * @param int[] $winner_ids Winner user IDs.
+                */
+               do_action( 'bhg_hunt_closed', $hunt_id, $winner_ids );
+
+               return $winner_ids;
+        }
 
 	/**
 	 * Recalculate tournament leaderboards based on current hunt winners.

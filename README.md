@@ -7,6 +7,8 @@ Requires at least: WordPress 6.3.0
 - **Default Prize Layout** — choose whether active hunts and prize shortcodes render prizes in a grid or carousel when no shortcode override is provided.
 - **Default Prize Card Size** — pick the default image size (`small`, `medium`, or `big`) used for prize cards across the frontend.
 - **Global CSS & Color Panel** — configure title block backgrounds, heading typography, and description/body spacing shared across frontend shortcodes.
+- **Notifications** — manage hunt, winner, and tournament email templates (subject, HTML body, and BCC recipients) from the Bonus Hunt → Notifications screen.
+- **Shortcodes Reference** — review supported shortcodes, attributes, and usage examples from the Bonus Hunt → Shortcodes screen.
 
 ## Shortcodes
 
