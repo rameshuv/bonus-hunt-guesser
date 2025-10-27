@@ -1012,15 +1012,19 @@ LIMIT %d OFFSET %d",
  * @return bool True if user is an affiliate.
  */
 function bhg_is_affiliate( $user_id = null ) {
-	if ( ! $user_id ) {
-		$user_id = get_current_user_id();
-	}
+        if ( ! $user_id ) {
+                $user_id = get_current_user_id();
+        }
 
-	if ( ! $user_id ) {
-		return false;
-	}
+        if ( ! $user_id ) {
+                return false;
+        }
 
-		return (bool) get_user_meta( $user_id, 'bhg_is_affiliate', true );
+        if ( function_exists( 'bhg_is_user_affiliate' ) ) {
+                return bhg_is_user_affiliate( $user_id );
+        }
+
+        return (bool) get_user_meta( $user_id, 'bhg_is_affiliate', true );
 }
 
 // Add user profile fields for affiliate status.
@@ -1034,23 +1038,45 @@ add_action( 'edit_user_profile', 'bhg_extra_user_profile_fields' );
  * @return void
  */
 function bhg_extra_user_profile_fields( $user ) {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
+        if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+        }
 
-		$affiliate_status = get_user_meta( $user->ID, 'bhg_is_affiliate', true );
-	?>
-			<h3><?php esc_html_e( 'Bonus Hunt Guesser Information', 'bonus-hunt-guesser' ); ?></h3>
-	<table class="form-table">
-		<tr>
-							<th><label for="bhg_is_affiliate"><?php esc_html_e( 'Affiliate Status', 'bonus-hunt-guesser' ); ?></label></th>
-			<td>
-									<input type="checkbox" name="bhg_is_affiliate" id="bhg_is_affiliate" value="1" <?php checked( $affiliate_status, 1 ); ?> />
-									<span class="description"><?php esc_html_e( 'Check if this user is an affiliate.', 'bonus-hunt-guesser' ); ?></span>
-			</td>
-		</tr>
-	</table>
-	<?php
+        global $wpdb;
+
+        $affiliate_status = get_user_meta( $user->ID, 'bhg_is_affiliate', true );
+        $user_sites       = function_exists( 'bhg_get_user_affiliate_websites' ) ? bhg_get_user_affiliate_websites( $user->ID ) : array();
+
+        $affiliate_sites_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only listing.
+        $affiliate_sites       = $wpdb->get_results( "SELECT id, name FROM {$affiliate_sites_table} WHERE status = 'active' ORDER BY name ASC" );
+        ?>
+        <h3><?php esc_html_e( 'Bonus Hunt Guesser Information', 'bonus-hunt-guesser' ); ?></h3>
+        <table class="form-table">
+                <tr>
+                        <th><label for="bhg_is_affiliate"><?php esc_html_e( 'Affiliate Status', 'bonus-hunt-guesser' ); ?></label></th>
+                        <td>
+                                <input type="checkbox" name="bhg_is_affiliate" id="bhg_is_affiliate" value="1" <?php checked( $affiliate_status, 1 ); ?> />
+                                <span class="description"><?php esc_html_e( 'Check if this user is an affiliate.', 'bonus-hunt-guesser' ); ?></span>
+                        </td>
+                </tr>
+                <?php if ( ! empty( $affiliate_sites ) ) : ?>
+                        <tr>
+                                <th scope="row"><?php esc_html_e( 'Affiliate Websites', 'bonus-hunt-guesser' ); ?></th>
+                                <td>
+                                        <?php foreach ( $affiliate_sites as $site ) : ?>
+                                                <?php $site_id = (int) $site->id; ?>
+                                                <label style="display:block;margin-bottom:4px;">
+                                                        <input type="checkbox" name="bhg_affiliate_sites[]" value="<?php echo esc_attr( $site_id ); ?>" <?php checked( in_array( $site_id, (array) $user_sites, true ), true ); ?> />
+                                                        <?php echo esc_html( $site->name ); ?>
+                                                </label>
+                                        <?php endforeach; ?>
+                                        <p class="description"><?php esc_html_e( 'Select the affiliate websites this user represents.', 'bonus-hunt-guesser' ); ?></p>
+                                </td>
+                        </tr>
+                <?php endif; ?>
+        </table>
+        <?php
 }
 
 add_action( 'personal_options_update', 'bhg_save_extra_user_profile_fields' );
@@ -1063,13 +1089,33 @@ add_action( 'edit_user_profile_update', 'bhg_save_extra_user_profile_fields' );
  * @return void|false Returns false if the user cannot be edited.
  */
 function bhg_save_extra_user_profile_fields( $user_id ) {
-	if ( ! current_user_can( 'edit_user', $user_id ) ) {
-			return false;
-	}
+        if ( ! current_user_can( 'edit_user', $user_id ) ) {
+                return false;
+        }
 
-				check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
+        check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
 
-		$affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
-		update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
+        $affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
+        $site_ids         = isset( $_POST['bhg_affiliate_sites'] ) ? (array) wp_unslash( $_POST['bhg_affiliate_sites'] ) : array();
+
+        $normalized_sites = array();
+        foreach ( $site_ids as $site_id ) {
+                $site_id = absint( $site_id );
+                if ( $site_id ) {
+                        $normalized_sites[] = $site_id;
+                }
+        }
+
+        if ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                bhg_set_user_affiliate_websites( $user_id, $normalized_sites );
+        } else {
+                update_user_meta( $user_id, 'bhg_affiliate_websites', $normalized_sites );
+        }
+
+        if ( ! empty( $normalized_sites ) ) {
+                $affiliate_status = 1;
+        }
+
+        update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
 }
 

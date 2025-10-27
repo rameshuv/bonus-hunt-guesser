@@ -1145,20 +1145,53 @@ exit;
 		/**
 		 * Delete an affiliate website.
 		 */
-	public function handle_delete_affiliate() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-		}
+        public function handle_delete_affiliate() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
 								check_admin_referer( 'bhg_delete_affiliate', 'bhg_delete_affiliate_nonce' );
 				global $wpdb;
 				$table = $wpdb->prefix . 'bhg_affiliate_websites';
 		$id            = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
-		if ( $id ) {
-			$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-		}
-				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
-		exit;
-	}
+                if ( $id ) {
+                        $wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
+
+                        $usermeta_table = $wpdb->usermeta;
+                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Controlled cleanup routine.
+                        $meta_rows      = $wpdb->get_results(
+                                $wpdb->prepare(
+                                        "SELECT user_id, meta_value FROM {$usermeta_table} WHERE meta_key = %s",
+                                        'bhg_affiliate_websites'
+                                )
+                        );
+
+                        if ( $meta_rows ) {
+                                foreach ( $meta_rows as $meta_row ) {
+                                        $sites    = maybe_unserialize( $meta_row->meta_value );
+                                        $filtered = array();
+
+                                        if ( is_array( $sites ) ) {
+                                                foreach ( $sites as $site_id ) {
+                                                        $site_id = absint( $site_id );
+                                                        if ( $site_id && $site_id !== $id ) {
+                                                                $filtered[] = $site_id;
+                                                        }
+                                                }
+                                        }
+
+                                        if ( is_array( $sites ) && count( $sites ) !== count( $filtered ) ) {
+                                                if ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                                                        bhg_set_user_affiliate_websites( (int) $meta_row->user_id, $filtered );
+                                                } else {
+                                                        update_user_meta( (int) $meta_row->user_id, 'bhg_affiliate_websites', $filtered );
+                                                }
+                                        }
+                                }
+                        }
+                }
+                wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
+                exit;
+        }
 
 	/**
 	 * Save custom user metadata from the admin screen.
@@ -1169,14 +1202,35 @@ exit;
 		}
 								check_admin_referer( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' );
 		$user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
-		if ( $user_id ) {
-			$real_name    = isset( $_POST['bhg_real_name'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_real_name'] ) ) : '';
-			$is_affiliate = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
-			update_user_meta( $user_id, 'bhg_real_name', $real_name );
-			update_user_meta( $user_id, 'bhg_is_affiliate', $is_affiliate );
-		}
-				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-users' ) );
-		exit;
+                if ( $user_id ) {
+                        $real_name    = isset( $_POST['bhg_real_name'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_real_name'] ) ) : '';
+                        $is_affiliate = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
+                        $site_ids     = isset( $_POST['bhg_affiliate_sites'] ) ? (array) wp_unslash( $_POST['bhg_affiliate_sites'] ) : array();
+
+                        $normalized_sites = array();
+                        foreach ( $site_ids as $site_id ) {
+                                $site_id = absint( $site_id );
+                                if ( $site_id ) {
+                                        $normalized_sites[] = $site_id;
+                                }
+                        }
+
+                        update_user_meta( $user_id, 'bhg_real_name', $real_name );
+
+                        if ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                                bhg_set_user_affiliate_websites( $user_id, $normalized_sites );
+                        } else {
+                                update_user_meta( $user_id, 'bhg_affiliate_websites', $normalized_sites );
+                        }
+
+                        if ( ! empty( $normalized_sites ) ) {
+                                $is_affiliate = 1;
+                        }
+
+                        update_user_meta( $user_id, 'bhg_is_affiliate', $is_affiliate );
+                }
+                wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-users' ) );
+                exit;
 	}
 
         /**

@@ -852,16 +852,22 @@ function bhg_get_user_display_name( $user_id ) {
 }
 
 if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
-	/**
-	 * Check if a user is an affiliate.
-	 *
-	 * @param int $user_id User ID.
-	 * @return bool
-	 */
-	function bhg_is_user_affiliate( $user_id ) {
-		$val = get_user_meta( (int) $user_id, 'bhg_is_affiliate', true );
-		return ( '1' === $val || 1 === $val || true === $val || 'yes' === $val );
-	}
+        /**
+         * Check if a user is an affiliate.
+         *
+         * @param int $user_id User ID.
+         * @return bool
+         */
+        function bhg_is_user_affiliate( $user_id ) {
+                $user_id = (int) $user_id;
+                $val     = get_user_meta( $user_id, 'bhg_is_affiliate', true );
+                if ( '1' === $val || 1 === $val || true === $val || 'yes' === $val ) {
+                        return true;
+                }
+
+                $sites = bhg_get_user_affiliate_websites( $user_id );
+                return ! empty( $sites );
+        }
 }
 
 if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {
