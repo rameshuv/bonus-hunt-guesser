@@ -113,6 +113,7 @@ class BHG_DB {
                                                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                                 title VARCHAR(190) NOT NULL,
                                                 description TEXT NULL,
+                                                type VARCHAR(20) NOT NULL DEFAULT 'monthly',
                                                 participants_mode VARCHAR(20) NOT NULL DEFAULT 'winners',
                                                 hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual',
                                                 prizes TEXT NULL,
@@ -126,6 +127,7 @@ class BHG_DB {
                                                 updated_at DATETIME NULL,
                                                 PRIMARY KEY  (id),
                                                 KEY title (title),
+                                                KEY type (type),
                                                 KEY affiliate_website (affiliate_website),
                                                 KEY status (status)
                                 ) {$charset_collate};";
@@ -288,6 +290,7 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
                         $tneed = array(
                                 'title'                 => 'ADD COLUMN title VARCHAR(190) NOT NULL',
                                 'description'           => 'ADD COLUMN description TEXT NULL',
+                                'type'                  => 'ADD COLUMN type VARCHAR(20) NOT NULL DEFAULT \'monthly\'',
                                 'participants_mode'     => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
                                 'hunt_link_mode'        => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
                                 'prizes'                => 'ADD COLUMN prizes TEXT NULL',
@@ -305,14 +308,9 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
 				}
 			}
 
-                        if ( $this->index_exists( $tours_table, 'type' ) ) {
+                        if ( ! $this->index_exists( $tours_table, 'type' ) ) {
                                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-                                $wpdb->query( "ALTER TABLE `{$tours_table}` DROP INDEX type" );
-                        }
-
-                        if ( $this->column_exists( $tours_table, 'type' ) ) {
-                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-                                $wpdb->query( "ALTER TABLE `{$tours_table}` DROP COLUMN type" );
+                                $wpdb->query( "ALTER TABLE `{$tours_table}` ADD KEY type (type)" );
                         }
 
                         if ( ! $this->index_exists( $tours_table, 'title' ) ) {

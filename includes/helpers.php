@@ -1464,20 +1464,21 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						return (int) $id;
 					}
 						$title = ucfirst( $type ) . ' ' . $period;
-						$wpdb->insert(
-							$t_tbl,
-							array(
-								'title'             => $title,
-								'participants_mode' => 'winners',
-								'hunt_link_mode'    => 'auto',
-								'start_date'        => $start,
-								'end_date'          => $end,
-								'status'            => 'active',
-								'created_at'        => $now,
-								'updated_at'        => $now,
-							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
-						);
+                                                $wpdb->insert(
+                                                        $t_tbl,
+                                                        array(
+                                                                'title'             => $title,
+                                                                'type'              => $type,
+                                                                'participants_mode' => 'winners',
+                                                                'hunt_link_mode'    => 'auto',
+                                                                'start_date'        => $start,
+                                                                'end_date'          => $end,
+                                                                'status'            => 'active',
+                                                                'created_at'        => $now,
+                                                                'updated_at'        => $now,
+                                                        ),
+                                                        array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+                                                );
 						return (int) $wpdb->insert_id;
 				};
 

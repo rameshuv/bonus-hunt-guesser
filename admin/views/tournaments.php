@@ -297,10 +297,9 @@ echo esc_html( bhg_t( 'description', 'Description' ) );
                         <?php
                         $type_value = isset( $row->type ) ? sanitize_key( (string) $row->type ) : 'monthly';
                         $types      = array(
-                                'weekly'    => bhg_t( 'weekly', 'Weekly' ),
                                 'monthly'   => bhg_t( 'monthly', 'Monthly' ),
-                                'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
                                 'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+                                'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
                                 'alltime'   => bhg_t( 'all_time', 'All Time' ),
                         );
                         if ( ! array_key_exists( $type_value, $types ) ) {
