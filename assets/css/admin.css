@@ -58,7 +58,13 @@
 }
 
 .bhg-winner-row {
-    background-color: #d1fae5;
+    font-weight: 600;
+    color: #0f5132;
+    border-left: 4px solid #16a34a;
+}
+
+.bhg-winner-row strong {
+    color: inherit;
 }
 
 /* Utility classes */

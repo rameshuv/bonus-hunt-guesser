@@ -469,7 +469,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 
 			// Shortcode labels for public views.
 			'sc_hunt'                                      => 'Hunt',
-			'sc_guess'                                     => 'Guess',
+                        'sc_guess'                                     => 'Guess',
+                        'sc_price'                                     => 'Price',
 			'sc_final'                                     => 'Final',
                         'sc_title'                                     => 'Title',
                         'sc_start_balance'                             => 'Start Balance',

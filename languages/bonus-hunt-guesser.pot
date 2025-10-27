@@ -1237,6 +1237,10 @@ msgstr ""
 msgid "Prizes"
 msgstr ""
 
+#. Default translation key: sc_price
+msgid "Price"
+msgstr ""
+
 #. Default translation key: label_submit_guess
 msgid "Submit Guess"
 msgstr ""
