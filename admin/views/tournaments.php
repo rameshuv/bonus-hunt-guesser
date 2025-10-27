@@ -83,9 +83,26 @@ if ( $search_term ) {
 }
 $base_url    = remove_query_arg( array( 'paged' ) );
 $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized via esc_sql(); read-only lookup.
-$all_hunts      = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$linked_hunts   = array_values( array_filter( array_unique( array_map( 'absint', (array) $linked_hunts ) ) ) );
+$year_start     = gmdate( 'Y-01-01 00:00:00' );
+$year_end       = gmdate( 'Y-12-31 23:59:59' );
+$date_expr      = "COALESCE(NULLIF(closed_at, '0000-00-00 00:00:00'), NULLIF(updated_at, '0000-00-00 00:00:00'), NULLIF(created_at, '0000-00-00 00:00:00'))";
+$where_sql      = "WHERE ( {$date_expr} BETWEEN %s AND %s";
+$query_params   = array( $year_start, $year_end );
+
+if ( ! empty( $linked_hunts ) ) {
+	$placeholders = implode( ',', array_fill( 0, count( $linked_hunts ), '%d' ) );
+	$where_sql   .= " OR id IN ({$placeholders})";
+	$query_params = array_merge( $query_params, $linked_hunts );
+}
+
+$where_sql .= ' )';
+$hunts_sql  = "SELECT id, title FROM {$hunts_table} {$where_sql} ORDER BY title ASC";
+
+// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized via esc_sql(); dynamic placeholders prepared via wpdb::prepare.
+$prepared    = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $hunts_sql ), $query_params ) );
+$all_hunts   = $wpdb->get_results( $prepared );
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
 		$hunt_link_mode = 'manual';
