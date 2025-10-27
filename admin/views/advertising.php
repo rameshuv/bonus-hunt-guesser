@@ -63,7 +63,7 @@ $ads = $wpdb->get_results(
                                                 <th><?php echo esc_html( bhg_t( 'placement', 'Placement' ) ); ?></th>
                                                 <th><?php echo esc_html( bhg_t( 'label_visible_to', 'Visible To' ) ); ?></th>
                                                 <th><?php echo esc_html( bhg_t( 'label_active', 'Active' ) ); ?></th>
-                                                <th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                               <th class="column-actions"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
                 </tr>
                                         </thead>
                                         <tbody>
@@ -96,19 +96,25 @@ $ads = $wpdb->get_results(
                                                                                                                                <td><?php echo esc_html( $placement_labels[ $placement ] ?? $placement ); ?></td>
                                                                                                                                <td><?php echo esc_html( $visible_labels[ $visible_to ] ?? $visible_to ); ?></td>
                                                                                                                                <td><?php echo 1 === (int) $ad->active ? esc_html( bhg_t( 'yes', 'Yes' ) ) : esc_html( bhg_t( 'no', 'No' ) ); ?></td>
-                                                                                                                               <td class="column-actions">
-                                                                                                                        <?php
-                                                                                                                        $edit_url = wp_nonce_url(
-                                                                                                                               add_query_arg( array( 'edit' => (int) $ad->id ) ),
-                                                                                                                               'bhg_edit_ad',
-                                                                                                                               'bhg_edit_ad_nonce'
-                                                                                                                        );
-                                                                                                                        ?>
-                                                                                                                        <div class="bhg-admin-actions">
-                                                                                                                                <a class="button button-small" href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
-                                                                                                                                <button type="submit" name="ad_id" value="<?php echo esc_attr( (int) $ad->id ); ?>" class="button button-small button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
-                                                                                                                        </div>
-                                                                                                                               </td>
+                                <td class="column-actions" data-colname="<?php echo esc_attr( bhg_t( 'label_actions', 'Actions' ) ); ?>">
+                                        <?php
+                                        $edit_url = wp_nonce_url(
+                                                add_query_arg(
+                                                        array(
+                                                                'page' => 'bhg-ads',
+                                                                'edit' => (int) $ad->id,
+                                                        ),
+                                                        BHG_Utils::admin_url( 'admin.php' )
+                                                ),
+                                                'bhg_edit_ad',
+                                                'bhg_edit_ad_nonce'
+                                        );
+                                        ?>
+                                        <div class="bhg-admin-actions">
+                                                <a class="button button-small" href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( bhg_t( 'button_edit', 'Edit' ) ); ?></a>
+                                                <button type="submit" name="ad_id" value="<?php echo esc_attr( (int) $ad->id ); ?>" class="button button-small button-link-delete" onclick="return confirm('<?php echo esc_js( bhg_t( 'delete_this_ad', 'Delete this ad?' ) ); ?>');"><?php echo esc_html( bhg_t( 'delete', 'Delete' ) ); ?></button>
+                                        </div>
+                                </td>
                                 </tr>
                                                                                                                               <?php
                                                                                                                 endforeach;
@@ -156,7 +162,14 @@ $ads = $wpdb->get_results(
                         <td>
                         <select id="bhg_ad_place" name="placement">
                                 <?php
-                                $placement_opts   = BHG_Ads::get_allowed_placements();
+                                $placement_opts   = array_values(
+                                        array_unique(
+                                                array_merge(
+                                                        array( 'none' ),
+                                                        BHG_Ads::get_allowed_placements()
+                                                )
+                                        )
+                                );
                                 $placement_labels = array(
                                         'none'      => bhg_t( 'none', 'None' ),
                                         'footer'    => bhg_t( 'label_footer', 'Footer' ),
