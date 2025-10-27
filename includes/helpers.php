@@ -158,6 +158,22 @@ if ( ! function_exists( 'bhg_t' ) ) {
 	}
 }
 
+if ( ! function_exists( 'bhg_get_tournament_types' ) ) {
+	/**
+	 * Provide the available tournament types keyed by slug.
+	 *
+	 * @return array
+	 */
+	function bhg_get_tournament_types() {
+		return array(
+			'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+			'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+			'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+			'alltime'   => bhg_t( 'all_time', 'All Time' ),
+		);
+	}
+}
+
 if ( ! function_exists( 'bhg_clear_translation_cache' ) ) {
 	/**
 	 * Flush all cached translations.
@@ -1464,20 +1480,21 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						return (int) $id;
 					}
 						$title = ucfirst( $type ) . ' ' . $period;
-						$wpdb->insert(
-							$t_tbl,
-							array(
-								'title'             => $title,
-								'participants_mode' => 'winners',
-								'hunt_link_mode'    => 'auto',
-								'start_date'        => $start,
-								'end_date'          => $end,
-								'status'            => 'active',
-								'created_at'        => $now,
-								'updated_at'        => $now,
-							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
-						);
+                                                $wpdb->insert(
+                                                        $t_tbl,
+                                                        array(
+                                                                'title'             => $title,
+                                                                'type'              => $type,
+                                                                'participants_mode' => 'winners',
+                                                                'hunt_link_mode'    => 'auto',
+                                                                'start_date'        => $start,
+                                                                'end_date'          => $end,
+                                                                'status'            => 'active',
+                                                                'created_at'        => $now,
+                                                                'updated_at'        => $now,
+                                                        ),
+                                                        array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+                                                );
 						return (int) $wpdb->insert_id;
 				};
 

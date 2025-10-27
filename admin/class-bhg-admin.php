@@ -767,6 +767,13 @@ $wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
                         }
                 }
                 $hunt_ids = array_values( $hunt_ids );
+
+                $type          = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : 'monthly';
+                $allowed_types = function_exists( 'bhg_get_tournament_types' ) ? array_keys( bhg_get_tournament_types() ) : array( 'monthly', 'yearly', 'quarterly', 'alltime' );
+                if ( ! in_array( $type, $allowed_types, true ) ) {
+                        $type = 'monthly';
+                }
+
                         $participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_key( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
                 if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
                                 $participants_mode = 'winners';
@@ -786,6 +793,7 @@ $wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
                         $data = array(
                                 'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
                                 'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
+                                'type'              => $type,
                                 'participants_mode' => $participants_mode,
                                 'hunt_link_mode'    => $hunt_link_mode,
                                 'start_date'        => $start_date,
@@ -801,7 +809,7 @@ if ( 'auto' === $hunt_link_mode ) {
         $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
 }
 try {
-$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
 if ( $id > 0 ) {
 $wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
 $saved_id = $id;

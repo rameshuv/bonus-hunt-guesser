@@ -31,11 +31,12 @@ if ( isset( $_GET['s'] ) ) {
 $orderby_param   = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order_param     = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
 $allowed_orderby = array(
-	'id'         => 'id',
-	'title'      => 'title',
-	'start_date' => 'start_date',
-	'end_date'   => 'end_date',
-	'status'     => 'status',
+        'id'         => 'id',
+        'title'      => 'title',
+        'type'       => 'type',
+        'start_date' => 'start_date',
+        'end_date'   => 'end_date',
+        'status'     => 'status',
 );
 $orderby_column  = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'id';
 $order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
@@ -85,8 +86,14 @@ if ( ! empty( $linked_hunts ) ) {
         $hunts_where = '(' . $hunts_where . " OR id IN ({$ids_sql}) )";
 }
 
-$hunts_sql  = $wpdb->prepare( "SELECT id, title FROM {$hunts_table} WHERE {$hunts_where} ORDER BY title ASC", $hunts_params );
-$all_hunts  = $wpdb->get_results( $hunts_sql );
+$hunts_sql     = $wpdb->prepare( "SELECT id, title FROM {$hunts_table} WHERE {$hunts_where} ORDER BY title ASC", $hunts_params );
+$all_hunts     = $wpdb->get_results( $hunts_sql );
+$type_labels   = function_exists( 'bhg_get_tournament_types' ) ? bhg_get_tournament_types() : array();
+$display_types = array();
+
+foreach ( $type_labels as $type_key => $type_name ) {
+        $display_types[ sanitize_key( (string) $type_key ) ] = $type_name;
+}
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
@@ -144,10 +151,23 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 				) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a>';
 				?>
 				</th>
-				<th>
-				<?php
-				$n = ( 'start_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
-				echo '<a href="' . esc_url(
+                                <th>
+                                <?php
+                                $n = ( 'type' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+                                echo '<a href="' . esc_url(
+                                        add_query_arg(
+                                                array(
+                                                        'orderby' => 'type',
+                                                        'order'   => $n,
+                                                )
+                                        )
+                                ) . '">' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</a>';
+                                ?>
+                                </th>
+                                <th>
+                                <?php
+                                $n = ( 'start_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+                                echo '<a href="' . esc_url(
 					add_query_arg(
 						array(
 							'orderby' => 'start_date',
@@ -197,7 +217,7 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 		</thead>
 		<tbody>
 				<?php if ( empty( $rows ) ) : ?>
-				<tr><td colspan="7"><em>
+                                <tr><td colspan="8"><em>
 						<?php
 						echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
 						?>
@@ -206,10 +226,15 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 		else :
 			foreach ( $rows as $r ) :
 				?>
-		<tr>
+                <tr>
 <td><?php echo esc_html( (int) $r->id ); ?></td>
-			<td><?php echo esc_html( $r->title ); ?></td>
-			<td><?php echo esc_html( $r->start_date ); ?></td>
+                        <td><?php echo esc_html( $r->title ); ?></td>
+                        <?php
+                        $type_key   = sanitize_key( (string) $r->type );
+                        $type_label = isset( $display_types[ $type_key ] ) ? $display_types[ $type_key ] : ucfirst( $type_key );
+                        ?>
+                        <td><?php echo esc_html( $type_label ); ?></td>
+                        <td><?php echo esc_html( $r->start_date ); ?></td>
 						<td><?php echo esc_html( $r->end_date ); ?></td>
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 <td>
@@ -296,13 +321,15 @@ echo esc_html( bhg_t( 'description', 'Description' ) );
                 <td>
                         <?php
                         $type_value = isset( $row->type ) ? sanitize_key( (string) $row->type ) : 'monthly';
-                        $types      = array(
-                                'weekly'    => bhg_t( 'weekly', 'Weekly' ),
-                                'monthly'   => bhg_t( 'monthly', 'Monthly' ),
-                                'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
-                                'yearly'    => bhg_t( 'yearly', 'Yearly' ),
-                                'alltime'   => bhg_t( 'all_time', 'All Time' ),
-                        );
+                        $types      = function_exists( 'bhg_get_tournament_types' ) ? bhg_get_tournament_types() : array();
+                        if ( empty( $types ) ) {
+                                $types = array(
+                                        'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+                                        'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+                                        'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+                                        'alltime'   => bhg_t( 'all_time', 'All Time' ),
+                                );
+                        }
                         if ( ! array_key_exists( $type_value, $types ) ) {
                                 $type_value = 'monthly';
                         }
