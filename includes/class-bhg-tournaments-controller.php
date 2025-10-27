@@ -9,19 +9,19 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-                exit;
+	exit;
 }
 
 /**
  * Handles tournament-related hooks and logic.
  */
 class BHG_Tournaments_Controller {
-                /**
-                 * Initialize hooks.
-                 *
-                 * @return void
-                 */
-        public static function init() {
-                // Default period logic removed; start and end dates define scope.
-        }
+	/**
+	 * Initialize hooks.
+	 *
+	 * @return void
+	 */
+	public static function init() {
+		// Default period logic removed; start and end dates define scope.
+	}
 }
