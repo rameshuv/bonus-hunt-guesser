@@ -419,15 +419,16 @@ function bhg_init_plugin() {
 	}
 
 		// Register form handlers.
-	add_action( 'admin_post_bhg_submit_guess', 'bhg_handle_submit_guess' );
-	add_action(
-		'admin_post_nopriv_bhg_submit_guess',
-		function () {
-			$ref = wp_get_referer();
-			wp_safe_redirect( wp_login_url( $ref ? $ref : home_url() ) );
-			exit;
-		}
-	);
+		add_action( 'admin_post_bhg_submit_guess', 'bhg_handle_submit_guess' );
+		add_action(
+			'admin_post_nopriv_bhg_submit_guess',
+			function () {
+				$ref       = wp_get_referer();
+				$login_url = function_exists( 'bhg_get_login_url' ) ? bhg_get_login_url( $ref ? $ref : home_url( '/' ) ) : wp_login_url( $ref ? $ref : home_url() );
+				wp_safe_redirect( $login_url );
+				exit;
+			}
+		);
 		add_action( 'wp_ajax_submit_bhg_guess', 'bhg_handle_submit_guess' );
 		add_action( 'wp_ajax_nopriv_submit_bhg_guess', 'bhg_handle_submit_guess' );
         add_action( 'admin_post_bhg_save_settings', 'bhg_handle_settings_save' );
@@ -593,31 +594,62 @@ function bhg_handle_notifications_save() {
 function bhg_handle_submit_guess() {
 	$last_guess_key = '';
 	if ( wp_doing_ajax() ) {
-			check_ajax_referer( 'bhg_public_nonce', 'nonce' );
+		check_ajax_referer( 'bhg_public_nonce', 'nonce' );
 	} else {
 		if ( ! isset( $_POST['_wpnonce'] ) ) {
-						wp_die( esc_html( bhg_t( 'notice_security_check_failed', 'Security check failed.' ) ) );
+			wp_die( esc_html( bhg_t( 'notice_security_check_failed', 'Security check failed.' ) ) );
 		}
-						check_admin_referer( 'bhg_submit_guess', 'bhg_submit_guess_nonce' );
+		check_admin_referer( 'bhg_submit_guess', 'bhg_submit_guess_nonce' );
 	}
+
+	$requested_redirect = '';
+	if ( isset( $_POST['redirect_to'] ) ) {
+		$raw_requested = trim( wp_unslash( $_POST['redirect_to'] ) );
+		if ( '' !== $raw_requested ) {
+			$maybe_requested = wp_validate_redirect( $raw_requested, '' );
+			if ( $maybe_requested ) {
+				$requested_redirect = $maybe_requested;
+			}
+		}
+	}
+
+	if ( ! $requested_redirect ) {
+		$ref = wp_get_referer();
+		if ( $ref ) {
+			$maybe_requested = wp_validate_redirect( $ref, '' );
+			if ( $maybe_requested ) {
+				$requested_redirect = $maybe_requested;
+			}
+		}
+	}
+
+	$login_target = $requested_redirect ? $requested_redirect : home_url( '/' );
 
 	$user_id = get_current_user_id();
 	if ( ! $user_id ) {
+		$login_url = function_exists( 'bhg_get_login_url' ) ? bhg_get_login_url( $login_target ) : wp_login_url( $login_target );
 		if ( wp_doing_ajax() ) {
-				wp_send_json_error( bhg_t( 'you_must_be_logged_in_to_submit_a_guess', 'You must be logged in to submit a guess.' ) );
+			wp_send_json_error(
+				array(
+					'code'     => 'not_logged_in',
+					'message'  => bhg_t( 'you_must_be_logged_in_to_submit_a_guess', 'You must be logged in to submit a guess.' ),
+					'redirect' => $login_url,
+				)
+			);
 		}
-				wp_die( esc_html( bhg_t( 'you_must_be_logged_in_to_submit_a_guess', 'You must be logged in to submit a guess.' ) ) );
-	}
 
-		$hunt_id = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
+		wp_safe_redirect( $login_url );
+		exit;
+	}
+	$hunt_id = isset( $_POST['hunt_id'] ) ? absint( wp_unslash( $_POST['hunt_id'] ) ) : 0;
 	if ( 0 >= $hunt_id ) {
 		if ( wp_doing_ajax() ) {
-				wp_send_json_error( bhg_t( 'notice_invalid_hunt', 'Invalid hunt.' ) );
+			wp_send_json_error( bhg_t( 'notice_invalid_hunt', 'Invalid hunt.' ) );
 		}
-				wp_die( esc_html( bhg_t( 'notice_invalid_hunt', 'Invalid hunt.' ) ) );
+		wp_die( esc_html( bhg_t( 'notice_invalid_hunt', 'Invalid hunt.' ) ) );
 	}
 
-		// Parse guess robustly.
+	// Parse guess robustly.
 	if ( wp_doing_ajax() ) {
 			$raw_guess = isset( $_POST['guess_amount'] ) ? sanitize_text_field( wp_unslash( $_POST['guess_amount'] ) ) : '';
 	} else {
@@ -630,23 +662,17 @@ function bhg_handle_submit_guess() {
 	} else {
 		$guess = is_numeric( $raw_guess ) ? (float) $raw_guess : -1.0;
 	}
-        $settings         = get_option( 'bhg_plugin_settings', array() );
-        $min_guess        = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
-        $max_guess        = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
-        $max              = isset( $settings['max_guesses'] ) ? (int) $settings['max_guesses'] : 1;
-        $allow_edit       = isset( $settings['allow_guess_changes'] ) && 'yes' === $settings['allow_guess_changes'];
-        $redirect_setting = isset( $settings['post_submit_redirect'] ) ? $settings['post_submit_redirect'] : '';
-        $redirect_target  = $redirect_setting ? wp_validate_redirect( $redirect_setting, '' ) : '';
-        if ( isset( $_POST['redirect_to'] ) ) {
-                        $requested_redirect = trim( wp_unslash( $_POST['redirect_to'] ) );
-                if ( '' !== $requested_redirect ) {
-                                $maybe_redirect = wp_validate_redirect( $requested_redirect, '' );
-                        if ( $maybe_redirect ) {
-                                                $redirect_target = $maybe_redirect;
-                        }
-                }
-        }
-        $did_update       = false;
+	$settings         = get_option( 'bhg_plugin_settings', array() );
+	$min_guess        = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
+	$max_guess        = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
+	$max              = isset( $settings['max_guesses'] ) ? (int) $settings['max_guesses'] : 1;
+	$allow_edit       = isset( $settings['allow_guess_changes'] ) && 'yes' === $settings['allow_guess_changes'];
+	$redirect_setting = isset( $settings['post_submit_redirect'] ) ? $settings['post_submit_redirect'] : '';
+	$redirect_target  = $redirect_setting ? wp_validate_redirect( $redirect_setting, '' ) : '';
+	if ( $requested_redirect ) {
+		$redirect_target = $requested_redirect;
+	}
+	$did_update       = false;
 
 	if ( $guess < $min_guess || $guess > $max_guess ) {
 		if ( wp_doing_ajax() ) {
@@ -1127,4 +1153,3 @@ function bhg_save_extra_user_profile_fields( $user_id ) {
 		$affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
 		update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
 }
-

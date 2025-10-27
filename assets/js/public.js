@@ -104,8 +104,24 @@ jQuery(document).ready(function($) {
                             }
                         }, 1500);
                     } else {
-                        var errorMessage = response && response.data ? response.data : bhg_public_ajax.i18n.ajax_error;
+                        var errorData = response && response.data ? response.data : null;
+                        var redirectUrl = '';
+                        var errorMessage = bhg_public_ajax.i18n.ajax_error;
+
+                        if (typeof errorData === 'string') {
+                            errorMessage = errorData;
+                        } else if (errorData && typeof errorData === 'object') {
+                            errorMessage = errorData.message || errorMessage;
+                            redirectUrl = errorData.redirect || '';
+                        }
+
                         showError(errorContainer, errorMessage);
+
+                        if (redirectUrl) {
+                            setTimeout(function() {
+                                window.location.href = redirectUrl;
+                            }, 1000);
+                        }
                     }
                 },
                 error: function() {
@@ -234,17 +250,27 @@ jQuery(document).ready(function($) {
 
     // Handle login redirects
     function handleLoginRedirects() {
-        // Store current URL for redirect after login
-        if ($('.bhg-guess-form').length && !bhg_public_ajax.is_logged_in) {
-            sessionStorage.setItem('bhg_redirect_url', window.location.href);
+        var forms = $('.bhg-guess-form');
+
+        if (!forms.length) {
+            return;
         }
-        
-        // Check if we have a redirect URL after login
-        var redirectUrl = sessionStorage.getItem('bhg_redirect_url');
-        if (redirectUrl && window.location.href.indexOf('wp-login.php') !== -1) {
-            $('input[name="redirect_to"]').val(redirectUrl);
-            sessionStorage.removeItem('bhg_redirect_url');
-        }
+
+        forms.each(function() {
+            var form = $(this);
+            var redirectField = form.find('[name="redirect_to"]');
+
+            if (!redirectField.length) {
+                redirectField = $('<input>', {
+                    type: 'hidden',
+                    name: 'redirect_to'
+                }).appendTo(form);
+            }
+
+            if (!redirectField.val()) {
+                redirectField.val(window.location.href);
+            }
+        });
     }
 
     // Initialize affiliate status indicators
