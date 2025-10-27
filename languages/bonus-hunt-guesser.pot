@@ -565,6 +565,50 @@ msgstr ""
 msgid "Latest Hunts"
 msgstr ""
 
+#: includes/helpers.php:320
+msgid "My Bonus Hunts"
+msgstr ""
+
+#: includes/helpers.php:321
+msgid "My Tournaments"
+msgstr ""
+
+#: includes/helpers.php:322
+msgid "My Prizes"
+msgstr ""
+
+#: includes/helpers.php:323
+msgid "My Rankings"
+msgstr ""
+
+#: includes/helpers.php:324
+msgid "Rank"
+msgstr ""
+
+#: includes/helpers.php:325
+msgid "Prize"
+msgstr ""
+
+#: includes/helpers.php:313
+msgid "Tournaments"
+msgstr ""
+
+#: includes/helpers.php:350
+msgid "You have not participated in any bonus hunts yet."
+msgstr ""
+
+#: includes/helpers.php:351
+msgid "You have not joined any tournaments yet."
+msgstr ""
+
+#: includes/helpers.php:352
+msgid "You have not won any prizes yet."
+msgstr ""
+
+#: includes/helpers.php:353
+msgid "No rankings to display yet."
+msgstr ""
+
 #: admin/views/dashboard.php:28
 msgid "Bonushunt"
 msgstr ""
