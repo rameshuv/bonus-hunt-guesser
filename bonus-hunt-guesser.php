@@ -4,13 +4,13 @@
  * Plugin URI: https://yourdomain.com/
  * Description: Bonus hunt management system with tournaments, leaderboards, and user guessing functionality
  * Version: 8.0.14
- * Requires at least: 6.3.0
- * Requires PHP: 7.4
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser
  * Domain Path: /languages
- * License: GPLv2 or later
+ * Requires PHP: 7.4
+ * Requires at least: 6.3.0
  * Requires MySQL: 5.5.5
+ * License: GPLv2 or later
  *
  * @package Bonus_Hunt_Guesser
  */
@@ -380,7 +380,7 @@ add_action( 'plugins_loaded', 'bhg_init_plugin' );
  */
 function bhg_init_plugin() {
 		// Load text domain.
-	load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
 		// Initialize components.
 	if ( is_admin() ) {
