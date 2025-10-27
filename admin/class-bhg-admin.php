@@ -66,7 +66,8 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_shortcodes', 'Shortcodes' ), bhg_t( 'menu_shortcodes', 'Shortcodes' ), $cap, 'bhg-shortcodes', array( $this, 'shortcodes_page' ) );
 		add_submenu_page( $slug, bhg_t( 'database', 'Database' ), bhg_t( 'database', 'Database' ), $cap, 'bhg-database', array( $this, 'database' ) );
 		add_submenu_page( $slug, bhg_t( 'settings', 'Settings' ), bhg_t( 'settings', 'Settings' ), $cap, 'bhg-settings', array( $this, 'settings' ) );
 		add_submenu_page(
@@ -216,12 +217,24 @@ class BHG_Admin {
 	/**
 	 * Render the translations page.
 	 */
-	public function translations() {
-		$view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
-		if ( file_exists( $view ) ) {
-			require $view; } else {
-			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
-	}
+        public function translations() {
+                $view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
+                if ( file_exists( $view ) ) {
+                        require $view; } else {
+                        echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
+        }
+
+        /**
+         * Render the shortcodes reference page.
+         */
+        public function shortcodes_page() {
+                $view = BHG_PLUGIN_DIR . 'admin/views/shortcodes.php';
+                if ( file_exists( $view ) ) {
+                        require $view;
+                } else {
+                        echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_shortcodes', 'Shortcodes' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_shortcodes_ui_found', 'No shortcodes reference found.' ) ) . '</p></div>';
+                }
+        }
 		/**
 		 * Render the database maintenance page.
 		 */
