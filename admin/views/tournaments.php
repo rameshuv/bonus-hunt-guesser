@@ -15,15 +15,15 @@ global $wpdb;
 $table          = $wpdb->prefix . 'bhg_tournaments';
 $allowed_tables = array( $wpdb->prefix . 'bhg_tournaments' );
 if ( ! in_array( $table, $allowed_tables, true ) ) {
-                wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
+				wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 }
 
 $type_labels = array(
-        'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
-        'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
-        'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
-        'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
-        'alltime'   => bhg_t( 'label_all_time', 'All-Time' ),
+	'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
+	'monthly'   => bhg_t( 'label_monthly', 'Monthly' ),
+	'quarterly' => bhg_t( 'label_quarterly', 'Quarterly' ),
+	'yearly'    => bhg_t( 'label_yearly', 'Yearly' ),
+	'alltime'   => bhg_t( 'label_all_time', 'All-Time' ),
 );
 
 $edit_id = isset( $_GET['edit'] ) ? absint( wp_unslash( $_GET['edit'] ) ) : 0;
@@ -39,12 +39,12 @@ if ( isset( $_GET['s'] ) ) {
 $orderby_param   = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'id';
 $order_param     = isset( $_GET['order'] ) ? sanitize_key( wp_unslash( $_GET['order'] ) ) : 'DESC';
 $allowed_orderby = array(
-        'id'         => 'id',
-        'title'      => 'title',
-        'type'       => 'type',
-        'start_date' => 'start_date',
-        'end_date'   => 'end_date',
-        'status'     => 'status',
+	'id'         => 'id',
+	'title'      => 'title',
+	'type'       => 'type',
+	'start_date' => 'start_date',
+	'end_date'   => 'end_date',
+	'status'     => 'status',
 );
 $orderby_column  = isset( $allowed_orderby[ $orderby_param ] ) ? $allowed_orderby[ $orderby_param ] : 'id';
 $order_param     = in_array( strtolower( $order_param ), array( 'asc', 'desc' ), true ) ? strtoupper( $order_param ) : 'DESC';
@@ -81,13 +81,14 @@ if ( $search_term ) {
 			)
 		);
 }
-$base_url = remove_query_arg( array( 'paged' ) );
+$base_url    = remove_query_arg( array( 'paged' ) );
 $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
+// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized via esc_sql(); read-only lookup.
+$all_hunts      = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
 $linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
-        $hunt_link_mode = 'manual';
+		$hunt_link_mode = 'manual';
 }
 $hunts_row_style = ( 'auto' === $hunt_link_mode ) ? 'display:none;' : '';
 $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_row_style ) ) : '';
@@ -114,59 +115,59 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 								</p>
 				</form>
 		<table class="widefat striped">
-                <thead>
-                <tr>
-                                <th>
-                                <?php
-                                $n = ( 'id' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
-                                echo '<a href="' . esc_url(
-                                        add_query_arg(
-                                                array(
-                                                        'orderby' => 'id',
-                                                        'order'   => $n,
-                                                )
-                                        )
-                                ) . '">' . esc_html( bhg_t( 'id', 'ID' ) ) . '</a>';
-                                ?>
-                                </th>
-                                <th>
-                                <?php
-                                $n = ( 'title' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
-                                echo '<a href="' . esc_url(
-                                        add_query_arg(
-                                                array(
-                                                        'orderby' => 'title',
-                                                        'order'   => $n,
-                                                )
-                                        )
-                                ) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a>';
-                                ?>
-                                </th>
-                                <th>
-                                <?php
-                                $n = ( 'type' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
-                                echo '<a href="' . esc_url(
-                                        add_query_arg(
-                                                array(
-                                                        'orderby' => 'type',
-                                                        'order'   => $n,
-                                                )
-                                        )
-                                ) . '">' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</a>';
-                                ?>
-                                </th>
-                                <th>
-                                <?php
-                                $n = ( 'start_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
-                                echo '<a href="' . esc_url(
-                                        add_query_arg(
-						array(
-							'orderby' => 'start_date',
-							'order'   => $n,
-						)
-					)
-				) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a>';
-				?>
+				<thead>
+				<tr>
+								<th>
+								<?php
+								$n = ( 'id' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+								echo '<a href="' . esc_url(
+									add_query_arg(
+										array(
+											'orderby' => 'id',
+											'order'   => $n,
+										)
+									)
+								) . '">' . esc_html( bhg_t( 'id', 'ID' ) ) . '</a>';
+								?>
+								</th>
+								<th>
+								<?php
+								$n = ( 'title' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+								echo '<a href="' . esc_url(
+									add_query_arg(
+										array(
+											'orderby' => 'title',
+											'order'   => $n,
+										)
+									)
+								) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a>';
+								?>
+								</th>
+								<th>
+								<?php
+								$n = ( 'type' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+								echo '<a href="' . esc_url(
+									add_query_arg(
+										array(
+											'orderby' => 'type',
+											'order'   => $n,
+										)
+									)
+								) . '">' . esc_html( bhg_t( 'label_type', 'Type' ) ) . '</a>';
+								?>
+								</th>
+								<th>
+								<?php
+								$n = ( 'start_date' === $orderby_param && 'ASC' === $order_param ) ? 'desc' : 'asc';
+								echo '<a href="' . esc_url(
+									add_query_arg(
+										array(
+											'orderby' => 'start_date',
+											'order'   => $n,
+										)
+									)
+								) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a>';
+								?>
 				</th>
 				<th>
 				<?php
@@ -208,19 +209,19 @@ $hunts_row_attr  = $hunts_row_style ? sprintf( ' style="%s"', esc_attr( $hunts_r
 		</thead>
 		<tbody>
 				<?php if ( empty( $rows ) ) : ?>
-                                <tr><td colspan="8"><em>
-                                                <?php
-                                                echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
-                                                ?>
+								<tr><td colspan="8"><em>
+												<?php
+												echo esc_html( bhg_t( 'no_tournaments_yet', 'No tournaments yet.' ) );
+												?>
 </em></td></tr>
 					<?php
 		else :
 			foreach ( $rows as $r ) :
 				?>
-                <tr>
+				<tr>
 <td><?php echo esc_html( (int) $r->id ); ?></td>
-                        <td><?php echo esc_html( $r->title ); ?></td>
-                        <td><?php echo esc_html( $type_labels[ $r->type ] ?? ucfirst( (string) $r->type ) ); ?></td>
+						<td><?php echo esc_html( $r->title ); ?></td>
+						<td><?php echo esc_html( $type_labels[ $r->type ] ?? ucfirst( (string) $r->type ) ); ?></td>
 			<td><?php echo esc_html( $r->start_date ); ?></td>
 						<td><?php echo esc_html( $r->end_date ); ?></td>
 <td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
@@ -282,24 +283,24 @@ endif;
 	if ( $row ) :
 		?>
 <input type="hidden" name="id" value="<?php echo esc_attr( (int) $row->id ); ?>" /><?php endif; ?>
-        <?php
-        $type_value = isset( $row->type ) ? sanitize_key( $row->type ) : '';
-        if ( ! isset( $type_labels[ $type_value ] ) ) {
-                $settings     = get_option( 'bhg_plugin_settings', array() );
-                $default_type = isset( $settings['default_tournament_period'] ) ? sanitize_key( $settings['default_tournament_period'] ) : 'monthly';
-                if ( ! isset( $type_labels[ $default_type ] ) ) {
-                        $default_type = 'monthly';
-                }
-                $type_value = $default_type;
-        }
-        ?>
+		<?php
+		$type_value = isset( $row->type ) ? sanitize_key( $row->type ) : '';
+		if ( ! isset( $type_labels[ $type_value ] ) ) {
+				$settings     = get_option( 'bhg_plugin_settings', array() );
+				$default_type = isset( $settings['default_tournament_period'] ) ? sanitize_key( $settings['default_tournament_period'] ) : 'monthly';
+			if ( ! isset( $type_labels[ $default_type ] ) ) {
+					$default_type = 'monthly';
+			}
+				$type_value = $default_type;
+		}
+		?>
 
-        <table class="form-table">
-                <tr>
-                <th><label for="bhg_t_title">
-                <?php
-                echo esc_html( bhg_t( 'sc_title', 'Title' ) );
-                ?>
+		<table class="form-table">
+				<tr>
+				<th><label for="bhg_t_title">
+				<?php
+				echo esc_html( bhg_t( 'sc_title', 'Title' ) );
+				?>
 </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
@@ -309,27 +310,27 @@ endif;
 		echo esc_html( bhg_t( 'description', 'Description' ) );
 		?>
 </label></th>
-                <td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-                </tr>
-                <tr>
-                <th><label for="bhg_t_type">
-                <?php
-                echo esc_html( bhg_t( 'label_type', 'Type' ) );
-                ?>
-                </label></th>
-                <td>
-                        <select id="bhg_t_type" name="type">
-                        <?php foreach ( $type_labels as $slug => $label ) : ?>
-                                <option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $type_value, $slug ); ?>><?php echo esc_html( $label ); ?></option>
-                        <?php endforeach; ?>
-                        </select>
-                </td>
-                </tr>
-                <tr>
-                                <th><label for="bhg_t_pmode">
-                                <?php
-                                echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-                                ?>
+				<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+				</tr>
+				<tr>
+				<th><label for="bhg_t_type">
+				<?php
+				echo esc_html( bhg_t( 'label_type', 'Type' ) );
+				?>
+				</label></th>
+				<td>
+						<select id="bhg_t_type" name="type">
+						<?php foreach ( $type_labels as $slug => $label ) : ?>
+								<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $type_value, $slug ); ?>><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
+						</select>
+				</td>
+				</tr>
+				<tr>
+								<th><label for="bhg_t_pmode">
+								<?php
+								echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+								?>
 				</label></th>
 				<td>
 						<?php $pmode = $row->participants_mode ?? 'winners'; ?>
@@ -355,88 +356,88 @@ endif;
 </label></th>
 		<td><input id="bhg_t_end" type="date" name="end_date" value="<?php echo esc_attr( $row->end_date ?? '' ); ?>" /></td>
 		</tr>
-                <tr>
-                <th><label for="bhg_t_status">
-                <?php
-                echo esc_html( bhg_t( 'sc_status', 'Status' ) );
-                ?>
-                </label></th>
-                <td>
-                        <?php
-                        $st  = array( 'active', 'archived' );
-                        $cur = $row->status ?? 'active';
-                        ?>
-                        <select id="bhg_t_status" name="status">
-                        <?php foreach ( $st as $v ) : ?>
-                                <option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
-                        <?php endforeach; ?>
-                        </select>
-                </td>
-                </tr>
-                <tr>
-                                <th><label for="bhg_t_hunt_mode">
-                                <?php
-                                echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
-                                ?>
-                                </label></th>
-                                <td>
-                                                <fieldset>
-                                                                <label>
-                                                                                <input type="radio" id="bhg_t_hunt_mode_manual" name="hunt_link_mode" value="manual" <?php checked( $hunt_link_mode, 'manual' ); ?> />
-                                                                                <?php echo esc_html( bhg_t( 'hunt_mode_manual', 'From Hunt admin (manual selection)' ) ); ?>
-                                                                </label><br />
-                                                                <label>
-                                                                                <input type="radio" id="bhg_t_hunt_mode_auto" name="hunt_link_mode" value="auto" <?php checked( $hunt_link_mode, 'auto' ); ?> />
-                                                                                <?php echo esc_html( bhg_t( 'hunt_mode_auto', 'All hunts within start/end period' ) ); ?>
-                                                                </label>
-                                                </fieldset>
-                                                <p class="description"><?php echo esc_html( bhg_t( 'hunt_mode_description', 'Choose how hunts are linked to this tournament.' ) ); ?></p>
-                                </td>
-                </tr>
-                <tr id="bhg_t_hunts_row"<?php echo $hunts_row_attr; ?>>
-                <th><label for="bhg_t_hunts">
-                <?php
-                echo esc_html( bhg_t( 'connected_bonus_hunts', 'Connected Bonus Hunts' ) );
-                ?>
-                </label></th>
-                <td>
-                        <select id="bhg_t_hunts" name="hunt_ids[]" multiple="multiple" size="5">
-                        <?php foreach ( $all_hunts as $hunt_option ) : ?>
-                                <option value="<?php echo esc_attr( (int) $hunt_option->id ); ?>" <?php selected( in_array( (int) $hunt_option->id, $linked_hunts, true ) ); ?>><?php echo esc_html( $hunt_option->title ); ?></option>
-                        <?php endforeach; ?>
-                        </select>
-                        <p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
-                </td>
-                </tr>
-        </table>
-        <?php submit_button( $row ? bhg_t( 'update_tournament', 'Update Tournament' ) : bhg_t( 'create_tournament', 'Create Tournament' ) ); ?>
-        </form>
-        <script>
-        document.addEventListener( 'DOMContentLoaded', function() {
-                var modeInputs = document.querySelectorAll( 'input[name="hunt_link_mode"]' );
-                var huntsRow = document.getElementById( 'bhg_t_hunts_row' );
+				<tr>
+				<th><label for="bhg_t_status">
+				<?php
+				echo esc_html( bhg_t( 'sc_status', 'Status' ) );
+				?>
+				</label></th>
+				<td>
+						<?php
+						$st  = array( 'active', 'archived' );
+						$cur = $row->status ?? 'active';
+						?>
+						<select id="bhg_t_status" name="status">
+						<?php foreach ( $st as $v ) : ?>
+								<option value="<?php echo esc_attr( $v ); ?>" <?php selected( $cur, $v ); ?>><?php echo esc_html( ucfirst( $v ) ); ?></option>
+						<?php endforeach; ?>
+						</select>
+				</td>
+				</tr>
+				<tr>
+								<th><label for="bhg_t_hunt_mode">
+								<?php
+								echo esc_html( bhg_t( 'hunt_connection_mode', 'Hunt Connection Mode' ) );
+								?>
+								</label></th>
+								<td>
+												<fieldset>
+																<label>
+																				<input type="radio" id="bhg_t_hunt_mode_manual" name="hunt_link_mode" value="manual" <?php checked( $hunt_link_mode, 'manual' ); ?> />
+																				<?php echo esc_html( bhg_t( 'hunt_mode_manual', 'From Hunt admin (manual selection)' ) ); ?>
+																</label><br />
+																<label>
+																				<input type="radio" id="bhg_t_hunt_mode_auto" name="hunt_link_mode" value="auto" <?php checked( $hunt_link_mode, 'auto' ); ?> />
+																				<?php echo esc_html( bhg_t( 'hunt_mode_auto', 'All hunts within start/end period' ) ); ?>
+																</label>
+												</fieldset>
+												<p class="description"><?php echo esc_html( bhg_t( 'hunt_mode_description', 'Choose how hunts are linked to this tournament.' ) ); ?></p>
+								</td>
+				</tr>
+<tr id="bhg_t_hunts_row"<?php echo wp_kses_post( $hunts_row_attr ); ?>>
+				<th><label for="bhg_t_hunts">
+				<?php
+				echo esc_html( bhg_t( 'connected_bonus_hunts', 'Connected Bonus Hunts' ) );
+				?>
+				</label></th>
+				<td>
+						<select id="bhg_t_hunts" name="hunt_ids[]" multiple="multiple" size="5">
+						<?php foreach ( $all_hunts as $hunt_option ) : ?>
+								<option value="<?php echo esc_attr( (int) $hunt_option->id ); ?>" <?php selected( in_array( (int) $hunt_option->id, $linked_hunts, true ) ); ?>><?php echo esc_html( $hunt_option->title ); ?></option>
+						<?php endforeach; ?>
+						</select>
+						<p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
+				</td>
+				</tr>
+		</table>
+		<?php submit_button( $row ? bhg_t( 'update_tournament', 'Update Tournament' ) : bhg_t( 'create_tournament', 'Create Tournament' ) ); ?>
+		</form>
+		<script>
+		document.addEventListener( 'DOMContentLoaded', function() {
+				var modeInputs = document.querySelectorAll( 'input[name="hunt_link_mode"]' );
+				var huntsRow = document.getElementById( 'bhg_t_hunts_row' );
 
-                if ( ! modeInputs.length || ! huntsRow ) {
-                        return;
-                }
+				if ( ! modeInputs.length || ! huntsRow ) {
+						return;
+				}
 
-                var toggleRow = function() {
-                        var selectedMode = 'manual';
-                        for ( var i = 0; i < modeInputs.length; i++ ) {
-                                if ( modeInputs[ i ].checked ) {
-                                        selectedMode = modeInputs[ i ].value;
-                                        break;
-                                }
-                        }
+				var toggleRow = function() {
+						var selectedMode = 'manual';
+						for ( var i = 0; i < modeInputs.length; i++ ) {
+								if ( modeInputs[ i ].checked ) {
+										selectedMode = modeInputs[ i ].value;
+										break;
+								}
+						}
 
-                        huntsRow.style.display = ( 'auto' === selectedMode ) ? 'none' : '';
-                };
+						huntsRow.style.display = ( 'auto' === selectedMode ) ? 'none' : '';
+				};
 
-                for ( var j = 0; j < modeInputs.length; j++ ) {
-                        modeInputs[ j ].addEventListener( 'change', toggleRow );
-                }
+				for ( var j = 0; j < modeInputs.length; j++ ) {
+						modeInputs[ j ].addEventListener( 'change', toggleRow );
+				}
 
-                toggleRow();
-        } );
-        </script>
+				toggleRow();
+		} );
+		</script>
 </div>
