@@ -243,6 +243,42 @@ flex: 1;
     border-radius: 4px;
 }
 
+.bhg-admin-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.bhg-admin-card {
+    background: var(--bhg-card-bg);
+    border: 1px solid var(--bhg-border-color);
+    border-radius: 6px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    flex: 1 1 380px;
+}
+
+.bhg-admin-card h2 {
+    margin-top: 0;
+}
+
+.bhg-admin-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bhg-admin-actions .button-link-delete {
+    color: #b32d2e;
+}
+
+@media (max-width: 782px) {
+    .bhg-admin-card {
+        padding: 16px;
+    }
+}
+
 .bhg-prize-image-field {
     margin-bottom: 16px;
 }
