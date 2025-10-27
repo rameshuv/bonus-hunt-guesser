@@ -69,6 +69,83 @@ class BHG_Prizes {
         }
 
         /**
+         * Extract CSS settings from a database row.
+         *
+         * @param object $prize Prize row from the database.
+         * @return array
+         */
+        public static function get_css_settings_from_row( $prize ) {
+                $defaults = self::default_css_settings();
+
+                if ( ! $prize || ! is_object( $prize ) ) {
+                        return $defaults;
+                }
+
+                $map = array(
+                        'border'       => 'css_border',
+                        'border_color' => 'css_border_color',
+                        'padding'      => 'css_padding',
+                        'margin'       => 'css_margin',
+                        'background'   => 'css_background',
+                );
+
+                foreach ( $map as $key => $column ) {
+                        if ( isset( $prize->$column ) && is_string( $prize->$column ) ) {
+                                $defaults[ $key ] = sanitize_text_field( $prize->$column );
+                        }
+                }
+
+                return $defaults;
+        }
+
+        /**
+         * Return attachment IDs and preview URLs for the configured prize images.
+         *
+         * @param object $prize Prize row from the database.
+         * @return array
+         */
+        public static function get_attachment_sources( $prize ) {
+                $map     = array(
+                        'small'  => 'image_small',
+                        'medium' => 'image_medium',
+                        'big'    => 'image_large',
+                );
+                $sources = array();
+
+                foreach ( $map as $size => $column ) {
+                        $id              = ( $prize && isset( $prize->$column ) ) ? absint( $prize->$column ) : 0;
+                        $sources[ $size ] = array(
+                                'id'  => $id,
+                                'url' => $prize ? self::get_image_url( $prize, $size ) : '',
+                        );
+                }
+
+                return $sources;
+        }
+
+        /**
+         * Prepare a prize row for JSON serialization (AJAX usage).
+         *
+         * @param object $prize Prize row from the database.
+         * @return array
+         */
+        public static function format_prize_for_response( $prize ) {
+                if ( ! $prize || ! is_object( $prize ) ) {
+                        return array();
+                }
+
+                return array(
+                        'id'          => isset( $prize->id ) ? (int) $prize->id : 0,
+                        'title'       => isset( $prize->title ) ? sanitize_text_field( $prize->title ) : '',
+                        'description' => isset( $prize->description ) ? wp_kses_post( $prize->description ) : '',
+                        'category'    => isset( $prize->category ) ? sanitize_key( $prize->category ) : 'various',
+                        'active'      => ! empty( $prize->active ) ? 1 : 0,
+                        'css'         => self::get_css_settings_from_row( $prize ),
+                        'images'      => self::get_attachment_sources( $prize ),
+                );
+        }
+
+        /**
          * Retrieve a list of prizes.
          *
          * @param array $args Optional query args (category, active, search).

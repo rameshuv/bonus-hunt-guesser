@@ -439,6 +439,36 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
                                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
                                         $wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY hunt_id (hunt_id)" );
                         }
+
+                        // Prize columns and indexes.
+                        $pneed = array(
+                                'category'        => "ADD COLUMN category VARCHAR(40) NOT NULL DEFAULT 'various'",
+                                'image_small'     => 'ADD COLUMN image_small BIGINT UNSIGNED NULL',
+                                'image_medium'    => 'ADD COLUMN image_medium BIGINT UNSIGNED NULL',
+                                'image_large'     => 'ADD COLUMN image_large BIGINT UNSIGNED NULL',
+                                'css_border'      => 'ADD COLUMN css_border VARCHAR(100) NULL',
+                                'css_border_color'=> 'ADD COLUMN css_border_color VARCHAR(40) NULL',
+                                'css_padding'     => 'ADD COLUMN css_padding VARCHAR(60) NULL',
+                                'css_margin'      => 'ADD COLUMN css_margin VARCHAR(60) NULL',
+                                'css_background'  => 'ADD COLUMN css_background VARCHAR(40) NULL',
+                                'active'          => 'ADD COLUMN active TINYINT(1) NOT NULL DEFAULT 1',
+                                'created_at'      => 'ADD COLUMN created_at DATETIME NULL',
+                                'updated_at'      => 'ADD COLUMN updated_at DATETIME NULL',
+                        );
+                        foreach ( $pneed as $c => $alter ) {
+                                if ( ! $this->column_exists( $prizes_table, $c ) ) {
+                                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                        $wpdb->query( "ALTER TABLE `{$prizes_table}` {$alter}" );
+                                }
+                        }
+                        if ( ! $this->index_exists( $prizes_table, 'category' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$prizes_table}` ADD KEY category (category)" );
+                        }
+                        if ( ! $this->index_exists( $prizes_table, 'active' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$prizes_table}` ADD KEY active (active)" );
+                        }
                         if ( ! $this->index_exists( $winners_table, 'user_id' ) ) {
                                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
                                         $wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY user_id (user_id)" );
