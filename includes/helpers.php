@@ -183,7 +183,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			// General / menus / labels.
 			'welcome_message'                              => 'Welcome!',
 			'goodbye_message'                              => 'Goodbye!',
-			'menu_dashboard'                               => 'Dashboard',
+                        'menu_dashboard'                               => 'Dashboard',
+                        'menu_notifications'                           => 'Notifications',
 			'menu_bonus_hunts'                             => 'Bonus Hunts',
 			'menu_results'                                 => 'Results',
 			'menu_tournaments'                             => 'Tournaments',
@@ -364,7 +365,24 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_final'                                  => 'Final',
 			'label_user_number'                            => 'User #%d',
 			'label_diff'                                   => 'diff',
-			'label_latest_hunts'                           => 'Latest Hunts',
+                        'label_latest_hunts'                           => 'Latest Hunts',
+                        'label_notifications'                          => 'Notifications',
+                        'notifications_page_description'               => 'Configure automated emails for hunts and tournaments.',
+                        'notifications_section_winners'                => 'Winner Notifications',
+                        'notifications_section_hunts'                  => 'Bonus Hunt Notifications',
+                        'notifications_section_tournaments'            => 'Tournament Notifications',
+                        'notifications_enable'                         => 'Enable notifications',
+                        'notifications_subject'                        => 'Email Subject',
+                        'notifications_body'                           => 'Email Content',
+                        'notifications_bcc'                            => 'BCC Addresses',
+                        'notifications_bcc_hint'                       => 'Separate multiple addresses with commas.',
+                        'notifications_tokens_label'                   => 'Available placeholders',
+                        'notifications_tokens_common'                  => '{{username}}, {{site_name}}',
+                        'notifications_tokens_hunt'                    => '{{hunt}}, {{final}}, {{winner}}, {{winners}}',
+                        'notifications_tokens_winner'                  => '{{hunt}}, {{final}}, {{guess}}, {{diff}}, {{position}}, {{position_label}}',
+                        'notifications_tokens_tournament'              => '{{tournament}}, {{wins}}, {{position}}, {{position_label}}',
+                        'notifications_saved'                          => 'Notifications saved.',
+                        'notifications_error'                          => 'Unable to save notifications settings.',
 			'label_bonushunt'                              => 'Bonushunt',
 			'label_all_winners'                            => 'All Winners',
 			'label_closed_at'                              => 'Closed At',
@@ -858,7 +876,160 @@ function bhg_currency_symbol() {
  * @return string
  */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+                return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+}
+
+if ( ! function_exists( 'bhg_sanitize_email_list' ) ) {
+        /**
+         * Sanitize a comma, semicolon, or whitespace separated list of email addresses.
+         *
+         * @param string|array $value Raw email list.
+         * @return string Sanitized, comma-separated list of emails.
+         */
+        function bhg_sanitize_email_list( $value ) {
+                if ( is_array( $value ) ) {
+                        $value = implode( ',', $value );
+                }
+
+                $parts = preg_split( '/[\s,;]+/', (string) $value );
+                $valid = array();
+
+                foreach ( $parts as $part ) {
+                        $part = trim( $part );
+
+                        if ( '' === $part ) {
+                                continue;
+                        }
+
+                        $email = sanitize_email( $part );
+
+                        if ( $email ) {
+                                $valid[ $email ] = $email;
+                        }
+                }
+
+                return implode( ', ', $valid );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_default_notification_settings' ) ) {
+        /**
+         * Retrieve default notification settings for all contexts.
+         *
+         * @return array
+         */
+        function bhg_get_default_notification_settings() {
+                return array(
+                        'winners'     => array(
+                                'enabled' => 0,
+                                'subject' => '{{site_name}} — Congratulations {{username}}!',
+                                'body'    => 'Hi {{username}},<br>Congratulations! You placed {{position_label}} in "{{hunt}}" with a guess of {{guess}} (difference {{diff}}). The final balance was {{final}}.',
+                                'bcc'     => '',
+                        ),
+                        'hunts'       => array(
+                                'enabled' => 0,
+                                'subject' => '{{site_name}} — Results for {{hunt}}',
+                                'body'    => 'Hi {{username}},<br>The bonus hunt "{{hunt}}" has ended. The final balance was {{final}}. Winners: {{winners}}.',
+                                'bcc'     => '',
+                        ),
+                        'tournaments' => array(
+                                'enabled' => 0,
+                                'subject' => '{{site_name}} — Tournament update: {{tournament}}',
+                                'body'    => 'Hi {{username}},<br>The tournament "{{tournament}}" has concluded. You finished {{position_label}} with {{wins}} wins.',
+                                'bcc'     => '',
+                        ),
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_notification_settings' ) ) {
+        /**
+         * Retrieve saved notification settings merged with defaults.
+         *
+         * @return array
+         */
+        function bhg_get_notification_settings() {
+                $defaults = bhg_get_default_notification_settings();
+                $saved    = get_option( 'bhg_notifications_settings', array() );
+
+                if ( ! is_array( $saved ) ) {
+                        $saved = array();
+                }
+
+                $settings = array();
+
+                foreach ( $defaults as $key => $default_section ) {
+                        $section = isset( $saved[ $key ] ) && is_array( $saved[ $key ] ) ? $saved[ $key ] : array();
+
+                        $settings[ $key ] = array(
+                                'enabled' => isset( $section['enabled'] ) ? (int) $section['enabled'] : (int) $default_section['enabled'],
+                                'subject' => isset( $section['subject'] ) ? (string) $section['subject'] : (string) $default_section['subject'],
+                                'body'    => isset( $section['body'] ) ? (string) $section['body'] : (string) $default_section['body'],
+                                'bcc'     => isset( $section['bcc'] ) ? (string) $section['bcc'] : (string) $default_section['bcc'],
+                        );
+                }
+
+                return $settings;
+        }
+}
+
+if ( ! function_exists( 'bhg_prepare_notification_headers' ) ) {
+        /**
+         * Prepare email headers for notifications, including optional BCC.
+         *
+         * @param string $bcc Raw BCC list.
+         * @return array
+         */
+        function bhg_prepare_notification_headers( $bcc ) {
+                $headers = array(
+                        'From: ' . BHG_Utils::get_email_from(),
+                        'Content-Type: text/html; charset=UTF-8',
+                );
+
+                $bcc_list = bhg_sanitize_email_list( $bcc );
+                if ( $bcc_list ) {
+                        $headers[] = 'Bcc: ' . $bcc_list;
+                }
+
+                return $headers;
+        }
+}
+
+if ( ! function_exists( 'bhg_format_position_label' ) ) {
+        /**
+         * Format a numeric position with its ordinal suffix.
+         *
+         * @param int $position Position value.
+         * @return string
+         */
+        function bhg_format_position_label( $position ) {
+                $position = (int) $position;
+
+                if ( $position <= 0 ) {
+                        return '';
+                }
+
+                $mod_100 = $position % 100;
+                if ( $mod_100 >= 11 && $mod_100 <= 13 ) {
+                        $suffix = 'th';
+                } else {
+                        switch ( $position % 10 ) {
+                                case 1:
+                                        $suffix = 'st';
+                                        break;
+                                case 2:
+                                        $suffix = 'nd';
+                                        break;
+                                case 3:
+                                        $suffix = 'rd';
+                                        break;
+                                default:
+                                        $suffix = 'th';
+                        }
+                }
+
+                return sprintf( bhg_t( 'position_format', '%1$d%2$s' ), $position, $suffix );
+        }
 }
 
 /**
