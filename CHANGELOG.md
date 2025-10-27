@@ -13,6 +13,7 @@
 - Updated plugin header description to match the customer delivery specification.
 - Normalized `load_plugin_textdomain()` path to match WordPress recommendations.
 - Ensured the automatic “Bonus Hunt” submenu entry displays the translated Dashboard label in wp-admin.
+- Limited the Bonus Hunt edit tournament selector to active tournaments (while preserving already-linked selections).
 
 ## 8.0.11 — 2025-09-14
 - Version bump.

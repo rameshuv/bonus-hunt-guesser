@@ -5,6 +5,7 @@ Date: 2025-09-12
 - Updated plugin header metadata and constants to version 8.0.14 (WordPress 6.3.0 minimum, MySQL 5.5.5 requirement).
 - Updated plugin header description to match the customer delivery specification.
 - Normalized text-domain loading path and ensured the default submenu label matches “Dashboard”.
+- Limited the Bonus Hunt edit tournament selector to active tournaments (while preserving already-linked selections).
 
 ## Stage-1 (Hotfix & Hardening)
 - Always run DB migrations on init via bhg_check_tables() → fixes missing tournament columns.
