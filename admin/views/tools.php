@@ -15,17 +15,64 @@ if ( ! current_user_can( 'manage_options' ) ) {
 
 global $wpdb;
 
-$hunts_table       = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$guesses_table     = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-$users_table       = esc_sql( $wpdb->users );
-$ads_table         = esc_sql( $wpdb->prefix . 'bhg_ads' );
-$tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+$table_map = array(
+        'hunts'       => array(
+                'name'  => $wpdb->prefix . 'bhg_bonus_hunts',
+                'label' => bhg_t( 'tools_counts_hunts_label', 'Bonus hunts' ),
+        ),
+        'guesses'     => array(
+                'name'  => $wpdb->prefix . 'bhg_guesses',
+                'label' => bhg_t( 'tools_counts_guesses_label', 'Guesses submitted' ),
+        ),
+        'users'       => array(
+                'name'  => $wpdb->users,
+                'label' => bhg_t( 'tools_counts_users_label', 'Registered users' ),
+        ),
+        'ads'         => array(
+                'name'  => $wpdb->prefix . 'bhg_ads',
+                'label' => bhg_t( 'tools_counts_ads_label', 'Advertisements' ),
+        ),
+        'tournaments' => array(
+                'name'  => $wpdb->prefix . 'bhg_tournaments',
+                'label' => bhg_t( 'tools_counts_tournaments_label', 'Tournaments' ),
+        ),
+);
 
-$hunts       = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$hunts_table}" );
-$guesses     = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$guesses_table}" );
-$users       = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$users_table}" );
-$ads         = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$ads_table}" );
-$tournaments = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$tournaments_table}" );
+$counts             = array_fill_keys( array_keys( $table_map ), 0 );
+$missing_tables     = array();
+$missing_notice_msg = '';
+
+foreach ( $table_map as $key => $table_info ) {
+        $table_name = $table_info['name'];
+        $table_like = $wpdb->esc_like( $table_name );
+        $exists     = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_like ) ) === $table_name );
+
+        if ( $exists ) {
+                $counts[ $key ] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" );
+        } else {
+                $missing_tables[ $key ] = $table_name;
+        }
+}
+
+if ( ! empty( $missing_tables ) ) {
+        $missing_labels = array();
+        foreach ( $missing_tables as $key => $table_name ) {
+                $label             = isset( $table_map[ $key ]['label'] ) ? $table_map[ $key ]['label'] : $table_name;
+                $missing_labels[]  = $label . ' (' . $table_name . ')';
+        }
+
+        $missing_notice_msg = sprintf(
+                bhg_t( 'tools_missing_tables_notice', 'Some plugin tables are missing: %1$s. Please run the database upgrade from the <a href="%2$s">Database tools</a> screen.' ),
+                esc_html( implode( ', ', $missing_labels ) ),
+                esc_url( admin_url( 'admin.php?page=bhg-database' ) )
+        );
+}
+
+$hunts       = $counts['hunts'];
+$guesses     = $counts['guesses'];
+$users       = $counts['users'];
+$ads         = $counts['ads'];
+$tournaments = $counts['tournaments'];
 
 $environment = array(
         'wp_version'       => get_bloginfo( 'version' ),
@@ -42,6 +89,10 @@ $support_url       = 'https://yourdomain.com/support/';
 ?>
 <div class="wrap bhg-wrap">
         <h1><?php echo esc_html( bhg_t( 'bhg_tools', 'BHG Tools' ) ); ?></h1>
+
+        <?php if ( $missing_notice_msg ) : ?>
+                <div class="notice notice-warning"><p><?php echo wp_kses_post( $missing_notice_msg ); ?></p></div>
+        <?php endif; ?>
 
         <div class="bhg-tools-grid">
                 <section class="card bhg-tool-card">
