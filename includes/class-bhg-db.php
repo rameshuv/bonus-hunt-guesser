@@ -487,13 +487,32 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 		 * @return array List of affiliate website objects.
 		 */
 	public function get_affiliate_websites() {
-						global $wpdb;
+		global $wpdb;
+		$cache_args = array( 'list' => 'all' );
 
-						$table = $wpdb->prefix . 'bhg_affiliate_websites';
+		if ( function_exists( 'bhg_cache_get' ) ) {
+			$cached = bhg_cache_get( 'affiliate_sites', $cache_args );
+			if ( null !== $cached ) {
+				return $cached;
+			}
+		}
 
-                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-												return $wpdb->get_results( "SELECT id, name, slug, url, status FROM `{$table}` ORDER BY name ASC" );
+		$table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+		$sql   = "SELECT id, name, slug, url, status FROM `{$table}` ORDER BY name ASC";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		$rows  = $wpdb->get_results( $sql );
+
+		if ( ! is_array( $rows ) ) {
+			$rows = array();
+		}
+
+		if ( function_exists( 'bhg_cache_set' ) ) {
+			bhg_cache_set( 'affiliate_sites', $cache_args, $rows, HOUR_IN_SECONDS );
+		}
+
+		return $rows;
 	}
+
 
 		/**
 		 * Check if a column exists, falling back when information_schema is not accessible.
@@ -505,6 +524,19 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 	private function column_exists( $table, $column ) {
 		global $wpdb;
 
+		static $cache = array();
+
+		$table  = preg_replace( '/[^a-zA-Z0-9_]/', '', (string) $table );
+		$column = preg_replace( '/[^a-zA-Z0-9_]/', '', (string) $column );
+		if ( '' === $table || '' === $column ) {
+			return false;
+		}
+
+		$key = $table . '|' . $column;
+		if ( isset( $cache[ $key ] ) ) {
+			return $cache[ $key ];
+		}
+
 		$wpdb->last_error = '';
 		$sql              = $wpdb->prepare(
 			'SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND COLUMN_NAME=%s',
@@ -512,45 +544,64 @@ $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 			$table,
 			$column
 		);
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-				$exists = $wpdb->get_var( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$exists = $wpdb->get_var( $sql );
 
 		if ( $wpdb->last_error ) {
 			$wpdb->last_error = '';
-                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-						$exists = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM `{$table}` LIKE %s", $column ) );
+			$safe_table        = esc_sql( $table );
+			$query            = $wpdb->prepare( "SHOW COLUMNS FROM `{$safe_table}` LIKE %s", $column );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$exists           = $wpdb->get_var( $query );
 		}
 
-		return ! empty( $exists );
+		$cache[ $key ] = ! empty( $exists );
+		return $cache[ $key ];
 	}
 
-	/**
-	 * Check if an index exists, falling back when information_schema is not accessible.
-	 *
-	 * @param string $table Table name.
-	 * @param string $index Index to check.
-	 * @return bool
-	 */
+        /**
+         * Check if an index exists, falling back when information_schema is not accessible.
+         *
+         * @param string $table Table name.
+         * @param string $index Index to check.
+         * @return bool
+         */
 private function index_exists( $table, $index ) {
 global $wpdb;
 
+static $cache = array();
+
+$table = preg_replace( '/[^a-zA-Z0-9_]/', '', (string) $table );
+$index = preg_replace( '/[^a-zA-Z0-9_]/', '', (string) $index );
+if ( '' === $table || '' === $index ) {
+return false;
+}
+
+$key = $table . '|' . $index;
+if ( isset( $cache[ $key ] ) ) {
+return $cache[ $key ];
+}
+
 $wpdb->last_error = '';
 $sql              = $wpdb->prepare(
-			'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND INDEX_NAME=%s',
-			DB_NAME,
-			$table,
-			$index
-		);
+                        'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND INDEX_NAME=%s',
+                        DB_NAME,
+                        $table,
+                        $index
+                );
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-				$exists = $wpdb->get_var( $sql );
+                                $exists = $wpdb->get_var( $sql );
 
-		if ( $wpdb->last_error ) {
-			$wpdb->last_error = '';
+                if ( $wpdb->last_error ) {
+                        $wpdb->last_error = '';
+                        $safe_table        = esc_sql( $table );
+                        $query            = $wpdb->prepare( "SHOW INDEX FROM `{$safe_table}` WHERE Key_name=%s", $index );
                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-						$exists = $wpdb->get_var( $wpdb->prepare( "SHOW INDEX FROM `{$table}` WHERE Key_name=%s", $index ) );
-		}
+                        $exists           = $wpdb->get_var( $query );
+                }
 
-return ! empty( $exists );
+$cache[ $key ] = ! empty( $exists );
+return $cache[ $key ];
 }
 
 /**
@@ -562,9 +613,21 @@ return ! empty( $exists );
 private function table_exists( $table ) {
 global $wpdb;
 
+static $cache = array();
+
+$table = preg_replace( '/[^a-zA-Z0-9_]/', '', (string) $table );
+if ( '' === $table ) {
+return false;
+}
+
+if ( isset( $cache[ $table ] ) ) {
+return $cache[ $table ];
+}
+
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 $exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 
-return ! empty( $exists );
+$cache[ $table ] = ! empty( $exists );
+return $cache[ $table ];
 }
 }

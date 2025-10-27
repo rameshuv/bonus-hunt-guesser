@@ -309,8 +309,16 @@ $points_enabled = function_exists( 'bhg_points_scope_allows_status' ) ? bhg_poin
                 */
                do_action( 'bhg_hunt_closed', $hunt_id, $winner_ids );
 
-               return $winner_ids;
-        }
+if ( function_exists( 'bhg_clear_latest_closed_hunts_cache' ) ) {
+bhg_clear_latest_closed_hunts_cache();
+}
+
+if ( function_exists( 'bhg_clear_hunt_guess_cache' ) ) {
+bhg_clear_hunt_guess_cache( $hunt_id );
+}
+
+return $winner_ids;
+}
 
 	/**
 	 * Recalculate tournament leaderboards based on current hunt winners.

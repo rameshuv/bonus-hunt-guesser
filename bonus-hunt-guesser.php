@@ -841,6 +841,9 @@ function bhg_handle_submit_guess() {
                                 if ( ! empty( $last_guess_key ) ) {
                                                 wp_cache_delete( $last_guess_key );
                                 }
+                                if ( function_exists( 'bhg_clear_hunt_guess_cache' ) ) {
+                                        bhg_clear_hunt_guess_cache( $hunt_id );
+                                }
                                 $did_update = true;
                                 if ( wp_doing_ajax() ) {
                                         wp_send_json_success(
@@ -877,9 +880,13 @@ function bhg_handle_submit_guess() {
 				);
 	wp_cache_delete( $count_cache_key );
 		$last_guess_key = 'bhg_last_guess_' . $hunt_id . '_' . $user_id;
-	if ( ! empty( $last_guess_key ) ) {
-			wp_cache_delete( $last_guess_key );
-	}
+        if ( ! empty( $last_guess_key ) ) {
+                        wp_cache_delete( $last_guess_key );
+        }
+
+        if ( function_exists( 'bhg_clear_hunt_guess_cache' ) ) {
+                        bhg_clear_hunt_guess_cache( $hunt_id );
+        }
 
         if ( wp_doing_ajax() ) {
                 wp_send_json_success(

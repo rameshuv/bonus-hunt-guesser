@@ -221,58 +221,113 @@ if ( ! function_exists( 'bhg_get_hunt' ) ) {
 
 if ( ! function_exists( 'bhg_get_latest_closed_hunts' ) ) {
 	function bhg_get_latest_closed_hunts( $limit = 3 ) {
-				global $wpdb;
-				$t = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-				return $wpdb->get_results(
-					$wpdb->prepare(
-						"SELECT id, title, starting_balance, final_balance, winners_count, closed_at FROM {$t} WHERE status = %s ORDER BY closed_at DESC LIMIT %d",
-						'closed',
-						(int) $limit
-					)
-				);
+		$limit = max( 1, absint( $limit ) );
+
+		if ( function_exists( 'bhg_cache_get' ) ) {
+			$cached = bhg_cache_get( 'latest_closed_hunts', array( 'limit' => $limit ) );
+			if ( null !== $cached ) {
+				return $cached;
+			}
+		}
+
+		global $wpdb;
+		$table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		$rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, title, starting_balance, final_balance, winners_count, closed_at FROM {$table} WHERE status = %s ORDER BY closed_at DESC LIMIT %d",
+				'closed',
+				$limit
+			)
+		);
+
+		if ( ! is_array( $rows ) ) {
+			$rows = array();
+		}
+
+		if ( function_exists( 'bhg_cache_set' ) ) {
+			bhg_cache_set( 'latest_closed_hunts', array( 'limit' => $limit ), $rows, 5 * MINUTE_IN_SECONDS );
+		}
+
+		return $rows;
 	}
 }
-
 if ( ! function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
 	function bhg_get_top_winners_for_hunt( $hunt_id, $winners_limit = 3 ) {
-				global $wpdb;
-				$t_g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-				$t_h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		global $wpdb;
+		$hunt_id = (int) $hunt_id;
+		if ( $hunt_id <= 0 ) {
+			return array();
+		}
 
-								$hunt = $wpdb->get_row( $wpdb->prepare( "SELECT final_balance, winners_count FROM {$t_h} WHERE id=%d", (int) $hunt_id ) );
+		$limit = (int) $winners_limit > 0 ? (int) $winners_limit : 0;
+		$t_g   = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+		$t_h   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+
+		$cache_group = 'hunt_winners_' . $hunt_id;
+		if ( function_exists( 'bhg_cache_get' ) ) {
+			$cached = bhg_cache_get( $cache_group, array( 'limit' => max( 1, $limit ) ) );
+			if ( null !== $cached ) {
+				return $cached;
+			}
+		}
+
+		$hunt = $wpdb->get_row( $wpdb->prepare( "SELECT final_balance, winners_count FROM {$t_h} WHERE id=%d", $hunt_id ) );
 		if ( ! $hunt || null === $hunt->final_balance ) {
-				return array();
-		}
-		if ( $winners_limit ) {
-				$limit = (int) $winners_limit;
-		} elseif ( $hunt->winners_count ) {
-				$limit = (int) $hunt->winners_count;
-		} else {
-				$limit = 3;
+			return array();
 		}
 
-                $sql = $wpdb->prepare(
-                        sprintf(
-                                'SELECT g.user_id, g.guess, (%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC LIMIT %%d',
-                                $t_g
-                        ),
-                        (float) $hunt->final_balance,
-                        (int) $hunt_id,
-                        (float) $hunt->final_balance,
-                        (int) $limit
-                );
-                return $wpdb->get_results( $sql );
+		if ( $limit <= 0 ) {
+			if ( ! empty( $hunt->winners_count ) ) {
+				$limit = (int) $hunt->winners_count;
+			} else {
+				$limit = 3;
+			}
+		}
+
+		$sql = $wpdb->prepare(
+			sprintf(
+				'SELECT g.user_id, g.guess, (%%f - g.guess) AS diff FROM `%s` g WHERE g.hunt_id = %%d ORDER BY ABS(%%f - g.guess) ASC LIMIT %%d',
+				$t_g
+			),
+			(float) $hunt->final_balance,
+			$hunt_id,
+			(float) $hunt->final_balance,
+			$limit
+		);
+		$rows = $wpdb->get_results( $sql );
+		if ( ! is_array( $rows ) ) {
+			$rows = array();
+		}
+
+		if ( function_exists( 'bhg_cache_set' ) ) {
+			bhg_cache_set( $cache_group, array( 'limit' => $limit ), $rows, 5 * MINUTE_IN_SECONDS );
+		}
+
+		return $rows;
 	}
 }
 
 if ( ! function_exists( 'bhg_get_all_ranked_guesses' ) ) {
 	function bhg_get_all_ranked_guesses( $hunt_id ) {
-				global $wpdb;
-				$t_g                  = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-				$t_h                  = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		global $wpdb;
+		$hunt_id = (int) $hunt_id;
+		if ( $hunt_id <= 0 ) {
+			return array();
+		}
+
+		$cache_group = 'hunt_ranked_' . $hunt_id;
+		if ( function_exists( 'bhg_cache_get' ) ) {
+			$cached = bhg_cache_get( $cache_group, array() );
+			if ( null !== $cached ) {
+				return $cached;
+			}
+		}
+
+		$t_g = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+		$t_h = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
                                 $hunt = $wpdb->get_row( $wpdb->prepare( 'SELECT final_balance FROM `' . $t_h . '` WHERE id=%d', (int) $hunt_id ) );
 		if ( ! $hunt || null === $hunt->final_balance ) {
-				return array();
+			return array();
 		}
 
                 $sql = $wpdb->prepare(
@@ -284,37 +339,77 @@ if ( ! function_exists( 'bhg_get_all_ranked_guesses' ) ) {
                         (int) $hunt_id,
                         (float) $hunt->final_balance
                 );
-                return $wpdb->get_results( $sql );
+                $rows = $wpdb->get_results( $sql );
+		if ( ! is_array( $rows ) ) {
+			$rows = array();
+		}
+
+		if ( function_exists( 'bhg_cache_set' ) ) {
+			bhg_cache_set( $cache_group, array(), $rows, 5 * MINUTE_IN_SECONDS );
+		}
+
+		return $rows;
 	}
 }
 
 if ( ! function_exists( 'bhg_get_hunt_participants' ) ) {
 	function bhg_get_hunt_participants( $hunt_id, $paged = 1, $per_page = 30 ) {
-				global $wpdb;
-								$t_g    = esc_sql( $wpdb->prefix . 'bhg_guesses' );
-								$offset = max( 0, ( (int) $paged - 1 ) * (int) $per_page );
+		global $wpdb;
+		$hunt_id = (int) $hunt_id;
+		if ( $hunt_id <= 0 ) {
+			return array( 'rows' => array(), 'total' => 0 );
+		}
 
-                $rows  = $wpdb->get_results(
+		$paged    = max( 1, (int) $paged );
+		$per_page = max( 1, (int) $per_page );
+		$offset   = max( 0, ( $paged - 1 ) * $per_page );
+		$t_g      = esc_sql( $wpdb->prefix . 'bhg_guesses' );
+
+                $cache_group = 'hunt_participants_' . $hunt_id;
+                $cache_args  = array(
+                        'page'      => $paged,
+                        'per_page'  => $per_page,
+                        'with_rows' => true,
+                );
+                if ( function_exists( 'bhg_cache_get' ) ) {
+                        $cached = bhg_cache_get( $cache_group, $cache_args );
+                        if ( null !== $cached ) {
+                                return $cached;
+                        }
+                }
+
+                $rows = $wpdb->get_results(
                         $wpdb->prepare(
                                 sprintf(
                                         'SELECT id, user_id, guess, created_at FROM `%s` WHERE hunt_id = %%d ORDER BY created_at DESC LIMIT %%d OFFSET %%d',
                                         $t_g
                                 ),
-                                (int) $hunt_id,
-                                (int) $per_page,
-                                (int) $offset
+                                $hunt_id,
+                                $per_page,
+                                $offset
                         )
                 );
+                if ( ! is_array( $rows ) ) {
+                        $rows = array();
+                }
+
                 $total = (int) $wpdb->get_var(
                         $wpdb->prepare(
                                 sprintf( 'SELECT COUNT(*) FROM `%s` WHERE hunt_id = %%d', $t_g ),
-                                (int) $hunt_id
+                                $hunt_id
                         )
                 );
-				return array(
-					'rows'  => $rows,
-					'total' => $total,
-				);
+
+                $result = array(
+                        'rows'  => $rows,
+                        'total' => $total,
+                );
+
+                if ( function_exists( 'bhg_cache_set' ) ) {
+                        bhg_cache_set( $cache_group, $cache_args, $result, 5 * MINUTE_IN_SECONDS );
+                }
+
+                return $result;
 	}
 }
 
@@ -327,7 +422,25 @@ if ( ! function_exists( 'bhg_remove_guess' ) ) {
 	 */
 	function bhg_remove_guess( $guess_id ) {
 		global $wpdb;
-		$t_g = $wpdb->prefix . 'bhg_guesses';
-		return $wpdb->delete( $t_g, array( 'id' => (int) $guess_id ), array( '%d' ) );
+		$t_g      = $wpdb->prefix . 'bhg_guesses';
+		$guess_id = (int) $guess_id;
+		if ( $guess_id <= 0 ) {
+			return false;
+		}
+
+		$hunt_id = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT hunt_id FROM {$t_g} WHERE id = %d",
+				$guess_id
+			)
+		);
+
+		$result = $wpdb->delete( $t_g, array( 'id' => $guess_id ), array( '%d' ) );
+
+		if ( $result && $hunt_id > 0 && function_exists( 'bhg_clear_hunt_guess_cache' ) ) {
+			bhg_clear_hunt_guess_cache( $hunt_id );
+		}
+
+		return $result;
 	}
 }

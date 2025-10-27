@@ -55,7 +55,195 @@ function bhg_slugify( $text ) {
  * @return string
  */
 function bhg_admin_cap() {
-        return apply_filters( 'bhg_admin_capability', 'manage_options' );
+	return apply_filters( 'bhg_admin_capability', 'manage_options' );
+}
+
+if ( ! function_exists( 'bhg_get_cache_version' ) ) {
+	/**
+	 * Retrieve the current cache version for a logical cache group.
+	 *
+	 * @param string $group Cache group identifier.
+	 * @return int
+	 */
+	function bhg_get_cache_version( $group ) {
+		$group   = sanitize_key( $group );
+		$option  = 'bhg_cache_version_' . $group;
+		$version = (int) get_option( $option, 1 );
+
+		if ( $version < 1 ) {
+			$version = 1;
+			update_option( $option, $version );
+		}
+
+		return $version;
+	}
+}
+
+if ( ! function_exists( 'bhg_bump_cache_version' ) ) {
+	/**
+	 * Increment the stored cache version for a logical group.
+	 *
+	 * @param string $group Cache group identifier.
+	 * @return void
+	 */
+	function bhg_bump_cache_version( $group ) {
+		$group  = sanitize_key( $group );
+		$option = 'bhg_cache_version_' . $group;
+		$next   = bhg_get_cache_version( $group ) + 1;
+
+		update_option( $option, $next );
+	}
+}
+
+if ( ! function_exists( 'bhg_cache_key' ) ) {
+	/**
+	 * Build a deterministic cache key for the provided group/arguments.
+	 *
+	 * @param string $group Cache group identifier.
+	 * @param array  $args  Arguments to include in the key hash.
+	 * @return string
+	 */
+	function bhg_cache_key( $group, array $args = array() ) {
+		$group   = sanitize_key( $group );
+		$version = bhg_get_cache_version( $group );
+		$payload = wp_json_encode( array( 'group' => $group, 'args' => $args, 'version' => $version ) );
+
+		return 'bhg_' . $group . '_' . md5( (string) $payload );
+	}
+}
+
+if ( ! function_exists( 'bhg_cache_register_key' ) ) {
+	/**
+	 * Track a generated cache key so it can be invalidated later.
+	 *
+	 * @param string $group     Cache group identifier.
+	 * @param string $cache_key Cache storage key.
+	 * @return void
+	 */
+	function bhg_cache_register_key( $group, $cache_key ) {
+		$group  = sanitize_key( $group );
+		$option = 'bhg_cache_index_' . $group;
+		$keys   = get_option( $option, array() );
+
+		if ( ! in_array( $cache_key, $keys, true ) ) {
+			$keys[] = $cache_key;
+			update_option( $option, $keys );
+		}
+	}
+}
+
+if ( ! function_exists( 'bhg_cache_get' ) ) {
+	/**
+	 * Retrieve a cached value for the given group/arguments.
+	 *
+	 * @param string $group Cache group identifier.
+	 * @param array  $args  Arguments used when storing the cache.
+	 * @return mixed|null Cached value or null if not found.
+	 */
+	function bhg_cache_get( $group, array $args = array() ) {
+		$cache_key = bhg_cache_key( $group, $args );
+		$group_key = 'bonus-hunt-guesser';
+
+		$cached = wp_cache_get( $cache_key, $group_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
+		$cached = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			wp_cache_set( $cache_key, $cached, $group_key, HOUR_IN_SECONDS );
+			return $cached;
+		}
+
+		return null;
+	}
+}
+
+if ( ! function_exists( 'bhg_cache_set' ) ) {
+	/**
+	 * Store a cached value for the given group/arguments combination.
+	 *
+	 * @param string $group      Cache group identifier.
+	 * @param array  $args       Arguments used to construct the cache key.
+	 * @param mixed  $value      Value to store.
+	 * @param int    $expiration Optional. Cache expiration in seconds. Default 1 hour.
+	 * @return void
+	 */
+	function bhg_cache_set( $group, array $args, $value, $expiration = 0 ) {
+		$cache_key = bhg_cache_key( $group, $args );
+		$group_key = 'bonus-hunt-guesser';
+		$ttl       = $expiration > 0 ? (int) $expiration : HOUR_IN_SECONDS;
+
+		wp_cache_set( $cache_key, $value, $group_key, $ttl );
+		set_transient( $cache_key, $value, $ttl );
+		bhg_cache_register_key( $group, $cache_key );
+	}
+}
+
+if ( ! function_exists( 'bhg_cache_delete_group' ) ) {
+	/**
+	 * Delete all cached entries for a cache group and bump the version.
+	 *
+	 * @param string $group Cache group identifier.
+	 * @return void
+	 */
+	function bhg_cache_delete_group( $group ) {
+		$group  = sanitize_key( $group );
+		$option = 'bhg_cache_index_' . $group;
+		$keys   = get_option( $option, array() );
+
+		if ( ! empty( $keys ) ) {
+			foreach ( $keys as $cache_key ) {
+				delete_transient( $cache_key );
+				wp_cache_delete( $cache_key, 'bonus-hunt-guesser' );
+			}
+		}
+
+		delete_option( $option );
+		bhg_bump_cache_version( $group );
+	}
+}
+
+if ( ! function_exists( 'bhg_clear_latest_closed_hunts_cache' ) ) {
+	/**
+	 * Clear cached entries for the latest closed hunts dashboard widget.
+	 *
+	 * @return void
+	 */
+	function bhg_clear_latest_closed_hunts_cache() {
+		bhg_cache_delete_group( 'latest_closed_hunts' );
+	}
+}
+
+if ( ! function_exists( 'bhg_clear_affiliate_websites_cache' ) ) {
+	/**
+	 * Clear cached affiliate website lookups.
+	 *
+	 * @return void
+	 */
+	function bhg_clear_affiliate_websites_cache() {
+		bhg_cache_delete_group( 'affiliate_sites' );
+	}
+}
+
+if ( ! function_exists( 'bhg_clear_hunt_guess_cache' ) ) {
+/**
+ * Clear cached guess and winner data for a hunt.
+ *
+ * @param int $hunt_id Hunt identifier.
+ * @return void
+ */
+function bhg_clear_hunt_guess_cache( $hunt_id ) {
+$hunt_id = absint( $hunt_id );
+
+if ( $hunt_id <= 0 || ! function_exists( 'bhg_cache_delete_group' ) ) {
+return;
+}
+
+bhg_cache_delete_group( 'hunt_winners_' . $hunt_id );
+bhg_cache_delete_group( 'hunt_ranked_' . $hunt_id );
+bhg_cache_delete_group( 'hunt_participants_' . $hunt_id );
+}
 }
 
 /**
