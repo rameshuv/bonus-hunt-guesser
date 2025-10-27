@@ -7,6 +7,7 @@ Date: 2025-09-12
 - Normalized text-domain loading path and ensured the default submenu label matches “Dashboard”.
 - Limited the Bonus Hunt edit tournament selector to active tournaments (while preserving already-linked selections).
 - Filtered the tournament edit “Connected Bonus Hunts” multiselect to current-year hunts while keeping already-linked entries visible.
+- Added per-affiliate website toggles on the Users admin screen and profile editor, with cleanup when affiliate sites are deleted.
 
 ## Stage-1 (Hotfix & Hardening)
 - Always run DB migrations on init via bhg_check_tables() → fixes missing tournament columns.

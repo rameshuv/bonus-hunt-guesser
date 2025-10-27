@@ -1150,13 +1150,16 @@ exit;
 			wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
 								check_admin_referer( 'bhg_delete_affiliate', 'bhg_delete_affiliate_nonce' );
-				global $wpdb;
-				$table = $wpdb->prefix . 'bhg_affiliate_websites';
-		$id            = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+		global $wpdb;
+		$table = $wpdb->prefix . 'bhg_affiliate_websites';
+		$id    = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
 		if ( $id ) {
-			$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
+			$deleted = $wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
+			if ( $deleted && function_exists( 'bhg_remove_affiliate_site_from_users' ) ) {
+				bhg_remove_affiliate_site_from_users( $id );
+			}
 		}
-				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
+		wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
 		exit;
 	}
 
@@ -1170,10 +1173,17 @@ exit;
 								check_admin_referer( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' );
 		$user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
 		if ( $user_id ) {
-			$real_name    = isset( $_POST['bhg_real_name'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_real_name'] ) ) : '';
-			$is_affiliate = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
+			$real_name = isset( $_POST['bhg_real_name'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_real_name'] ) ) : '';
+			$sites     = isset( $_POST['bhg_affiliate_sites'] ) ? (array) wp_unslash( $_POST['bhg_affiliate_sites'] ) : array();
+
 			update_user_meta( $user_id, 'bhg_real_name', $real_name );
-			update_user_meta( $user_id, 'bhg_is_affiliate', $is_affiliate );
+
+			if ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+				bhg_set_user_affiliate_websites( $user_id, $sites );
+			} else {
+				$is_affiliate = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
+				update_user_meta( $user_id, 'bhg_is_affiliate', $is_affiliate );
+			}
 		}
 				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-users' ) );
 		exit;

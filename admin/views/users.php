@@ -32,6 +32,12 @@ $user_query = new WP_User_Query( $args );
 $users      = $user_query->get_results();
 $total      = $user_query->get_total();
 
+$affiliate_sites = array();
+if ( class_exists( 'BHG_DB' ) ) {
+	$db = new BHG_DB();
+	$affiliate_sites = is_callable( array( $db, 'get_affiliate_websites' ) ) ? $db->get_affiliate_websites() : array();
+}
+
 $base_url = remove_query_arg( array( 'paged' ) );
 ?>
 <div class="wrap">
@@ -91,7 +97,7 @@ $base_url = remove_query_arg( array( 'paged' ) );
 		);
 		?>
 		"><?php echo esc_html( bhg_t( 'label_email', 'Email' ) ); ?></a></th>
-		<th><?php echo esc_html( bhg_t( 'affiliate_user', 'Affiliate' ) ); ?></th>
+                <th><?php echo esc_html( bhg_t( 'label_affiliate_websites', 'Affiliate Websites' ) ); ?></th>
 		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
 		</tr>
 	</thead>
@@ -101,21 +107,41 @@ $base_url = remove_query_arg( array( 'paged' ) );
 			<?php
 		else :
 			foreach ( $users as $u ) :
-				$form_id   = 'bhg-user-' . (int) $u->ID;
-				$real_name = get_user_meta( $u->ID, 'bhg_real_name', true );
-				$is_aff    = get_user_meta( $u->ID, 'bhg_is_affiliate', true );
+                                $form_id   = 'bhg-user-' . (int) $u->ID;
+                                $real_name = get_user_meta( $u->ID, 'bhg_real_name', true );
+                                $user_sites = function_exists( 'bhg_get_user_affiliate_websites' ) ? bhg_get_user_affiliate_websites( $u->ID ) : array();
 				?>
 		<tr>
 			<td><?php echo esc_html( $u->user_login ); ?></td>
 			<td><?php echo esc_html( $u->display_name ); ?></td>
 			<td><input type="text" name="bhg_real_name" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $real_name ); ?>" /></td>
-			<td><?php echo esc_html( $u->user_email ); ?></td>
-			<td class="bhg-text-center"><input type="checkbox" name="bhg_is_affiliate" value="1" form="<?php echo esc_attr( $form_id ); ?>" <?php checked( $is_aff, 1 ); ?> /></td>
+                        <td><?php echo esc_html( $u->user_email ); ?></td>
+                        <td>
+                                <?php if ( empty( $affiliate_sites ) ) : ?>
+                                        <em><?php echo esc_html( bhg_t( 'no_affiliate_sites_defined', 'No affiliate websites defined yet.' ) ); ?></em>
+                                <?php else : ?>
+                                        <fieldset class="bhg-affiliate-sites">
+                                                <?php foreach ( $affiliate_sites as $site ) :
+                                                        $site_id   = (int) $site->id;
+                                                        $is_active = isset( $site->status ) ? ( 'active' === $site->status ) : true;
+                                                        $checked   = in_array( $site_id, (array) $user_sites, true );
+                                                        ?>
+                                                        <label>
+                                                                <input type="checkbox" name="bhg_affiliate_sites[]" form="<?php echo esc_attr( $form_id ); ?>" value="<?php echo esc_attr( $site_id ); ?>" <?php checked( $checked ); ?> />
+                                                                <?php echo esc_html( $site->name ); ?>
+                                                                <?php if ( ! $is_active ) : ?>
+                                                                        <span class="description">(<?php echo esc_html( bhg_t( 'inactive', 'Inactive' ) ); ?>)</span>
+                                                                <?php endif; ?>
+                                                        </label><br />
+                                                <?php endforeach; ?>
+                                        </fieldset>
+                                <?php endif; ?>
+                        </td>
 			<td>
 			<form id="<?php echo esc_attr( $form_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="bhg_save_user_meta" />
-<input type="hidden" name="user_id" value="<?php echo esc_attr( (int) $u->ID ); ?>" />
-								<?php wp_nonce_field( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' ); ?>
+				<input type="hidden" name="user_id" value="<?php echo esc_attr( (int) $u->ID ); ?>" />
+												<?php wp_nonce_field( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' ); ?>
 				<button type="submit" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button>
 			</form>
 			<a class="button" href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $u->ID ) ); ?>"><?php echo esc_html( bhg_t( 'view_edit', 'View / Edit' ) ); ?></a>

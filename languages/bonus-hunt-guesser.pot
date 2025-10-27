@@ -362,6 +362,11 @@ msgstr ""
 msgid "No affiliates yet."
 msgstr ""
 
+#: admin/views/users.php:121
+#: bonus-hunt-guesser.php:1059
+msgid "No affiliate websites defined yet."
+msgstr ""
+
 #: admin/views/affiliate-websites.php:41
 msgid "Delete this affiliate?"
 msgstr ""
@@ -1408,3 +1413,8 @@ msgstr ""
 #. Default translation key: placeholder_enter_guess
 msgid "Enter your guess"
 msgstr ""
+
+#: bonus-hunt-guesser.php:1074
+msgid "Select the affiliate websites this user belongs to."
+msgstr ""
+

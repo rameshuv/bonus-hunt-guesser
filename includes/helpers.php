@@ -236,6 +236,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'available'                                    => 'Available',
                         'prize_list'                                   => 'Prize List',
                         'no_prizes_yet'                                => 'No prizes found.',
+                        'no_affiliate_sites_defined'                   => 'No affiliate websites defined yet.',
                         'add_new_prize'                                => 'Add New Prize',
                         'edit_prize'                                   => 'Edit Prize',
                         'add_prize'                                    => 'Add Prize',
@@ -362,7 +363,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_log_out'                                => 'Log out',
 			'label_non_affiliates'                         => 'Non Affiliates',
 			'label_affiliate_website'                      => 'Affiliate Website',
-			'label_affiliate_websites'                     => 'Affiliate Websites',
+                        'label_affiliate_websites'                     => 'Affiliate Websites',
+                        'select_affiliate_sites_hint'                  => 'Select the affiliate websites this user belongs to.',
 			'label_affiliate_user_title'                   => 'Affiliate User',
 			'guessing_enabled'                             => 'Guessing Enabled',
 			'label_footer'                                 => 'Footer',
@@ -857,10 +859,21 @@ if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
 	 * @param int $user_id User ID.
 	 * @return bool
 	 */
-	function bhg_is_user_affiliate( $user_id ) {
-		$val = get_user_meta( (int) $user_id, 'bhg_is_affiliate', true );
-		return ( '1' === $val || 1 === $val || true === $val || 'yes' === $val );
-	}
+        function bhg_is_user_affiliate( $user_id ) {
+                $user_id = (int) $user_id;
+
+                if ( $user_id <= 0 ) {
+                        return false;
+                }
+
+                $sites = bhg_get_user_affiliate_websites( $user_id );
+                if ( ! empty( $sites ) ) {
+                        return true;
+                }
+
+                $val = get_user_meta( $user_id, 'bhg_is_affiliate', true );
+                return ( '1' === $val || 1 === $val || true === $val || 'yes' === $val );
+        }
 }
 
 if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {
@@ -890,18 +903,75 @@ if ( ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
 		 * @param array $site_ids Site IDs.
 		 * @return void
 		 */
-	function bhg_set_user_affiliate_websites( $user_id, $site_ids ) {
-			$clean = array();
-		if ( is_array( $site_ids ) ) {
-			foreach ( $site_ids as $sid ) {
-				$sid = absint( $sid );
-				if ( $sid ) {
-						$clean[] = $sid;
-				}
-			}
-		}
-			update_user_meta( (int) $user_id, 'bhg_affiliate_websites', $clean );
-	}
+        function bhg_set_user_affiliate_websites( $user_id, $site_ids ) {
+                $clean = array();
+                if ( is_array( $site_ids ) ) {
+                        foreach ( $site_ids as $sid ) {
+                                $sid = absint( $sid );
+                                if ( $sid ) {
+                                        $clean[] = $sid;
+                                }
+                        }
+                }
+
+                $user_id = (int) $user_id;
+                update_user_meta( $user_id, 'bhg_affiliate_websites', $clean );
+                update_user_meta( $user_id, 'bhg_is_affiliate', empty( $clean ) ? 0 : 1 );
+        }
+}
+
+if ( ! function_exists( 'bhg_remove_affiliate_site_from_users' ) ) {
+        /**
+         * Remove a specific affiliate site assignment from all users.
+         *
+         * @param int $site_id Affiliate site ID.
+         * @return void
+         */
+        function bhg_remove_affiliate_site_from_users( $site_id ) {
+                $site_id = absint( $site_id );
+
+                if ( ! $site_id ) {
+                        return;
+                }
+
+                global $wpdb;
+
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                $rows = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT user_id, meta_value FROM {$wpdb->usermeta} WHERE meta_key = %s",
+                                'bhg_affiliate_websites'
+                        ),
+                        ARRAY_A
+                );
+
+                if ( empty( $rows ) ) {
+                        return;
+                }
+
+                foreach ( $rows as $row ) {
+                        $user_id   = (int) $row['user_id'];
+                        $meta_value = maybe_unserialize( $row['meta_value'] );
+
+                        if ( empty( $meta_value ) || ! is_array( $meta_value ) ) {
+                                continue;
+                        }
+
+                        $filtered = array_filter(
+                                array_map( 'absint', $meta_value ),
+                                static function ( $value ) use ( $site_id ) {
+                                        return ( $value > 0 && $value !== $site_id );
+                                }
+                        );
+
+                        if ( count( $filtered ) === count( $meta_value ) ) {
+                                continue;
+                        }
+
+                        update_user_meta( $user_id, 'bhg_affiliate_websites', $filtered );
+                        update_user_meta( $user_id, 'bhg_is_affiliate', empty( $filtered ) ? 0 : 1 );
+                }
+        }
 }
 
 if ( ! function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
