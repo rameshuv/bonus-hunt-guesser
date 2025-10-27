@@ -30,9 +30,20 @@ $affs = $wpdb->get_results(
 );
 $sel  = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 
-$t_table              = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
-$tournaments          = $wpdb->get_results( "SELECT id, title FROM {$t_table} ORDER BY title ASC" );
 $selected_tournaments = function_exists( 'bhg_get_hunt_tournament_ids' ) ? bhg_get_hunt_tournament_ids( (int) $hunt->id ) : array();
+$selected_tournaments = array_values( array_filter( array_map( 'absint', (array) $selected_tournaments ) ) );
+$t_table              = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+$active_sql           = $wpdb->prepare( "SELECT id, title FROM {$t_table} WHERE status = %s ORDER BY title ASC", 'active' );
+
+if ( ! empty( $selected_tournaments ) ) {
+        $ids_sql  = implode( ',', array_map( 'intval', $selected_tournaments ) );
+        $active_sql = $wpdb->prepare(
+                "SELECT id, title FROM {$t_table} WHERE status = %s OR id IN ({$ids_sql}) ORDER BY title ASC",
+                'active'
+        );
+}
+
+$tournaments = $wpdb->get_results( $active_sql );
 
 $paged    = max( 1, absint( wp_unslash( $_GET['ppaged'] ?? '' ) ) );
 $per_page = 30;

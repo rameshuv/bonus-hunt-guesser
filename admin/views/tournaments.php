@@ -72,10 +72,21 @@ if ( $search_term ) {
 			)
 		);
 }
-$base_url = remove_query_arg( array( 'paged' ) );
-$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
-$all_hunts   = $wpdb->get_results( "SELECT id, title FROM {$hunts_table} ORDER BY title ASC" );
-$linked_hunts   = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$base_url      = remove_query_arg( array( 'paged' ) );
+$linked_hunts  = $row && function_exists( 'bhg_get_tournament_hunt_ids' ) ? bhg_get_tournament_hunt_ids( (int) $row->id ) : array();
+$linked_hunts  = array_values( array_filter( array_map( 'absint', (array) $linked_hunts ) ) );
+$hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$current_year  = (int) gmdate( 'Y', current_time( 'timestamp' ) );
+$hunts_where   = '( (created_at IS NOT NULL AND YEAR(created_at) = %d) OR (closed_at IS NOT NULL AND YEAR(closed_at) = %d) )';
+$hunts_params  = array( $current_year, $current_year );
+
+if ( ! empty( $linked_hunts ) ) {
+        $ids_sql     = implode( ',', array_map( 'intval', $linked_hunts ) );
+        $hunts_where = '(' . $hunts_where . " OR id IN ({$ids_sql}) )";
+}
+
+$hunts_sql  = $wpdb->prepare( "SELECT id, title FROM {$hunts_table} WHERE {$hunts_where} ORDER BY title ASC", $hunts_params );
+$all_hunts  = $wpdb->get_results( $hunts_sql );
 $hunt_link_mode = isset( $row->hunt_link_mode ) ? sanitize_key( $row->hunt_link_mode ) : 'manual';
 if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
         $hunt_link_mode = 'manual';
@@ -268,19 +279,46 @@ endif;
 </label></th>
 		<td><input id="bhg_t_title" class="regular-text" name="title" value="<?php echo esc_attr( $row->title ?? '' ); ?>" required /></td>
 		</tr>
-		<tr>
-		<th><label for="bhg_t_desc">
-		<?php
-		echo esc_html( bhg_t( 'description', 'Description' ) );
-		?>
+<tr>
+<th><label for="bhg_t_desc">
+<?php
+echo esc_html( bhg_t( 'description', 'Description' ) );
+?>
 </label></th>
-		<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
-		</tr>
-		<tr>
-				<th><label for="bhg_t_pmode">
-				<?php
-				echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
-				?>
+<td><textarea id="bhg_t_desc" class="large-text" rows="4" name="description"><?php echo esc_textarea( $row->description ?? '' ); ?></textarea></td>
+</tr>
+                <tr>
+                <th><label for="bhg_t_type">
+                <?php
+                echo esc_html( bhg_t( 'label_type', 'Type' ) );
+                ?>
+                </label></th>
+                <td>
+                        <?php
+                        $type_value = isset( $row->type ) ? sanitize_key( (string) $row->type ) : 'monthly';
+                        $types      = array(
+                                'weekly'    => bhg_t( 'weekly', 'Weekly' ),
+                                'monthly'   => bhg_t( 'monthly', 'Monthly' ),
+                                'quarterly' => bhg_t( 'quarterly', 'Quarterly' ),
+                                'yearly'    => bhg_t( 'yearly', 'Yearly' ),
+                                'alltime'   => bhg_t( 'all_time', 'All Time' ),
+                        );
+                        if ( ! array_key_exists( $type_value, $types ) ) {
+                                $type_value = 'monthly';
+                        }
+                        ?>
+                        <select id="bhg_t_type" name="type">
+                        <?php foreach ( $types as $type_key => $type_label ) : ?>
+                                <option value="<?php echo esc_attr( $type_key ); ?>" <?php selected( $type_value, $type_key ); ?>><?php echo esc_html( $type_label ); ?></option>
+                        <?php endforeach; ?>
+                        </select>
+                </td>
+                </tr>
+<tr>
+<th><label for="bhg_t_pmode">
+<?php
+echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
+?>
 				</label></th>
 				<td>
 						<?php $pmode = $row->participants_mode ?? 'winners'; ?>
