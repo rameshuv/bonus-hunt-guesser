@@ -1,3 +1,9 @@
+.bhg-styled-block{background:#fff;border-radius:8px;padding:12px;margin:12px 0}
+.bhg-heading{margin:0}
+.bhg-heading--h2{font-size:1.5rem;font-weight:700;color:#1e293b;padding:0 0 12px;margin:0 0 12px}
+.bhg-heading--h3{font-size:1.25rem;font-weight:700;color:#1e293b;padding:0 0 8px;margin:0 0 12px}
+.bhg-description{font-size:1rem;font-weight:400;color:#475569;padding:0;margin:0 0 12px}
+.bhg-styled-block p,.bhg-styled-block span{font-size:1rem;padding:0;margin:0 0 12px}
 .bhg-box{border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin:12px 0;background:#fff}
 .bhg-guess-form input[type=number]{border:1px solid #94a3b8;border-radius:8px;padding:8px;margin-left:8px}
 .bhg-guess-form button{padding:8px 12px;border-radius:8px;border:1px solid #64748b;background:#f8fafc;cursor:pointer}

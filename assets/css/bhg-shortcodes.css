@@ -2,6 +2,48 @@
     --bhg-accent-color: #2271b1;
 }
 
+.bhg-styled-block {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+}
+
+.bhg-heading {
+    margin: 0;
+}
+
+.bhg-heading--h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    padding: 0 0 12px;
+    margin: 0 0 12px;
+}
+
+.bhg-heading--h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    padding: 0 0 8px;
+    margin: 0 0 12px;
+}
+
+.bhg-description {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #475569;
+    padding: 0;
+    margin: 0 0 12px;
+}
+
+.bhg-styled-block p,
+.bhg-styled-block span {
+    font-size: 1rem;
+    padding: 0;
+    margin: 0 0 12px;
+}
+
 .bhg-aff-dot {
     display: inline-block;
     width: 10px;

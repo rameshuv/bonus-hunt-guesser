@@ -26,6 +26,22 @@ class BHG_Shortcodes {
                  */
         private $profile_visibility = null;
 
+        /**
+         * Ensure the shared shortcode stylesheet is loaded.
+         *
+         * @return void
+         */
+        private function enqueue_shortcode_styles() {
+                $base_url = defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ );
+
+                wp_enqueue_style(
+                        'bhg-shortcodes',
+                        $base_url . 'assets/css/bhg-shortcodes.css',
+                        array(),
+                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                );
+        }
+
                 /**
                  * Registers all shortcodes.
                  */
@@ -493,16 +509,12 @@ if ( empty( $rows ) ) {
 return '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 }
 
-wp_enqueue_style(
-'bhg-shortcodes',
-( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-array(),
-defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-);
+$this->enqueue_shortcode_styles();
 
 ob_start();
-echo '<div class="bhg-my-profile-section bhg-my-bonushunts">';
-echo '<h3>' . esc_html( bhg_t( 'label_my_bonus_hunts', 'My Bonus Hunts' ) ) . '</h3>';
+
+echo '<div class="bhg-my-profile-section bhg-my-bonushunts bhg-styled-block">';
+echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( bhg_t( 'label_my_bonus_hunts', 'My Bonus Hunts' ) ) . '</h3>';
 echo '<table class="bhg-leaderboard">';
 echo '<thead><tr>'
 . '<th>' . esc_html( bhg_t( 'label_bonus_hunt_title', 'Bonus Hunt Title' ) ) . '</th>'
@@ -581,12 +593,7 @@ if ( empty( $rows ) ) {
 return '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 }
 
-wp_enqueue_style(
-'bhg-shortcodes',
-( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-array(),
-defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-);
+$this->enqueue_shortcode_styles();
 
 $type_labels = array(
 'weekly'    => bhg_t( 'label_weekly', 'Weekly' ),
@@ -599,8 +606,8 @@ $type_labels = array(
 $dash = esc_html( bhg_t( 'label_emdash', '—' ) );
 
 ob_start();
-echo '<div class="bhg-my-profile-section bhg-my-tournaments">';
-echo '<h3>' . esc_html( bhg_t( 'label_my_tournaments', 'My Tournaments' ) ) . '</h3>';
+echo '<div class="bhg-my-profile-section bhg-my-tournaments bhg-styled-block">';
+echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( bhg_t( 'label_my_tournaments', 'My Tournaments' ) ) . '</h3>';
 echo '<table class="bhg-leaderboard">';
 echo '<thead><tr>'
 . '<th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th>'
@@ -672,19 +679,14 @@ if ( empty( $winners ) ) {
 return '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 }
 
-wp_enqueue_style(
-'bhg-shortcodes',
-( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-array(),
-defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-);
+$this->enqueue_shortcode_styles();
 
 $dash        = esc_html( bhg_t( 'label_emdash', '—' ) );
 $prize_cache = array();
 
 ob_start();
-echo '<div class="bhg-my-profile-section bhg-my-prizes">';
-echo '<h3>' . esc_html( bhg_t( 'label_my_prizes', 'My Prizes' ) ) . '</h3>';
+echo '<div class="bhg-my-profile-section bhg-my-prizes bhg-styled-block">';
+echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( bhg_t( 'label_my_prizes', 'My Prizes' ) ) . '</h3>';
 echo '<table class="bhg-leaderboard">';
 echo '<thead><tr>'
 . '<th>' . esc_html( bhg_t( 'label_prize', 'Prize' ) ) . '</th>'
@@ -766,18 +768,13 @@ if ( empty( $winners ) && empty( $tournaments ) ) {
 return '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 }
 
-wp_enqueue_style(
-'bhg-shortcodes',
-( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-array(),
-defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-);
+$this->enqueue_shortcode_styles();
 
 $dash = esc_html( bhg_t( 'label_emdash', '—' ) );
 
 ob_start();
-echo '<div class="bhg-my-profile-section bhg-my-rankings">';
-echo '<h3>' . esc_html( bhg_t( 'label_my_rankings', 'My Rankings' ) ) . '</h3>';
+echo '<div class="bhg-my-profile-section bhg-my-rankings bhg-styled-block">';
+echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( bhg_t( 'label_my_rankings', 'My Rankings' ) ) . '</h3>';
 
 if ( ! empty( $winners ) ) {
 echo '<h4>' . esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ) . '</h4>';
@@ -874,7 +871,7 @@ return ob_get_clean();
                 $size   = $this->normalize_prize_size( $size );
 
                 ob_start();
-                echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
+                echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . ' bhg-styled-block">';
                 echo '<h4 class="bhg-prizes-title">' . esc_html( bhg_t( 'label_prizes', 'Prizes' ) ) . '</h4>';
 
                 if ( 'carousel' === $layout ) {
@@ -942,7 +939,7 @@ return ob_get_clean();
                 }
                 if ( ! empty( $prize->description ) ) {
                         $description = wp_kses_post( wpautop( $prize->description ) );
-                        echo '<div class="bhg-prize-description">' . $description . '</div>';
+                        echo '<div class="bhg-prize-description bhg-description">' . $description . '</div>';
                 }
                 echo '</div>';
                 echo '</div>';
@@ -1021,7 +1018,7 @@ return ob_get_clean();
                        }
 
 		       if ( empty( $hunts ) ) {
-                       return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
+                       return '<div class="bhg-active-hunt bhg-styled-block"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
                        }
 
 		       $hunts_map = array();
@@ -1128,7 +1125,7 @@ return ob_get_clean();
 		       $hunt_site_id = isset( $selected_hunt->affiliate_site_id ) ? (int) $selected_hunt->affiliate_site_id : 0;
 
 		       ob_start();
-		       echo '<div class="bhg-active-hunt">';
+                       echo '<div class="bhg-active-hunt bhg-styled-block">';
 
 		       if ( count( $hunts ) > 1 ) {
 			       echo '<form class="bhg-hunt-selector" method="get">';
@@ -1155,8 +1152,8 @@ return ob_get_clean();
 			       echo '</form>';
 		       }
 
-		       echo '<div class="bhg-hunt-card">';
-		       echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
+                       echo '<div class="bhg-hunt-card bhg-styled-block">';
+echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( $selected_hunt->title ) . '</h3>';
                        echo '<ul class="bhg-hunt-meta">';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
@@ -1536,7 +1533,7 @@ return ob_get_clean();
 						);
 
                                                ob_start();
-                                               echo '<div class="bhg-leaderboard-wrapper">';
+                                               echo '<div class="bhg-leaderboard-wrapper bhg-styled-block">';
                                                echo '<form method="get" class="bhg-search-form">';
                                                foreach ( $_GET as $raw_key => $v ) {
                                                        $key = sanitize_key( wp_unslash( $raw_key ) );
@@ -2963,9 +2960,9 @@ return ob_get_clean();
 				};
 
 					ob_start();
-					echo '<div class="bhg-tournament-details">';
+                                   echo '<div class="bhg-tournament-details bhg-styled-block">';
 					echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
-					echo '<h3>' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
+echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( ucfirst( $tournament->type ) ) . '</h3>';
 					echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
 					echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
 									$status_key = strtolower( (string) $tournament->status );

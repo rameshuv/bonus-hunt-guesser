@@ -286,6 +286,28 @@ array(
 'email_from'                => get_bloginfo( 'admin_email' ),
 'prize_layout'              => 'grid',
 'prize_size'                => 'medium',
+'title_block_background'    => '#ffffff',
+'title_block_border_radius' => '8px',
+'title_block_padding'       => '12px',
+'title_block_margin'        => '12px 0',
+'heading_2_font_size'       => '1.5rem',
+'heading_2_font_weight'     => '700',
+'heading_2_color'           => '#1e293b',
+'heading_2_padding'         => '0 0 12px',
+'heading_2_margin'          => '0 0 12px',
+'heading_3_font_size'       => '1.25rem',
+'heading_3_font_weight'     => '700',
+'heading_3_color'           => '#1e293b',
+'heading_3_padding'         => '0 0 8px',
+'heading_3_margin'          => '0 0 12px',
+'description_font_size'     => '1rem',
+'description_font_weight'   => '400',
+'description_color'         => '#475569',
+'description_padding'       => '0',
+'description_margin'        => '0 0 12px',
+'body_text_font_size'       => '1rem',
+'body_text_padding'         => '0',
+'body_text_margin'          => '0 0 12px',
 'profile_show_my_bonushunts'  => 1,
 'profile_show_my_tournaments' => 1,
 'profile_show_my_prizes'      => 1,
@@ -324,21 +346,28 @@ add_action( 'wp_enqueue_scripts', 'bhg_enqueue_public_assets' );
  * @return void
  */
 function bhg_enqueue_public_assets() {
-		$settings  = get_option( 'bhg_plugin_settings', array() );
-		$min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
-		$max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
+                $settings  = get_option( 'bhg_plugin_settings', array() );
+                $min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
+                $max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 
-		wp_register_style(
-			'bhg-public',
-			BHG_PLUGIN_URL . 'assets/css/public.css',
-			array(),
-			defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-		);
+                wp_register_style(
+                        'bhg-public',
+                        BHG_PLUGIN_URL . 'assets/css/public.css',
+                        array(),
+                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                );
 
-		wp_register_script(
-			'bhg-public',
-			BHG_PLUGIN_URL . 'assets/js/public.js',
-			array( 'jquery' ),
+                wp_register_style(
+                        'bhg-shortcodes',
+                        BHG_PLUGIN_URL . 'assets/css/bhg-shortcodes.css',
+                        array(),
+                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                );
+
+                wp_register_script(
+                        'bhg-public',
+                        BHG_PLUGIN_URL . 'assets/js/public.js',
+                        array( 'jquery' ),
 			defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
 			true
 		);
@@ -370,11 +399,17 @@ function bhg_enqueue_public_assets() {
 					'non_affiliate_user'        => bhg_t( 'non_affiliate_user', 'Non-affiliate' ),
 					'error_loading_leaderboard' => bhg_t( 'error_loading_leaderboard', 'Error loading leaderboard.' ),
 				),
-			)
-		);
+                                )
+                        );
 
-	wp_enqueue_style( 'bhg-public' );
-	wp_enqueue_script( 'bhg-public' );
+                $inline_css = bhg_build_global_style_css( $settings );
+                if ( $inline_css ) {
+                        wp_add_inline_style( 'bhg-public', $inline_css );
+                        wp_add_inline_style( 'bhg-shortcodes', $inline_css );
+                }
+
+        wp_enqueue_style( 'bhg-public' );
+        wp_enqueue_script( 'bhg-public' );
 }
 
 // Initialize plugin.
@@ -553,11 +588,58 @@ function bhg_handle_settings_save() {
                 }
         }
 
+        $css_field_map = array(
+                'title_block_background'    => 'color',
+                'title_block_border_radius' => 'dimension',
+                'title_block_padding'       => 'dimension',
+                'title_block_margin'        => 'dimension',
+                'heading_2_font_size'       => 'dimension',
+                'heading_2_font_weight'     => 'font_weight',
+                'heading_2_color'           => 'color',
+                'heading_2_padding'         => 'dimension',
+                'heading_2_margin'          => 'dimension',
+                'heading_3_font_size'       => 'dimension',
+                'heading_3_font_weight'     => 'font_weight',
+                'heading_3_color'           => 'color',
+                'heading_3_padding'         => 'dimension',
+                'heading_3_margin'          => 'dimension',
+                'description_font_size'     => 'dimension',
+                'description_font_weight'   => 'font_weight',
+                'description_color'         => 'color',
+                'description_padding'       => 'dimension',
+                'description_margin'        => 'dimension',
+                'body_text_font_size'       => 'dimension',
+                'body_text_padding'         => 'dimension',
+                'body_text_margin'          => 'dimension',
+        );
+
+        foreach ( $css_field_map as $field => $type ) {
+                $form_key = 'bhg_' . $field;
+                if ( ! array_key_exists( $form_key, $_POST ) ) {
+                        continue;
+                }
+
+                $raw = wp_unslash( $_POST[ $form_key ] );
+                if ( ! is_string( $raw ) ) {
+                        $raw = '';
+                }
+
+                if ( 'color' === $type ) {
+                        $value = bhg_sanitize_css_color( $raw );
+                } elseif ( 'font_weight' === $type ) {
+                        $value = bhg_sanitize_font_weight( $raw );
+                } else {
+                        $value = bhg_sanitize_css_dimension( $raw );
+                }
+
+                $settings[ $field ] = $value;
+        }
+
                 // Save settings.
                 $existing = get_option( 'bhg_plugin_settings', array() );
                 update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
-				// Redirect back to settings page.
+                                // Redirect back to settings page.
 								wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
 								exit;
 }

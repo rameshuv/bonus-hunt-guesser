@@ -255,6 +255,39 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'size_big'                                     => 'Big',
                         'prize_layout_description'                     => 'Choose how prizes display on active hunts.',
                         'prize_size_description'                       => 'Control the image size used for prize cards.',
+                        'global_style_panel'                           => 'Global Style Panel',
+                        'global_style_panel_description'               => 'Control the typography and spacing for plugin output.',
+                        'title_block_styles'                           => 'Title Block Styles',
+                        'title_block_background_color'                 => 'Title block background color',
+                        'title_block_border_radius'                    => 'Title block border radius',
+                        'title_block_padding'                          => 'Title block padding',
+                        'title_block_margin'                           => 'Title block margin',
+                        'heading_2_styles'                             => 'H2 Styles',
+                        'heading_2_font_size'                          => 'H2 font size',
+                        'heading_2_font_weight'                        => 'H2 font weight',
+                        'heading_2_color'                              => 'H2 color',
+                        'heading_2_padding'                            => 'H2 padding',
+                        'heading_2_margin'                             => 'H2 margin',
+                        'heading_3_styles'                             => 'H3 Styles',
+                        'heading_3_font_size'                          => 'H3 font size',
+                        'heading_3_font_weight'                        => 'H3 font weight',
+                        'heading_3_color'                              => 'H3 color',
+                        'heading_3_padding'                            => 'H3 padding',
+                        'heading_3_margin'                             => 'H3 margin',
+                        'description_styles'                           => 'Description Styles',
+                        'description_font_size'                        => 'Description font size',
+                        'description_font_weight'                      => 'Description font weight',
+                        'description_color'                            => 'Description color',
+                        'description_padding'                          => 'Description padding',
+                        'description_margin'                           => 'Description margin',
+                        'body_text_styles'                             => 'Paragraph & Span Styles',
+                        'body_text_font_size'                          => 'Paragraph font size',
+                        'body_text_padding'                            => 'Paragraph padding',
+                        'body_text_margin'                             => 'Paragraph margin',
+                        'css_color_hint'                               => 'Accepts hex or named colors (e.g. #1e293b or navy).',
+                        'css_dimension_hint'                           => 'Accepts CSS values such as px, em, rem, %, or calc() expressions.',
+                        'css_font_weight_hint'                         => 'Use values like 400, 600, normal, or bold.',
+                        'css_leave_blank_hint'                         => 'Leave blank to use the default value.',
                         'confirm_delete_prize'                         => 'Are you sure you want to delete this prize?',
                         'label_position'                               => 'Position',
                         'label_final_balance'                          => 'Final Balance',
@@ -1381,6 +1414,298 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 
 // Ensure default translations are seeded on load so newly added keys appear
 // in the Translations page without requiring manual intervention.
-if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-		bhg_seed_default_translations_if_empty();
+if ( ! function_exists( 'bhg_sanitize_css_color' ) ) {
+	/**
+	 * Sanitize a CSS color value.
+	 *
+	 * @param string $value Raw color value.
+	 * @return string Sanitized value or empty string when invalid.
+	 */
+	function bhg_sanitize_css_color( $value ) {
+		$value = is_string( $value ) ? trim( $value ) : '';
+		if ( '' === $value ) {
+			return '';
+		}
+
+		$hex = sanitize_hex_color( $value );
+		if ( $hex ) {
+			return $hex;
+		}
+
+		$lower = strtolower( $value );
+		if ( preg_match( '/^(rgba?|hsla?)\(\s*[0-9.%\s,]+\)$/', $lower ) ) {
+			$compact = preg_replace( '/\s+/', ' ', $lower );
+			return preg_replace( '/\s*,\s*/', ',', $compact );
+		}
+
+		if ( preg_match( '/^[a-z]+$/i', $value ) ) {
+			return strtolower( $value );
+		}
+
+		return '';
+	}
 }
+
+if ( ! function_exists( 'bhg_sanitize_css_dimension' ) ) {
+	/**
+	 * Sanitize a CSS dimension/spacing value.
+	 *
+	 * @param string $value Raw dimension.
+	 * @return string Sanitized value or empty string on failure.
+	 */
+	function bhg_sanitize_css_dimension( $value ) {
+		$value = is_string( $value ) ? trim( $value ) : '';
+		if ( '' === $value ) {
+			return '';
+		}
+
+		$normalized = preg_replace( '/[^0-9a-zA-Z%.,\s\-\/\(\)\+]/', '', $value );
+		$normalized = preg_replace( '/\s+/', ' ', $normalized );
+
+		return $normalized;
+	}
+}
+
+if ( ! function_exists( 'bhg_sanitize_font_weight' ) ) {
+	/**
+	 * Sanitize a font-weight value.
+	 *
+	 * @param string $value Raw font weight.
+	 * @return string Sanitized value or empty string when invalid.
+	 */
+	function bhg_sanitize_font_weight( $value ) {
+		$value = is_string( $value ) ? trim( $value ) : '';
+		if ( '' === $value ) {
+			return '';
+		}
+
+		$lower   = strtolower( $value );
+		$allowed = array( 'normal', 'bold', 'lighter', 'bolder' );
+		if ( in_array( $lower, $allowed, true ) ) {
+			return $lower;
+		}
+
+		if ( preg_match( '/^[1-9]00$/', $lower ) ) {
+			return $lower;
+		}
+
+		return '';
+	}
+}
+
+if ( ! function_exists( 'bhg_build_global_style_css' ) ) {
+	/**
+	 * Build inline CSS for the global style panel settings.
+	 *
+	 * @param array $settings Plugin settings array.
+	 * @return string CSS string.
+	 */
+	function bhg_build_global_style_css( $settings ) {
+		$settings = is_array( $settings ) ? $settings : array();
+
+		$schema = array(
+			'title_block_background'   => array(
+				'default'  => '#ffffff',
+				'callback' => 'bhg_sanitize_css_color',
+			),
+			'title_block_border_radius' => array(
+				'default'  => '8px',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'title_block_padding'       => array(
+				'default'  => '12px',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'title_block_margin'        => array(
+				'default'  => '12px 0',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'heading_2_font_size'       => array(
+				'default'  => '1.5rem',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'heading_2_font_weight'     => array(
+				'default'  => '700',
+				'callback' => 'bhg_sanitize_font_weight',
+			),
+			'heading_2_color'           => array(
+				'default'  => '#1e293b',
+				'callback' => 'bhg_sanitize_css_color',
+			),
+			'heading_2_padding'         => array(
+				'default'  => '0 0 12px',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'heading_2_margin'          => array(
+				'default'  => '0 0 12px',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'heading_3_font_size'       => array(
+				'default'  => '1.25rem',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'heading_3_font_weight'     => array(
+				'default'  => '700',
+				'callback' => 'bhg_sanitize_font_weight',
+			),
+			'heading_3_color'           => array(
+				'default'  => '#1e293b',
+				'callback' => 'bhg_sanitize_css_color',
+			),
+			'heading_3_padding'         => array(
+				'default'  => '0 0 8px',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'heading_3_margin'          => array(
+				'default'  => '0 0 12px',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'description_font_size'     => array(
+				'default'  => '1rem',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'description_font_weight'   => array(
+				'default'  => '400',
+				'callback' => 'bhg_sanitize_font_weight',
+			),
+			'description_color'         => array(
+				'default'  => '#475569',
+				'callback' => 'bhg_sanitize_css_color',
+			),
+			'description_padding'       => array(
+				'default'  => '0',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'description_margin'        => array(
+				'default'  => '0 0 12px',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'body_text_font_size'       => array(
+				'default'  => '1rem',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'body_text_padding'         => array(
+				'default'  => '0',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+			'body_text_margin'          => array(
+				'default'  => '0 0 12px',
+				'callback' => 'bhg_sanitize_css_dimension',
+			),
+		);
+
+		$values = array();
+		foreach ( $schema as $key => $meta ) {
+			$raw      = isset( $settings[ $key ] ) ? $settings[ $key ] : '';
+			$raw      = '' === $raw ? $meta['default'] : $raw;
+			$callback = $meta['callback'];
+			$clean    = '' !== $raw ? call_user_func( $callback, $raw ) : '';
+			if ( '' === $clean && '' !== $meta['default'] ) {
+				$clean = call_user_func( $callback, $meta['default'] );
+			}
+			if ( '' !== $clean ) {
+				$values[ $key ] = $clean;
+			}
+		}
+
+		$css = array();
+
+		$block_rules = array();
+		if ( isset( $values['title_block_background'] ) ) {
+			$block_rules[] = 'background-color:' . $values['title_block_background'];
+		}
+		if ( isset( $values['title_block_border_radius'] ) ) {
+			$block_rules[] = 'border-radius:' . $values['title_block_border_radius'];
+		}
+		if ( isset( $values['title_block_padding'] ) ) {
+			$block_rules[] = 'padding:' . $values['title_block_padding'];
+		}
+		if ( isset( $values['title_block_margin'] ) ) {
+			$block_rules[] = 'margin:' . $values['title_block_margin'];
+		}
+		if ( ! empty( $block_rules ) ) {
+			$css[] = '.bhg-styled-block{' . implode( ';', $block_rules ) . ';}';
+		}
+
+		$h2_rules = array();
+		if ( isset( $values['heading_2_font_size'] ) ) {
+			$h2_rules[] = 'font-size:' . $values['heading_2_font_size'];
+		}
+		if ( isset( $values['heading_2_font_weight'] ) ) {
+			$h2_rules[] = 'font-weight:' . $values['heading_2_font_weight'];
+		}
+		if ( isset( $values['heading_2_color'] ) ) {
+			$h2_rules[] = 'color:' . $values['heading_2_color'];
+		}
+		if ( isset( $values['heading_2_padding'] ) ) {
+			$h2_rules[] = 'padding:' . $values['heading_2_padding'];
+		}
+		if ( isset( $values['heading_2_margin'] ) ) {
+			$h2_rules[] = 'margin:' . $values['heading_2_margin'];
+		}
+		if ( ! empty( $h2_rules ) ) {
+			$css[] = '.bhg-heading--h2{' . implode( ';', $h2_rules ) . ';}';
+		}
+
+		$h3_rules = array();
+		if ( isset( $values['heading_3_font_size'] ) ) {
+			$h3_rules[] = 'font-size:' . $values['heading_3_font_size'];
+		}
+		if ( isset( $values['heading_3_font_weight'] ) ) {
+			$h3_rules[] = 'font-weight:' . $values['heading_3_font_weight'];
+		}
+		if ( isset( $values['heading_3_color'] ) ) {
+			$h3_rules[] = 'color:' . $values['heading_3_color'];
+		}
+		if ( isset( $values['heading_3_padding'] ) ) {
+			$h3_rules[] = 'padding:' . $values['heading_3_padding'];
+		}
+		if ( isset( $values['heading_3_margin'] ) ) {
+			$h3_rules[] = 'margin:' . $values['heading_3_margin'];
+		}
+		if ( ! empty( $h3_rules ) ) {
+			$css[] = '.bhg-heading--h3{' . implode( ';', $h3_rules ) . ';}';
+		}
+
+		$description_rules = array();
+		if ( isset( $values['description_font_size'] ) ) {
+			$description_rules[] = 'font-size:' . $values['description_font_size'];
+		}
+		if ( isset( $values['description_font_weight'] ) ) {
+			$description_rules[] = 'font-weight:' . $values['description_font_weight'];
+		}
+		if ( isset( $values['description_color'] ) ) {
+			$description_rules[] = 'color:' . $values['description_color'];
+		}
+		if ( isset( $values['description_padding'] ) ) {
+			$description_rules[] = 'padding:' . $values['description_padding'];
+		}
+		if ( isset( $values['description_margin'] ) ) {
+			$description_rules[] = 'margin:' . $values['description_margin'];
+		}
+		if ( ! empty( $description_rules ) ) {
+			$css[] = '.bhg-description, .bhg-description p, .bhg-description span{' . implode( ';', $description_rules ) . ';}';
+		}
+
+		$body_rules = array();
+		if ( isset( $values['body_text_font_size'] ) ) {
+			$body_rules[] = 'font-size:' . $values['body_text_font_size'];
+		}
+		if ( isset( $values['body_text_padding'] ) ) {
+			$body_rules[] = 'padding:' . $values['body_text_padding'];
+		}
+		if ( isset( $values['body_text_margin'] ) ) {
+			$body_rules[] = 'margin:' . $values['body_text_margin'];
+		}
+		if ( ! empty( $body_rules ) ) {
+			$css[] = '.bhg-styled-block p, .bhg-styled-block span{' . implode( ';', $body_rules ) . ';}';
+		}
+
+		return implode( "\n", $css );
+	}
+}
+
+if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
+	bhg_seed_default_translations_if_empty();
+}
+
