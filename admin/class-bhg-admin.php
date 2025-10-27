@@ -66,9 +66,14 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
-		add_submenu_page( $slug, bhg_t( 'database', 'Database' ), bhg_t( 'database', 'Database' ), $cap, 'bhg-database', array( $this, 'database' ) );
-		add_submenu_page( $slug, bhg_t( 'settings', 'Settings' ), bhg_t( 'settings', 'Settings' ), $cap, 'bhg-settings', array( $this, 'settings' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'database', 'Database' ), bhg_t( 'database', 'Database' ), $cap, 'bhg-database', array( $this, 'database' ) );
+                add_submenu_page( $slug, bhg_t( 'settings', 'Settings' ), bhg_t( 'settings', 'Settings' ), $cap, 'bhg-settings', array( $this, 'settings' ) );
+
+                global $submenu;
+                if ( isset( $submenu[ $slug ][0] ) ) {
+                        $submenu[ $slug ][0][0] = bhg_t( 'menu_dashboard', 'Dashboard' );
+                }
 		add_submenu_page(
 			$slug,
 			bhg_t( 'bhg_tools', 'BHG Tools' ),
@@ -773,11 +778,11 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                 );
 
                 $css_settings = array(
-                        'border'       => isset( $_POST['css_border'] ) ? wp_unslash( $_POST['css_border'] ) : '',
-                        'border_color' => isset( $_POST['css_border_color'] ) ? wp_unslash( $_POST['css_border_color'] ) : '',
-                        'padding'      => isset( $_POST['css_padding'] ) ? wp_unslash( $_POST['css_padding'] ) : '',
-                        'margin'       => isset( $_POST['css_margin'] ) ? wp_unslash( $_POST['css_margin'] ) : '',
-                        'background'   => isset( $_POST['css_background'] ) ? wp_unslash( $_POST['css_background'] ) : '',
+                        'border'       => isset( $_POST['css_border'] ) ? sanitize_text_field( wp_unslash( $_POST['css_border'] ) ) : '',
+                        'border_color' => isset( $_POST['css_border_color'] ) ? sanitize_text_field( wp_unslash( $_POST['css_border_color'] ) ) : '',
+                        'padding'      => isset( $_POST['css_padding'] ) ? sanitize_text_field( wp_unslash( $_POST['css_padding'] ) ) : '',
+                        'margin'       => isset( $_POST['css_margin'] ) ? sanitize_text_field( wp_unslash( $_POST['css_margin'] ) ) : '',
+                        'background'   => isset( $_POST['css_background'] ) ? sanitize_text_field( wp_unslash( $_POST['css_background'] ) ) : '',
                 );
 
                 $data = array(
