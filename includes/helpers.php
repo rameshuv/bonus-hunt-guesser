@@ -83,7 +83,173 @@ add_filter(
  * @return bool
  */
 function bhg_is_frontend() {
-	return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+        return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+}
+
+if ( ! function_exists( 'bhg_get_default_plugin_settings' ) ) {
+       /**
+        * Retrieve the default plugin settings.
+        *
+        * @return array
+        */
+       function bhg_get_default_plugin_settings() {
+               return array(
+                       'allow_guess_changes'        => 'yes',
+                       'default_tournament_period'  => 'monthly',
+                       'min_guess_amount'           => 0,
+                       'max_guess_amount'           => 100000,
+                       'max_guesses'                => 1,
+                       'ads_enabled'                => 1,
+                       'email_from'                 => get_bloginfo( 'admin_email' ),
+                       'prize_layout'               => 'grid',
+                       'prize_size'                 => 'medium',
+                       'title_block_background'     => '#ffffff',
+                       'title_block_border_radius'  => '8px',
+                       'title_block_padding'        => '12px',
+                       'title_block_margin'         => '12px 0',
+                       'heading_2_font_size'        => '1.5rem',
+                       'heading_2_font_weight'      => '700',
+                       'heading_2_color'            => '#1e293b',
+                       'heading_2_padding'          => '0 0 12px',
+                       'heading_2_margin'           => '0 0 12px',
+                       'heading_3_font_size'        => '1.25rem',
+                       'heading_3_font_weight'      => '700',
+                       'heading_3_color'            => '#1e293b',
+                       'heading_3_padding'          => '0 0 8px',
+                       'heading_3_margin'           => '0 0 12px',
+                       'description_font_size'      => '1rem',
+                       'description_font_weight'    => '400',
+                       'description_color'          => '#475569',
+                       'description_padding'        => '0',
+                       'description_margin'         => '0 0 12px',
+                       'body_text_font_size'        => '1rem',
+                       'body_text_padding'          => '0',
+                       'body_text_margin'           => '0 0 12px',
+                       'profile_show_my_bonushunts' => 1,
+                       'profile_show_my_tournaments' => 1,
+                       'profile_show_my_prizes'     => 1,
+                       'profile_show_my_rankings'   => 1,
+                       'post_submit_redirect'       => '',
+               );
+       }
+}
+
+if ( ! function_exists( 'bhg_get_plugin_settings' ) ) {
+       /**
+        * Retrieve plugin settings merged with defaults.
+        *
+        * Missing keys introduced in newer versions are automatically
+        * persisted so legacy installs gain the latest defaults.
+        *
+        * @return array
+        */
+       function bhg_get_plugin_settings() {
+               $defaults = bhg_get_default_plugin_settings();
+               $stored   = get_option( 'bhg_plugin_settings', array() );
+
+               if ( ! is_array( $stored ) ) {
+                       $stored = array();
+               }
+
+               $merged = array_merge( $defaults, $stored );
+
+               if ( $merged !== $stored ) {
+                       update_option( 'bhg_plugin_settings', $merged );
+                       if ( function_exists( 'bhg_cache_bump_version' ) ) {
+                               bhg_cache_bump_version( 'settings', 'plugin' );
+                       }
+               }
+
+               return $merged;
+       }
+}
+
+if ( ! function_exists( 'bhg_update_plugin_settings' ) ) {
+       /**
+        * Update plugin settings while keeping defaults intact.
+        *
+        * @param array $settings Settings to merge.
+        * @return array Updated settings.
+        */
+       function bhg_update_plugin_settings( array $settings ) {
+               $current = bhg_get_plugin_settings();
+               $merged  = array_merge( $current, $settings );
+
+               update_option( 'bhg_plugin_settings', $merged );
+
+               if ( function_exists( 'bhg_cache_bump_version' ) ) {
+                       bhg_cache_bump_version( 'settings', 'plugin' );
+               }
+
+               return $merged;
+       }
+}
+
+if ( ! function_exists( 'bhg_cache_get_version' ) ) {
+       /**
+        * Retrieve the current cache version for a logical group/key pair.
+        *
+        * @param string $group Cache group identifier.
+        * @param string $key   Cache key identifier.
+        * @return int Version number.
+        */
+       function bhg_cache_get_version( $group, $key ) {
+               $group = sanitize_key( $group );
+               $key   = (string) $key;
+
+               $versions = wp_cache_get( 'bhg_cache_versions', 'bhg' );
+               if ( false === $versions ) {
+                       $versions = get_option( 'bhg_cache_versions', array() );
+                       if ( ! is_array( $versions ) ) {
+                               $versions = array();
+                       }
+                       wp_cache_set( 'bhg_cache_versions', $versions, 'bhg' );
+               }
+
+               if ( ! isset( $versions[ $group ] ) ) {
+                       $versions[ $group ] = array();
+               }
+
+               if ( ! isset( $versions[ $group ][ $key ] ) ) {
+                       $versions[ $group ][ $key ] = 1;
+                       update_option( 'bhg_cache_versions', $versions );
+                       wp_cache_set( 'bhg_cache_versions', $versions, 'bhg' );
+               }
+
+               return (int) $versions[ $group ][ $key ];
+       }
+}
+
+if ( ! function_exists( 'bhg_cache_bump_version' ) ) {
+       /**
+        * Increment the cache version for the provided group/key pair.
+        *
+        * @param string $group Cache group identifier.
+        * @param string $key   Cache key identifier.
+        * @return void
+        */
+       function bhg_cache_bump_version( $group, $key ) {
+               $group = sanitize_key( $group );
+               $key   = (string) $key;
+
+               $versions = wp_cache_get( 'bhg_cache_versions', 'bhg' );
+               if ( false === $versions ) {
+                       $versions = get_option( 'bhg_cache_versions', array() );
+                       if ( ! is_array( $versions ) ) {
+                               $versions = array();
+                       }
+               }
+
+               if ( ! isset( $versions[ $group ] ) ) {
+                       $versions[ $group ] = array();
+               }
+
+               $current = isset( $versions[ $group ][ $key ] ) ? (int) $versions[ $group ][ $key ] : 1;
+               $versions[ $group ][ $key ] = $current + 1;
+
+               update_option( 'bhg_cache_versions', $versions );
+               wp_cache_set( 'bhg_cache_versions', $versions, 'bhg' );
+       }
 }
 
 if ( ! function_exists( 'bhg_t' ) ) {
@@ -859,7 +1025,7 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
+                $settings = bhg_get_plugin_settings();
 		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
 		$map      = array(
 			'usd' => '$',
@@ -1039,7 +1205,7 @@ if ( ! function_exists( 'bhg_format_position_label' ) ) {
  * @return bool True if the guess is within the allowed range.
  */
 function bhg_validate_guess( $guess ) {
-	$settings  = get_option( 'bhg_plugin_settings', array() );
+        $settings  = bhg_get_plugin_settings();
 	$min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
 	$max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 

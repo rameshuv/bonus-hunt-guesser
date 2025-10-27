@@ -283,8 +283,16 @@ if ( ! empty( $tournament_ids ) ) {
 ++$position;
 		}
 
-		return array_map( 'intval', wp_list_pluck( $rows, 'user_id' ) );
-	}
+		if ( function_exists( 'bhg_cache_bump_version' ) ) {
+			bhg_cache_bump_version( 'leaderboard', (string) $hunt_id );
+			bhg_cache_bump_version( 'hunts', 'latest' );
+			bhg_cache_bump_version( 'hunts', 'active_list' );
+			bhg_cache_bump_version( 'hunts', 'open_for_guessing' );
+			bhg_cache_bump_version( 'hunts', 'single_' . (string) $hunt_id );
+		}
+
+                return array_map( 'intval', wp_list_pluck( $rows, 'user_id' ) );
+        }
 
 	/**
 	 * Recalculate tournament leaderboards based on current hunt winners.

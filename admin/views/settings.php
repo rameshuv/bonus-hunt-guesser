@@ -14,7 +14,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 // Fetch existing settings.
-$settings = get_option( 'bhg_plugin_settings', array() );
+$settings = bhg_get_plugin_settings();
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';

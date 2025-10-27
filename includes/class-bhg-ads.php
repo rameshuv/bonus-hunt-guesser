@@ -47,7 +47,7 @@ class BHG_Ads {
 	 * @return bool
 	 */
 	protected static function ads_enabled() {
-			$settings = get_option( 'bhg_plugin_settings', array() );
+                     $settings = bhg_get_plugin_settings();
 			$enabled  = isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 1;
 			return 1 === $enabled;
 	}

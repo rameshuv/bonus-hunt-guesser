@@ -219,7 +219,7 @@ return true;
 }
 
 if ( null === $this->profile_visibility ) {
-$settings = get_option( 'bhg_plugin_settings', array() );
+$settings = bhg_get_plugin_settings();
 $this->profile_visibility = array(
 'my_bonushunts'  => isset( $settings['profile_show_my_bonushunts'] ) ? (int) $settings['profile_show_my_bonushunts'] : 1,
 'my_tournaments' => isset( $settings['profile_show_my_tournaments'] ) ? (int) $settings['profile_show_my_tournaments'] : 1,
@@ -975,7 +975,7 @@ return ob_get_clean();
 			 * @return string HTML output.
 			 */
                public function active_hunt_shortcode( $atts ) {
-                       $settings       = get_option( 'bhg_plugin_settings', array() );
+                       $settings       = bhg_get_plugin_settings();
                        $default_layout = isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid';
                        $default_size   = isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium';
 
@@ -997,8 +997,9 @@ return ob_get_clean();
 				       return '';
 		       }
 
-			       $cache_key = 'bhg_active_hunts';
-			       $hunts     = wp_cache_get( $cache_key, 'bhg' );
+                               $hunts_version = function_exists( 'bhg_cache_get_version' ) ? bhg_cache_get_version( 'hunts', 'active_list' ) : 1;
+                               $cache_key     = 'bhg_active_hunts_' . $hunts_version;
+                               $hunts         = wp_cache_get( $cache_key, 'bhg' );
                        if ( false === $hunts ) {
                                $aff_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 
@@ -1286,9 +1287,10 @@ echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( $selected_hunt->titl
 					return '';
 			}
 
-						$cache_key  = 'bhg_open_hunts';
-						$open_hunts = wp_cache_get( $cache_key, 'bhg' );
-			if ( false === $open_hunts ) {
+                                                $open_version = function_exists( 'bhg_cache_get_version' ) ? bhg_cache_get_version( 'hunts', 'open_for_guessing' ) : 1;
+                                                $cache_key    = 'bhg_open_hunts_' . $open_version;
+                                                $open_hunts   = wp_cache_get( $cache_key, 'bhg' );
+                        if ( false === $open_hunts ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 								$open_hunts = $wpdb->get_results(
 									$wpdb->prepare(
@@ -1298,7 +1300,7 @@ echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( $selected_hunt->titl
 										1
 									)
 								); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-					wp_cache_set( $cache_key, $open_hunts, 'bhg', 300 );
+                                        wp_cache_set( $cache_key, $open_hunts, 'bhg', 300 );
 			}
 
 			if ( $hunt_id <= 0 ) {
@@ -1333,7 +1335,7 @@ echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( $selected_hunt->titl
 					)
 				) : ''; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-                        $settings        = get_option( 'bhg_plugin_settings' );
+                        $settings        = bhg_get_plugin_settings();
                         $min             = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
                         $max             = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
                         $redirect_target = ! empty( $settings['post_submit_redirect'] ) ? wp_validate_redirect( $settings['post_submit_redirect'], '' ) : '';
@@ -1418,9 +1420,10 @@ echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( $selected_hunt->titl
 				if ( ! $hunts_table ) {
 										return '';
 				}
-				$cache_key = 'bhg_latest_hunt_id';
-				$hunt_id   = wp_cache_get( $cache_key, 'bhg' );
-				if ( false === $hunt_id ) {
+                                $hunts_version = function_exists( 'bhg_cache_get_version' ) ? bhg_cache_get_version( 'hunts', 'latest' ) : 1;
+                                $cache_key     = 'bhg_latest_hunt_id_' . $hunts_version;
+                                $hunt_id       = wp_cache_get( $cache_key, 'bhg' );
+                                if ( false === $hunt_id ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 												$hunt_id = (int) $wpdb->get_var(
 													$wpdb->prepare(
@@ -1429,8 +1432,8 @@ echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( $selected_hunt->titl
 														1
 													)
 												); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-						wp_cache_set( $cache_key, $hunt_id, 'bhg', 300 );
-				}
+                                                wp_cache_set( $cache_key, $hunt_id, 'bhg', 300 );
+                                }
 				if ( $hunt_id <= 0 ) {
 						return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
 				}
@@ -1485,7 +1488,8 @@ echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( $selected_hunt->titl
                                                                }
                                                                $where_sql = implode( ' AND ', $where );
 
-                                                               $total_cache = 'bhg_leaderboard_total_' . $hunt_id . '_' . md5( $search );
+                                                               $leaderboard_version = function_exists( 'bhg_cache_get_version' ) ? bhg_cache_get_version( 'leaderboard', (string) $hunt_id ) : 1;
+                                                               $total_cache         = 'bhg_leaderboard_total_' . $hunt_id . '_' . $leaderboard_version . '_' . md5( $search );
                                                                $total       = wp_cache_get( $total_cache, 'bhg' );
                                                                if ( false === $total ) {
                                                                                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names sanitized above.
@@ -3286,7 +3290,7 @@ echo '<h3 class="bhg-heading bhg-heading--h3">' . esc_html( $selected_hunt->titl
                                 return '';
                         }
 
-                       $settings       = get_option( 'bhg_plugin_settings', array() );
+                       $settings       = bhg_get_plugin_settings();
                        $default_layout = isset( $settings['prize_layout'] ) ? $settings['prize_layout'] : 'grid';
                        $default_size   = isset( $settings['prize_size'] ) ? $settings['prize_size'] : 'medium';
 

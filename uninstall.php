@@ -10,11 +10,21 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 			// Delete plugin options.
-			delete_option( 'bhg_version' );
-			delete_option( 'bhg_plugin_settings' );
+                        delete_option( 'bhg_version' );
+                        delete_option( 'bhg_plugin_settings' );
+                        delete_option( 'bhg_notifications_settings' );
+                        delete_option( 'bhg_tables_created' );
+                        delete_option( 'bhg_last_migrated_version' );
+                        delete_option( 'bhg_cache_versions' );
+                        delete_option( 'bhg_demo_notice' );
 
-			delete_site_option( 'bhg_version' );
-			delete_site_option( 'bhg_plugin_settings' );
+                        delete_site_option( 'bhg_version' );
+                        delete_site_option( 'bhg_plugin_settings' );
+                        delete_site_option( 'bhg_notifications_settings' );
+                        delete_site_option( 'bhg_tables_created' );
+                        delete_site_option( 'bhg_last_migrated_version' );
+                        delete_site_option( 'bhg_cache_versions' );
+                        delete_site_option( 'bhg_demo_notice' );
 
 			global $wpdb;
 
@@ -28,6 +38,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
                                 'bhg_affiliate_websites',
                                 'bhg_prizes',
                                 'bhg_hunt_prizes',
+                                'bhg_hunt_tournaments',
+                                'bhg_hunt_winners',
                         );
 
 			foreach ( $tables as $table ) {
