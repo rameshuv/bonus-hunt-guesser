@@ -94,66 +94,110 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 
 																			$hunt_title  = isset( $h->title ) ? (string) $h->title : '';
 																			$start       = isset( $h->starting_balance ) ? (float) $h->starting_balance : 0.0;
-																			$winners_out = '';
+$winner_rows = array();
 
-																			if ( ! empty( $winners ) ) {
-																					$out = array();
-																				foreach ( $winners as $w ) {
-																					$user_id = isset( $w->user_id ) ? (int) $w->user_id : 0;
-																					$guess   = isset( $w->guess ) ? (float) $w->guess : 0.0;
-																					$diff    = isset( $w->diff ) ? (float) $w->diff : 0.0;
+if ( ! empty( $winners ) ) {
+	foreach ( $winners as $winner ) {
+		$user_id = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
+		$guess   = isset( $winner->guess ) ? (float) $winner->guess : 0.0;
+		$diff    = isset( $winner->diff ) ? (float) $winner->diff : 0.0;
 
-																					$u  = $user_id ? get_userdata( $user_id ) : false;
-																					$nm = $u ? $u->user_login : sprintf(
-																						/* translators: %d: user ID. */
-																						esc_html( bhg_t( 'label_user_number', 'User #%d' ) ),
-																						$user_id
-																					);
+		$user = $user_id ? get_userdata( $user_id ) : false;
+		$name = $user ? $user->user_login : sprintf(
+			/* translators: %d: user ID. */
+			bhg_t( 'label_user_number', 'User #%d' ),
+			$user_id
+		);
 
-																					$out[] = sprintf(
-																						'%1$s %2$s %3$s (%4$s %5$s)',
-																						esc_html( $nm ),
-																						esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ),
-																						esc_html( bhg_format_currency( $guess ) ),
-																						esc_html( bhg_t( 'label_diff', 'diff' ) ),
-																						esc_html( bhg_format_currency( $diff ) )
-																					);
-																				}
-																				$winners_out = implode( ' • ', $out );
-																			} else {
-																					$winners_out = bhg_t( 'no_winners_yet', 'No winners yet' );
-																			}
+		$winner_rows[] = array(
+			'name'  => $name,
+			'guess' => $guess,
+			'diff'  => $diff,
+		);
+	}
+}
 
-																			?>
-																				<tr>
-																						<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
-																						<td><?php echo esc_html( $winners_out ); ?></td>
-																																<td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
-																						<td>
-																						<?php
-																						if ( isset( $h->final_balance ) && null !== $h->final_balance ) {
-																																echo esc_html( bhg_format_currency( (float) $h->final_balance ) );
-																						} else {
-																								echo esc_html( bhg_t( 'label_emdash', '—' ) );
-																						}
-																						?>
-																						</td>
-																						<td>
-																						<?php
-																						if ( ! empty( $h->closed_at ) ) {
-																								$ts = strtotime( (string) $h->closed_at );
-																								echo esc_html(
-																									false !== $ts
-																												? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $ts )
-																												: (string) $h->closed_at
-																								);
-																						} else {
-																								echo esc_html( bhg_t( 'label_emdash', '—' ) );
-																						}
-																						?>
-																						</td>
-																				</tr>
-																		<?php endforeach; ?>
+if ( ! empty( $winner_rows ) ) {
+	foreach ( $winner_rows as $index => $winner_row ) {
+		?>
+		<tr>
+			<?php if ( 0 === $index ) : ?>
+				<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
+			<?php else : ?>
+				<td aria-hidden="true">&nbsp;</td>
+			<?php endif; ?>
+			<td>
+				<strong><?php echo esc_html( $winner_row['name'] ); ?></strong><br />
+				<?php echo esc_html( bhg_t( 'label_guess', 'Guess' ) ); ?>: <?php echo esc_html( bhg_format_currency( $winner_row['guess'] ) ); ?><br />
+				<?php echo esc_html( bhg_t( 'label_diff', 'diff' ) ); ?>: <?php echo esc_html( bhg_format_currency( $winner_row['diff'] ) ); ?>
+			</td>
+			<?php if ( 0 === $index ) : ?>
+				<td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
+				<td>
+					<?php
+					if ( isset( $h->final_balance ) && null !== $h->final_balance ) {
+						echo esc_html( bhg_format_currency( (float) $h->final_balance ) );
+					} else {
+						echo esc_html( bhg_t( 'label_emdash', '—' ) );
+					}
+					?>
+				</td>
+				<td>
+					<?php
+					if ( ! empty( $h->closed_at ) ) {
+						$ts = strtotime( (string) $h->closed_at );
+						echo esc_html(
+							false !== $ts
+								? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $ts )
+								: (string) $h->closed_at
+						);
+					} else {
+						echo esc_html( bhg_t( 'label_emdash', '—' ) );
+					}
+					?>
+				</td>
+			<?php else : ?>
+				<td aria-hidden="true">&nbsp;</td>
+				<td aria-hidden="true">&nbsp;</td>
+				<td aria-hidden="true">&nbsp;</td>
+			<?php endif; ?>
+		</tr>
+		<?php
+	}
+} else {
+	?>
+	<tr>
+		<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
+		<td><?php echo esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) ); ?></td>
+		<td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
+		<td>
+			<?php
+			if ( isset( $h->final_balance ) && null !== $h->final_balance ) {
+				echo esc_html( bhg_format_currency( (float) $h->final_balance ) );
+			} else {
+				echo esc_html( bhg_t( 'label_emdash', '—' ) );
+			}
+			?>
+		</td>
+		<td>
+			<?php
+			if ( ! empty( $h->closed_at ) ) {
+				$ts = strtotime( (string) $h->closed_at );
+				echo esc_html(
+					false !== $ts
+						? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $ts )
+						: (string) $h->closed_at
+				);
+			} else {
+				echo esc_html( bhg_t( 'label_emdash', '—' ) );
+			}
+			?>
+		</td>
+	</tr>
+	<?php
+}
+?>
+<?php endforeach; ?>
 																		</tbody>
 																</table>
 																<?php else : ?>
