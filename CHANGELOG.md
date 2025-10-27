@@ -8,6 +8,11 @@
 
 # Changelog
 
+## 8.0.14 — 2025-09-15
+- Rename the default Bonus Hunt submenu entry to "Dashboard" to match customer wording.
+- Highlight winners consistently (bold names, absolute differences) and display associated prizes on hunt results.
+- Add winner highlight styling improvements and bump minimum WordPress requirement to 6.3.0.
+
 ## 8.0.11 — 2025-09-14
 - Version bump.
 

@@ -110,24 +110,24 @@ $hunts = bhg_get_latest_closed_hunts( 3 ); // Expect: id, title, starting_balanc
 																						$user_id
 																					);
 
-																					$out[] = sprintf(
-																						'%1$s %2$s %3$s (%4$s %5$s)',
-																						esc_html( $nm ),
-																						esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ),
-																						esc_html( bhg_format_currency( $guess ) ),
-																						esc_html( bhg_t( 'label_diff', 'diff' ) ),
-																						esc_html( bhg_format_currency( $diff ) )
-																					);
+                                                                                                                              $out[] = sprintf(
+                                                                                                                              '%1$s %2$s %3$s (%4$s %5$s)',
+                                                                                                                              '<strong>' . esc_html( $nm ) . '</strong>',
+                                                                                                                              esc_html_x( '—', 'name/guess separator', 'bonus-hunt-guesser' ),
+                                                                                                                              esc_html( bhg_format_currency( $guess ) ),
+                                                                                                                              esc_html( bhg_t( 'label_diff', 'diff' ) ),
+                                                                                                                              esc_html( bhg_format_currency( abs( $diff ) ) )
+                                                                                                                              );
 																				}
 																				$winners_out = implode( ' • ', $out );
 																			} else {
-																					$winners_out = bhg_t( 'no_winners_yet', 'No winners yet' );
+                                                                                                                              $winners_out = esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) );
 																			}
 
 																			?>
 																				<tr>
 																						<td><?php echo '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'label_untitled', '(untitled)' ) ); ?></td>
-																						<td><?php echo esc_html( $winners_out ); ?></td>
+<td><?php echo wp_kses( $winners_out, array( 'strong' => array() ) ); ?></td>
 																																<td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
 																						<td>
 																						<?php
