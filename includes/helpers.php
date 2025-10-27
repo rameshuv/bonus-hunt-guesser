@@ -523,7 +523,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'check_if_this_user_is_an_affiliate'           => 'Check if this user is an affiliate.',
 			'close_bonus_hunt'                             => 'Close Bonus Hunt',
 			'close_hunt'                                   => 'Close Hunt',
-			'comprehensive_bonus_hunt_management_system_with_tournaments_leaderboards_and_user_guessing_functionality' => 'Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality',
+                        'bonus_hunt_management'                       => 'Bonus hunt management…',
 			'content'                                      => 'Content',
 			'could_not_save_tournament_check_logs'         => 'Could not save tournament. Check logs.',
 			'create_ad'                                    => 'Create Ad',

@@ -3,6 +3,7 @@ Date: 2025-09-12
 
 ## 8.0.14 — 2025-09-16
 - Updated plugin header metadata and constants to version 8.0.14 (WordPress 6.3.0 minimum, MySQL 5.5.5 requirement).
+- Updated plugin header description to match the customer delivery specification.
 - Normalized text-domain loading path and ensured the default submenu label matches “Dashboard”.
 
 ## Stage-1 (Hotfix & Hardening)

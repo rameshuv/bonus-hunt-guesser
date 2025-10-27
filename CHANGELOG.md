@@ -10,6 +10,7 @@
 
 ## 8.0.14 — 2025-09-16
 - Updated plugin header metadata (version 8.0.14, WordPress 6.3.0 minimum, MySQL requirement) and synced loader constants.
+- Updated plugin header description to match the customer delivery specification.
 - Normalized `load_plugin_textdomain()` path to match WordPress recommendations.
 - Ensured the automatic “Bonus Hunt” submenu entry displays the translated Dashboard label in wp-admin.
 

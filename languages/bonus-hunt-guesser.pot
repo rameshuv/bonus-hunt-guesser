@@ -26,7 +26,7 @@ msgstr ""
 
 #. Description of the plugin
 #: bonus-hunt-guesser.php
-msgid "Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality"
+msgid "Bonus hunt management…"
 msgstr ""
 
 #. Author of the plugin
