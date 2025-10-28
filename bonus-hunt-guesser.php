@@ -4,7 +4,7 @@
  * Plugin URI: https://yourdomain.com/
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality
  * Version: 8.0.14
- * Requires at least: 6.3.0
+ * Requires at least: 6.3.5
  * Requires PHP: 7.4
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser

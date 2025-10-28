@@ -66,7 +66,8 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_shortcodes', 'Shortcodes' ), bhg_t( 'menu_shortcodes', 'Shortcodes' ), $cap, 'bhg-shortcodes', array( $this, 'shortcodes' ) );
 		add_submenu_page( $slug, bhg_t( 'database', 'Database' ), bhg_t( 'database', 'Database' ), $cap, 'bhg-database', array( $this, 'database' ) );
 		add_submenu_page( $slug, bhg_t( 'settings', 'Settings' ), bhg_t( 'settings', 'Settings' ), $cap, 'bhg-settings', array( $this, 'settings' ) );
 		add_submenu_page(
@@ -206,18 +207,25 @@ class BHG_Admin {
 			require $view; } else {
 			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_affiliates', 'Affiliates' ) ) . '</h1><p>' . esc_html( bhg_t( 'affiliate_management_ui_not_provided_yet', 'Affiliate management UI not provided yet.' ) ) . '</p></div>'; }
 	}
-	/**
-	 * Render the advertising page.
-	 */
-	public function advertising() {
-		require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
-	}
+        /**
+         * Render the advertising page.
+         */
+        public function advertising() {
+                require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
+        }
 
-	/**
-	 * Render the translations page.
-	 */
-	public function translations() {
-		$view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
+        /**
+         * Render the shortcodes reference page.
+         */
+        public function shortcodes() {
+                require BHG_PLUGIN_DIR . 'admin/views/shortcodes.php';
+        }
+
+        /**
+         * Render the translations page.
+         */
+        public function translations() {
+                $view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
 		if ( file_exists( $view ) ) {
 			require $view; } else {
 			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
@@ -862,34 +870,101 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                                 }
                         }
                 }
-                $hunt_ids = array_values( $hunt_ids );
-                        $participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_key( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
-                if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
-                                $participants_mode = 'winners';
+		$hunt_ids = array_values( $hunt_ids );
+		$participants_mode = isset( $_POST['participants_mode'] ) ? sanitize_key( wp_unslash( $_POST['participants_mode'] ) ) : 'winners';
+		if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
+			$participants_mode = 'winners';
+}
+
+		$hunt_link_mode = isset( $_POST['hunt_link_mode'] ) ? sanitize_key( wp_unslash( $_POST['hunt_link_mode'] ) ) : 'manual';
+		if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
+			$hunt_link_mode = 'manual';
+}
+
+                $points_map_input = isset( $_POST['points_map'] ) ? wp_unslash( $_POST['points_map'] ) : array();
+                if ( function_exists( 'bhg_sanitize_points_map' ) ) {
+                        $points_map = bhg_sanitize_points_map( $points_map_input );
+                } else {
+                        $points_map = array();
+                        if ( is_array( $points_map_input ) ) {
+                                foreach ( $points_map_input as $placement => $value ) {
+                                        $placement                = absint( $placement );
+                                        $points_map[ $placement ] = max( 0, (int) $value );
+                                }
+                        }
+                }
+                if ( empty( $points_map ) && function_exists( 'bhg_get_default_points_map' ) ) {
+                        $points_map = bhg_get_default_points_map();
+                }
+                $points_map_json = wp_json_encode( $points_map );
+                if ( false === $points_map_json ) {
+                        $points_map_json = wp_json_encode( array() );
                 }
 
-                        $hunt_link_mode = isset( $_POST['hunt_link_mode'] ) ? sanitize_key( wp_unslash( $_POST['hunt_link_mode'] ) ) : 'manual';
-                        if ( ! in_array( $hunt_link_mode, array( 'manual', 'auto' ), true ) ) {
-                                $hunt_link_mode = 'manual';
+                $ranking_scope  = isset( $_POST['ranking_scope'] ) ? sanitize_key( wp_unslash( $_POST['ranking_scope'] ) ) : 'all';
+                $allowed_scopes = array( 'all', 'active', 'closed' );
+                if ( ! in_array( $ranking_scope, $allowed_scopes, true ) ) {
+                        $ranking_scope = 'all';
+                }
+
+                $prize_ids_input = isset( $_POST['prize_ids'] ) ? wp_unslash( $_POST['prize_ids'] ) : array();
+                $prize_ids       = array();
+                if ( is_array( $prize_ids_input ) ) {
+                        foreach ( $prize_ids_input as $maybe_id ) {
+                                $maybe_id = absint( $maybe_id );
+                                if ( $maybe_id > 0 ) {
+                                        $prize_ids[ $maybe_id ] = $maybe_id;
+                                }
                         }
+                } elseif ( '' !== $prize_ids_input ) {
+                        $single_prize = absint( $prize_ids_input );
+                        if ( $single_prize > 0 ) {
+                                $prize_ids[ $single_prize ] = $single_prize;
+                        }
+                }
+                $prize_ids   = array_values( $prize_ids );
+                $prizes_json = wp_json_encode( $prize_ids );
+                if ( false === $prizes_json ) {
+                        $prizes_json = wp_json_encode( array() );
+                }
 
-                        $allowed_types  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
-                        $raw_start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
-                        $raw_end_date   = isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : '';
+                $affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+                $affiliate_site_id = $affiliate_site_id > 0 ? $affiliate_site_id : 0;
 
-                        $start_date = '' !== $raw_start_date ? $raw_start_date : null;
-                        $end_date   = '' !== $raw_end_date ? $raw_end_date : null;
+                $affiliate_website = '';
+                if ( isset( $_POST['affiliate_website'] ) ) {
+                        $affiliate_website = trim( (string) wp_unslash( $_POST['affiliate_website'] ) );
+                        $affiliate_website = $affiliate_website ? esc_url_raw( $affiliate_website ) : '';
+                        if ( strlen( $affiliate_website ) > 255 ) {
+                                $affiliate_website = substr( $affiliate_website, 0, 255 );
+                        }
+                }
 
-                        $data = array(
-                                'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
-                                'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
-                                'participants_mode' => $participants_mode,
-                                'hunt_link_mode'    => $hunt_link_mode,
-                                'start_date'        => $start_date,
-                                'end_date'          => $end_date,
-                                'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
-                                'updated_at'        => current_time( 'mysql' ),
-                        );
+                $affiliate_url_visible = isset( $_POST['affiliate_url_visible'] ) ? 1 : 0;
+
+                $allowed_types  = array( 'weekly', 'monthly', 'quarterly', 'yearly', 'alltime' );
+                $raw_start_date = isset( $_POST['start_date'] ) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
+                $raw_end_date   = isset( $_POST['end_date'] ) ? sanitize_text_field( wp_unslash( $_POST['end_date'] ) ) : '';
+
+                $start_date = '' !== $raw_start_date ? $raw_start_date : null;
+                $end_date   = '' !== $raw_end_date ? $raw_end_date : null;
+
+                $data = array(
+                        'title'                 => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+                        'description'           => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
+                        'participants_mode'     => $participants_mode,
+                        'hunt_link_mode'        => $hunt_link_mode,
+                        'points_map'            => $points_map_json,
+                        'ranking_scope'         => $ranking_scope,
+                        'prizes'                => $prizes_json,
+                        'affiliate_site_id'     => $affiliate_site_id,
+                        'affiliate_website'     => $affiliate_website,
+                        'affiliate_url_visible' => $affiliate_url_visible,
+                        'start_date'            => $start_date,
+                        'end_date'              => $end_date,
+                        'status'                => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
+                        'updated_at'            => current_time( 'mysql' ),
+                );
                         $allowed_statuses = array( 'active', 'archived' );
                         if ( ! in_array( $data['status'], $allowed_statuses, true ) ) {
                                 $data['status'] = 'active';
@@ -915,28 +990,29 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
 
 $data['type'] = $resolved_type;
 
-if ( 'auto' === $hunt_link_mode ) {
-        $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
-}
-try {
-$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
-if ( $id > 0 ) {
-$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
-$saved_id = $id;
-} else {
-$data['created_at'] = current_time( 'mysql' );
-$format[]           = '%s';
-$wpdb->insert( $t, $data, $format );
-$saved_id = (int) $wpdb->insert_id;
-}
+                if ( 'auto' === $hunt_link_mode ) {
+                        $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
+                }
 
-if ( function_exists( 'bhg_set_tournament_hunts' ) && $saved_id > 0 ) {
-bhg_set_tournament_hunts( $saved_id, $hunt_ids );
-}
+                try {
+                        $format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%d', '%s', '%s', '%s', '%s', '%s' );
+                        if ( $id > 0 ) {
+                                $wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
+                                $saved_id = $id;
+                        } else {
+                                $data['created_at'] = current_time( 'mysql' );
+                                $format[]           = '%s';
+                                $wpdb->insert( $t, $data, $format );
+                                $saved_id = (int) $wpdb->insert_id;
+                        }
 
-wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
-exit;
-} catch ( Throwable $e ) {
+                        if ( function_exists( 'bhg_set_tournament_hunts' ) && $saved_id > 0 ) {
+                                bhg_set_tournament_hunts( $saved_id, $hunt_ids );
+                        }
+
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
+                        exit;
+                } catch ( Throwable $e ) {
 				if ( function_exists( 'error_log' ) ) {
 					error_log( '[BHG] tournament save error: ' . $e->getMessage() );
 				}
