@@ -43,13 +43,13 @@ if ( 'tournament' === $view_type ) {
                 )
         );
 
-        if ( ! $tournament ) {
-                echo '<div class="wrap bhg-wrap"><h1>' . esc_html( bhg_t( 'tournament', 'Tournament' ) ) . '</h1>';
-                echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'tournament_not_found', 'Tournament not found' ) ) . '</p></div>';
-                echo '<p><a class="button" href="' . esc_url( admin_url( 'admin.php?page=bhg-tournaments' ) ) . '">' . esc_html( bhg_t( 'back_to_tournaments', 'Back to Tournaments' ) ) . '</a></p>';
-                echo '</div>';
-                return;
-        }
+$rows              = array();
+$result_title      = '';
+$wcount            = 0;
+$columns           = array();
+$no_hunt_selected  = false;
+$has_final_balance = false;
+$prize_titles      = array();
 
         $rows = $wpdb->get_results(
                 $wpdb->prepare(
@@ -57,12 +57,55 @@ if ( 'tournament' === $view_type ) {
                         $tournament_id
                 )
         );
+	$result_title = $tournament->title;
+	$wcount       = 3;
+	$columns      = array(
+		'sc_position' => bhg_t( 'sc_position', 'Position' ),
+		'sc_user'     => bhg_t( 'sc_user', 'User' ),
+		'wins'        => bhg_t( 'wins', 'Wins' ),
+	);
+} else {
+        $columns = array(
+                'sc_position' => bhg_t( 'sc_position', 'Position' ),
+                'sc_user'     => bhg_t( 'sc_user', 'User' ),
+                'sc_guess'    => bhg_t( 'sc_guess', 'Guess' ),
+                'difference'  => bhg_t( 'difference', 'Difference' ),
+                'price'       => bhg_t( 'label_price', 'Price' ),
+        );
 
-        $total_participants = count( $rows );
-        $winners_limit      = 3;
-?>
-<div class="wrap bhg-wrap bhg-results-page">
-        <h1><?php echo esc_html( sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $tournament->title ) ); ?></h1>
+        if ( empty( $hunt ) ) {
+                $no_hunt_selected = true;
+                $result_title     = bhg_t( 'bonus_hunt', 'Bonus Hunt' );
+                $rows             = array();
+        } else {
+                $result_title     = $hunt->title;
+                $wcount           = (int) $hunt->winners_count;
+                if ( $wcount < 1 ) {
+                        $wcount = 3;
+                }
+
+                $has_final_balance = isset( $hunt->final_balance ) && '' !== $hunt->final_balance && null !== $hunt->final_balance;
+                if ( $has_final_balance ) {
+                        $rows = $wpdb->get_results(
+                                $wpdb->prepare(
+                                        "SELECT g.guess, u.display_name, ABS(%f - g.guess) AS diff FROM {$guess_table} g JOIN {$users_table} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY diff ASC, g.id ASC",
+                                        (float) $hunt->final_balance,
+                                        $item_id,
+                                        (float) $hunt->final_balance
+                                )
+                        );
+
+                        if ( class_exists( 'BHG_Prizes' ) ) {
+                                $hunt_prizes = BHG_Prizes::get_prizes_for_hunt( $item_id );
+                                foreach ( (array) $hunt_prizes as $prize_row ) {
+                                        if ( isset( $prize_row->title ) && '' !== $prize_row->title ) {
+                                                $prize_titles[] = (string) $prize_row->title;
+                                        }
+                                }
+                        }
+                }
+        }
+}
 
         <div class="bhg-results-summary">
                 <div class="bhg-summary-card">
@@ -174,27 +217,28 @@ $participants_display  = number_format_i18n( $total_participants );
                                 <tr>
                                         <td colspan="5" class="bhg-text-center"><?php echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) ); ?></td>
                                 </tr>
-                        <?php else : ?>
-                                <?php foreach ( $guesses as $index => $guess ) :
-                                        $position   = $index + 1;
-                                        $is_winner  = $has_final_balance && $position <= $winners_limit;
-                                        $row_class  = $is_winner ? 'bhg-results-row bhg-results-row--winner' : 'bhg-results-row';
-                                        $user_name  = $guess->display_name ? $guess->display_name : sprintf( esc_html( bhg_t( 'label_user_hash', 'user#%d' ) ), (int) $guess->user_id );
-                                        $guess_link = admin_url( 'user-edit.php?user_id=' . (int) $guess->user_id );
-                                        $difference = $has_final_balance && isset( $guess->diff ) ? bhg_format_currency( abs( (float) $guess->diff ) ) : bhg_t( 'label_en_dash', '–' );
-                                        $date_value = isset( $guess->created_at ) ? strtotime( $guess->created_at ) : false;
-                                        $date_label = $date_value ? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $date_value ) : bhg_t( 'label_en_dash', '–' );
-                                ?>
-                                        <tr class="<?php echo esc_attr( $row_class ); ?>">
+                        </thead>
+                        <tbody>
+                                <?php
+                                $pos = 1;
+                                foreach ( (array) $rows as $r ) :
+                                        $is_winner   = $pos <= $wcount;
+                                        $row_classes = $is_winner ? 'bhg-results-row bhg-results-row--winner' : 'bhg-results-row';
+                                        $prize_index = $pos - 1;
+                                        $prize_title = isset( $prize_titles[ $prize_index ] ) ? (string) $prize_titles[ $prize_index ] : '';
+                                        ?>
+                                        <tr class="<?php echo esc_attr( $row_classes ); ?>">
                                                 <td>
                                                         <span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span>
                                                 </td>
-                                                <td>
-                                                        <span class="bhg-result-name"><a href="<?php echo esc_url( $guess_link ); ?>"><?php echo esc_html( $user_name ); ?></a></span>
-                                                </td>
-                                                <td><?php echo esc_html( bhg_format_currency( (float) $guess->guess ) ); ?></td>
-                                                <td><?php echo esc_html( $difference ); ?></td>
-                                                <td><?php echo esc_html( $date_label ); ?></td>
+                                                <td><span class="bhg-result-name"><?php echo esc_html( $r->display_name ); ?></span></td>
+                                                <?php if ( 'tournament' === $view_type ) : ?>
+                                                        <td><?php echo (int) $r->wins; ?></td>
+                                                <?php else : ?>
+                                                        <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>
+                                                        <td><?php echo esc_html( bhg_format_currency( (float) $r->diff ) ); ?></td>
+                                                        <td><?php echo '' !== $prize_title ? esc_html( $prize_title ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+                                                <?php endif; ?>
                                         </tr>
                                 <?php endforeach; ?>
                         <?php endif; ?>

@@ -273,6 +273,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_start_balance'                          => 'Starting Balance',
 			'label_number_bonuses'                         => 'Number of Bonuses',
                         'label_prizes'                                 => 'Prizes',
+                        'label_price'                                  => 'Price',
                         'category'                                     => 'Category',
 			'label_submit_guess'                           => 'Submit Guess',
                         'label_guess'                                  => 'Guess',
