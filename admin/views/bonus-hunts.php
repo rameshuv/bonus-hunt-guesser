@@ -218,13 +218,13 @@ $hunts = $wpdb->get_results( $hunts_query );
 <th><?php echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) ); ?></th>
 </tr>
 </thead>
-		<tbody>
-				<?php if ( empty( $hunts ) ) : ?>
+                <tbody>
+                                <?php if ( empty( $hunts ) ) : ?>
 <tr><td colspan="9"><?php echo esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ); ?></td></tr>
-						<?php
-				else :
-                                        foreach ( $hunts as $h ) :
-                                                $edit_url = wp_nonce_url(
+                                <?php else : ?>
+                                        <?php foreach ( $hunts as $h ) : ?>
+                                                <?php
+                                                $edit_url   = wp_nonce_url(
                                                         add_query_arg(
                                                                 array(
                                                                         'view' => 'edit',
@@ -233,6 +233,7 @@ $hunts = $wpdb->get_results( $hunts_query );
                                                         ),
                                                         'bhg_edit_hunt'
                                                 );
+                                                $results_url = admin_url( 'admin.php?page=bhg-bonus-hunts-results&id=' . (int) $h->id );
                                                 ?>
                 <tr>
 <td><?php echo esc_html( (int) $h->id ); ?></td>
@@ -258,7 +259,7 @@ $hunts = $wpdb->get_results( $hunts_query );
 							?>
 "><?php echo esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ); ?></a>
 <?php elseif ( null !== $h->final_balance ) : ?>
-<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts-results&id=' . (int) $h->id ) ); ?>"><?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?></a>
+<a class="button button-primary" href="<?php echo esc_url( $results_url ); ?>"><?php echo esc_html( bhg_t( 'button_results', 'Results' ) ); ?></a>
 
 <?php endif; ?>
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
@@ -278,12 +279,10 @@ $hunts = $wpdb->get_results( $hunts_query );
 </form>
 </td>
 </tr>
-							<?php
-						endforeach;
-endif;
-				?>
-		</tbody>
-	</table>
+                                                        <?php endforeach; ?>
+                                <?php endif; ?>
+                </tbody>
+        </table>
 
 	<?php
 		$total_pages = (int) ceil( $total / $per_page );
@@ -337,8 +336,8 @@ if ( 'close' === $view ) :
 		<?php submit_button( esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ) ); ?>
 	</form>
 </div>
-		<?php
-	endif;
+                <?php
+        endif;
 endif;
 ?>
 
