@@ -69,15 +69,50 @@ class BHG_Bonus_Hunts {
 	 * @return object|null Hunt data or null if not found.
 	 */
 	public static function get_hunt( $hunt_id ) {
-                global $wpdb;
-                $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		global $wpdb;
+		$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 
-                                return $wpdb->get_row(
-                                        $wpdb->prepare(
-                                                "SELECT * FROM {$hunts_table} WHERE id=%d",
-                                                (int) $hunt_id
-                                        )
-                                );
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$hunts_table} WHERE id=%d",
+				(int) $hunt_id
+			)
+		);
+	}
+
+	/**
+	 * Retrieve the most recent hunt suitable for displaying results.
+	 *
+	 * Falls back to the newest closed hunt (with a final balance) and, if none
+	 * exist yet, the most recently created hunt regardless of status.
+	 *
+	 * @return int Hunt ID or 0 when no hunts exist.
+	 */
+	public static function get_default_results_hunt_id() {
+		global $wpdb;
+		$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+
+		// Prefer hunts that have been closed and have a final balance recorded.
+		$closed_id = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$hunts_table}
+					WHERE status = %s AND final_balance IS NOT NULL
+					ORDER BY COALESCE(closed_at, updated_at, created_at) DESC, id DESC
+					LIMIT 1",
+				'closed'
+			)
+		);
+
+		if ( $closed_id > 0 ) {
+			return $closed_id;
+		}
+
+		// Otherwise fall back to the most recently created hunt.
+		$latest_id = (int) $wpdb->get_var(
+			"SELECT id FROM {$hunts_table} ORDER BY id DESC LIMIT 1"
+		);
+
+		return $latest_id > 0 ? $latest_id : 0;
 	}
 
 	/**

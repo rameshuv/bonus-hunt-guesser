@@ -125,12 +125,25 @@ class BHG_Admin {
                                                 defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
                                                 true
                                         );
+
+                                        $css_defaults = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::default_css_settings() : array();
+
                                         wp_localize_script(
                                                 'bhg-admin-prizes',
                                                 'BHGPrizesL10n',
                                                 array(
                                                         'chooseImage' => bhg_t( 'select_image', 'Select Image' ),
                                                         'noImage'     => bhg_t( 'no_image_selected', 'No image selected' ),
+                                                        'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+                                                        'fetchNonce'  => wp_create_nonce( 'bhg_get_prize' ),
+                                                        'cssDefaults' => $css_defaults,
+                                                        'strings'     => array(
+                                                                'saveLabel'     => bhg_t( 'add_prize', 'Add Prize' ),
+                                                                'updateLabel'   => bhg_t( 'update_prize', 'Update Prize' ),
+                                                                'modalAddTitle' => bhg_t( 'add_new_prize', 'Add New Prize' ),
+                                                                'modalEditTitle'=> bhg_t( 'edit_prize', 'Edit Prize' ),
+                                                                'errorLoading'  => bhg_t( 'prize_error_loading', 'Unable to load prize details.' ),
+                                                        ),
                                                 )
                                         );
                                 }

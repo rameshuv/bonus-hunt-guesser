@@ -130,11 +130,21 @@ if ( ! $hunt_id && isset( $_GET['id'] ) ) {
         $hunt_id = absint( wp_unslash( $_GET['id'] ) );
 }
 
+if ( ! $hunt_id && method_exists( 'BHG_Bonus_Hunts', 'get_default_results_hunt_id' ) ) {
+        $hunt_id = (int) BHG_Bonus_Hunts::get_default_results_hunt_id();
+}
+
 $hunt = $hunt_id ? BHG_Bonus_Hunts::get_hunt( $hunt_id ) : null;
 
 if ( ! $hunt ) {
         echo '<div class="wrap bhg-wrap"><h1>' . esc_html( bhg_t( 'bonus_hunt', 'Bonus Hunt' ) ) . '</h1>';
-        echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt', 'Invalid hunt' ) ) . '</p></div>';
+
+        if ( $hunt_id ) {
+                echo '<div class="notice notice-error"><p>' . esc_html( bhg_t( 'invalid_hunt', 'Invalid hunt' ) ) . '</p></div>';
+        } else {
+                echo '<div class="notice notice-warning"><p>' . esc_html( bhg_t( 'notice_no_hunts_available', 'No bonus hunts available yet. Create a hunt to view results.' ) ) . '</p></div>';
+        }
+
         echo '<p><a class="button" href="' . esc_url( admin_url( 'admin.php?page=bhg-bonus-hunts' ) ) . '">' . esc_html( bhg_t( 'back_to_bonus_hunts', 'Back to Bonus Hunts' ) ) . '</a></p>';
         echo '</div>';
         return;

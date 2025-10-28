@@ -394,15 +394,19 @@ function bhg_init_plugin() {
 	load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
 		// Initialize components.
-	if ( is_admin() ) {
-		if ( class_exists( 'BHG_Demo' ) ) {
-			BHG_Demo::instance();
-		}
+        if ( is_admin() ) {
+                if ( class_exists( 'BHG_Demo' ) ) {
+                        BHG_Demo::instance();
+                }
 
-		if ( class_exists( 'BHG_Admin' ) ) {
-			new BHG_Admin();
-		}
-	}
+                if ( class_exists( 'BHG_Admin' ) ) {
+                        new BHG_Admin();
+                }
+
+                if ( class_exists( 'BHG_Prizes_Controller' ) ) {
+                        BHG_Prizes_Controller::get_instance()->init();
+                }
+        }
 
 	if ( class_exists( 'BHG_Shortcodes' ) ) {
 		new BHG_Shortcodes();
