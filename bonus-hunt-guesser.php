@@ -143,7 +143,7 @@ require_once __DIR__ . '/includes/class-bhg-db.php';
 
 // Define plugin constants.
 define( 'BHG_VERSION', '8.0.14' );
-define( 'BHG_MIN_WP', '6.3.5' );
+define( 'BHG_MIN_WP', '6.3.0' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BHG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
