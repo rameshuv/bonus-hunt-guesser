@@ -497,6 +497,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'placeholder_custom_value'                     => 'Custom value',
                         'select_multiple_tournaments_hint'             => 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.',
                         'select_multiple_prizes_hint'                  => 'Hold Ctrl (Windows) or Command (Mac) to select multiple prizes.',
+                        'show_affiliate_url'                           => 'Show affiliate URL',
+                        'show_affiliate_url_help'                      => 'Display the affiliate link on the frontend.',
                         'post_submit_redirect_url'                     => 'Post-submit redirect URL',
                         'post_submit_redirect_description'             => 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.',
                         'post_submit_redirect_placeholder'             => 'https://example.com/thank-you',
