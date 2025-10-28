@@ -278,10 +278,10 @@ $hunts = $wpdb->get_results( $hunts_query );
 </form>
 </td>
 </tr>
-							<?php
-						endforeach;
-endif;
-				?>
+                                                        <?php
+                                                endforeach;
+                                        endif;
+                                ?>
 		</tbody>
 	</table>
 
@@ -337,8 +337,8 @@ if ( 'close' === $view ) :
 		<?php submit_button( esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ) ); ?>
 	</form>
 </div>
-		<?php
-	endif;
+                <?php
+        endif;
 endif;
 ?>
 

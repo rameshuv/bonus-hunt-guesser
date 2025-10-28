@@ -8,6 +8,13 @@
 
 # Changelog
 
+## 8.0.14 — 2025-10-27
+- Added `[my_bonushunts]`, `[my_tournaments]`, `[my_prizes]`, and `[my_rankings]` shortcodes that honour the new My Profile visibility toggles and reuse the global typography settings.
+- Implemented the configurable tournament points system with ranking scope controls and ensured recalculations persist both points and wins for admin/front-end displays.
+- Synced affiliate website CRUD with user profile metadata so new sites immediately expose checkboxes and deletions clean up user assignments.
+- Extended the settings screen with global typography/color controls and wired inline CSS so front-end blocks reflect the configured styles.
+- Protected uninstall by respecting the “remove data on uninstall” option and refreshed release notes to match the 8.0.14 requirements.
+
 ## 8.0.11 — 2025-09-14
 - Version bump.
 
