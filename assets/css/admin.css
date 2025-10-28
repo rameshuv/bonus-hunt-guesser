@@ -126,7 +126,8 @@
 }
 
 .bhg-results-row--winner {
-    background-color: #ecfdf5;
+    font-weight: 600;
+    box-shadow: inset 4px 0 0 #059669;
 }
 
 .bhg-badge {
