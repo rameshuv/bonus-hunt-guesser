@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser
 
-Requires at least: WordPress 6.3.5
+Requires at least: WordPress 6.3.0
 
 ## Shortcodes
 
@@ -25,6 +25,24 @@ Display overall wins leaderboard.
 List tournaments or show details.
 
 - `timeline`: limit tournaments by `day`, `week`, `month`, `year`, the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`, or by type keywords `all_time`, `weekly`, `monthly`, `yearly`, `quarterly`, `alltime`.
+
+### `[my_bonushunts]`
+Displays the logged-in user's guesses across recent bonus hunts. Results highlight winning placements, show the recorded guess, and display the final balance once a hunt closes. Output honours the My Profile visibility toggles defined under **Settings → Bonus Hunt Guesser → My Profile Blocks**.
+
+### `[my_tournaments]`
+Shows each tournament a logged-in user has participated in along with accumulated points, wins, rank, and their most recent scoring event. Only renders when the corresponding profile block is enabled in settings.
+
+### `[my_prizes]`
+Lists prizes won by the current user, including the source bonus hunt, prize category, placement, and closed date. The shortcode respects the My Profile visibility toggle and uses the global typography/color overrides configured in plugin settings.
+
+### `[my_rankings]`
+Summarises the logged-in user's performance across hunts and tournaments. The block surfaces total hunt wins, tournament points, best rank, and provides tables for individual hunt wins and tournament standings when available.
+
+## Settings highlights
+
+- **My Profile Blocks** — Toggle each of the `[my_*]` shortcodes on or off without editing theme templates.
+- **Global Typography & Colors** — Configure shared styles for profile sections, headings, descriptions, and body text. The plugin injects inline CSS so front-end shortcodes immediately reflect the chosen palette.
+- **Uninstall safety** — A new "Remove plugin data on uninstall" checkbox controls whether tables/options are removed when the plugin is uninstalled.
 
 ## Manual Testing
 

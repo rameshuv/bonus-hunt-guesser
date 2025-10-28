@@ -726,13 +726,22 @@ $wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
 		);
 
 		$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' );
-		if ( $id ) {
-			$wpdb->update( $table, $data, array( 'id' => $id ), $format, array( '%d' ) );
-		} else {
-			$data['created_at'] = current_time( 'mysql' );
-			$format[]           = '%s';
-			$wpdb->insert( $table, $data, $format );
-		}
+                $saved_id = $id;
+
+                if ( $id ) {
+                        $wpdb->update( $table, $data, array( 'id' => $id ), $format, array( '%d' ) );
+                } else {
+                        $data['created_at'] = current_time( 'mysql' );
+                        $format[]           = '%s';
+                        $wpdb->insert( $table, $data, $format );
+                        if ( ! empty( $wpdb->insert_id ) ) {
+                                $saved_id = (int) $wpdb->insert_id;
+                        }
+                }
+
+                if ( $saved_id && $saved_id > 0 ) {
+                        $this->initialize_affiliate_site_for_users( $saved_id );
+                }
 
                                 wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-ads' ) );
                 exit;
@@ -780,16 +789,29 @@ $wpdb->delete( $winners_table, array( 'hunt_id' => $hunt_id ), array( '%d' ) );
                         $start_date = '' !== $raw_start_date ? $raw_start_date : null;
                         $end_date   = '' !== $raw_end_date ? $raw_end_date : null;
 
-                        $data = array(
-                                'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
-                                'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
-                                'participants_mode' => $participants_mode,
-                                'hunt_link_mode'    => $hunt_link_mode,
-                                'start_date'        => $start_date,
-                                'end_date'          => $end_date,
-                                'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
-                                'updated_at'        => current_time( 'mysql' ),
-                        );
+                $ranking_scope = isset( $_POST['ranking_scope'] ) ? sanitize_key( wp_unslash( $_POST['ranking_scope'] ) ) : 'all';
+                if ( ! in_array( $ranking_scope, array( 'all', 'closed', 'active' ), true ) ) {
+                        $ranking_scope = 'all';
+                }
+
+                $points_input = isset( $_POST['points_map'] ) ? wp_unslash( $_POST['points_map'] ) : array();
+                $points_map   = function_exists( 'bhg_sanitize_points_map' ) ? bhg_sanitize_points_map( $points_input ) : array();
+                if ( empty( $points_map ) && function_exists( 'bhg_get_default_points_map' ) ) {
+                        $points_map = bhg_get_default_points_map();
+                }
+
+                $data = array(
+                        'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+                        'description'       => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
+                        'participants_mode' => $participants_mode,
+                        'hunt_link_mode'    => $hunt_link_mode,
+                        'points_map'        => wp_json_encode( $points_map ),
+                        'ranking_scope'     => $ranking_scope,
+                        'start_date'        => $start_date,
+                        'end_date'          => $end_date,
+                        'status'            => isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active',
+                        'updated_at'        => current_time( 'mysql' ),
+                );
                         $allowed_statuses = array( 'active', 'archived' );
                         if ( ! in_array( $data['status'], $allowed_statuses, true ) ) {
                                 $data['status'] = 'active';
@@ -798,7 +820,7 @@ if ( 'auto' === $hunt_link_mode ) {
         $hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
 }
 try {
-$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
+$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );
 if ( $id > 0 ) {
 $wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
 $saved_id = $id;
@@ -811,6 +833,10 @@ $saved_id = (int) $wpdb->insert_id;
 
 if ( function_exists( 'bhg_set_tournament_hunts' ) && $saved_id > 0 ) {
 bhg_set_tournament_hunts( $saved_id, $hunt_ids );
+}
+
+if ( class_exists( 'BHG_Models' ) && $saved_id > 0 ) {
+        BHG_Models::recalculate_tournament_results( array( $saved_id ) );
 }
 
 wp_safe_redirect( add_query_arg( 'bhg_msg', 't_saved', BHG_Utils::admin_url( 'admin.php?page=bhg-tournaments' ) ) );
@@ -957,13 +983,20 @@ exit;
 			'updated_at' => current_time( 'mysql' ),
 		);
 			$format = array( '%s', '%s', '%s', '%s', '%s' );
-		if ( $id ) {
-				$wpdb->update( $table, $data, array( 'id' => $id ), $format, array( '%d' ) );
-		} else {
-				$data['created_at'] = current_time( 'mysql' );
-				$format[]           = '%s';
-				$wpdb->insert( $table, $data, $format );
-		}
+               $saved_id = $id;
+
+               if ( $id ) {
+                               $wpdb->update( $table, $data, array( 'id' => $id ), $format, array( '%d' ) );
+               } else {
+                               $data['created_at'] = current_time( 'mysql' );
+                               $format[]           = '%s';
+                               $wpdb->insert( $table, $data, $format );
+                               $saved_id = (int) $wpdb->insert_id;
+               }
+
+               if ( $saved_id > 0 ) {
+                               $this->initialize_affiliate_site_for_users( $saved_id );
+               }
 						wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
 			exit;
 	}
@@ -979,12 +1012,132 @@ exit;
 				global $wpdb;
 				$table = $wpdb->prefix . 'bhg_affiliate_websites';
 		$id            = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
-		if ( $id ) {
-			$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-		}
-				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
-		exit;
-	}
+                if ( $id ) {
+                        $wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
+                        $this->remove_affiliate_site_from_users( $id );
+                }
+                wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
+                exit;
+        }
+
+        /**
+         * Ensure metadata scaffolding exists for a newly created affiliate website.
+         *
+         * @param int $site_id Affiliate website identifier.
+         * @return void
+         */
+        private function initialize_affiliate_site_for_users( $site_id ) {
+                $site_id = absint( $site_id );
+
+                if ( $site_id <= 0 || ! function_exists( 'bhg_get_user_affiliate_websites' ) || ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                        return;
+                }
+
+                $query = new WP_User_Query(
+                        array(
+                                'fields' => array( 'ID' ),
+                                'number' => -1,
+                        )
+                );
+
+                $users = $query->get_results();
+
+                if ( empty( $users ) ) {
+                        return;
+                }
+
+                foreach ( $users as $user ) {
+                        if ( ! $user instanceof WP_User ) {
+                                continue;
+                        }
+
+                        $user_id = (int) $user->ID;
+                        if ( $user_id <= 0 ) {
+                                continue;
+                        }
+
+                        $sites      = bhg_get_user_affiliate_websites( $user_id );
+                        $normalized = array();
+
+                        if ( is_array( $sites ) ) {
+                                foreach ( $sites as $stored_id ) {
+                                        $stored_id = absint( $stored_id );
+                                        if ( $stored_id > 0 ) {
+                                                $normalized[ $stored_id ] = $stored_id;
+                                        }
+                                }
+                        }
+
+                        if ( empty( $sites ) && ! metadata_exists( 'user', $user_id, 'bhg_affiliate_websites' ) ) {
+                                bhg_set_user_affiliate_websites( $user_id, array() );
+                                continue;
+                        }
+
+                        $current = array_values( $normalized );
+
+                        if ( $current !== array_values( (array) $sites ) ) {
+                                bhg_set_user_affiliate_websites( $user_id, $current );
+                        }
+                }
+        }
+
+        /**
+         * Remove an affiliate website assignment from all user profiles.
+         *
+         * @param int $site_id Affiliate website identifier.
+         * @return void
+         */
+        private function remove_affiliate_site_from_users( $site_id ) {
+                $site_id = absint( $site_id );
+
+                if ( $site_id <= 0 || ! function_exists( 'bhg_get_user_affiliate_websites' ) || ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                        return;
+                }
+
+                $query = new WP_User_Query(
+                        array(
+                                'fields'   => array( 'ID' ),
+                                'meta_key' => 'bhg_affiliate_websites',
+                                'number'   => -1,
+                        )
+                );
+
+                $users = $query->get_results();
+
+                if ( empty( $users ) ) {
+                        return;
+                }
+
+                foreach ( $users as $user ) {
+                        if ( ! $user instanceof WP_User ) {
+                                continue;
+                        }
+
+                        $user_id = (int) $user->ID;
+                        if ( $user_id <= 0 ) {
+                                continue;
+                        }
+
+                        $current_sites = (array) bhg_get_user_affiliate_websites( $user_id );
+                        if ( empty( $current_sites ) ) {
+                                continue;
+                        }
+
+                        $filtered = array();
+                        foreach ( $current_sites as $stored_id ) {
+                                $stored_id = absint( $stored_id );
+                                if ( $stored_id > 0 && $stored_id !== $site_id ) {
+                                        $filtered[ $stored_id ] = $stored_id;
+                                }
+                        }
+
+                        if ( count( $filtered ) === count( $current_sites ) ) {
+                                continue;
+                        }
+
+                        bhg_set_user_affiliate_websites( $user_id, array_values( $filtered ) );
+                }
+        }
 
 	/**
 	 * Save custom user metadata from the admin screen.

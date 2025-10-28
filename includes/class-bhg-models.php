@@ -220,6 +220,7 @@ if ( empty( $rows ) ) {
 
 		// Record winners and update tournament results.
 		$position = 1;
+                $should_recalculate = false;
 		foreach ( (array) $rows as $row ) {
 			$wpdb->insert(
 				$winners_tbl,
@@ -234,53 +235,14 @@ if ( empty( $rows ) ) {
 				array( '%d', '%d', '%d', '%f', '%f', '%s' )
 			);
 
-if ( ! empty( $tournament_ids ) ) {
-				foreach ( $tournament_ids as $tournament_id ) {
-					$mode = isset( $tournament_modes[ $tournament_id ] ) ? $tournament_modes[ $tournament_id ] : 'winners';
-
-					if ( 'all' !== $mode && $position > $winners_count ) {
-						continue;
-					}
-
-					$existing = $wpdb->get_row(
-						$wpdb->prepare(
-							'SELECT id, wins FROM ' . $tres_tbl . ' WHERE tournament_id = %d AND user_id = %d',
-							(int) $tournament_id,
-							(int) $row->user_id
-						)
-					);
-
-					if ( $existing ) {
-						$updated = $wpdb->update(
-							$tres_tbl,
-							array(
-								'wins'          => (int) $existing->wins + 1,
-								'last_win_date' => $now,
-							),
-							array( 'id' => (int) $existing->id ),
-							array( '%d', '%s' ),
-							array( '%d' )
-						);
-
-						if ( false === $updated ) {
-							bhg_log( $wpdb->last_error );
-							return false;
-						}
-					} else {
-						$wpdb->insert(
-							$tres_tbl,
-							array(
-								'tournament_id' => (int) $tournament_id,
-								'user_id'       => (int) $row->user_id,
-								'wins'          => 1,
-								'last_win_date' => $now,
-							),
-							array( '%d', '%d', '%d', '%s' )
-						);
-					}
-				}
+				if ( ! empty( $tournament_ids ) ) {
+					$should_recalculate = true;
 			}
 ++$position;
+		}
+
+		if ( $should_recalculate && ! empty( $tournament_ids ) ) {
+			self::recalculate_tournament_results( $tournament_ids );
 		}
 
 		return array_map( 'intval', wp_list_pluck( $rows, 'user_id' ) );
@@ -318,120 +280,206 @@ if ( ! empty( $tournament_ids ) ) {
                 $relation_tbl = esc_sql( $wpdb->prefix . 'bhg_tournaments_hunts' );
                 $tours_tbl    = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 
-		foreach ( $normalized as $tournament_id ) {
-			$query = "
-				SELECT
-					hw.user_id,
-					hw.position,
-					hw.hunt_id,
-					COALESCE(hw.created_at, h.closed_at, h.updated_at, h.created_at) AS event_date,
-					h.winners_count,
-					t.participants_mode
-				FROM {$winners_tbl} hw
-				INNER JOIN {$hunts_tbl} h ON h.id = hw.hunt_id
-				LEFT JOIN {$relation_tbl} ht ON ht.hunt_id = h.id
-				INNER JOIN {$tours_tbl} t ON t.id = COALESCE(ht.tournament_id, h.tournament_id)
-				WHERE t.id = %d
-				  AND (ht.tournament_id = %d OR (ht.tournament_id IS NULL AND h.tournament_id = %d))
-			";
+                foreach ( $normalized as $tournament_id ) {
+                        $tournament = $wpdb->get_row(
+                                $wpdb->prepare(
+                                        "SELECT participants_mode, points_map, ranking_scope FROM {$tours_tbl} WHERE id = %d",
+                                        $tournament_id
+                                )
+                        );
 
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					$query,
-					$tournament_id,
-					$tournament_id,
-					$tournament_id
-				)
-			);
+                        if ( ! $tournament ) {
+                                continue;
+                        }
 
-			if ( null === $rows && $wpdb->last_error ) {
-				bhg_log( sprintf( 'Failed to fetch recalculated standings for tournament #%d: %s', $tournament_id, $wpdb->last_error ) );
-				continue;
-			}
+                        $participants_mode = isset( $tournament->participants_mode ) ? sanitize_key( $tournament->participants_mode ) : 'winners';
+                        if ( ! in_array( $participants_mode, array( 'winners', 'all' ), true ) ) {
+                                $participants_mode = 'winners';
+                        }
 
-			$deleted = $wpdb->delete( $results_tbl, array( 'tournament_id' => $tournament_id ), array( '%d' ) );
-			if ( false === $deleted ) {
-				bhg_log( sprintf( 'Failed to clear existing standings for tournament #%d: %s', $tournament_id, $wpdb->last_error ) );
-				continue;
-			}
+                        $ranking_scope = isset( $tournament->ranking_scope ) ? sanitize_key( $tournament->ranking_scope ) : 'all';
+                        if ( ! in_array( $ranking_scope, array( 'all', 'closed', 'active' ), true ) ) {
+                                $ranking_scope = 'all';
+                        }
 
-			if ( empty( $rows ) ) {
-				continue;
-			}
+                        $points_map = array();
+                        if ( ! empty( $tournament->points_map ) ) {
+                                $decoded = json_decode( $tournament->points_map, true );
+                                if ( is_array( $decoded ) && function_exists( 'bhg_sanitize_points_map' ) ) {
+                                        $points_map = bhg_sanitize_points_map( $decoded );
+                                }
+                        }
 
-			$wins_map   = array();
-			$last_dates = array();
+                        if ( empty( $points_map ) && function_exists( 'bhg_get_default_points_map' ) ) {
+                                $points_map = bhg_get_default_points_map();
+                        }
 
-			foreach ( $rows as $row ) {
-				$user_id = isset( $row->user_id ) ? (int) $row->user_id : 0;
+                        $scope_clause = '';
+                        if ( 'active' === $ranking_scope ) {
+                                $scope_clause = " AND h.status = 'open'";
+                        } elseif ( 'closed' === $ranking_scope ) {
+                                $scope_clause = " AND h.status = 'closed'";
+                        }
 
-				if ( $user_id <= 0 ) {
-					continue;
-				}
+                        $query = "
+                                SELECT
+                                        hw.user_id,
+                                        hw.position,
+                                        hw.hunt_id,
+                                        COALESCE(hw.created_at, h.closed_at, h.updated_at, h.created_at) AS event_date,
+                                        h.winners_count
+                                FROM {$winners_tbl} hw
+                                INNER JOIN {$hunts_tbl} h ON h.id = hw.hunt_id
+                                LEFT JOIN {$relation_tbl} ht ON ht.hunt_id = h.id
+                                WHERE (ht.tournament_id = %d OR (ht.tournament_id IS NULL AND h.tournament_id = %d))
+                                {$scope_clause}
+                        ";
 
-				$mode = isset( $row->participants_mode ) ? sanitize_key( $row->participants_mode ) : 'winners';
-				if ( ! in_array( $mode, array( 'winners', 'all' ), true ) ) {
-					$mode = 'winners';
-				}
+                        $rows = $wpdb->get_results(
+                                $wpdb->prepare(
+                                        $query,
+                                        $tournament_id,
+                                        $tournament_id
+                                )
+                        );
 
-				if ( 'all' !== $mode ) {
-					$position = isset( $row->position ) ? (int) $row->position : 0;
-					$limit    = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
-					if ( $limit <= 0 ) {
-						$limit = 1;
-					}
+                        if ( null === $rows && $wpdb->last_error ) {
+                                bhg_log( sprintf( 'Failed to fetch recalculated standings for tournament #%d: %s', $tournament_id, $wpdb->last_error ) );
+                                continue;
+                        }
 
-					if ( $position <= 0 || $position > $limit ) {
-						continue;
-					}
-				}
+                        $deleted = $wpdb->delete( $results_tbl, array( 'tournament_id' => $tournament_id ), array( '%d' ) );
+                        if ( false === $deleted ) {
+                                bhg_log( sprintf( 'Failed to clear existing standings for tournament #%d: %s', $tournament_id, $wpdb->last_error ) );
+                                continue;
+                        }
 
-				if ( ! isset( $wins_map[ $user_id ] ) ) {
-					$wins_map[ $user_id ] = 0;
-				}
+                        if ( empty( $rows ) ) {
+                                continue;
+                        }
 
-				++$wins_map[ $user_id ];
+                        $results_map = array();
 
-				$event_date = '';
-				if ( isset( $row->event_date ) && $row->event_date ) {
-					$event_date = $row->event_date;
-				}
+                        foreach ( $rows as $row ) {
+                                $user_id = isset( $row->user_id ) ? (int) $row->user_id : 0;
 
-				if ( empty( $event_date ) ) {
-					$event_date = current_time( 'mysql' );
-				}
+                                if ( $user_id <= 0 ) {
+                                        continue;
+                                }
 
-				if ( ! isset( $last_dates[ $user_id ] ) || strcmp( $event_date, $last_dates[ $user_id ] ) > 0 ) {
-					$last_dates[ $user_id ] = $event_date;
-				}
-			}
+                                $position = isset( $row->position ) ? (int) $row->position : 0;
+                                $limit    = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
 
-			if ( empty( $wins_map ) ) {
-				continue;
-			}
+                                if ( $limit <= 0 ) {
+                                        $limit = max( 1, count( $points_map ) );
+                                }
 
-			foreach ( $wins_map as $user_id => $wins ) {
-				if ( $wins <= 0 ) {
-					continue;
-				}
+                                if ( 'winners' === $participants_mode && ( $position <= 0 || $position > $limit ) ) {
+                                        continue;
+                                }
 
-				$last_win = isset( $last_dates[ $user_id ] ) ? $last_dates[ $user_id ] : current_time( 'mysql' );
+                                if ( ! isset( $results_map[ $user_id ] ) ) {
+                                        $results_map[ $user_id ] = array(
+                                                'user_id'    => $user_id,
+                                                'wins'       => 0,
+                                                'points'     => 0,
+                                                'last_event' => '',
+                                        );
+                                }
 
-				$inserted = $wpdb->insert(
-					$results_tbl,
-					array(
-						'tournament_id' => $tournament_id,
-						'user_id'       => $user_id,
-						'wins'          => $wins,
-						'last_win_date' => $last_win,
-					),
-					array( '%d', '%d', '%d', '%s' )
-				);
+                                $points_awarded = 0;
+                                if ( $position > 0 && isset( $points_map[ $position ] ) ) {
+                                        $points_awarded = (int) $points_map[ $position ];
+                                }
 
-				if ( false === $inserted ) {
-					bhg_log( sprintf( 'Failed to store recalculated standings for tournament #%1$d and user #%2$d: %3$s', $tournament_id, $user_id, $wpdb->last_error ) );
-				}
-			}
+                                if ( $points_awarded > 0 ) {
+                                        $results_map[ $user_id ]['points'] += $points_awarded;
+                                }
+
+                                if ( $position > 0 && $position <= $limit ) {
+                                        $results_map[ $user_id ]['wins']++;
+                                }
+
+                                $event_date = '';
+                                if ( isset( $row->event_date ) && $row->event_date ) {
+                                        $event_date = (string) $row->event_date;
+                                }
+
+                                if ( '' === $event_date ) {
+                                        $event_date = current_time( 'mysql' );
+                                }
+
+                                if ( '' === $results_map[ $user_id ]['last_event'] || strcmp( $event_date, $results_map[ $user_id ]['last_event'] ) > 0 ) {
+                                        $results_map[ $user_id ]['last_event'] = $event_date;
+                                }
+                        }
+
+                        if ( empty( $results_map ) ) {
+                                continue;
+                        }
+
+                        $results = array_values( $results_map );
+
+                        usort(
+                                $results,
+                                static function ( $a, $b ) {
+                                        $points_a = isset( $a['points'] ) ? (int) $a['points'] : 0;
+                                        $points_b = isset( $b['points'] ) ? (int) $b['points'] : 0;
+
+                                        if ( $points_a !== $points_b ) {
+                                                return ( $points_a < $points_b ) ? 1 : -1;
+                                        }
+
+                                        $wins_a = isset( $a['wins'] ) ? (int) $a['wins'] : 0;
+                                        $wins_b = isset( $b['wins'] ) ? (int) $b['wins'] : 0;
+
+                                        if ( $wins_a !== $wins_b ) {
+                                                return ( $wins_a < $wins_b ) ? 1 : -1;
+                                        }
+
+                                        $date_a = isset( $a['last_event'] ) ? (string) $a['last_event'] : '';
+                                        $date_b = isset( $b['last_event'] ) ? (string) $b['last_event'] : '';
+
+                                        if ( $date_a !== $date_b ) {
+                                                return strcmp( $date_a, $date_b );
+                                        }
+
+                                        $user_a = isset( $a['user_id'] ) ? (int) $a['user_id'] : 0;
+                                        $user_b = isset( $b['user_id'] ) ? (int) $b['user_id'] : 0;
+
+                                        if ( $user_a === $user_b ) {
+                                                return 0;
+                                        }
+
+                                        return ( $user_a < $user_b ) ? -1 : 1;
+                                }
+                        );
+
+                        foreach ( $results as $result_row ) {
+                                $user_id = isset( $result_row['user_id'] ) ? (int) $result_row['user_id'] : 0;
+
+                                if ( $user_id <= 0 ) {
+                                        continue;
+                                }
+
+                                $last_event = isset( $result_row['last_event'] ) ? (string) $result_row['last_event'] : current_time( 'mysql' );
+
+                                $inserted = $wpdb->insert(
+                                        $results_tbl,
+                                        array(
+                                                'tournament_id' => $tournament_id,
+                                                'user_id'       => $user_id,
+                                                'wins'          => isset( $result_row['wins'] ) ? (int) $result_row['wins'] : 0,
+                                                'points'        => isset( $result_row['points'] ) ? max( 0, (int) $result_row['points'] ) : 0,
+                                                'last_win_date' => $last_event,
+                                        ),
+                                        array( '%d', '%d', '%d', '%d', '%s' )
+                                );
+
+                                if ( false === $inserted ) {
+                                        bhg_log( sprintf( 'Failed to store recalculated standings for tournament #%1$d and user#%2$d: %3$s', $tournament_id, $user_id, $wpdb->last_error ) );
+                                }
+                        }
 		}
 
 	}

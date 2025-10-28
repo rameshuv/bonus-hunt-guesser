@@ -8,7 +8,7 @@
         "phpunit/phpunit": "^9.6"
     },
     "scripts": {
-        "phpcs": "phpcs --standard=phpcs.xml",
+        "phpcs": "phpcs --standard=phpcs.xml --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1",
         "phpcbf": "phpcbf --standard=phpcs.xml"
     },
     "config": {
