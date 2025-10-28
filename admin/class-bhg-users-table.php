@@ -1,4 +1,10 @@
 <?php
+/**
+ * Users list table for Bonus Hunt Guesser.
+ *
+ * @package Bonus_Hunt_Guesser
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -7,8 +13,12 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
     require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
-class BHG_Users_Table extends WP_List_Table {
+require_once BHG_PLUGIN_DIR . 'includes/class-bhg-users.php';
 
+/**
+ * Admin list table for WordPress users and affiliate meta.
+ */
+class BHG_Users_Table extends WP_List_Table {
     /**
      * Items per page.
      *
@@ -52,9 +62,9 @@ class BHG_Users_Table extends WP_List_Table {
      */
     protected function get_sortable_columns() {
         return array(
-            'username'     => array( 'username', true ),
-            'display_name' => array( 'display_name', false ),
-            'email'        => array( 'email', false ),
+            'username'  => array( 'username', true ),
+            'email'     => array( 'email', false ),
+            'affiliate' => array( 'affiliate', false ),
         );
     }
 
@@ -69,6 +79,7 @@ class BHG_Users_Table extends WP_List_Table {
      * Render the username column.
      *
      * @param array $item Current row.
+     *
      * @return string
      */
     protected function column_username( $item ) {
@@ -83,6 +94,7 @@ class BHG_Users_Table extends WP_List_Table {
      * Render the display name column.
      *
      * @param array $item Current row.
+     *
      * @return string
      */
     protected function column_display_name( $item ) {
@@ -93,6 +105,7 @@ class BHG_Users_Table extends WP_List_Table {
      * Render the real name column.
      *
      * @param array $item Current row.
+     *
      * @return string
      */
     protected function column_real_name( $item ) {
@@ -106,6 +119,7 @@ class BHG_Users_Table extends WP_List_Table {
      * Render the email column.
      *
      * @param array $item Current row.
+     *
      * @return string
      */
     protected function column_email( $item ) {
@@ -121,6 +135,7 @@ class BHG_Users_Table extends WP_List_Table {
      * Render the affiliate toggle column.
      *
      * @param array $item Current row.
+     *
      * @return string
      */
     protected function column_affiliate( $item ) {
@@ -142,6 +157,7 @@ class BHG_Users_Table extends WP_List_Table {
      * Render actions column.
      *
      * @param array $item Current row.
+     *
      * @return string
      */
     protected function column_actions( $item ) {
@@ -170,6 +186,7 @@ class BHG_Users_Table extends WP_List_Table {
      *
      * @param array  $item        Current row.
      * @param string $column_name Column name.
+     *
      * @return string
      */
     public function column_default( $item, $column_name ) {
@@ -184,38 +201,25 @@ class BHG_Users_Table extends WP_List_Table {
      * Prepare table items.
      */
     public function prepare_items() {
-        $paged   = isset( $_REQUEST['paged'] ) ? max( 1, absint( wp_unslash( $_REQUEST['paged'] ) ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
-        $orderby = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'username'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
-        $order   = isset( $_REQUEST['order'] ) && 'desc' === strtolower( sanitize_key( wp_unslash( $_REQUEST['order'] ) ) ) ? 'DESC' : 'ASC'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
-        $search  = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
+        $paged  = isset( $_REQUEST['paged'] ) ? max( 1, absint( wp_unslash( $_REQUEST['paged'] ) ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
+        $search = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
 
-        $allowed_orderby = array( 'username', 'display_name', 'email' );
-        if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
-            $orderby = 'username';
-        }
+        $orderby_request = isset( $_REQUEST['orderby'] ) ? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ) : 'username'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
+        $order_request   = isset( $_REQUEST['order'] ) ? sanitize_key( wp_unslash( $_REQUEST['order'] ) ) : 'asc'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- viewing data.
+        $order           = 'desc' === strtolower( $order_request ) ? 'DESC' : 'ASC';
 
-        $order_map = array(
-            'username'     => 'login',
-            'display_name' => 'display_name',
-            'email'        => 'email',
+        $results = BHG_Users::query(
+            array(
+                'number'  => $this->per_page,
+                'offset'  => ( $paged - 1 ) * $this->per_page,
+                'orderby' => $orderby_request,
+                'order'   => $order,
+                'search'  => $search,
+            )
         );
 
-        $args = array(
-            'number'  => $this->per_page,
-            'offset'  => ( $paged - 1 ) * $this->per_page,
-            'orderby' => $order_map[ $orderby ],
-            'order'   => $order,
-            'fields'  => 'all_with_meta',
-        );
-
-        if ( '' !== $search ) {
-            $args['search']         = '*' . $search . '*';
-            $args['search_columns'] = array( 'user_login', 'user_email' );
-        }
-
-        $user_query = new WP_User_Query( $args );
-        $users      = $user_query->get_results();
-        $total      = (int) $user_query->get_total();
+        $users = isset( $results['users'] ) ? $results['users'] : array();
+        $total = isset( $results['total'] ) ? (int) $results['total'] : 0;
 
         $items = array();
 
@@ -226,8 +230,8 @@ class BHG_Users_Table extends WP_List_Table {
 
             $user_id   = (int) $user->ID;
             $form_id   = 'bhg-user-' . $user_id;
-            $real_name = get_user_meta( $user_id, 'bhg_real_name', true );
-            $affiliate = (int) get_user_meta( $user_id, 'bhg_is_affiliate', true );
+            $real_name = get_user_meta( $user_id, BHG_Users::META_REAL_NAME, true );
+            $affiliate = (int) get_user_meta( $user_id, BHG_Users::META_AFFILIATE, true );
 
             $items[] = array(
                 'id'           => $user_id,
@@ -250,5 +254,14 @@ class BHG_Users_Table extends WP_List_Table {
                 'total_pages' => max( 1, (int) ceil( $total / $this->per_page ) ),
             )
         );
+    }
+
+    /**
+     * Override table navigation rendering to allow manual pagination placement.
+     *
+     * @param string $which Location of the navigation (top|bottom).
+     */
+    protected function display_tablenav( $which ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+        // Navigation output handled in the view template to meet layout requirements.
     }
 }
