@@ -62,8 +62,8 @@ foreach ( $periods as $key => $label ) :
 <select name="bhg_currency" id="bhg_currency">
 <?php
 $currencies       = array(
-	'eur' => bhg_t( 'eur', 'EUR' ),
-	'usd' => bhg_t( 'usd', 'USD' ),
+        'eur' => bhg_t( 'eur', 'EUR' ),
+        'usd' => bhg_t( 'usd', 'USD' ),
 );
 $current_currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
 foreach ( $currencies as $key => $label ) :
@@ -106,6 +106,147 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="url" class="regular-text" id="bhg_post_submit_redirect" name="bhg_post_submit_redirect" value="<?php echo isset( $settings['post_submit_redirect'] ) ? esc_attr( $settings['post_submit_redirect'] ) : ''; ?>" placeholder="<?php echo esc_attr( bhg_t( 'post_submit_redirect_placeholder', 'https://example.com/thank-you' ) ); ?>">
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
+</td>
+</tr>
+<?php
+$profile_sections = isset( $settings['profile_sections'] ) && is_array( $settings['profile_sections'] ) ? $settings['profile_sections'] : array();
+$global_styles    = isset( $settings['global_styles'] ) && is_array( $settings['global_styles'] ) ? $settings['global_styles'] : array();
+
+$title_styles = isset( $global_styles['title_block'] ) && is_array( $global_styles['title_block'] ) ? $global_styles['title_block'] : array();
+$h2_styles    = isset( $global_styles['heading_2'] ) && is_array( $global_styles['heading_2'] ) ? $global_styles['heading_2'] : array();
+$h3_styles    = isset( $global_styles['heading_3'] ) && is_array( $global_styles['heading_3'] ) ? $global_styles['heading_3'] : array();
+$desc_styles  = isset( $global_styles['description'] ) && is_array( $global_styles['description'] ) ? $global_styles['description'] : array();
+$body_styles  = isset( $global_styles['body_text'] ) && is_array( $global_styles['body_text'] ) ? $global_styles['body_text'] : array();
+?>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'profile_visibility_settings', 'My Profile Blocks' ) ); ?></th>
+<td>
+        <fieldset>
+                <?php
+                $blocks = array(
+                        'my_bonushunts' => bhg_t( 'profile_block_my_bonushunts', 'Show “My Bonus Hunts” block' ),
+                        'my_tournaments' => bhg_t( 'profile_block_my_tournaments', 'Show “My Tournaments” block' ),
+                        'my_prizes' => bhg_t( 'profile_block_my_prizes', 'Show “My Prizes” block' ),
+                        'my_rankings' => bhg_t( 'profile_block_my_rankings', 'Show “My Rankings” block' ),
+                );
+                foreach ( $blocks as $key => $label ) :
+                        $enabled = isset( $profile_sections[ $key ] ) ? (int) $profile_sections[ $key ] : 1;
+                        ?>
+                        <label><input type="checkbox" name="bhg_profile_sections[<?php echo esc_attr( $key ); ?>]" value="1" <?php checked( $enabled, 1 ); ?>> <?php echo esc_html( $label ); ?></label><br />
+                        <?php
+                endforeach;
+                ?>
+        </fieldset>
+        <p class="description"><?php echo esc_html( bhg_t( 'profile_blocks_description', 'Toggle which sections appear on the user profile shortcodes.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'global_style_title_block', 'Title block styles' ) ); ?></th>
+<td>
+        <fieldset>
+                <label><?php echo esc_html( bhg_t( 'style_background_color', 'Background color' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[title_block][background]" value="<?php echo isset( $title_styles['background'] ) ? esc_attr( $title_styles['background'] ) : ''; ?>" placeholder="#ffffff" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_border_radius', 'Border radius' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[title_block][radius]" value="<?php echo isset( $title_styles['radius'] ) ? esc_attr( $title_styles['radius'] ) : ''; ?>" placeholder="12px" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[title_block][padding]" value="<?php echo isset( $title_styles['padding'] ) ? esc_attr( $title_styles['padding'] ) : ''; ?>" placeholder="16px" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[title_block][margin]" value="<?php echo isset( $title_styles['margin'] ) ? esc_attr( $title_styles['margin'] ) : ''; ?>" placeholder="12px 0" />
+                </label>
+        </fieldset>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'global_style_heading_two', 'Heading (H2) styles' ) ); ?></th>
+<td>
+        <fieldset>
+                <label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][size]" value="<?php echo isset( $h2_styles['size'] ) ? esc_attr( $h2_styles['size'] ) : ''; ?>" placeholder="1.5rem" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][weight]" value="<?php echo isset( $h2_styles['weight'] ) ? esc_attr( $h2_styles['weight'] ) : ''; ?>" placeholder="600" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][color]" value="<?php echo isset( $h2_styles['color'] ) ? esc_attr( $h2_styles['color'] ) : ''; ?>" placeholder="#0f172a" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][padding]" value="<?php echo isset( $h2_styles['padding'] ) ? esc_attr( $h2_styles['padding'] ) : ''; ?>" placeholder="0 0 8px" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][margin]" value="<?php echo isset( $h2_styles['margin'] ) ? esc_attr( $h2_styles['margin'] ) : ''; ?>" placeholder="16px 0" />
+                </label>
+        </fieldset>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'global_style_heading_three', 'Heading (H3) styles' ) ); ?></th>
+<td>
+        <fieldset>
+                <label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][size]" value="<?php echo isset( $h3_styles['size'] ) ? esc_attr( $h3_styles['size'] ) : ''; ?>" placeholder="1.25rem" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][weight]" value="<?php echo isset( $h3_styles['weight'] ) ? esc_attr( $h3_styles['weight'] ) : ''; ?>" placeholder="500" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][color]" value="<?php echo isset( $h3_styles['color'] ) ? esc_attr( $h3_styles['color'] ) : ''; ?>" placeholder="#1e293b" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][padding]" value="<?php echo isset( $h3_styles['padding'] ) ? esc_attr( $h3_styles['padding'] ) : ''; ?>" placeholder="0" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][margin]" value="<?php echo isset( $h3_styles['margin'] ) ? esc_attr( $h3_styles['margin'] ) : ''; ?>" placeholder="12px 0" />
+                </label>
+        </fieldset>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'global_style_description', 'Description text styles' ) ); ?></th>
+<td>
+        <fieldset>
+                <label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[description][size]" value="<?php echo isset( $desc_styles['size'] ) ? esc_attr( $desc_styles['size'] ) : ''; ?>" placeholder="1rem" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[description][weight]" value="<?php echo isset( $desc_styles['weight'] ) ? esc_attr( $desc_styles['weight'] ) : ''; ?>" placeholder="400" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[description][color]" value="<?php echo isset( $desc_styles['color'] ) ? esc_attr( $desc_styles['color'] ) : ''; ?>" placeholder="#475569" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[description][padding]" value="<?php echo isset( $desc_styles['padding'] ) ? esc_attr( $desc_styles['padding'] ) : ''; ?>" placeholder="0" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[description][margin]" value="<?php echo isset( $desc_styles['margin'] ) ? esc_attr( $desc_styles['margin'] ) : ''; ?>" placeholder="0 0 12px" />
+                </label>
+        </fieldset>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'global_style_body', 'Body text styles (p, span)' ) ); ?></th>
+<td>
+        <fieldset>
+                <label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[body_text][size]" value="<?php echo isset( $body_styles['size'] ) ? esc_attr( $body_styles['size'] ) : ''; ?>" placeholder="1rem" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[body_text][padding]" value="<?php echo isset( $body_styles['padding'] ) ? esc_attr( $body_styles['padding'] ) : ''; ?>" placeholder="0" />
+                </label><br />
+                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+                        <input type="text" class="regular-text" name="bhg_global_styles[body_text][margin]" value="<?php echo isset( $body_styles['margin'] ) ? esc_attr( $body_styles['margin'] ) : ''; ?>" placeholder="0 0 8px" />
+                </label>
+        </fieldset>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_remove_data_on_uninstall"><?php echo esc_html( bhg_t( 'remove_data_on_uninstall', 'Remove plugin data on uninstall' ) ); ?></label></th>
+<td>
+        <input type="hidden" name="bhg_remove_data_on_uninstall" value="0" />
+        <input type="checkbox" id="bhg_remove_data_on_uninstall" name="bhg_remove_data_on_uninstall" value="1" <?php checked( ! empty( $settings['remove_data_on_uninstall'] ) ); ?> />
+        <p class="description"><?php echo esc_html( bhg_t( 'remove_data_on_uninstall_help', 'Enable this option to delete plugin tables and settings when uninstalling. Leave unchecked to retain data.' ) ); ?></p>
 </td>
 </tr>
 </tbody>

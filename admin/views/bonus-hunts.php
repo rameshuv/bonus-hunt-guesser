@@ -218,12 +218,11 @@ $hunts = $wpdb->get_results( $hunts_query );
 <th><?php echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) ); ?></th>
 </tr>
 </thead>
-		<tbody>
-				<?php if ( empty( $hunts ) ) : ?>
+                <tbody>
+                                <?php if ( empty( $hunts ) ) : ?>
 <tr><td colspan="9"><?php echo esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ); ?></td></tr>
-						<?php
-				else :
-                                        foreach ( $hunts as $h ) :
+                                <?php else : ?>
+                                        <?php foreach ( $hunts as $h ) : ?>
                                                 $edit_url = wp_nonce_url(
                                                         add_query_arg(
                                                                 array(
@@ -278,12 +277,10 @@ $hunts = $wpdb->get_results( $hunts_query );
 </form>
 </td>
 </tr>
-							<?php
-						endforeach;
-endif;
-				?>
-		</tbody>
-	</table>
+                                                        <?php endforeach; ?>
+                                <?php endif; ?>
+                </tbody>
+        </table>
 
 	<?php
 		$total_pages = (int) ceil( $total / $per_page );
@@ -337,8 +334,8 @@ if ( 'close' === $view ) :
 		<?php submit_button( esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ) ); ?>
 	</form>
 </div>
-		<?php
-	endif;
+                <?php
+        endif;
 endif;
 ?>
 
