@@ -311,6 +311,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'prize_updated'                                => 'Prize updated.',
                         'prize_deleted'                                => 'Prize deleted.',
                         'prize_error'                                  => 'Unable to save prize.',
+                        'prize_error_loading'                          => 'Unable to load prize details.',
                         'prize_slide_label'                            => 'Go to prize %d',
                         'confirm_delete_prize'                         => 'Are you sure you want to delete this prize?',
                         'label_position'                               => 'Position',
