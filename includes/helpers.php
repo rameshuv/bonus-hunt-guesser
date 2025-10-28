@@ -250,6 +250,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'translations_help_leave_blank'                => 'Leave blank to use the default text.',
                         'translations_help_frontend'                   => 'Visible on the public site. Update to match your branding.',
                         'translations_help_admin'                      => 'Displayed inside the WordPress admin screens.',
+                        'translations_missing_table_message'           => 'Translations cannot be listed because the database table is missing. Run the database upgrade from the <a href="%s">Database tools</a> screen to create it.',
+                        'translations_missing_table_placeholder'       => 'Translation entries will appear here after the database tables are installed.',
                         'translations_slug_description'                => 'Use the identifier from the plugin source (for example, sc_title).',
                         'translations_value_description'               => 'Provide the custom wording you want to display.',
 			'bhg_menu_admin'                               => 'BHG Menu — Admin/Moderators',
@@ -414,6 +416,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_type'                                   => 'Type',
 			'label_details'                                => 'Details',
 			'label_show_details'                           => 'Show details',
+			'label_bonus_hunt'                             => 'Bonushunt',
 			'label_bonus_hunts'                            => 'Bonus Hunts',
 			'label_overall'                                => 'Overall',
 			'label_all_time'                               => 'All-Time',
@@ -633,6 +636,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'tools_counts_users_label'                     => 'Registered users',
                         'tools_counts_ads_label'                       => 'Advertisements',
                         'tools_counts_tournaments_label'               => 'Tournaments',
+                        'tools_missing_tables_notice'                  => 'Some plugin tables are missing: %1$s. Please run the database upgrade from the <a href="%2$s">Database tools</a> screen.',
                         'tools_environment_wp_version'                 => 'WordPress version',
                         'tools_environment_php_version'                => 'PHP version',
                         'tools_environment_mysql_version'              => 'Database version',
@@ -1574,20 +1578,21 @@ $wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.I
 						return (int) $id;
 					}
 						$title = ucfirst( $type ) . ' ' . $period;
-						$wpdb->insert(
-							$t_tbl,
-							array(
-								'title'             => $title,
-								'participants_mode' => 'winners',
-								'hunt_link_mode'    => 'auto',
-								'start_date'        => $start,
-								'end_date'          => $end,
-								'status'            => 'active',
-								'created_at'        => $now,
-								'updated_at'        => $now,
-							),
-							array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
-						);
+                                                $wpdb->insert(
+                                                        $t_tbl,
+                                                        array(
+                                                                'title'             => $title,
+                                                                'type'              => $type,
+                                                                'participants_mode' => 'winners',
+                                                                'hunt_link_mode'    => 'auto',
+                                                                'start_date'        => $start,
+                                                                'end_date'          => $end,
+                                                                'status'            => 'active',
+                                                                'created_at'        => $now,
+                                                                'updated_at'        => $now,
+                                                        ),
+                                                        array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+                                                );
 						return (int) $wpdb->insert_id;
 				};
 
