@@ -56,9 +56,30 @@ if ( 'list' === $view ) :
 		<div class="notice notice-success is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_closed_successfully', 'Hunt closed successfully.' ) ); ?></p></div>
 	<?php endif; ?>
 
-	<?php if ( isset( $_GET['bhg_msg'] ) && 'close_failed' === sanitize_text_field( wp_unslash( $_GET['bhg_msg'] ) ) ) : ?>
-		<div class="notice notice-error is-dismissible"><p><?php echo esc_html( bhg_t( 'hunt_close_failed', 'Failed to close the hunt.' ) ); ?></p></div>
-	<?php endif; ?>
+<?php endif; ?>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-inline-form">
+						<?php wp_nonce_field( 'bhg_toggle_guessing', 'bhg_toggle_guessing_nonce' ); ?>
+<input type="hidden" name="action" value="bhg_toggle_guessing" />
+<input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
+<input type="hidden" name="guessing_enabled" value="<?php echo esc_attr( $h->guessing_enabled ? 0 : 1 ); ?>" />
+<button type="submit" class="button"><?php echo esc_html( $h->guessing_enabled ? bhg_t( 'disable_guessing', 'Disable Guessing' ) : bhg_t( 'enable_guessing', 'Enable Guessing' ) ); ?></button>
+</form>
+</td>
+<td>
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_hunt', 'Delete this hunt?' ) ); ?>');" class="bhg-inline-form">
+						<?php wp_nonce_field( 'bhg_delete_hunt', 'bhg_delete_hunt_nonce' ); ?>
+<input type="hidden" name="action" value="bhg_delete_hunt" />
+<input type="hidden" name="hunt_id" value="<?php echo esc_attr( (int) $h->id ); ?>" />
+<button type="submit" class="button-link-delete"><?php echo esc_html( bhg_t( 'delete', 'Delete' ) ); ?></button>
+</form>
+</td>
+</tr>
+                                                        <?php
+                                                endforeach;
+                                        endif;
+                                ?>
+		</tbody>
+	</table>
 
 	<form method="get">
 		<input type="hidden" name="page" value="bhg-bonus-hunts" />
@@ -98,8 +119,8 @@ if ( 'close' === $view ) :
 		<?php submit_button( esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ) ); ?>
 	</form>
 </div>
-		<?php
-	endif;
+                <?php
+        endif;
 endif;
 ?>
 
