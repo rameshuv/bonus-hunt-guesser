@@ -86,6 +86,7 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_notifications', 'Notifications' ), bhg_t( 'menu_notifications', 'Notifications' ), $cap, 'bhg-notifications', array( $this, 'notifications' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_shortcodes', 'Shortcodes' ), bhg_t( 'menu_shortcodes', 'Shortcodes' ), $cap, 'bhg-shortcodes', array( $this, 'shortcodes' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
 		add_submenu_page( $slug, bhg_t( 'database', 'Database' ), bhg_t( 'database', 'Database' ), $cap, 'bhg-database', array( $this, 'database' ) );
 		add_submenu_page( $slug, bhg_t( 'settings', 'Settings' ), bhg_t( 'settings', 'Settings' ), $cap, 'bhg-settings', array( $this, 'settings' ) );
@@ -218,14 +219,21 @@ class BHG_Admin {
          */
         public function bonus_hunts_results() {
                 require BHG_PLUGIN_DIR . 'admin/views/bonus-hunts-results.php';
-	}
+        }
 
-	/**
-	 * Render the tournaments page.
-	 */
-	public function tournaments() {
-		require BHG_PLUGIN_DIR . 'admin/views/tournaments.php';
-	}
+        /**
+         * Render the shortcodes reference page.
+         */
+        public function shortcodes() {
+                require BHG_PLUGIN_DIR . 'admin/views/shortcodes.php';
+        }
+
+        /**
+         * Render the tournaments page.
+         */
+        public function tournaments() {
+                require BHG_PLUGIN_DIR . 'admin/views/tournaments.php';
+        }
 
 	/**
 	 * Render the users page.
