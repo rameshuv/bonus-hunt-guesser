@@ -6,15 +6,22 @@
 			 */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit;
+        exit;
 }
 
-			// Delete plugin options.
-			delete_option( 'bhg_version' );
-			delete_option( 'bhg_plugin_settings' );
+                        $settings    = get_option( 'bhg_plugin_settings', array() );
+                        $remove_data = isset( $settings['remove_data_on_uninstall'] ) && (int) $settings['remove_data_on_uninstall'] === 1;
 
-			delete_site_option( 'bhg_version' );
-			delete_site_option( 'bhg_plugin_settings' );
+                        if ( ! $remove_data ) {
+                                return;
+                        }
+
+                        // Delete plugin options.
+                        delete_option( 'bhg_version' );
+                        delete_option( 'bhg_plugin_settings' );
+
+                        delete_site_option( 'bhg_version' );
+                        delete_site_option( 'bhg_plugin_settings' );
 
 			global $wpdb;
 

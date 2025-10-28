@@ -262,7 +262,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'dashboard'                                    => 'Dashboard',
 			'bonus_hunts'                                  => 'Bonus Hunts',
 			'results'                                      => 'Results',
-			'affiliate_websites'                           => 'Affiliate Websites',
+                        'affiliate_websites'                           => 'Affiliate Websites',
+                        'affiliate_websites_help'                      => 'Select the affiliate websites this user is connected to.',
 			'advertising'                                  => 'Advertising',
 			'translations'                                 => 'Translations',
 			'tools'                                        => 'Tools',
@@ -286,6 +287,13 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'padding'                                      => 'Padding',
                         'margin'                                       => 'Margin',
                         'background_color'                             => 'Background Color',
+                        'style_background_color'                       => 'Background color',
+                        'style_border_radius'                          => 'Border radius',
+                        'style_padding'                                => 'Padding',
+                        'style_margin'                                 => 'Margin',
+                        'style_font_size'                              => 'Font size',
+                        'style_font_weight'                            => 'Font weight',
+                        'style_text_color'                             => 'Text color',
                         'image_small'                                  => 'Small',
                         'image_medium'                                 => 'Medium',
                         'image_large'                                  => 'Big',
@@ -306,17 +314,23 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'prize_slide_label'                            => 'Go to prize %d',
                         'confirm_delete_prize'                         => 'Are you sure you want to delete this prize?',
                         'label_position'                               => 'Position',
+                        'label_rank'                                   => 'Rank',
                         'label_final_balance'                          => 'Final Balance',
                         'label_difference'                             => 'Difference',
                         'label_pagination'                             => 'Pagination',
-			'label_leaderboard'                            => 'Leaderboard',
-			'label_best_guessers'                          => 'Best Guessers',
-			'label_leaderboard_history'                    => 'Leaderboard History',
-			'label_affiliate'                              => 'Affiliate',
-			'label_non_affiliate'                          => 'Non-affiliate',
-			'label_affiliate_status'                       => 'Affiliate Status',
-			'label_site'                                   => 'Site',
-			'label_tournament'                             => 'Tournament',
+                        'label_leaderboard'                            => 'Leaderboard',
+                        'label_best_guessers'                          => 'Best Guessers',
+                        'label_leaderboard_history'                    => 'Leaderboard History',
+                        'label_bonus_hunt'                             => 'Bonus Hunt',
+                        'label_result'                                 => 'Result',
+'label_prize'                                  => 'Prize',
+'label_category'                               => 'Category',
+                        'label_last_updated'                           => 'Last Updated',
+                        'label_affiliate'                              => 'Affiliate',
+                        'label_non_affiliate'                          => 'Non-affiliate',
+                        'label_affiliate_status'                       => 'Affiliate Status',
+                        'label_site'                                   => 'Site',
+                        'label_tournament'                             => 'Tournament',
                         'label_actions'                                => 'Actions',
 			'admin_action'                                 => 'Admin Action',
 			'label_id'                                     => 'ID',
@@ -338,27 +352,62 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_default'                                => 'Default',
 			'label_custom'                                 => 'Custom',
 			'label_items_per_page'                         => 'Items per page',
-			'label_search_translations'                    => 'Search translations',
-			'label_start_date'                             => 'Start Date',
-			'label_end_date'                               => 'End Date',
-			'currency'                                     => 'Currency',
-			'label_email'                                  => 'Email',
-			'label_real_name'                              => 'Real Name',
+                        'label_search_translations'                    => 'Search translations',
+                        'label_start_date'                             => 'Start Date',
+                        'label_end_date'                               => 'End Date',
+                        'label_ranking_scope'                          => 'Ranking scope',
+                        'ranking_scope_all'                            => 'All hunts',
+                        'ranking_scope_closed'                         => 'Closed hunts only',
+                        'ranking_scope_active'                         => 'Active hunts only',
+                        'label_points_map'                             => 'Points per placement',
+                        'points_map_help'                              => 'Assign tournament points for each placement.',
+                        'currency'                                     => 'Currency',
+                        'global_style_title_block'                     => 'Title block styles',
+                        'global_style_heading_two'                     => 'Heading (H2) styles',
+                        'global_style_heading_three'                   => 'Heading (H3) styles',
+                        'global_style_description'                     => 'Description text styles',
+                        'global_style_body'                            => 'Body text styles (p, span)',
+                        'remove_data_on_uninstall'                     => 'Remove plugin data on uninstall',
+                        'remove_data_on_uninstall_help'                => 'Enable this option to delete plugin tables and settings when uninstalling. Leave unchecked to retain data.',
+                        'label_email'                                  => 'Email',
+                        'label_real_name'                              => 'Real Name',
+                        'profile_section_my_bonushunts'                => 'My Bonus Hunts',
+                        'profile_section_my_tournaments'               => 'My Tournaments',
+                        'profile_section_my_prizes'                    => 'My Prizes',
+                        'profile_section_my_rankings'                  => 'My Rankings',
+                        'notice_profile_login_required'                => 'Please log in to view this section.',
+                        'notice_no_hunts_user'                         => 'You have not participated in any bonus hunts yet.',
+                        'notice_no_tournaments_user'                   => 'You have not participated in any tournaments yet.',
+                        'notice_no_prizes_user'                        => 'You have not won any prizes yet.',
+                        'notice_no_rankings_user'                      => 'No ranking data is available yet.',
+                        'label_placement_number'                       => 'Placement #%d',
 			'label_search'                                 => 'Search',
 			'search_hunts'                                 => 'Search Hunts',
 			'label_user'                                   => 'User',
 			'label_users'                                  => 'Users',
 			'label_role'                                   => 'Role',
 			'label_guesses'                                => 'Guesses',
-			'label_profile'                                => 'Profile',
+                        'label_profile'                                => 'Profile',
+                        'profile_visibility_settings'                  => 'My Profile Blocks',
+                        'profile_block_my_bonushunts'                  => 'Show “My Bonus Hunts” block',
+                        'profile_block_my_tournaments'                 => 'Show “My Tournaments” block',
+                        'profile_block_my_prizes'                      => 'Show “My Prizes” block',
+                        'profile_block_my_rankings'                    => 'Show “My Rankings” block',
+                        'profile_blocks_description'                   => 'Toggle which sections appear on the user profile shortcodes.',
 			'label_start'                                  => 'Start',
 			'label_end'                                    => 'End',
-			'label_status'                                 => 'Status',
-			'label_status_colon'                           => 'Status:',
-			'label_wins'                                   => 'Wins',
-			'wins'                                         => 'Wins',
-			'label_last_win'                               => 'Last win',
-			'label_all'                                    => 'All',
+                        'label_status'                                 => 'Status',
+                        'label_pending'                                => 'Pending',
+                        'label_status_colon'                           => 'Status:',
+                        'label_wins'                                   => 'Wins',
+                        'label_points'                                 => 'Points',
+                        'wins'                                         => 'Wins',
+                        'label_last_win'                               => 'Last win',
+                        'label_total_hunt_wins'                        => 'Total hunt wins',
+                        'label_total_tournament_points'                => 'Total tournament points',
+                        'label_best_tournament_rank'                   => 'Best tournament rank',
+                        'label_tournaments_played'                     => 'Tournaments played',
+                        'label_all'                                    => 'All',
 			'label_weekly'                                 => 'Weekly',
 			'label_monthly'                                => 'Monthly',
 			'label_yearly'                                 => 'Yearly',
@@ -909,7 +958,68 @@ function bhg_currency_symbol() {
  * @return string
  */
 function bhg_format_currency( $amount ) {
-		return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+                return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+}
+
+if ( ! function_exists( 'bhg_get_default_points_map' ) ) {
+        /**
+         * Retrieve the default tournament points distribution.
+         *
+         * @return array<int,int>
+         */
+        function bhg_get_default_points_map() {
+                return array(
+                        1 => 25,
+                        2 => 15,
+                        3 => 10,
+                        4 => 5,
+                        5 => 4,
+                        6 => 3,
+                        7 => 2,
+                        8 => 1,
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_sanitize_points_map' ) ) {
+        /**
+         * Sanitize a raw points map array ensuring numeric keys and non-negative integer values.
+         *
+         * @param array $raw Raw map keyed by placement.
+         * @return array<int,int>
+         */
+        function bhg_sanitize_points_map( $raw ) {
+                $sanitized = array();
+
+                if ( is_array( $raw ) ) {
+                        foreach ( $raw as $placement => $points ) {
+                                if ( is_array( $points ) && isset( $points['value'] ) ) {
+                                        $points = $points['value'];
+                                }
+
+                                $placement = absint( $placement );
+                                $points    = (int) $points;
+
+                                if ( $placement <= 0 ) {
+                                        continue;
+                                }
+
+                                if ( $points < 0 ) {
+                                        $points = 0;
+                                }
+
+                                $sanitized[ $placement ] = $points;
+                        }
+                }
+
+                if ( empty( $sanitized ) ) {
+                        $sanitized = bhg_get_default_points_map();
+                }
+
+                ksort( $sanitized, SORT_NUMERIC );
+
+                return $sanitized;
+        }
 }
 
 /**

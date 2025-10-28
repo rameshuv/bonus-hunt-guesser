@@ -53,17 +53,18 @@ $prize_titles      = array();
 
         $rows = $wpdb->get_results(
                 $wpdb->prepare(
-                        "SELECT r.user_id, r.wins, u.display_name FROM {$tres_table} r JOIN {$users_table} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY r.wins DESC, r.id ASC",
-                        $tournament_id
+                        "SELECT r.points, r.wins, u.display_name FROM {$tres_table} r JOIN {$users_table} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY r.points DESC, r.wins DESC, r.last_win_date ASC, r.id ASC",
+                        $item_id
                 )
         );
-	$result_title = $tournament->title;
-	$wcount       = 3;
-	$columns      = array(
-		'sc_position' => bhg_t( 'sc_position', 'Position' ),
-		'sc_user'     => bhg_t( 'sc_user', 'User' ),
-		'wins'        => bhg_t( 'wins', 'Wins' ),
-	);
+        $result_title = $tournament->title;
+        $wcount       = 3;
+        $columns      = array(
+                'sc_position' => bhg_t( 'sc_position', 'Position' ),
+                'sc_user'     => bhg_t( 'sc_user', 'User' ),
+                'label_points' => bhg_t( 'label_points', 'Points' ),
+                'wins'        => bhg_t( 'wins', 'Wins' ),
+        );
 } else {
         $columns = array(
                 'sc_position' => bhg_t( 'sc_position', 'Position' ),
@@ -233,6 +234,7 @@ $participants_display  = number_format_i18n( $total_participants );
                                                 </td>
                                                 <td><span class="bhg-result-name"><?php echo esc_html( $r->display_name ); ?></span></td>
                                                 <?php if ( 'tournament' === $view_type ) : ?>
+                                                        <td><?php echo isset( $r->points ) ? (int) $r->points : 0; ?></td>
                                                         <td><?php echo (int) $r->wins; ?></td>
                                                 <?php else : ?>
                                                         <td><?php echo esc_html( bhg_format_currency( (float) $r->guess ) ); ?></td>

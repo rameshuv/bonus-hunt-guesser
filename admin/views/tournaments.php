@@ -319,14 +319,38 @@ echo esc_html( bhg_t( 'description', 'Description' ) );
 echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
 ?>
 				</label></th>
-				<td>
-						<?php $pmode = $row->participants_mode ?? 'winners'; ?>
-						<select id="bhg_t_pmode" name="participants_mode">
-								<option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
-								<option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
-						</select>
-				</td>
-				</tr>
+                                <td>
+                                                <?php $pmode = $row->participants_mode ?? 'winners'; ?>
+                                                <select id="bhg_t_pmode" name="participants_mode">
+                                                                <option value="winners" <?php selected( $pmode, 'winners' ); ?>><?php echo esc_html( bhg_t( 'winners', 'Winners' ) ); ?></option>
+                                                                <option value="all" <?php selected( $pmode, 'all' ); ?>><?php echo esc_html( bhg_t( 'all', 'All' ) ); ?></option>
+                                                </select>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th><?php echo esc_html( bhg_t( 'label_points_map', 'Points per placement' ) ); ?></th>
+                                <td>
+                                                <fieldset>
+                                                                <?php for ( $i = 1; $i <= 8; $i++ ) : ?>
+                                                                                <label>
+                                                                                                <?php echo esc_html( sprintf( bhg_t( 'label_placement_number', 'Placement #%d' ), $i ) ); ?>
+                                                                                                <input type="number" class="small-text" name="points_map[<?php echo esc_attr( $i ); ?>]" value="<?php echo esc_attr( isset( $points_map[ $i ] ) ? (int) $points_map[ $i ] : 0 ); ?>" min="0" />
+                                                                                </label><br />
+                                                                <?php endfor; ?>
+                                                </fieldset>
+                                                <p class="description"><?php echo esc_html( bhg_t( 'points_map_help', 'Assign tournament points for each placement.' ) ); ?></p>
+                                </td>
+                                </tr>
+                                <tr>
+                                <th><label for="bhg-ranking-scope"><?php echo esc_html( bhg_t( 'label_ranking_scope', 'Ranking scope' ) ); ?></label></th>
+                                <td>
+                                                <select id="bhg-ranking-scope" name="ranking_scope">
+                                                                <option value="all" <?php selected( $ranking_scope, 'all' ); ?>><?php echo esc_html( bhg_t( 'ranking_scope_all', 'All hunts' ) ); ?></option>
+                                                                <option value="closed" <?php selected( $ranking_scope, 'closed' ); ?>><?php echo esc_html( bhg_t( 'ranking_scope_closed', 'Closed hunts only' ) ); ?></option>
+                                                                <option value="active" <?php selected( $ranking_scope, 'active' ); ?>><?php echo esc_html( bhg_t( 'ranking_scope_active', 'Active hunts only' ) ); ?></option>
+                                                </select>
+                                </td>
+                                </tr>
 				<tr>
 				<th><label for="bhg_t_start">
 		<?php

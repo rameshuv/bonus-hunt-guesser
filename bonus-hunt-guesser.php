@@ -348,11 +348,11 @@ function bhg_enqueue_public_assets() {
 					bhg_format_currency( $max_guess )
 				);
 
-		wp_localize_script(
-			'bhg-public',
-			'bhg_public_ajax',
-			array(
-				'ajax_url'         => admin_url( 'admin-ajax.php' ),
+        wp_localize_script(
+                'bhg-public',
+                'bhg_public_ajax',
+                array(
+                        'ajax_url'         => admin_url( 'admin-ajax.php' ),
 				'nonce'            => wp_create_nonce( 'bhg_public_nonce' ),
 				'is_logged_in'     => is_user_logged_in(),
 				'min_guess_amount' => $min_guess,
@@ -368,11 +368,18 @@ function bhg_enqueue_public_assets() {
 					'non_affiliate_user'        => bhg_t( 'non_affiliate_user', 'Non-affiliate' ),
 					'error_loading_leaderboard' => bhg_t( 'error_loading_leaderboard', 'Error loading leaderboard.' ),
 				),
-			)
-		);
+                )
+        );
 
-	wp_enqueue_style( 'bhg-public' );
-	wp_enqueue_script( 'bhg-public' );
+        if ( ! empty( $settings['global_styles'] ) ) {
+                $inline_css = bhg_build_global_styles_css( $settings['global_styles'] );
+                if ( '' !== $inline_css ) {
+                        wp_add_inline_style( 'bhg-public', $inline_css );
+                }
+        }
+
+        wp_enqueue_style( 'bhg-public' );
+        wp_enqueue_script( 'bhg-public' );
 }
 
 // Initialize plugin.
@@ -404,9 +411,9 @@ function bhg_init_plugin() {
 			new BHG_Front_Menus();
 	}
 
-	if ( class_exists( 'BHG_Login_Redirect' ) ) {
-			new BHG_Login_Redirect();
-	}
+        if ( class_exists( 'BHG_Login_Redirect' ) ) {
+                        new BHG_Login_Redirect();
+        }
 
 	if ( class_exists( 'BHG_Ads' ) ) {
 					BHG_Ads::init();
@@ -437,9 +444,206 @@ function bhg_init_plugin() {
         add_action( 'admin_post_bhg_save_notifications', 'bhg_handle_notifications_save' );
 }
 
+if ( ! function_exists( 'bhg_build_global_styles_css' ) ) {
+        /**
+         * Build inline CSS rules for global style overrides.
+         *
+         * @param array $styles Style configuration.
+         * @return string CSS rules.
+         */
+        function bhg_build_global_styles_css( $styles ) {
+                if ( empty( $styles ) || ! is_array( $styles ) ) {
+                        return '';
+                }
+
+                $rules = array();
+
+                if ( isset( $styles['title_block'] ) && is_array( $styles['title_block'] ) ) {
+                        $block = $styles['title_block'];
+                        $decl  = array();
+
+                        if ( ! empty( $block['background'] ) ) {
+                                $decl[] = 'background-color:' . $block['background'];
+                        }
+                        if ( ! empty( $block['radius'] ) ) {
+                                $decl[] = 'border-radius:' . $block['radius'];
+                        }
+                        if ( ! empty( $block['padding'] ) ) {
+                                $decl[] = 'padding:' . $block['padding'];
+                        }
+                        if ( ! empty( $block['margin'] ) ) {
+                                $decl[] = 'margin:' . $block['margin'];
+                        }
+
+                        if ( ! empty( $decl ) ) {
+                                $rules[] = '.bhg-box, .bhg-hunt-card, .bhg-dashboard-card, .bhg-prizes-block, .bhg-user-profile{' . implode( ';', $decl ) . ';}';
+                        }
+                }
+
+                if ( isset( $styles['heading_2'] ) && is_array( $styles['heading_2'] ) ) {
+                        $block = $styles['heading_2'];
+                        $decl  = array();
+
+                        if ( ! empty( $block['size'] ) ) {
+                                $decl[] = 'font-size:' . $block['size'];
+                        }
+                        if ( ! empty( $block['weight'] ) ) {
+                                $decl[] = 'font-weight:' . $block['weight'];
+                        }
+                        if ( ! empty( $block['color'] ) ) {
+                                $decl[] = 'color:' . $block['color'];
+                        }
+                        if ( ! empty( $block['padding'] ) ) {
+                                $decl[] = 'padding:' . $block['padding'];
+                        }
+                        if ( ! empty( $block['margin'] ) ) {
+                                $decl[] = 'margin:' . $block['margin'];
+                        }
+
+                        if ( ! empty( $decl ) ) {
+                                $rules[] = '.bhg-box h2, .bhg-hunt-card h2, .bhg-dashboard-card h2, .bhg-prizes-block h2, .bhg-leaderboard-wrapper h2{' . implode( ';', $decl ) . ';}';
+                        }
+                }
+
+                if ( isset( $styles['heading_3'] ) && is_array( $styles['heading_3'] ) ) {
+                        $block = $styles['heading_3'];
+                        $decl  = array();
+
+                        if ( ! empty( $block['size'] ) ) {
+                                $decl[] = 'font-size:' . $block['size'];
+                        }
+                        if ( ! empty( $block['weight'] ) ) {
+                                $decl[] = 'font-weight:' . $block['weight'];
+                        }
+                        if ( ! empty( $block['color'] ) ) {
+                                $decl[] = 'color:' . $block['color'];
+                        }
+                        if ( ! empty( $block['padding'] ) ) {
+                                $decl[] = 'padding:' . $block['padding'];
+                        }
+                        if ( ! empty( $block['margin'] ) ) {
+                                $decl[] = 'margin:' . $block['margin'];
+                        }
+
+                        if ( ! empty( $decl ) ) {
+                                $rules[] = '.bhg-box h3, .bhg-hunt-card h3, .bhg-dashboard-card h3, .bhg-prizes-block h3{' . implode( ';', $decl ) . ';}';
+                        }
+                }
+
+                if ( isset( $styles['description'] ) && is_array( $styles['description'] ) ) {
+                        $block = $styles['description'];
+                        $decl  = array();
+
+                        if ( ! empty( $block['size'] ) ) {
+                                $decl[] = 'font-size:' . $block['size'];
+                        }
+                        if ( ! empty( $block['weight'] ) ) {
+                                $decl[] = 'font-weight:' . $block['weight'];
+                        }
+                        if ( ! empty( $block['color'] ) ) {
+                                $decl[] = 'color:' . $block['color'];
+                        }
+                        if ( ! empty( $block['padding'] ) ) {
+                                $decl[] = 'padding:' . $block['padding'];
+                        }
+                        if ( ! empty( $block['margin'] ) ) {
+                                $decl[] = 'margin:' . $block['margin'];
+                        }
+
+                        if ( ! empty( $decl ) ) {
+                                $rules[] = '.bhg-description, .bhg-hunt-card p, .bhg-prize-description, .bhg-user-profile-table td{' . implode( ';', $decl ) . ';}';
+                        }
+                }
+
+                if ( isset( $styles['body_text'] ) && is_array( $styles['body_text'] ) ) {
+                        $block = $styles['body_text'];
+                        $decl  = array();
+
+                        if ( ! empty( $block['size'] ) ) {
+                                $decl[] = 'font-size:' . $block['size'];
+                        }
+                        if ( ! empty( $block['padding'] ) ) {
+                                $decl[] = 'padding:' . $block['padding'];
+                        }
+                        if ( ! empty( $block['margin'] ) ) {
+                                $decl[] = 'margin:' . $block['margin'];
+                        }
+
+                        if ( ! empty( $decl ) ) {
+                                $rules[] = '.bhg-box p, .bhg-box span, .bhg-leaderboard td, .bhg-leaderboard th, .bhg-prizes-shortcode p{' . implode( ';', $decl ) . ';}';
+                        }
+                }
+
+                return implode( "\n", array_filter( $rules ) );
+        }
+}
+
 // Early table check on init.
 add_action( 'init', 'bhg_check_tables', 0 );
 add_action( 'admin_init', 'bhg_create_tables' );
+
+if ( ! function_exists( 'bhg_sanitize_css_dimension_value' ) ) {
+        /**
+         * Sanitize a CSS spacing/size value (supports up to four values).
+         *
+         * @param string $value Raw value.
+         * @return string Sanitized value or empty string when invalid.
+         */
+        function bhg_sanitize_css_dimension_value( $value ) {
+                $value = trim( (string) $value );
+
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                $pattern = '/^(-?\d+(?:\.\d+)?(?:px|em|rem|%)?)(\s+-?\d+(?:\.\d+)?(?:px|em|rem|%)?){0,3}$/i';
+
+                return preg_match( $pattern, $value ) ? $value : '';
+        }
+}
+
+if ( ! function_exists( 'bhg_sanitize_font_weight_value' ) ) {
+        /**
+         * Sanitize a font-weight value.
+         *
+         * @param string $value Raw value.
+         * @return string Sanitized value or empty string when invalid.
+         */
+        function bhg_sanitize_font_weight_value( $value ) {
+                $value = trim( (string) $value );
+
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                $named = array( 'normal', 'bold', 'bolder', 'lighter' );
+                if ( in_array( strtolower( $value ), $named, true ) ) {
+                        return strtolower( $value );
+                }
+
+                return preg_match( '/^[1-9]00$/', $value ) ? $value : '';
+        }
+}
+
+if ( ! function_exists( 'bhg_sanitize_color_value' ) ) {
+        /**
+         * Sanitize a color value, supporting hex colors.
+         *
+         * @param string $value Raw value.
+         * @return string Sanitized color or empty string.
+         */
+        function bhg_sanitize_color_value( $value ) {
+                $value = trim( (string) $value );
+
+                if ( '' === $value ) {
+                        return '';
+                }
+
+                $hex = sanitize_hex_color( $value );
+
+                return $hex ? $hex : '';
+        }
+}
 
 // Form handler for settings save.
 /**
@@ -526,9 +730,225 @@ $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
                 }
         }
 
-	// Save settings.
-	$existing = get_option( 'bhg_plugin_settings', array() );
-	update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
+        $profile_keys       = array( 'my_bonushunts', 'my_tournaments', 'my_prizes', 'my_rankings' );
+        $submitted_sections = isset( $_POST['bhg_profile_sections'] ) && is_array( $_POST['bhg_profile_sections'] ) ? wp_unslash( $_POST['bhg_profile_sections'] ) : array();
+        $profile_sections   = array();
+
+        foreach ( $profile_keys as $key ) {
+                $profile_sections[ $key ] = isset( $submitted_sections[ $key ] ) ? 1 : 0;
+        }
+
+        $settings['profile_sections'] = $profile_sections;
+
+        $submitted_styles = isset( $_POST['bhg_global_styles'] ) && is_array( $_POST['bhg_global_styles'] ) ? wp_unslash( $_POST['bhg_global_styles'] ) : array();
+        $clean_styles     = array();
+
+        if ( isset( $submitted_styles['title_block'] ) && is_array( $submitted_styles['title_block'] ) ) {
+                $block = $submitted_styles['title_block'];
+                $row   = array();
+
+                if ( isset( $block['background'] ) ) {
+                        $color = bhg_sanitize_color_value( $block['background'] );
+                        if ( '' !== $color ) {
+                                $row['background'] = $color;
+                        }
+                }
+
+                if ( isset( $block['radius'] ) ) {
+                        $radius = bhg_sanitize_css_dimension_value( $block['radius'] );
+                        if ( '' !== $radius ) {
+                                $row['radius'] = $radius;
+                        }
+                }
+
+                if ( isset( $block['padding'] ) ) {
+                        $padding = bhg_sanitize_css_dimension_value( $block['padding'] );
+                        if ( '' !== $padding ) {
+                                $row['padding'] = $padding;
+                        }
+                }
+
+                if ( isset( $block['margin'] ) ) {
+                        $margin = bhg_sanitize_css_dimension_value( $block['margin'] );
+                        if ( '' !== $margin ) {
+                                $row['margin'] = $margin;
+                        }
+                }
+
+                if ( ! empty( $row ) ) {
+                        $clean_styles['title_block'] = $row;
+                }
+        }
+
+        if ( isset( $submitted_styles['heading_2'] ) && is_array( $submitted_styles['heading_2'] ) ) {
+                $block = $submitted_styles['heading_2'];
+                $row   = array();
+
+                if ( isset( $block['size'] ) ) {
+                        $size = bhg_sanitize_css_dimension_value( $block['size'] );
+                        if ( '' !== $size ) {
+                                $row['size'] = $size;
+                        }
+                }
+
+                if ( isset( $block['weight'] ) ) {
+                        $weight = bhg_sanitize_font_weight_value( $block['weight'] );
+                        if ( '' !== $weight ) {
+                                $row['weight'] = $weight;
+                        }
+                }
+
+                if ( isset( $block['color'] ) ) {
+                        $color = bhg_sanitize_color_value( $block['color'] );
+                        if ( '' !== $color ) {
+                                $row['color'] = $color;
+                        }
+                }
+
+                if ( isset( $block['padding'] ) ) {
+                        $padding = bhg_sanitize_css_dimension_value( $block['padding'] );
+                        if ( '' !== $padding ) {
+                                $row['padding'] = $padding;
+                        }
+                }
+
+                if ( isset( $block['margin'] ) ) {
+                        $margin = bhg_sanitize_css_dimension_value( $block['margin'] );
+                        if ( '' !== $margin ) {
+                                $row['margin'] = $margin;
+                        }
+                }
+
+                if ( ! empty( $row ) ) {
+                        $clean_styles['heading_2'] = $row;
+                }
+        }
+
+        if ( isset( $submitted_styles['heading_3'] ) && is_array( $submitted_styles['heading_3'] ) ) {
+                $block = $submitted_styles['heading_3'];
+                $row   = array();
+
+                if ( isset( $block['size'] ) ) {
+                        $size = bhg_sanitize_css_dimension_value( $block['size'] );
+                        if ( '' !== $size ) {
+                                $row['size'] = $size;
+                        }
+                }
+
+                if ( isset( $block['weight'] ) ) {
+                        $weight = bhg_sanitize_font_weight_value( $block['weight'] );
+                        if ( '' !== $weight ) {
+                                $row['weight'] = $weight;
+                        }
+                }
+
+                if ( isset( $block['color'] ) ) {
+                        $color = bhg_sanitize_color_value( $block['color'] );
+                        if ( '' !== $color ) {
+                                $row['color'] = $color;
+                        }
+                }
+
+                if ( isset( $block['padding'] ) ) {
+                        $padding = bhg_sanitize_css_dimension_value( $block['padding'] );
+                        if ( '' !== $padding ) {
+                                $row['padding'] = $padding;
+                        }
+                }
+
+                if ( isset( $block['margin'] ) ) {
+                        $margin = bhg_sanitize_css_dimension_value( $block['margin'] );
+                        if ( '' !== $margin ) {
+                                $row['margin'] = $margin;
+                        }
+                }
+
+                if ( ! empty( $row ) ) {
+                        $clean_styles['heading_3'] = $row;
+                }
+        }
+
+        if ( isset( $submitted_styles['description'] ) && is_array( $submitted_styles['description'] ) ) {
+                $block = $submitted_styles['description'];
+                $row   = array();
+
+                if ( isset( $block['size'] ) ) {
+                        $size = bhg_sanitize_css_dimension_value( $block['size'] );
+                        if ( '' !== $size ) {
+                                $row['size'] = $size;
+                        }
+                }
+
+                if ( isset( $block['weight'] ) ) {
+                        $weight = bhg_sanitize_font_weight_value( $block['weight'] );
+                        if ( '' !== $weight ) {
+                                $row['weight'] = $weight;
+                        }
+                }
+
+                if ( isset( $block['color'] ) ) {
+                        $color = bhg_sanitize_color_value( $block['color'] );
+                        if ( '' !== $color ) {
+                                $row['color'] = $color;
+                        }
+                }
+
+                if ( isset( $block['padding'] ) ) {
+                        $padding = bhg_sanitize_css_dimension_value( $block['padding'] );
+                        if ( '' !== $padding ) {
+                                $row['padding'] = $padding;
+                        }
+                }
+
+                if ( isset( $block['margin'] ) ) {
+                        $margin = bhg_sanitize_css_dimension_value( $block['margin'] );
+                        if ( '' !== $margin ) {
+                                $row['margin'] = $margin;
+                        }
+                }
+
+                if ( ! empty( $row ) ) {
+                        $clean_styles['description'] = $row;
+                }
+        }
+
+        if ( isset( $submitted_styles['body_text'] ) && is_array( $submitted_styles['body_text'] ) ) {
+                $block = $submitted_styles['body_text'];
+                $row   = array();
+
+                if ( isset( $block['size'] ) ) {
+                        $size = bhg_sanitize_css_dimension_value( $block['size'] );
+                        if ( '' !== $size ) {
+                                $row['size'] = $size;
+                        }
+                }
+
+                if ( isset( $block['padding'] ) ) {
+                        $padding = bhg_sanitize_css_dimension_value( $block['padding'] );
+                        if ( '' !== $padding ) {
+                                $row['padding'] = $padding;
+                        }
+                }
+
+                if ( isset( $block['margin'] ) ) {
+                        $margin = bhg_sanitize_css_dimension_value( $block['margin'] );
+                        if ( '' !== $margin ) {
+                                $row['margin'] = $margin;
+                        }
+                }
+
+                if ( ! empty( $row ) ) {
+                        $clean_styles['body_text'] = $row;
+                }
+        }
+
+        $settings['global_styles'] = $clean_styles;
+
+        $settings['remove_data_on_uninstall'] = isset( $_POST['bhg_remove_data_on_uninstall'] ) && '1' === wp_unslash( $_POST['bhg_remove_data_on_uninstall'] ) ? 1 : 0;
+
+        // Save settings.
+        $existing = get_option( 'bhg_plugin_settings', array() );
+        update_option( 'bhg_plugin_settings', array_merge( $existing, $settings ) );
 
 	// Redirect back to settings page.
 	wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-settings&message=saved' ) );
@@ -1117,23 +1537,63 @@ add_action( 'edit_user_profile', 'bhg_extra_user_profile_fields' );
  * @return void
  */
 function bhg_extra_user_profile_fields( $user ) {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
+        if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+        }
 
-		$affiliate_status = get_user_meta( $user->ID, 'bhg_is_affiliate', true );
-	?>
-			<h3><?php esc_html_e( 'Bonus Hunt Guesser Information', 'bonus-hunt-guesser' ); ?></h3>
-	<table class="form-table">
-		<tr>
-							<th><label for="bhg_is_affiliate"><?php esc_html_e( 'Affiliate Status', 'bonus-hunt-guesser' ); ?></label></th>
-			<td>
-									<input type="checkbox" name="bhg_is_affiliate" id="bhg_is_affiliate" value="1" <?php checked( $affiliate_status, 1 ); ?> />
-									<span class="description"><?php esc_html_e( 'Check if this user is an affiliate.', 'bonus-hunt-guesser' ); ?></span>
-			</td>
-		</tr>
-	</table>
-	<?php
+        $affiliate_status = get_user_meta( $user->ID, 'bhg_is_affiliate', true );
+        $affiliates       = array();
+
+        if ( class_exists( 'BHG_DB' ) ) {
+                $db = new BHG_DB();
+                $affiliates = $db->get_affiliate_websites();
+        }
+
+        $selected_sites = function_exists( 'bhg_get_user_affiliate_websites' )
+                ? (array) bhg_get_user_affiliate_websites( (int) $user->ID )
+                : array();
+
+        ?>
+        <h3><?php esc_html_e( 'Bonus Hunt Guesser Information', 'bonus-hunt-guesser' ); ?></h3>
+        <table class="form-table">
+                <tr>
+                        <th><label for="bhg_is_affiliate"><?php esc_html_e( 'Affiliate Status', 'bonus-hunt-guesser' ); ?></label></th>
+                        <td>
+                                <input type="checkbox" name="bhg_is_affiliate" id="bhg_is_affiliate" value="1" <?php checked( $affiliate_status, 1 ); ?> />
+                                <span class="description"><?php esc_html_e( 'Check if this user is an affiliate.', 'bonus-hunt-guesser' ); ?></span>
+                        </td>
+                </tr>
+                <?php if ( ! empty( $affiliates ) ) : ?>
+                        <tr>
+                                <th scope="row"><?php echo esc_html( bhg_t( 'label_affiliate_websites', 'Affiliate Websites' ) ); ?></th>
+                                <td>
+                                        <fieldset>
+                                                <?php
+                                                foreach ( $affiliates as $index => $site ) :
+                                                        $site_id   = isset( $site->id ) ? (int) $site->id : 0;
+                                                        $site_name = isset( $site->name ) ? $site->name : '';
+                                                        if ( $site_id <= 0 ) {
+                                                                continue;
+                                                        }
+
+                                                        $field_id  = 'bhg-affiliate-site-' . $site_id;
+                                                        $checked   = in_array( $site_id, array_map( 'intval', $selected_sites ), true );
+                                                        $label     = $site_name ? $site_name : sprintf( bhg_t( 'label_affiliate_website_number', 'Affiliate Website %d' ), $index + 1 );
+                                                        ?>
+                                                        <label for="<?php echo esc_attr( $field_id ); ?>">
+                                                                <input type="checkbox" id="<?php echo esc_attr( $field_id ); ?>" name="bhg_affiliate_websites[]" value="<?php echo esc_attr( $site_id ); ?>" <?php checked( $checked ); ?> />
+                                                                <?php echo esc_html( $label ); ?>
+                                                        </label><br />
+                                                        <?php
+                                                endforeach;
+                                                ?>
+                                        </fieldset>
+                                        <p class="description"><?php echo esc_html( bhg_t( 'affiliate_websites_help', 'Select the affiliate websites this user is connected to.' ) ); ?></p>
+                                </td>
+                        </tr>
+                <?php endif; ?>
+        </table>
+        <?php
 }
 
 add_action( 'personal_options_update', 'bhg_save_extra_user_profile_fields' );
@@ -1146,12 +1606,29 @@ add_action( 'edit_user_profile_update', 'bhg_save_extra_user_profile_fields' );
  * @return void|false Returns false if the user cannot be edited.
  */
 function bhg_save_extra_user_profile_fields( $user_id ) {
-	if ( ! current_user_can( 'edit_user', $user_id ) ) {
-			return false;
-	}
+        if ( ! current_user_can( 'edit_user', $user_id ) ) {
+                return false;
+        }
 
-				check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
+        check_admin_referer( 'update-user_' . $user_id, '_wpnonce' );
 
-		$affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
-		update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
+        $affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
+        update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
+
+        if ( isset( $_POST['bhg_affiliate_websites'] ) && function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                $site_ids = array();
+                if ( is_array( $_POST['bhg_affiliate_websites'] ) ) {
+                        foreach ( $_POST['bhg_affiliate_websites'] as $site_id ) {
+                                $site_id = absint( $site_id );
+                                if ( $site_id > 0 ) {
+                                        $site_ids[ $site_id ] = $site_id;
+                                }
+                        }
+                }
+
+                bhg_set_user_affiliate_websites( $user_id, array_values( $site_ids ) );
+        } elseif ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+                // No selection submitted – clear stored affiliations to reflect UI state.
+                bhg_set_user_affiliate_websites( $user_id, array() );
+        }
 }
