@@ -218,11 +218,12 @@ $hunts = $wpdb->get_results( $hunts_query );
 <th><?php echo esc_html( bhg_t( 'admin_action', 'Admin Action' ) ); ?></th>
 </tr>
 </thead>
-                <tbody>
-                                <?php if ( empty( $hunts ) ) : ?>
+		<tbody>
+				<?php if ( empty( $hunts ) ) : ?>
 <tr><td colspan="9"><?php echo esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ); ?></td></tr>
-                                <?php else : ?>
-                                        <?php foreach ( $hunts as $h ) : ?>
+						<?php
+				else :
+                                        foreach ( $hunts as $h ) :
                                                 $edit_url = wp_nonce_url(
                                                         add_query_arg(
                                                                 array(
@@ -277,10 +278,12 @@ $hunts = $wpdb->get_results( $hunts_query );
 </form>
 </td>
 </tr>
-                                                        <?php endforeach; ?>
-                                <?php endif; ?>
-                </tbody>
-        </table>
+							<?php
+						endforeach;
+endif;
+				?>
+		</tbody>
+	</table>
 
 	<?php
 		$total_pages = (int) ceil( $total / $per_page );
@@ -334,8 +337,8 @@ if ( 'close' === $view ) :
 		<?php submit_button( esc_html( bhg_t( 'close_hunt', 'Close Hunt' ) ) ); ?>
 	</form>
 </div>
-                <?php
-        endif;
+		<?php
+	endif;
 endif;
 ?>
 
@@ -591,65 +594,46 @@ if ( 'edit' === $view ) :
 		<?php submit_button( esc_html( bhg_t( 'save_hunt', 'Save Hunt' ) ) ); ?>
 	</form>
 
-	<?php
-        $participant_total = is_array( $guesses ) ? count( $guesses ) : 0;
-        $participant_label = sprintf( _n( '%s participant', '%s participants', $participant_total, 'bonus-hunt-guesser' ), number_format_i18n( $participant_total ) );
-        $date_format       = (string) get_option( 'date_format', 'Y-m-d' );
-        $time_format       = (string) get_option( 'time_format', 'H:i' );
-        $submitted_format  = trim( $date_format . ' ' . $time_format );
-        if ( '' === $submitted_format ) {
-                $submitted_format = 'Y-m-d H:i';
-        }
-        ?>
-
-        <table class="form-table" role="presentation">
-                <tbody>
-                        <tr>
-                                <th scope="row"><?php echo esc_html( bhg_t( 'participants', 'Participants' ) ); ?></th>
-                                <td>
-                                        <p class="description"><?php echo esc_html( $participant_label ); ?></p>
-                                        <table class="wp-list-table widefat striped table-view-list bhg-participants-table">
-                                                <thead>
-                                                        <tr>
-                                                                <th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'User' ) ); ?></th>
-                                                                <th scope="col"><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) ); ?></th>
-                                                                <th scope="col"><?php echo esc_html( bhg_t( 'submitted_at', 'Submitted' ) ); ?></th>
-                                                                <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
-                                                        </tr>
-                                                </thead>
-                                                <tbody>
-                                                        <?php if ( empty( $guesses ) ) : ?>
-                                                                <tr>
-                                                                        <td colspan="4"><?php echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) ); ?></td>
-                                                                </tr>
-                                                        <?php else : ?>
-                                                                <?php foreach ( $guesses as $g ) : ?>
-                                                                        <?php
-                                                                        /* translators: %d: user ID. */
-                                                                        $name         = $g->display_name ? $g->display_name : sprintf( esc_html( bhg_t( 'label_user_hash', 'user#%d' ) ), (int) $g->user_id );
-                                                                        $url          = admin_url( 'user-edit.php?user_id=' . (int) $g->user_id );
-                                                                        $submitted_at = $g->created_at ? mysql2date( $submitted_format, $g->created_at, true ) : bhg_t( 'label_emdash', '—' );
-                                                                        ?>
-                                                                        <tr>
-                                                                                <td><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $name ); ?></a></td>
-                                                                                <td><?php echo esc_html( bhg_format_currency( (float) ( $g->guess ?? 0 ) ) ); ?></td>
-                                                                                <td><?php echo esc_html( $submitted_at ); ?></td>
-                                                                                <td>
-                                                                                        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');" class="bhg-inline-form">
-                                                                                                <?php wp_nonce_field( 'bhg_delete_guess', 'bhg_delete_guess_nonce' ); ?>
-                                                                                                <input type="hidden" name="action" value="bhg_delete_guess">
-                                                                                                <input type="hidden" name="guess_id" value="<?php echo esc_attr( (int) $g->id ); ?>">
-                                                                                                <button type="submit" class="button-link-delete"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
-                                                                                        </form>
-                                                                                </td>
-                                                                        </tr>
-                                                                <?php endforeach; ?>
-                                                        <?php endif; ?>
-                                                </tbody>
-                                        </table>
-                                </td>
-                        </tr>
-                </tbody>
-        </table>
+	<h2 class="bhg-margin-top-large"><?php echo esc_html( bhg_t( 'participants', 'Participants' ) ); ?></h2>
+	<table class="widefat striped">
+	<thead>
+		<tr>
+		<th><?php echo esc_html( bhg_t( 'sc_user', 'User' ) ); ?></th>
+		<th><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) ); ?></th>
+		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+		</tr>
+	</thead>
+	<tbody>
+		<?php if ( empty( $guesses ) ) : ?>
+		<tr><td colspan="3"><?php echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) ); ?></td></tr>
+			<?php
+		else :
+			foreach ( $guesses as $g ) :
+				?>
+		<tr>
+			<td>
+							<?php
+										/* translators: %d: user ID. */
+										$name = $g->display_name ? $g->display_name : sprintf( esc_html( bhg_t( 'label_user_hash', 'user#%d' ) ), (int) $g->user_id );
+							$url              = admin_url( 'user-edit.php?user_id=' . (int) $g->user_id );
+							echo '<a href="' . esc_url( $url ) . '">' . esc_html( $name ) . '</a>';
+							?>
+			</td>
+						<td><?php echo esc_html( bhg_format_currency( (float) ( $g->guess ?? 0 ) ) ); ?></td>
+			<td>
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( bhg_t( 'delete_this_guess', 'Delete this guess?' ) ); ?>');" class="bhg-inline-form">
+																<?php wp_nonce_field( 'bhg_delete_guess', 'bhg_delete_guess_nonce' ); ?>
+								<input type="hidden" name="action" value="bhg_delete_guess">
+<input type="hidden" name="guess_id" value="<?php echo esc_attr( (int) $g->id ); ?>">
+				<button type="submit" class="button-link-delete"><?php echo esc_html( bhg_t( 'remove', 'Remove' ) ); ?></button>
+			</form>
+			</td>
+		</tr>
+					<?php
+		endforeach;
+endif;
+		?>
+	</tbody>
+	</table>
 </div>
 <?php endif; ?>

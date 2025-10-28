@@ -437,6 +437,69 @@ flex: 1;
     font-weight: 600;
 }
 
+.bhg-latest-hunts-table .bhg-winners-cell {
+    width: 40%;
+}
+
+.bhg-winner-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.bhg-winner-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background-color: #f0fdf4;
+    border: 1px solid #86efac;
+    box-shadow: 0 1px 1px rgba(16, 185, 129, 0.1);
+}
+
+.bhg-winner-chip__placement {
+    font-weight: 600;
+    color: #047857;
+    min-width: 38px;
+}
+
+.bhg-winner-chip__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bhg-winner-chip__name {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.bhg-winner-chip__stats {
+    font-size: 12px;
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bhg-winner-chip__separator {
+    color: #94a3b8;
+}
+
+.bhg-latest-hunt--has-winners .bhg-winners-cell {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.bhg-latest-hunt--multiple-winners {
+    background-color: #f8fafc;
+    box-shadow: inset 4px 0 0 0 var(--bhg-accent-color);
+}
+
 .bhg-summary-table td,
 .bhg-summary-table th {
     text-align: center;

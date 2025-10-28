@@ -17,17 +17,30 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
 
-if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-	bhg_seed_default_translations_if_empty();
+$table_name                 = $wpdb->prefix . 'bhg_translations';
+$table_like                 = $wpdb->esc_like( $table_name );
+$translations_table_exists  = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_like ) ) === $table_name );
+$translations_notice_message = '';
+
+if ( $translations_table_exists && function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
+        bhg_seed_default_translations_if_empty();
+}
+
+$table = $table_name;
+
+if ( ! $translations_table_exists ) {
+        $translations_notice_message = sprintf(
+                bhg_t( 'translations_missing_table_message', 'Translations cannot be listed because the database table is missing. Run the database upgrade from the <a href="%s">Database tools</a> screen to create it.' ),
+                esc_url( admin_url( 'admin.php?page=bhg-database' ) )
+        );
 }
 
 // Pagination variables.
 $allowed_per_page = array( 10, 20, 50 );
 $items_per_page   = isset( $_GET['per_page'] ) ? absint( wp_unslash( $_GET['per_page'] ) ) : 20;
 if ( ! in_array( $items_per_page, $allowed_per_page, true ) ) {
-	$items_per_page = 20;
+        $items_per_page = 20;
 }
 $current_page = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1;
 $offset       = ( $current_page - 1 ) * $items_per_page;
@@ -36,7 +49,7 @@ $offset       = ( $current_page - 1 ) * $items_per_page;
 $search_term = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 
 // Handle form submission.
-if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_translation_action', 'bhg_nonce' ) ) {
+if ( $translations_table_exists && isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_translation_action', 'bhg_nonce' ) ) {
 		$slug   = isset( $_POST['slug'] ) ? sanitize_text_field( wp_unslash( $_POST['slug'] ) ) : '';
 		$locale = isset( $_POST['locale'] ) ? sanitize_text_field( wp_unslash( $_POST['locale'] ) ) : get_locale();
 		$text   = isset( $_POST['text'] ) ? sanitize_textarea_field( wp_unslash( $_POST['text'] ) ) : '';
@@ -82,7 +95,13 @@ if ( isset( $_POST['bhg_save_translation'] ) && check_admin_referer( 'bhg_save_t
 }
 
 // Fetch rows with pagination and optional search.
-if ( $search_term ) {
+$rows   = array();
+$total  = 0;
+$grouped = array();
+$pagination = '';
+
+if ( $translations_table_exists ) {
+        if ( $search_term ) {
                 $like  = '%' . $wpdb->esc_like( $search_term ) . '%';
                 $total = (int) $wpdb->get_var(
                         $wpdb->prepare(
@@ -102,7 +121,7 @@ if ( $search_term ) {
                                 $offset
                         )
                 );
-} else {
+        } else {
                 $total = (int) $wpdb->get_var(
                         "SELECT COUNT(*) FROM {$table}"
                 );
@@ -113,99 +132,104 @@ if ( $search_term ) {
                                 $offset
                         )
                 );
-}
+        }
 
-// Pagination links.
-$total_pages = max( 1, ceil( $total / $items_per_page ) );
-$pagination  = paginate_links(
-	array(
-		'base'     => add_query_arg( 'paged', '%#%' ),
-		'format'   => '',
-		'current'  => $current_page,
-		'total'    => $total_pages,
-		'add_args' => array(
-			'per_page' => $items_per_page,
-			's'        => $search_term,
-		),
-	)
-);
+        // Pagination links.
+        $total_pages = max( 1, ceil( $total / $items_per_page ) );
+        $pagination  = paginate_links(
+                array(
+                        'base'     => add_query_arg( 'paged', '%#%' ),
+                        'format'   => '',
+                        'current'  => $current_page,
+                        'total'    => $total_pages,
+                        'add_args' => array(
+                                'per_page' => $items_per_page,
+                                's'        => $search_term,
+                        ),
+                )
+        );
 
-// Group rows by context (prefix before the first underscore).
-$grouped = array();
-if ( $rows ) {
-	foreach ( $rows as $r ) {
-			list( $context )       = array_pad( explode( '_', $r->slug, 2 ), 2, 'misc' );
-			$grouped[ $context ][] = $r;
-	}
-	ksort( $grouped );
-	foreach ( $grouped as &$items ) {
-		usort(
-			$items,
-			static function ( $a, $b ) {
-								return strcmp( $a->slug, $b->slug );
-			}
-		);
-	}
-	unset( $items );
+        // Group rows by context (prefix before the first underscore).
+        if ( $rows ) {
+                foreach ( $rows as $r ) {
+                        list( $context )       = array_pad( explode( '_', $r->slug, 2 ), 2, 'misc' );
+                        $grouped[ $context ][] = $r;
+                }
+                ksort( $grouped );
+                foreach ( $grouped as &$items ) {
+                        usort(
+                                $items,
+                                static function ( $a, $b ) {
+                                        return strcmp( $a->slug, $b->slug );
+                                }
+                        );
+                }
+                unset( $items );
+        }
 }
 ?>
 <div class="wrap">
-	<h1><?php echo esc_html( bhg_t( 'menu_translations', 'Translations' ) ); ?></h1>
+        <h1><?php echo esc_html( bhg_t( 'menu_translations', 'Translations' ) ); ?></h1>
 
-	<?php if ( ! empty( $notice ) ) : ?>
-		<div class="notice notice-success"><p><?php echo esc_html( $notice ); ?></p></div>
-	<?php endif; ?>
+        <?php if ( $translations_notice_message ) : ?>
+                <div class="notice notice-warning"><p><?php echo wp_kses_post( $translations_notice_message ); ?></p></div>
+        <?php endif; ?>
 
-	<?php if ( ! empty( $form_error ) ) : ?>
-		<div class="notice notice-error"><p><?php echo esc_html( $form_error ); ?></p></div>
-	<?php endif; ?>
+        <?php if ( $translations_table_exists ) : ?>
+                <?php if ( ! empty( $notice ) ) : ?>
+                        <div class="notice notice-success"><p><?php echo esc_html( $notice ); ?></p></div>
+                <?php endif; ?>
 
-		<form method="post">
-				<?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
-				<input type="hidden" name="locale" value="<?php echo esc_attr( get_locale() ); ?>" />
-                                <table class="form-table" role="presentation">
-                                                <tbody>
-                                                                <tr>
-                                                                                <th scope="row"><label for="slug"><?php echo esc_html( bhg_t( 'slug', 'Slug' ) ); ?></label></th>
-                                                                                <td>
-                                                                                                <input name="slug" id="slug" type="text" class="regular-text code" required aria-describedby="bhg-translation-slug-help" />
-                                                                                                <p class="description" id="bhg-translation-slug-help"><?php echo esc_html( bhg_t( 'translations_slug_description', 'Use the identifier from the plugin source (for example, sc_title).' ) ); ?></p>
-                                                                                </td>
-                                                                </tr>
-                                                                <tr>
-                                                                                <th scope="row"><label for="text"><?php echo esc_html( bhg_t( 'value', 'Value' ) ); ?></label></th>
-                                                                                <td>
-                                                                                                <textarea name="text" id="text" class="large-text code" rows="4" aria-describedby="bhg-translation-value-help"></textarea>
-                                                                                                <p class="description" id="bhg-translation-value-help"><?php echo esc_html( bhg_t( 'translations_value_description', 'Provide the custom wording you want to display.' ) ); ?> <?php echo esc_html( bhg_t( 'translations_help_leave_blank', 'Leave blank to use the default text.' ) ); ?></p>
-                                                                                </td>
-                                                                </tr>
-                                                </tbody>
-                                </table>
-				<p class="submit"><button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button></p>
-		</form>
+                <?php if ( ! empty( $form_error ) ) : ?>
+                        <div class="notice notice-error"><p><?php echo esc_html( $form_error ); ?></p></div>
+                <?php endif; ?>
 
-	<form method="get" class="bhg-translations-search">
-		<input type="hidden" name="page" value="bhg-translations" />
-		<p class="search-box">
-			<label class="screen-reader-text" for="bhg-translation-search-input"><?php echo esc_html( bhg_t( 'label_search_translations', 'Search translations' ) ); ?></label>
-			<input type="search" id="bhg-translation-search-input" name="s" value="<?php echo esc_attr( $search_term ); ?>" />
-			<label class="screen-reader-text" for="bhg-per-page"><?php echo esc_html( bhg_t( 'label_items_per_page', 'Items per page' ) ); ?></label>
-			<select id="bhg-per-page" name="per_page">
-				<option value="10" <?php selected( $items_per_page, 10 ); ?>>10</option>
-				<option value="20" <?php selected( $items_per_page, 20 ); ?>>20</option>
-				<option value="50" <?php selected( $items_per_page, 50 ); ?>>50</option>
-			</select>
-			<button class="button"><?php echo esc_html( bhg_t( 'button_filter', 'Filter' ) ); ?></button>
-		</p>
-	</form>
+                <form method="post">
+                        <?php wp_nonce_field( 'bhg_save_translation_action', 'bhg_nonce' ); ?>
+                        <input type="hidden" name="locale" value="<?php echo esc_attr( get_locale() ); ?>" />
+                        <table class="form-table" role="presentation">
+                                <tbody>
+                                        <tr>
+                                                <th scope="row"><label for="slug"><?php echo esc_html( bhg_t( 'slug', 'Slug' ) ); ?></label></th>
+                                                <td>
+                                                        <input name="slug" id="slug" type="text" class="regular-text code" required aria-describedby="bhg-translation-slug-help" />
+                                                        <p class="description" id="bhg-translation-slug-help"><?php echo esc_html( bhg_t( 'translations_slug_description', 'Use the identifier from the plugin source (for example, sc_title).' ) ); ?></p>
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                                <th scope="row"><label for="text"><?php echo esc_html( bhg_t( 'value', 'Value' ) ); ?></label></th>
+                                                <td>
+                                                        <textarea name="text" id="text" class="large-text code" rows="4" aria-describedby="bhg-translation-value-help"></textarea>
+                                                        <p class="description" id="bhg-translation-value-help"><?php echo esc_html( bhg_t( 'translations_value_description', 'Provide the custom wording you want to display.' ) ); ?> <?php echo esc_html( bhg_t( 'translations_help_leave_blank', 'Leave blank to use the default text.' ) ); ?></p>
+                                                </td>
+                                        </tr>
+                                </tbody>
+                        </table>
+                        <p class="submit"><button type="submit" name="bhg_save_translation" class="button button-primary"><?php echo esc_html( bhg_t( 'button_save', 'Save' ) ); ?></button></p>
+                </form>
 
-	<h2><?php echo esc_html( bhg_t( 'existing_keys', 'Existing keys' ) ); ?></h2>
-		<p class="description"><?php echo esc_html( bhg_t( 'custom_translations_highlighted', 'Custom translations are highlighted.' ) ); ?></p>
-	<?php if ( $pagination ) : ?>
-		<div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
-	<?php endif; ?>
+                <form method="get" class="bhg-translations-search">
+                        <input type="hidden" name="page" value="bhg-translations" />
+                        <p class="search-box">
+                                <label class="screen-reader-text" for="bhg-translation-search-input"><?php echo esc_html( bhg_t( 'label_search_translations', 'Search translations' ) ); ?></label>
+                                <input type="search" id="bhg-translation-search-input" name="s" value="<?php echo esc_attr( $search_term ); ?>" />
+                                <label class="screen-reader-text" for="bhg-per-page"><?php echo esc_html( bhg_t( 'label_items_per_page', 'Items per page' ) ); ?></label>
+                                <select id="bhg-per-page" name="per_page">
+                                        <option value="10" <?php selected( $items_per_page, 10 ); ?>>10</option>
+                                        <option value="20" <?php selected( $items_per_page, 20 ); ?>>20</option>
+                                        <option value="50" <?php selected( $items_per_page, 50 ); ?>>50</option>
+                                </select>
+                                <button class="button"><?php echo esc_html( bhg_t( 'button_filter', 'Filter' ) ); ?></button>
+                        </p>
+                </form>
 
-        <?php if ( ! empty( $grouped ) ) : ?>
+                <h2><?php echo esc_html( bhg_t( 'existing_keys', 'Existing keys' ) ); ?></h2>
+                <p class="description"><?php echo esc_html( bhg_t( 'custom_translations_highlighted', 'Custom translations are highlighted.' ) ); ?></p>
+                <?php if ( $pagination ) : ?>
+                        <div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
+                <?php endif; ?>
+
+                <?php if ( ! empty( $grouped ) ) : ?>
                 <?php
                 $context_meta = array(
                         'label'  => array(
@@ -379,13 +403,16 @@ if ( $rows ) {
                                 <?php endforeach; ?>
                         </section>
                 <?php endforeach; ?>
-        <?php else : ?>
-                <p><?php echo esc_html( bhg_t( 'no_translations_yet', 'No translations yet.' ) ); ?></p>
-        <?php endif; ?>
+                <?php else : ?>
+                        <p><?php echo esc_html( bhg_t( 'no_translations_yet', 'No translations yet.' ) ); ?></p>
+                <?php endif; ?>
 
-	<?php if ( $pagination ) : ?>
-		<div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
-	<?php endif; ?>
+                <?php if ( $pagination ) : ?>
+                        <div class="tablenav"><div class="tablenav-pages"><?php echo wp_kses_post( $pagination ); ?></div></div>
+                <?php endif; ?>
+        <?php else : ?>
+                <p><?php echo esc_html( bhg_t( 'translations_missing_table_placeholder', 'Translation entries will appear here after the database tables are installed.' ) ); ?></p>
+        <?php endif; ?>
 </div>
 
 <script>

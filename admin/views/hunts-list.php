@@ -92,14 +92,14 @@ $pages = max( 1, (int) ceil( $total / $per_page ) );
 		<tr>
 			<td><?php echo (int) $r->id; ?></td>
 			<td><strong><a href="<?php echo esc_url( admin_url( 'admin.php?page=bhg-hunts-edit&id=' . (int) $r->id ) ); ?>"><?php echo esc_html( $r->title ); ?></a></strong></td>
-			<td><?php echo esc_html( number_format_i18n( (float) $r->start_balance, 2 ) ); ?></td>
-										<td><?php echo ( null !== $r->final_balance ) ? esc_html( number_format_i18n( (float) $r->final_balance, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+                        <td><?php echo esc_html( number_format_i18n( (float) $r->start_balance, 2 ) ); ?></td>
+                                                                                <td><?php echo ( null !== $r->final_balance ) ? esc_html( number_format_i18n( (float) $r->final_balance, 2 ) ) : esc_html( bhg_t( 'label_en_dash', '–' ) ); ?></td>
 						<td><?php echo esc_html( bhg_t( $r->status, ucfirst( $r->status ) ) ); ?></td>
 						<td><?php echo (int) $r->winners_count; ?></td>
-					<td><?php echo $r->closed_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->closed_at ) ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+                                        <td><?php echo $r->closed_at ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $r->closed_at ) ) ) : esc_html( bhg_t( 'label_en_dash', '–' ) ); ?></td>
 			<td>
 							<?php
-							$results_url = wp_nonce_url( admin_url( 'admin.php?page=bhg-hunt-results&id=' . (int) $r->id ), 'bhg_view_results_' . (int) $r->id, 'bhg_nonce' );
+                                                        $results_url = admin_url( 'admin.php?page=bhg-bonus-hunts-results&hunt_id=' . (int) $r->id );
 							$edit_url    = wp_nonce_url( admin_url( 'admin.php?page=bhg-hunts-edit&id=' . (int) $r->id ), 'bhg_edit_hunt_' . (int) $r->id, 'bhg_nonce' );
 							?>
 			<a class="button" href="<?php echo esc_url( $results_url ); ?>">
