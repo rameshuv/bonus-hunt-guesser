@@ -84,6 +84,126 @@ class BHG_Bonus_Hunts {
 	}
 
 	/**
+	 * Calculate timeframe bounds for results filters.
+	 *
+	 * @param string $timeframe Timeframe key (month|year|all).
+	 * @return array{start:?string,end:?string} Start/end bounds or null when unbounded.
+	 */
+	public static function get_results_timeframe_bounds( $timeframe ) {
+		$timeframe = strtolower( (string) $timeframe );
+		if ( ! in_array( $timeframe, array( 'month', 'year', 'all' ), true ) ) {
+			$timeframe = 'month';
+		}
+
+		if ( 'all' === $timeframe ) {
+			return array(
+				'start' => null,
+				'end'   => null,
+			);
+		}
+
+		try {
+			$timezone = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( wp_timezone_string() );
+		} catch ( Exception $e ) {
+			$timezone = new DateTimeZone( 'UTC' );
+		}
+
+		$now = new DateTimeImmutable( 'now', $timezone );
+
+		if ( 'year' === $timeframe ) {
+			$start = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
+			$end   = $start->modify( '+1 year' )->modify( '-1 second' );
+		} else {
+			$start = $now->setDate( (int) $now->format( 'Y' ), (int) $now->format( 'n' ), 1 )->setTime( 0, 0, 0 );
+			$end   = $start->modify( '+1 month' )->modify( '-1 second' );
+		}
+
+		return array(
+			'start' => $start->format( 'Y-m-d H:i:s' ),
+			'end'   => $end->format( 'Y-m-d H:i:s' ),
+		);
+	}
+
+	/**
+	 * Retrieve closed hunts for the results selector filtered by timeframe.
+	 *
+	 * @param string $timeframe Timeframe key.
+	 * @param int    $limit     Maximum number of hunts to return.
+	 * @return array<int,object> Hunt rows.
+	 */
+	public static function get_closed_hunts_for_selector( $timeframe, $limit = 50 ) {
+		global $wpdb;
+
+		$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+		$limit       = max( 1, (int) $limit );
+		$bounds      = self::get_results_timeframe_bounds( $timeframe );
+		$where       = array(
+			"status = 'closed'",
+			'final_balance IS NOT NULL',
+			'closed_at IS NOT NULL',
+		);
+		$params     = array();
+
+		if ( ! empty( $bounds['start'] ) ) {
+			$where[]  = 'closed_at >= %s';
+			$params[] = $bounds['start'];
+		}
+
+		if ( ! empty( $bounds['end'] ) ) {
+			$where[]  = 'closed_at <= %s';
+			$params[] = $bounds['end'];
+		}
+
+		$where_sql = implode( ' AND ', $where );
+		$params[]  = $limit;
+
+		return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT id, title, closed_at FROM {$hunts_table} WHERE {$where_sql} ORDER BY closed_at DESC, id DESC LIMIT %d",
+				...$params
+			)
+		);
+	}
+
+	/**
+	 * Retrieve tournaments for the results selector filtered by timeframe.
+	 *
+	 * @param string $timeframe Timeframe key.
+	 * @param int    $limit     Maximum number of tournaments to return.
+	 * @return array<int,object> Tournament rows.
+	 */
+	public static function get_tournaments_for_selector( $timeframe, $limit = 50 ) {
+		global $wpdb;
+
+		$tours_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+		$limit       = max( 1, (int) $limit );
+		$bounds      = self::get_results_timeframe_bounds( $timeframe );
+		$reference   = 'COALESCE(end_date, start_date, DATE(updated_at), DATE(created_at))';
+		$where       = array( "{$reference} IS NOT NULL" );
+		$params      = array();
+
+		if ( ! empty( $bounds['start'] ) ) {
+			$where[]  = "{$reference} >= %s";
+			$params[] = substr( $bounds['start'], 0, 10 );
+		}
+
+		if ( ! empty( $bounds['end'] ) ) {
+			$where[]  = "{$reference} <= %s";
+			$params[] = substr( $bounds['end'], 0, 10 );
+		}
+
+		$where_sql = $where ? 'WHERE ' . implode( ' AND ', $where ) : '';
+		$params[]  = $limit;
+
+		return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT id, title, type, start_date, end_date FROM {$tours_table} {$where_sql} ORDER BY {$reference} DESC, id DESC LIMIT %d",
+				...$params
+			)
+		);
+	}
+
+	/**
 	 * Retrieve a hunt by ID.
 	 *
 	 * @param int $hunt_id Hunt ID.
