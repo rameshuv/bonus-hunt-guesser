@@ -435,10 +435,10 @@ return ob_get_clean();
 		$sql  = "SELECT {$select_columns} FROM {$hunts_tbl} h INNER JOIN {$guesses_tbl} g ON g.hunt_id = h.id AND g.user_id = %d";
 		$args = array( $user_id );
 
-		if ( $winners_tbl ) {
-		$sql  .= " LEFT JOIN {$winners_tbl} w ON w.hunt_id = h.id AND w.user_id = %d";
-		$args[] = $user_id;
-	}
+                if ( $winners_tbl ) {
+                        $sql  .= " LEFT JOIN {$winners_tbl} w ON w.hunt_id = h.id AND w.user_id = %d AND w.eligible = 1";
+                        $args[] = $user_id;
+                }
 
 		$sql   .= ' WHERE g.user_id = %d ORDER BY ' . $order_expression . ' DESC, h.id DESC LIMIT %d';
 		$args[] = $user_id;
@@ -634,7 +634,7 @@ return ob_get_clean();
 		return array();
 	}
 
-		$sql = "SELECT DISTINCT p.id AS prize_id, p.title AS prize_title, p.category, h.title AS hunt_title, h.closed_at, w.position\n\t\t\tFROM {$winners_tbl} w\n\t\t\tINNER JOIN {$hunts_tbl} h ON h.id = w.hunt_id\n\t\t\tINNER JOIN {$relation_tbl} hp ON hp.hunt_id = w.hunt_id\n\t\t\tINNER JOIN {$prizes_tbl} p ON p.id = hp.prize_id\n\t\t\tWHERE w.user_id = %d\n\t\t\tORDER BY h.closed_at DESC, w.position ASC, p.title ASC";
+                $sql = "SELECT DISTINCT p.id AS prize_id, p.title AS prize_title, p.category, h.title AS hunt_title, h.closed_at, w.position\n\t\t\tFROM {$winners_tbl} w\n\t\t\tINNER JOIN {$hunts_tbl} h ON h.id = w.hunt_id\n\t\t\tINNER JOIN {$relation_tbl} hp ON hp.hunt_id = w.hunt_id\n\t\t\tINNER JOIN {$prizes_tbl} p ON p.id = hp.prize_id\n\t\t\tWHERE w.user_id = %d AND w.eligible = 1\n\t\t\tORDER BY h.closed_at DESC, w.position ASC, p.title ASC";
 
 		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $user_id ) );
 
