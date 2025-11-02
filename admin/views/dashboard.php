@@ -17,9 +17,11 @@ if ( ! current_user_can( 'manage_options' ) ) {
 
 global $wpdb;
 
-$hunts_table       = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 $hunts_count       = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$hunts_table}" );
 $tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 $tournaments_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$tournaments_table}" );
 
 $user_counts = count_users();
@@ -69,8 +71,8 @@ foreach ( (array) $hunts as $entry ) {
 	}
 
 	if ( empty( $winners ) && isset( $hunt->id ) && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
-		$limit = isset( $hunt->winners_count ) ? (int) $hunt->winners_count : 0;
-		$limit = $limit > 0 ? $limit : 25;
+		$limit   = isset( $hunt->winners_count ) ? (int) $hunt->winners_count : 0;
+		$limit   = $limit > 0 ? $limit : 25;
 		$winners = bhg_get_top_winners_for_hunt( (int) $hunt->id, $limit );
 	}
 
@@ -125,76 +127,91 @@ foreach ( (array) $hunts as $entry ) {
 							</tr>
 						</thead>
 						<tbody>
-<?php foreach ( $hunts_for_display as $entry ) :
-        $hunt     = $entry['hunt'];
-        $winners  = $entry['winners'];
-        $title    = isset( $hunt->title ) ? (string) $hunt->title : '';
-	$start    = isset( $hunt->starting_balance ) ? (float) $hunt->starting_balance : 0.0;
-	$final    = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
-	$closed   = isset( $hunt->closed_at ) ? (string) $hunt->closed_at : '';
-	$final_display = null === $final ? '–' : bhg_format_currency( (float) $final );
-	$closed_time   = '–';
-	if ( $closed ) {
-		$timestamp = strtotime( $closed );
-		if ( $timestamp ) {
-			$closed_time = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp );
-		}
-	}
-	$row_classes = array();
-	if ( ! empty( $winners ) ) {
-		$row_classes[] = 'bhg-latest-hunt--has-winners';
-	}
-	if ( is_array( $winners ) && count( $winners ) > 1 ) {
-		$row_classes[] = 'bhg-latest-hunt--multiple-winners';
-	}
-	$row_class_attr = ! empty( $row_classes ) ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
-?>
-							<tr<?php echo $row_class_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-								<td>
-									<strong><?php echo esc_html( $title ); ?></strong>
-								</td>
-								<td class="bhg-winners-cell">
-									<?php if ( ! empty( $winners ) ) : ?>
-										<ul class="bhg-winner-list">
-<?php foreach ( $winners as $index => $winner ) :
-	$position   = isset( $winner->position ) ? (int) $winner->position : ( $index + 1 );
-	$user_id    = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
-	$name       = '';
-	if ( isset( $winner->display_name ) && '' !== trim( (string) $winner->display_name ) ) {
-		$name = (string) $winner->display_name;
-	} elseif ( $user_id > 0 ) {
-		$user = get_userdata( $user_id );
-		$name = $user ? $user->display_name : sprintf( bhg_t( 'label_user_number', 'User #%d' ), $user_id );
-	} else {
-		$name = bhg_t( 'unknown_user', 'Unknown User' );
-	}
-	$guess_value      = isset( $winner->guess ) ? (float) $winner->guess : 0.0;
-	$difference_value = isset( $winner->diff ) ? abs( (float) $winner->diff ) : 0.0;
-	$placement_text   = sprintf( '#%d', max( 1, $position ) );
-	$guess_text       = sprintf( '%s: %s', bhg_t( 'label_guess', 'Guess' ), bhg_format_currency( $guess_value ) );
-	$difference_text  = sprintf( '%s: %s', bhg_t( 'label_difference', 'Difference' ), bhg_format_currency( $difference_value ) );
-?>
-											<li class="bhg-winner-chip">
-												<span class="bhg-winner-chip__placement"><?php echo esc_html( $placement_text ); ?></span>
-												<span class="bhg-winner-chip__body">
-													<span class="bhg-winner-chip__name"><?php echo esc_html( $name ); ?></span>
-													<span class="bhg-winner-chip__stats">
-														<?php echo esc_html( $guess_text ); ?>
-														<span class="bhg-winner-chip__separator" aria-hidden="true">•</span>
-														<?php echo esc_html( $difference_text ); ?>
-													</span>
-												</span>
-											</li>
+					<?php
+					foreach ( $hunts_for_display as $entry ) :
+									$hunt       = $entry['hunt'];
+									$winners    = is_array( $entry['winners'] ) ? $entry['winners'] : array();
+									$hunt_title = isset( $hunt->title ) ? (string) $hunt->title : '';
+						$start                  = isset( $hunt->starting_balance ) ? (float) $hunt->starting_balance : 0.0;
+						$final                  = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
+						$closed                 = isset( $hunt->closed_at ) ? (string) $hunt->closed_at : '';
+						$final_display          = null === $final ? '–' : bhg_format_currency( (float) $final );
+						$closed_time            = '–';
+						if ( $closed ) {
+							$timestamp = strtotime( $closed );
+							if ( $timestamp ) {
+									$closed_time = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp );
+							}
+						}
+						$row_classes = array();
+						if ( ! empty( $winners ) ) {
+								$row_classes[] = 'bhg-latest-hunt--has-winners';
+						}
+						if ( count( $winners ) > 1 ) {
+								$row_classes[] = 'bhg-latest-hunt--multiple-winners';
+						}
+						$row_class_attr = ! empty( $row_classes ) ? ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"' : '';
+						$winner_rows    = ! empty( $winners ) ? array_values( $winners ) : array( null );
+						$rowspan        = max( 1, count( $winner_rows ) );
+						?>
+						<?php
+						foreach ( $winner_rows as $index => $winner ) :
+								$is_first  = ( 0 === $index );
+								$row_attr  = $is_first ? $row_class_attr : '';
+								$placement = '';
+								$name      = '';
+								$guess_out = '';
+								$diff_out  = '';
+							if ( $winner ) {
+								$position  = isset( $winner->position ) ? (int) $winner->position : ( $index + 1 );
+								$placement = sprintf( '#%d', max( 1, $position ) );
+								$user_id   = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
+								if ( isset( $winner->display_name ) && '' !== trim( (string) $winner->display_name ) ) {
+										$name = (string) $winner->display_name;
+								} elseif ( $user_id > 0 ) {
+										$user = get_userdata( $user_id );
+										$name = $user ? $user->display_name : sprintf( bhg_t( 'label_user_number', 'User #%d' ), $user_id );
+								} else {
+										$name = bhg_t( 'unknown_user', 'Unknown User' );
+								}
+								$guess_value = isset( $winner->guess ) ? (float) $winner->guess : 0.0;
+								$diff_value  = isset( $winner->diff ) ? (float) $winner->diff : null;
+								$guess_out   = sprintf( '%s %s', bhg_t( 'label_guess', 'Guess:' ), bhg_format_currency( $guess_value ) );
+								if ( null !== $diff_value ) {
+										$diff_out = sprintf( '%s %s', bhg_t( 'label_difference', 'Difference:' ), bhg_format_currency( abs( $diff_value ) ) );
+								}
+							}
+							?>
+														<tr<?php echo $row_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+																<?php if ( $is_first ) : ?>
+																<td rowspan="<?php echo esc_attr( $rowspan ); ?>">
+																		<strong><?php echo esc_html( $hunt_title ); ?></strong>
+																</td>
+																<?php endif; ?>
+																<td class="bhg-winners-cell">
+																		<?php if ( $winner ) : ?>
+																		<div class="bhg-winner-row">
+																				<span class="bhg-winner-rank"><?php echo esc_html( $placement ); ?></span>
+																				<span class="bhg-winner-details">
+																						<strong class="bhg-winner-name"><?php echo esc_html( $name ); ?></strong>
+																						<span class="bhg-winner-stats"><?php echo esc_html( $guess_out ); ?>
+																						<?php
+																						if ( $diff_out ) :
+																							?>
+																							· <?php echo esc_html( $diff_out ); ?><?php endif; ?></span>
+																				</span>
+																		</div>
+																		<?php else : ?>
+																		<span class="bhg-empty-state"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'No winners yet.' ) ); ?></span>
+																		<?php endif; ?>
+																</td>
+																<?php if ( $is_first ) : ?>
+																<td rowspan="<?php echo esc_attr( $rowspan ); ?>"><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
+																<td rowspan="<?php echo esc_attr( $rowspan ); ?>"><?php echo esc_html( $final_display ); ?></td>
+																<td rowspan="<?php echo esc_attr( $rowspan ); ?>"><?php echo esc_html( $closed_time ); ?></td>
+																<?php endif; ?>
+														</tr>
 <?php endforeach; ?>
-										</ul>
-									<?php else : ?>
-										<span class="bhg-empty-state"><?php echo esc_html( bhg_t( 'no_winners_yet', 'No winners yet' ) ); ?></span>
-									<?php endif; ?>
-								</td>
-								<td><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
-								<td><?php echo esc_html( $final_display ); ?></td>
-								<td><?php echo esc_html( $closed_time ); ?></td>
-							</tr>
 <?php endforeach; ?>
 						</tbody>
 					</table>
