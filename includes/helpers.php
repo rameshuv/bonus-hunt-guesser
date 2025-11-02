@@ -965,6 +965,91 @@ function bhg_format_currency( $amount ) {
                 return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
 }
 
+if ( ! function_exists( 'bhg_get_win_limit_config' ) ) {
+        /**
+         * Retrieve the win limit configuration for hunts or tournaments.
+         *
+         * @param string $context Either 'hunt' or 'tournament'.
+         * @return array{count:int,period:string}
+         */
+        function bhg_get_win_limit_config( $context ) {
+                $context  = ( 'tournament' === $context ) ? 'tournament' : 'hunt';
+                $settings = get_option( 'bhg_plugin_settings', array() );
+
+                if ( 'tournament' === $context ) {
+                        $key = 'tournament_win_limit';
+                } else {
+                        $key = 'hunt_win_limit';
+                }
+
+                $config = isset( $settings[ $key ] ) && is_array( $settings[ $key ] ) ? $settings[ $key ] : array();
+
+                $count  = isset( $config['count'] ) ? (int) $config['count'] : 0;
+                if ( $count < 0 ) {
+                        $count = 0;
+                }
+
+                $period = isset( $config['period'] ) ? sanitize_key( $config['period'] ) : 'none';
+                $allowed_periods = array( 'none', 'week', 'month', 'quarter', 'year' );
+                if ( ! in_array( $period, $allowed_periods, true ) ) {
+                        $period = 'none';
+                }
+
+                return array(
+                        'count'  => $count,
+                        'period' => $period,
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_period_interval_seconds' ) ) {
+        /**
+         * Convert a period keyword into seconds.
+         *
+         * @param string $period Period keyword.
+         * @return int Number of seconds or 0 when period is disabled.
+         */
+        function bhg_get_period_interval_seconds( $period ) {
+                switch ( $period ) {
+                        case 'week':
+                                return WEEK_IN_SECONDS;
+                        case 'month':
+                                return MONTH_IN_SECONDS;
+                        case 'quarter':
+                                return MONTH_IN_SECONDS * 3;
+                        case 'year':
+                                return YEAR_IN_SECONDS;
+                        default:
+                                return 0;
+                }
+        }
+}
+
+if ( ! function_exists( 'bhg_get_period_window_start' ) ) {
+        /**
+         * Calculate the window start timestamp for a given period keyword.
+         *
+         * @param string   $period    Period keyword.
+         * @param int|null $reference Reference timestamp. Defaults to current time.
+         * @return string Empty string if the period is disabled, otherwise MySQL datetime.
+         */
+        function bhg_get_period_window_start( $period, $reference = null ) {
+                $seconds = bhg_get_period_interval_seconds( $period );
+
+                if ( $seconds <= 0 ) {
+                        return '';
+                }
+
+                if ( null === $reference ) {
+                        $reference = current_time( 'timestamp' );
+                }
+
+                $start = max( 0, (int) $reference - (int) $seconds );
+
+                return wp_date( 'Y-m-d H:i:s', $start );
+        }
+}
+
 if ( ! function_exists( 'bhg_get_default_points_map' ) ) {
         /**
          * Retrieve the default tournament points distribution.

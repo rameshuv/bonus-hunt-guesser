@@ -205,10 +205,12 @@ class BHG_DB {
                                    position INT UNSIGNED NOT NULL,
                                    guess DECIMAL(12,2) NOT NULL,
                                    diff DECIMAL(12,2) NOT NULL,
+                                   eligible TINYINT(1) NOT NULL DEFAULT 1,
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
                                    KEY hunt_id (hunt_id),
-                                   KEY user_id (user_id)
+                                   KEY user_id (user_id),
+                                   KEY eligible (eligible)
                    ) {$charset_collate};";
 
 // Prizes table.

@@ -705,12 +705,40 @@ function bhg_handle_settings_save() {
 									exit;
 	}
 
-	if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
-			$allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
-		if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
-				$settings['allow_guess_changes'] = $allow;
-		}
-	}
+        if ( isset( $_POST['bhg_allow_guess_changes'] ) ) {
+                        $allow = sanitize_key( wp_unslash( $_POST['bhg_allow_guess_changes'] ) );
+                if ( in_array( $allow, array( 'yes', 'no' ), true ) ) {
+                                $settings['allow_guess_changes'] = $allow;
+                }
+        }
+
+$limit_fields     = array(
+        'hunt_win_limit'       => isset( $_POST['bhg_hunt_win_limit'] ) ? wp_unslash( $_POST['bhg_hunt_win_limit'] ) : array(),
+        'tournament_win_limit' => isset( $_POST['bhg_tournament_win_limit'] ) ? wp_unslash( $_POST['bhg_tournament_win_limit'] ) : array(),
+);
+$allowed_periods = array( 'none', 'week', 'month', 'quarter', 'year' );
+
+foreach ( $limit_fields as $key => $raw_limit ) {
+        if ( ! is_array( $raw_limit ) ) {
+                continue;
+        }
+
+        $count  = isset( $raw_limit['count'] ) ? (int) $raw_limit['count'] : 0;
+        $period = isset( $raw_limit['period'] ) ? sanitize_key( $raw_limit['period'] ) : 'none';
+
+        if ( $count < 0 ) {
+                $count = 0;
+        }
+
+        if ( ! in_array( $period, $allowed_periods, true ) ) {
+                $period = 'none';
+        }
+
+        $settings[ $key ] = array(
+                'count'  => $count,
+                'period' => $period,
+        );
+}
 
 $ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
 $settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
