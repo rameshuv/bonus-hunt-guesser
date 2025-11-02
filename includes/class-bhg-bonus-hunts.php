@@ -35,28 +35,49 @@ class BHG_Bonus_Hunts {
 
 		$out = array();
 
-		foreach ( (array) $hunts as $h ) {
-			$winners_count       = max( 1, (int) $h->winners_count );
-                        $winners = $wpdb->get_results(
-                                $wpdb->prepare(
-                                        "SELECT g.user_id, u.display_name, g.guess,
-                                                (%f - g.guess) AS diff
-                                        FROM {$guesses_table} g
-                                        LEFT JOIN {$users_table} u ON u.ID = g.user_id
-                                        WHERE g.hunt_id = %d
-                                        ORDER BY ABS(%f - g.guess) ASC, g.id ASC
-                                        LIMIT %d",
-                                        $h->final_balance,
-                                        $h->id,
-                                        $h->final_balance,
-                                        $winners_count
-                                )
-                        );
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
 
-			$out[] = array(
-				'hunt'    => $h,
-				'winners' => $winners,
-			);
+                foreach ( (array) $hunts as $h ) {
+                        $winners_count = max( 1, (int) $h->winners_count );
+                        $winners       = array();
+
+                        if ( $winners_table ) {
+                                $winners = $wpdb->get_results(
+                                        $wpdb->prepare(
+                                                "SELECT w.user_id, u.display_name, w.guess, w.diff
+                                                FROM {$winners_table} w
+                                                LEFT JOIN {$users_table} u ON u.ID = w.user_id
+                                                WHERE w.hunt_id = %d AND w.eligible = 1
+                                                ORDER BY w.position ASC
+                                                LIMIT %d",
+                                                $h->id,
+                                                $winners_count
+                                        )
+                                );
+                        }
+
+                        if ( empty( $winners ) ) {
+                                $winners = $wpdb->get_results(
+                                        $wpdb->prepare(
+                                                "SELECT g.user_id, u.display_name, g.guess,
+                                                        (%f - g.guess) AS diff
+                                                FROM {$guesses_table} g
+                                                LEFT JOIN {$users_table} u ON u.ID = g.user_id
+                                                WHERE g.hunt_id = %d
+                                                ORDER BY ABS(%f - g.guess) ASC, g.id ASC
+                                                LIMIT %d",
+                                                $h->final_balance,
+                                                $h->id,
+                                                $h->final_balance,
+                                                $winners_count
+                                        )
+                                );
+                        }
+
+                        $out[] = array(
+                                'hunt'    => $h,
+                                'winners' => $winners,
+                        );
 		}
 
 		return $out;
@@ -121,7 +142,7 @@ class BHG_Bonus_Hunts {
 	 * @param int $hunt_id Hunt ID.
 	 * @return array List of guesses.
 	 */
-	public static function get_hunt_guesses_ranked( $hunt_id ) {
+        public static function get_hunt_guesses_ranked( $hunt_id ) {
                 global $wpdb;
                 $hunts_table   = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
                 $guesses_table = esc_sql( $wpdb->prefix . 'bhg_guesses' );
@@ -156,5 +177,34 @@ class BHG_Bonus_Hunts {
                                                                   $hunt_id
                                                           )
                                                   );
-	}
+        }
+
+        /**
+         * Retrieve user IDs for official hunt winners.
+         *
+         * @param int $hunt_id Hunt ID.
+         * @return int[] List of user IDs ordered by placement.
+         */
+        public static function get_hunt_winner_ids( $hunt_id ) {
+                global $wpdb;
+
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+
+                if ( ! $winners_table ) {
+                        return array();
+                }
+
+                $rows = $wpdb->get_col(
+                        $wpdb->prepare(
+                                "SELECT user_id FROM {$winners_table} WHERE hunt_id = %d AND eligible = 1 ORDER BY position ASC",
+                                (int) $hunt_id
+                        )
+                );
+
+                if ( empty( $rows ) ) {
+                        return array();
+                }
+
+                return array_map( 'intval', $rows );
+        }
 }

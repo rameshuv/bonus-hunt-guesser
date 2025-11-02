@@ -16,6 +16,22 @@ if ( ! current_user_can( 'manage_options' ) ) {
 // Fetch existing settings.
 $settings = get_option( 'bhg_plugin_settings', array() );
 
+$hunt_limit       = isset( $settings['hunt_win_limit'] ) && is_array( $settings['hunt_win_limit'] ) ? $settings['hunt_win_limit'] : array();
+$tournament_limit = isset( $settings['tournament_win_limit'] ) && is_array( $settings['tournament_win_limit'] ) ? $settings['tournament_win_limit'] : array();
+
+$hunt_limit_count  = isset( $hunt_limit['count'] ) ? (int) $hunt_limit['count'] : 0;
+$hunt_limit_period = isset( $hunt_limit['period'] ) ? sanitize_key( $hunt_limit['period'] ) : 'none';
+$tour_limit_count  = isset( $tournament_limit['count'] ) ? (int) $tournament_limit['count'] : 0;
+$tour_limit_period = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
+
+$period_options = array(
+        'none'    => bhg_t( 'limit_period_none', 'No limit' ),
+        'week'    => bhg_t( 'limit_period_week', 'Per week' ),
+        'month'   => bhg_t( 'limit_period_month', 'Per month' ),
+        'quarter' => bhg_t( 'limit_period_quarter', 'Per quarter' ),
+        'year'    => bhg_t( 'limit_period_year', 'Per year' ),
+);
+
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
 ?>
@@ -88,6 +104,46 @@ foreach ( $currencies as $key => $label ) :
 <option value="yes" <?php selected( isset( $settings['allow_guess_changes'] ) ? $settings['allow_guess_changes'] : '', 'yes' ); ?>><?php echo esc_html( bhg_t( 'yes', 'Yes' ) ); ?></option>
 <option value="no" <?php selected( isset( $settings['allow_guess_changes'] ) ? $settings['allow_guess_changes'] : '', 'no' ); ?>><?php echo esc_html( bhg_t( 'no', 'No' ) ); ?></option>
 </select>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'hunt_win_limit', 'Bonus hunt win limit' ) ); ?></th>
+<td>
+        <fieldset>
+                <label>
+                        <span class="screen-reader-text"><?php echo esc_html( bhg_t( 'hunt_win_limit_count', 'Maximum wins per period' ) ); ?></span>
+                        <input type="number" class="small-text" name="bhg_hunt_win_limit[count]" value="<?php echo esc_attr( max( 0, $hunt_limit_count ) ); ?>" min="0">
+                </label>
+                <label>
+                        <span class="screen-reader-text"><?php echo esc_html( bhg_t( 'hunt_win_limit_period', 'Period window' ) ); ?></span>
+                        <select name="bhg_hunt_win_limit[period]">
+                                <?php foreach ( $period_options as $period_key => $period_label ) : ?>
+                                <option value="<?php echo esc_attr( $period_key ); ?>" <?php selected( $hunt_limit_period, $period_key ); ?>><?php echo esc_html( $period_label ); ?></option>
+                                <?php endforeach; ?>
+                        </select>
+                </label>
+                <p class="description"><?php echo esc_html( bhg_t( 'hunt_win_limit_help', 'Limit how many hunts a user can win within the selected rolling window. Set to zero for no restriction.' ) ); ?></p>
+        </fieldset>
+</td>
+</tr>
+<tr>
+<th scope="row"><?php echo esc_html( bhg_t( 'tournament_win_limit', 'Tournament win limit' ) ); ?></th>
+<td>
+        <fieldset>
+                <label>
+                        <span class="screen-reader-text"><?php echo esc_html( bhg_t( 'tournament_win_limit_count', 'Maximum tournament wins per period' ) ); ?></span>
+                        <input type="number" class="small-text" name="bhg_tournament_win_limit[count]" value="<?php echo esc_attr( max( 0, $tour_limit_count ) ); ?>" min="0">
+                </label>
+                <label>
+                        <span class="screen-reader-text"><?php echo esc_html( bhg_t( 'tournament_win_limit_period', 'Tournament limit period' ) ); ?></span>
+                        <select name="bhg_tournament_win_limit[period]">
+                                <?php foreach ( $period_options as $period_key => $period_label ) : ?>
+                                <option value="<?php echo esc_attr( $period_key ); ?>" <?php selected( $tour_limit_period, $period_key ); ?>><?php echo esc_html( $period_label ); ?></option>
+                                <?php endforeach; ?>
+                        </select>
+                </label>
+                <p class="description"><?php echo esc_html( bhg_t( 'tournament_win_limit_help', 'Restrict how often a user can claim tournament wins within the chosen window. Set to zero for no restriction.' ) ); ?></p>
+        </fieldset>
 </td>
 </tr>
 <tr>

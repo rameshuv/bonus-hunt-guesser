@@ -256,6 +256,9 @@ class MockWPDB {
 
     public function insert( $table, $data, $format = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
         if ( false !== strpos( $table, 'bhg_hunt_winners' ) ) {
+            if ( ! isset( $data['eligible'] ) ) {
+                $data['eligible'] = 1;
+            }
             $data['id'] = ++$this->winner_auto_increment;
             $this->hunt_winners[] = $data;
             $this->insert_id      = $data['id'];
