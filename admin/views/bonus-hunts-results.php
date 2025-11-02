@@ -150,15 +150,21 @@ if ( ! $hunt ) {
         return;
 }
 
-$guesses            = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
-$winners_limit      = max( 1, (int) $hunt->winners_count );
-$final_balance_raw  = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
-$has_final_balance  = null !== $final_balance_raw;
-$final_balance      = $has_final_balance ? (float) $final_balance_raw : null;
-$total_participants = count( $guesses );
+$guesses                = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
+$official_winner_ids    = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
+$winner_lookup          = array();
+foreach ( $official_winner_ids as $index => $winner_user_id ) {
+        $winner_lookup[ (int) $winner_user_id ] = (int) $index;
+}
+$winners_limit          = max( 1, (int) $hunt->winners_count );
+$final_balance_raw      = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
+$has_final_balance      = null !== $final_balance_raw;
+$final_balance          = $has_final_balance ? (float) $final_balance_raw : null;
+$total_participants     = count( $guesses );
+$actual_winner_count    = count( $official_winner_ids );
 
 $final_balance_display = $has_final_balance ? bhg_format_currency( $final_balance ) : bhg_t( 'label_emdash', '—' );
-$winners_display       = number_format_i18n( $winners_limit );
+$winners_display       = number_format_i18n( $actual_winner_count ? $actual_winner_count : $winners_limit );
 $participants_display  = number_format_i18n( $total_participants );
 
 $prize_titles = array();
@@ -214,7 +220,8 @@ if ( class_exists( 'BHG_Prizes' ) ) {
                         <?php else : ?>
                         <?php foreach ( $guesses as $index => $row ) :
                                 $position   = $index + 1;
-                                $is_winner  = ( $position <= $winners_limit );
+                                $user_id    = isset( $row->user_id ) ? (int) $row->user_id : 0;
+                                $is_winner  = $user_id > 0 && isset( $winner_lookup[ $user_id ] );
                                 $row_classes = array( 'bhg-results-row' );
                                 if ( $is_winner ) {
                                         $row_classes[] = 'bhg-results-row--winner';
@@ -225,8 +232,13 @@ if ( class_exists( 'BHG_Prizes' ) ) {
                                 $diff_value    = ( isset( $row->diff ) && null !== $row->diff ) ? bhg_format_currency( abs( (float) $row->diff ) ) : bhg_t( 'label_emdash', '—' );
                                 $created_at    = isset( $row->created_at ) ? $row->created_at : null;
                                 $submitted_on  = $created_at ? mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $created_at ) : bhg_t( 'label_emdash', '—' );
-                                $prize_index   = $position - 1;
-                                $prize_title   = ( $is_winner && isset( $prize_titles[ $prize_index ] ) ) ? $prize_titles[ $prize_index ] : '';
+                                $prize_title   = '';
+                                if ( $is_winner ) {
+                                        $prize_index = isset( $winner_lookup[ $user_id ] ) ? (int) $winner_lookup[ $user_id ] : 0;
+                                        if ( isset( $prize_titles[ $prize_index ] ) ) {
+                                                $prize_title = $prize_titles[ $prize_index ];
+                                        }
+                                }
                                 ?>
                         <tr class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
                                 <td><span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span></td>

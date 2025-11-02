@@ -205,10 +205,12 @@ class BHG_DB {
                                    position INT UNSIGNED NOT NULL,
                                    guess DECIMAL(12,2) NOT NULL,
                                    diff DECIMAL(12,2) NOT NULL,
+                                   eligible TINYINT(1) NOT NULL DEFAULT 1,
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
                                    KEY hunt_id (hunt_id),
-                                   KEY user_id (user_id)
+                                   KEY user_id (user_id),
+                                   KEY eligible (eligible)
                    ) {$charset_collate};";
 
 // Prizes table.
@@ -442,14 +444,15 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
 			}
 
 												// Hunt winners columns / indexes.
-			$hwneed = array(
-				'hunt_id'    => 'ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL',
-				'user_id'    => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
-				'position'   => 'ADD COLUMN position INT UNSIGNED NOT NULL',
-				'guess'      => 'ADD COLUMN guess DECIMAL(12,2) NOT NULL',
-				'diff'       => 'ADD COLUMN diff DECIMAL(12,2) NOT NULL',
-				'created_at' => 'ADD COLUMN created_at DATETIME NULL',
-			);
+                        $hwneed = array(
+                                'hunt_id'    => 'ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL',
+                                'user_id'    => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
+                                'position'   => 'ADD COLUMN position INT UNSIGNED NOT NULL',
+                                'guess'      => 'ADD COLUMN guess DECIMAL(12,2) NOT NULL',
+                                'diff'       => 'ADD COLUMN diff DECIMAL(12,2) NOT NULL',
+                                'eligible'   => 'ADD COLUMN eligible TINYINT(1) NOT NULL DEFAULT 1',
+                                'created_at' => 'ADD COLUMN created_at DATETIME NULL',
+                        );
 			foreach ( $hwneed as $c => $alter ) {
 				if ( ! $this->column_exists( $winners_table, $c ) ) {
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -493,6 +496,11 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
                         if ( ! $this->index_exists( $winners_table, 'user_id' ) ) {
                                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
                                         $wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY user_id (user_id)" );
+                        }
+
+                        if ( ! $this->index_exists( $winners_table, 'eligible' ) ) {
+                                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                        $wpdb->query( "ALTER TABLE `{$winners_table}` ADD KEY eligible (eligible)" );
                         }
 
                         // Ensure hunt/tournament relation table structure.
