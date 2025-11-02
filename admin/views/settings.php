@@ -16,6 +16,22 @@ if ( ! current_user_can( 'manage_options' ) ) {
 // Fetch existing settings.
 $settings = get_option( 'bhg_plugin_settings', array() );
 
+$hunt_limit       = isset( $settings['hunt_win_limit'] ) && is_array( $settings['hunt_win_limit'] ) ? $settings['hunt_win_limit'] : array();
+$tournament_limit = isset( $settings['tournament_win_limit'] ) && is_array( $settings['tournament_win_limit'] ) ? $settings['tournament_win_limit'] : array();
+
+$hunt_limit_count  = isset( $hunt_limit['count'] ) ? (int) $hunt_limit['count'] : 0;
+$hunt_limit_period = isset( $hunt_limit['period'] ) ? sanitize_key( $hunt_limit['period'] ) : 'none';
+$tour_limit_count  = isset( $tournament_limit['count'] ) ? (int) $tournament_limit['count'] : 0;
+$tour_limit_period = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
+
+$period_options = array(
+        'none'    => bhg_t( 'limit_period_none', 'No limit' ),
+        'week'    => bhg_t( 'limit_period_week', 'Per week' ),
+        'month'   => bhg_t( 'limit_period_month', 'Per month' ),
+        'quarter' => bhg_t( 'limit_period_quarter', 'Per quarter' ),
+        'year'    => bhg_t( 'limit_period_year', 'Per year' ),
+);
+
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
 $error_code = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
 ?>

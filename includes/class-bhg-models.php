@@ -515,6 +515,15 @@ if ( empty( $rows ) ) {
                                         continue;
                                 }
 
+                                $is_eligible = 1;
+                                if ( isset( $row->eligible ) ) {
+                                        $is_eligible = (int) $row->eligible;
+                                }
+
+                                if ( 1 !== $is_eligible ) {
+                                        continue;
+                                }
+
                                 $position = isset( $row->position ) ? (int) $row->position : 0;
                                 $limit    = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
 
