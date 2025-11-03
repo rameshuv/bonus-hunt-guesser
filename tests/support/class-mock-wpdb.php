@@ -11,6 +11,10 @@ class MockWPDB {
     public $tournament_results = array();
     public $tournaments_hunts = array();
     public $tournaments = array();
+    public $translations = array();
+    public $usermeta = 'wp_usermeta';
+    public $usermeta_data = array();
+    public $tables = array( 'wp_usermeta' => true );
 
     private $winner_auto_increment = 0;
     private $tournament_auto_increment = 0;
@@ -20,7 +24,42 @@ class MockWPDB {
             $args = $args[0];
         }
 
-        return vsprintf( $query, $args );
+        $mapped = array_map(
+            static function ( $value ) {
+                if ( is_string( $value ) ) {
+                    return "'" . addslashes( $value ) . "'";
+                }
+
+                if ( null === $value ) {
+                    return 'NULL';
+                }
+
+                return $value;
+            },
+            $args
+        );
+
+        return vsprintf( $query, $mapped );
+    }
+
+    public function set_usermeta( $user_id, $key, $value ) {
+        $user_id = (int) $user_id;
+        if ( ! isset( $this->usermeta_data[ $user_id ] ) ) {
+            $this->usermeta_data[ $user_id ] = array();
+        }
+
+        $this->usermeta_data[ $user_id ][ $key ] = maybe_serialize( $value );
+    }
+
+    public function delete_usermeta( $user_id, $key ) {
+        $user_id = (int) $user_id;
+        if ( isset( $this->usermeta_data[ $user_id ][ $key ] ) ) {
+            unset( $this->usermeta_data[ $user_id ][ $key ] );
+        }
+    }
+
+    public function set_table_exists( $table ) {
+        $this->tables[ $table ] = true;
     }
 
     public function get_row( $query ) {
@@ -55,10 +94,21 @@ class MockWPDB {
             }
         }
 
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_translations' ) ) {
+            $slug   = $this->match_string( "/slug\s*=\s*'([^']+)'/", $query );
+            $locale = $this->match_string( "/locale\s*=\s*'([^']+)'/", $query );
+
+            foreach ( $this->translations as $row ) {
+                if ( $row['slug'] === $slug && $row['locale'] === $locale ) {
+                    return (object) $row;
+                }
+            }
+        }
+
         return null;
     }
 
-    public function get_results( $query ) {
+    public function get_results( $query, $output = OBJECT ) {
         if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_guesses' ) ) {
             $hunt_id = $this->match_int( '/WHERE hunt_id = (\d+)/', $query );
             $limit   = $this->match_int( '/LIMIT (\d+)/', $query );
@@ -105,7 +155,7 @@ class MockWPDB {
                 unset( $row->id, $row->abs_diff );
             }
 
-            return $filtered;
+            return $this->format_results_objects( $filtered, $output );
         }
 
         if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournaments' ) ) {
@@ -123,13 +173,25 @@ class MockWPDB {
                 }
             }
 
-            return $results;
+            return $this->format_results( $results, $output );
         }
 
-        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_winners' ) && false !== strpos( $query, 'bhg_tournaments' ) ) {
+        if (
+            false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_winners' )
+            && (
+                false !== strpos( $query, 'bhg_tournaments' )
+                || false !== strpos( $query, 'bhg_tournaments_hunts' )
+            )
+        ) {
             $tournament_id = $this->match_int( '/t\.id = (\d+)/', $query );
             if ( 0 === $tournament_id ) {
                 $tournament_id = $this->match_int( '/WHERE t.id = (\d+)/', $query );
+            }
+            if ( 0 === $tournament_id ) {
+                $tournament_id = $this->match_int( '/ht\.tournament_id = (\d+)/', $query );
+            }
+            if ( 0 === $tournament_id ) {
+                $tournament_id = $this->match_int( '/h\.tournament_id = (\d+)/', $query );
             }
 
             $results = array();
@@ -171,15 +233,17 @@ class MockWPDB {
                 }
 
                 $results[] = (object) array(
+                    'hw_id'             => isset( $winner['id'] ) ? (int) $winner['id'] : 0,
                     'user_id'           => (int) $winner['user_id'],
                     'position'          => (int) $winner['position'],
+                    'eligible'          => isset( $winner['eligible'] ) ? (int) $winner['eligible'] : 1,
                     'participants_mode' => $mode,
                     'winners_count'     => $winners,
                     'event_date'        => $event_date,
                 );
             }
 
-            return $results;
+            return $this->format_results( $results, $output );
         }
 
         if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_winners' ) ) {
@@ -188,14 +252,55 @@ class MockWPDB {
             $results = array();
             foreach ( $this->hunt_winners as $winner ) {
                 if ( (int) $winner['hunt_id'] === $hunt_id ) {
-                    $results[] = (object) array(
+                    $results[] = array(
                         'user_id'  => (int) $winner['user_id'],
                         'position' => isset( $winner['position'] ) ? (int) $winner['position'] : 0,
                     );
                 }
             }
 
-            return $results;
+            return $this->format_results( $results, $output );
+        }
+
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'usermeta' ) ) {
+            $key     = $this->match_string( "/meta_key\s*=\s*'([^']+)'/", $query );
+            $results = array();
+
+            foreach ( $this->usermeta_data as $user_id => $meta ) {
+                if ( $key ) {
+                    if ( isset( $meta[ $key ] ) ) {
+                        $results[] = array(
+                            'user_id'    => (int) $user_id,
+                            'meta_value' => $meta[ $key ],
+                        );
+                    }
+                } else {
+                    foreach ( $meta as $meta_key => $value ) {
+                        $results[] = array(
+                            'user_id'    => (int) $user_id,
+                            'meta_key'   => $meta_key,
+                            'meta_value' => $value,
+                        );
+                    }
+                }
+            }
+
+            return $this->format_results( $results, $output );
+        }
+
+        if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_translations' ) ) {
+            $results = array();
+
+            foreach ( $this->translations as $row ) {
+                $results[] = array(
+                    'slug'         => $row['slug'],
+                    'default_text' => $row['default_text'],
+                    'text'         => $row['text'],
+                    'locale'       => $row['locale'],
+                );
+            }
+
+            return $this->format_results( $results, $output );
         }
 
         return array();
@@ -280,6 +385,17 @@ class MockWPDB {
             return 1;
         }
 
+        if ( false !== strpos( $table, 'bhg_translations' ) ) {
+            $this->translations[] = array(
+                'slug'         => isset( $data['slug'] ) ? $data['slug'] : '',
+                'default_text' => isset( $data['default_text'] ) ? $data['default_text'] : '',
+                'text'         => isset( $data['text'] ) ? $data['text'] : '',
+                'locale'       => isset( $data['locale'] ) ? $data['locale'] : '',
+            );
+
+            return 1;
+        }
+
         return false;
     }
 
@@ -337,8 +453,53 @@ class MockWPDB {
         return false;
     }
 
-    public function get_var( $query ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+    public function get_var( $query ) {
+        if ( false !== strpos( $query, 'SHOW TABLES LIKE' ) ) {
+            $table = $this->match_string( "/LIKE '([^']+)'/", $query );
+
+            return isset( $this->tables[ $table ] ) ? $table : null;
+        }
+
+        if ( false !== strpos( $query, 'SELECT COUNT(*) FROM ' . $this->prefix . 'bhg_translations' ) ) {
+            $slug   = $this->match_string( "/slug\s*=\s*'([^']+)'/", $query );
+            $locale = $this->match_string( "/locale\s*=\s*'([^']+)'/", $query );
+
+            foreach ( $this->translations as $row ) {
+                if ( $row['slug'] === $slug && $row['locale'] === $locale ) {
+                    return 1;
+                }
+            }
+
+            return 0;
+        }
+
         return null;
+    }
+
+    private function format_results( array $rows, $output ) {
+        if ( ARRAY_A === $output || 'ARRAY_A' === $output ) {
+            return $rows;
+        }
+
+        return array_map(
+            static function ( $row ) {
+                return (object) $row;
+            },
+            $rows
+        );
+    }
+
+    private function format_results_objects( array $rows, $output ) {
+        if ( ARRAY_A === $output || 'ARRAY_A' === $output ) {
+            return array_map(
+                static function ( $row ) {
+                    return (array) $row;
+                },
+                $rows
+            );
+        }
+
+        return $rows;
     }
 
     private function match_int( $pattern, $subject ) {
@@ -347,6 +508,14 @@ class MockWPDB {
         }
 
         return 0;
+    }
+
+    private function match_string( $pattern, $subject ) {
+        if ( preg_match( $pattern, $subject, $matches ) ) {
+            return $matches[1];
+        }
+
+        return '';
     }
 
     private function match_float( $pattern, $subject ) {

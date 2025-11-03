@@ -241,6 +241,7 @@ spl_autoload_register(
 require_once BHG_PLUGIN_DIR . 'includes/helpers.php';
 require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts-helpers.php';
 require_once BHG_PLUGIN_DIR . 'includes/notifications.php';
+require_once BHG_PLUGIN_DIR . 'includes/core-pages.php';
 
 add_action( 'plugins_loaded', 'bhg_maybe_seed_translations', 1 );
 /**
@@ -293,15 +294,17 @@ function bhg_activate_plugin() {
 
 		// Seed demo data if empty.
 	if ( function_exists( 'bhg_seed_demo_if_empty' ) ) {
-		bhg_seed_demo_if_empty();
-	}
-		update_option( 'bhg_demo_notice', 1 );
+                                bhg_seed_demo_if_empty();
+        }
+                update_option( 'bhg_demo_notice', 1 );
 
-				// Set tables created flag.
-				update_option( 'bhg_tables_created', true );
+                                bhg_ensure_required_pages();
 
-				// Flush rewrite rules after database changes.
-		flush_rewrite_rules();
+                                // Set tables created flag.
+                                update_option( 'bhg_tables_created', true );
+
+                                // Flush rewrite rules after database changes.
+                flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, 'bhg_activate_plugin' );
 
@@ -384,6 +387,7 @@ function bhg_enqueue_public_assets() {
 
 // Initialize plugin.
 add_action( 'plugins_loaded', 'bhg_init_plugin' );
+add_action( 'plugins_loaded', 'bhg_ensure_required_pages', 5 );
 /**
  * Initialize plugin components.
  *
