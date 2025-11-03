@@ -270,6 +270,7 @@ if ( empty( $rows ) ) {
                 $should_recalculate = false;
                 $awarded            = 0;
                 $official_winners   = array();
+                $recorded_user_ids  = array();
 
                 foreach ( (array) $rows as $row ) {
                         $user_id = isset( $row->user_id ) ? (int) $row->user_id : 0;
@@ -322,6 +323,8 @@ if ( empty( $rows ) ) {
                                         return false;
                                 }
 
+                                $recorded_user_ids[ $user_id ] = $user_id;
+
                                 if ( ! empty( $tournament_ids ) ) {
                                         $should_recalculate = true;
                                 }
@@ -346,7 +349,14 @@ if ( empty( $rows ) ) {
                         self::recalculate_tournament_results( $tournament_ids );
                 }
 
-                return array_map( 'intval', $official_winners );
+                $official_winners  = array_map( 'intval', $official_winners );
+                $recorded_user_ids = array_map( 'intval', array_values( $recorded_user_ids ) );
+
+                if ( $has_all_mode && ! empty( $recorded_user_ids ) ) {
+                        return $recorded_user_ids;
+                }
+
+                return $official_winners;
         }
 
 	/**
@@ -520,7 +530,7 @@ if ( empty( $rows ) ) {
                                         $is_eligible = (int) $row->eligible;
                                 }
 
-                                if ( 1 !== $is_eligible ) {
+                                if ( 1 !== $is_eligible && 'all' !== $participants_mode ) {
                                         continue;
                                 }
 
@@ -536,6 +546,10 @@ if ( empty( $rows ) ) {
                                 }
 
                                 $counts_as_win = ( $position > 0 && $position <= $limit );
+
+                                if ( 'all' === $participants_mode ) {
+                                        $counts_as_win = ( $position > 0 );
+                                }
 
                                 $event_date = '';
                                 if ( isset( $row->event_date ) && $row->event_date ) {
@@ -586,7 +600,7 @@ if ( empty( $rows ) ) {
                                         $results_map[ $user_id ]['points'] += $points_awarded;
                                 }
 
-                                if ( $position > 0 && $position <= $limit ) {
+                                if ( $counts_as_win ) {
                                         $results_map[ $user_id ]['wins']++;
                                 }
 

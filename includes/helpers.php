@@ -1187,25 +1187,90 @@ if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {
 }
 
 if ( ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
-		/**
-		 * Store affiliate website IDs for a user.
-		 *
-		 * @param int   $user_id  User ID.
-		 * @param array $site_ids Site IDs.
-		 * @return void
-		 */
-	function bhg_set_user_affiliate_websites( $user_id, $site_ids ) {
-			$clean = array();
-		if ( is_array( $site_ids ) ) {
-			foreach ( $site_ids as $sid ) {
-				$sid = absint( $sid );
-				if ( $sid ) {
-						$clean[] = $sid;
-				}
-			}
-		}
-			update_user_meta( (int) $user_id, 'bhg_affiliate_websites', $clean );
-	}
+                /**
+                 * Store affiliate website IDs for a user.
+                 *
+                 * @param int   $user_id  User ID.
+                 * @param array $site_ids Site IDs.
+                 * @return void
+                 */
+        function bhg_set_user_affiliate_websites( $user_id, $site_ids ) {
+                        $clean = array();
+                if ( is_array( $site_ids ) ) {
+                        foreach ( $site_ids as $sid ) {
+                                $sid = absint( $sid );
+                                if ( $sid ) {
+                                                $clean[] = $sid;
+                                }
+                        }
+                }
+                        update_user_meta( (int) $user_id, 'bhg_affiliate_websites', $clean );
+        }
+}
+
+if ( ! function_exists( 'bhg_remove_affiliate_site_from_users' ) ) {
+                /**
+                 * Remove a deleted affiliate website from all user profiles.
+                 *
+                 * @param int $site_id Affiliate site identifier.
+                 * @return void
+                 */
+        function bhg_remove_affiliate_site_from_users( $site_id ) {
+                global $wpdb;
+
+                $site_id = absint( $site_id );
+
+                if ( $site_id <= 0 ) {
+                        return;
+                }
+
+                if ( ! isset( $wpdb->usermeta ) ) {
+                        $wpdb->usermeta = $wpdb->prefix . 'usermeta';
+                }
+
+                $table    = esc_sql( $wpdb->usermeta );
+                $meta_key = 'bhg_affiliate_websites';
+
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+                $rows = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT user_id, meta_value FROM {$table} WHERE meta_key = %s",
+                                $meta_key
+                        ),
+                        ARRAY_A
+                );
+
+                if ( empty( $rows ) ) {
+                        return;
+                }
+
+                foreach ( $rows as $row ) {
+                        $user_id = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+                        if ( $user_id <= 0 ) {
+                                continue;
+                        }
+
+                        $stored = maybe_unserialize( $row['meta_value'] );
+                        if ( empty( $stored ) || ! is_array( $stored ) ) {
+                                continue;
+                        }
+
+                        $filtered = array_values(
+                                array_filter(
+                                        array_map( 'absint', $stored ),
+                                        static function ( $value ) use ( $site_id ) {
+                                                return (int) $value !== $site_id;
+                                        }
+                                )
+                        );
+
+                        if ( count( $filtered ) === count( $stored ) ) {
+                                continue;
+                        }
+
+                        bhg_set_user_affiliate_websites( $user_id, $filtered );
+                }
+        }
 }
 
 if ( ! function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
