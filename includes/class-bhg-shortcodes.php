@@ -2,7 +2,7 @@
 /**
  * Shortcodes for Bonus Hunt Guesser.
  *
- * PHP 7.4 safe, WP 6.3.5+ compatible.
+ * PHP 7.4 safe, WP 6.3.0+ compatible.
  * Registers all shortcodes on init (once) and avoids parse errors.
  *
  * @package Bonus_Hunt_Guesser
@@ -1065,6 +1065,24 @@ return ob_get_clean();
 					wp_cache_set( $cache_key, $open_hunts, 'bhg', 300 );
 			}
 
+			$open_hunt_ids = array();
+			if ( $open_hunts ) {
+				foreach ( $open_hunts as $open_hunt ) {
+					$open_hunt_ids[ (int) $open_hunt->id ] = true;
+				}
+			}
+
+			if ( $hunt_id <= 0 && isset( $_GET['bhg_hunt'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Preselecting hunt.
+				$requested_hunt = absint( wp_unslash( $_GET['bhg_hunt'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display context.
+				if ( $requested_hunt > 0 ) {
+					$hunt_id = $requested_hunt;
+				}
+			}
+
+			if ( $hunt_id > 0 && $open_hunt_ids && ! isset( $open_hunt_ids[ $hunt_id ] ) ) {
+				$hunt_id = 0;
+			}
+
 			if ( $hunt_id <= 0 ) {
 				if ( ! $open_hunts ) {
 					return '<p>' . esc_html( bhg_t( 'notice_no_open_hunt', 'No open hunt found to guess.' ) ) . '</p>';
@@ -1456,6 +1474,12 @@ return ob_get_clean();
                         }
 
                         $hunt_id = (int) $a['id'];
+                        if ( $hunt_id <= 0 && isset( $_GET['bhg_hunt'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display filter.
+                                $requested_hunt = absint( wp_unslash( $_GET['bhg_hunt'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display filter.
+                                if ( $requested_hunt > 0 ) {
+                                        $hunt_id = $requested_hunt;
+                                }
+                        }
                         if ( $hunt_id <= 0 ) {
                                 $hunt_id = (int) $wpdb->get_var(
                                         $wpdb->prepare(
@@ -1968,6 +1992,7 @@ return ob_get_clean();
                         echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'winners' ) ) . '">' . esc_html( bhg_t( 'sc_winners', 'Winners' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
+                        echo '<th>' . esc_html( bhg_t( 'sc_details', 'Details' ) ) . '</th>';
                         if ( $show_site ) {
                                 echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
                         }
@@ -1982,6 +2007,33 @@ return ob_get_clean();
                                 echo '<td>' . esc_html( $winners_display ) . '</td>';
                                 $status_key = strtolower( (string) $row->status );
                                 echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
+                                $details_value   = bhg_t( 'label_emdash', '—' );
+                                $details_is_html = false;
+                                $details_hunt_id = isset( $row->id ) ? (int) $row->id : 0;
+                                if ( $details_hunt_id > 0 ) {
+                                        if ( 'closed' === $status_key ) {
+                                                $results_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'user-guesses' ) : '';
+                                                if ( $results_url ) {
+                                                        $details_value   = sprintf(
+                                                                '<a class="bhg-hunt-link" href="%1$s">%2$s</a>',
+                                                                esc_url( add_query_arg( 'bhg_hunt', $details_hunt_id, $results_url ) ),
+                                                                esc_html( bhg_t( 'link_show_results', 'Show Results' ) )
+                                                        );
+                                                        $details_is_html = true;
+                                                }
+                                        } elseif ( 'open' === $status_key ) {
+                                                $guess_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'active-bonus-hunt' ) : '';
+                                                if ( $guess_url ) {
+                                                        $details_value   = sprintf(
+                                                                '<a class="bhg-hunt-link" href="%1$s">%2$s</a>',
+                                                                esc_url( add_query_arg( 'bhg_hunt', $details_hunt_id, $guess_url ) ),
+                                                                esc_html( bhg_t( 'link_guess_now', 'Guess Now' ) )
+                                                        );
+                                                        $details_is_html = true;
+                                                }
+                                        }
+                                }
+                                echo '<td>' . ( $details_is_html ? wp_kses_post( $details_value ) : esc_html( $details_value ) ) . '</td>';
                                 if ( $show_site ) {
                                         echo '<td>' . ( $row->site_name ? esc_html( $row->site_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                                 }
