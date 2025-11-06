@@ -1065,6 +1065,30 @@ return ob_get_clean();
 					wp_cache_set( $cache_key, $open_hunts, 'bhg', 300 );
 			}
 
+			$open_hunt_ids = array();
+			if ( $open_hunts ) {
+				foreach ( $open_hunts as $open_hunt ) {
+					$open_hunt_ids[ (int) $open_hunt->id ] = true;
+				}
+			}
+
+			if ( $hunt_id <= 0 && isset( $_GET['bhg_hunt'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Preselecting hunt.
+				$requested_hunt = absint( wp_unslash( $_GET['bhg_hunt'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display context.
+				if ( $requested_hunt > 0 ) {
+					$hunt_id = $requested_hunt;
+				}
+			}
+
+			if ( $hunt_id > 0 && $open_hunt_ids && ! isset( $open_hunt_ids[ $hunt_id ] ) ) {
+				$hunt_id = 0;
+			}
+
+			if ( $hunt_id <= 0 ) {
+				if ( ! $open_hunts ) {
+					return '<p>' . esc_html( bhg_t( 'notice_no_open_hunt', 'No open hunt found to guess.' ) ) . '</p>';
+				}
+				if ( count( $open_hunts ) === 1 ) {
+					$hunt_id = (int) $open_hunts[0]->id;
                         $open_hunt_ids = array();
                         if ( $open_hunts ) {
                                 foreach ( $open_hunts as $oh ) {
@@ -2007,6 +2031,11 @@ return ob_get_clean();
                                 echo '<td>' . esc_html( $winners_display ) . '</td>';
                                 $status_key = strtolower( (string) $row->status );
                                 echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
+                                $details_value   = bhg_t( 'label_emdash', '—' );
+                                $details_is_html = false;
+                                $details_hunt_id = isset( $row->id ) ? (int) $row->id : 0;
+                                if ( $details_hunt_id > 0 ) {
+                                        if ( 'closed' === $status_key ) {
 
                                 $details_value    = bhg_t( 'label_emdash', '—' );
                                 $details_is_html  = false;
@@ -2023,6 +2052,7 @@ return ob_get_clean();
                                                         );
                                                         $details_is_html = true;
                                                 }
+                                        } elseif ( 'open' === $status_key ) {
                                         } elseif ( 'open' === $status_for_link ) {
                                                 $guess_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'active-bonus-hunt' ) : '';
                                                 if ( $guess_url ) {
