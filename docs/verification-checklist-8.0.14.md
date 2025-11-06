@@ -18,7 +18,7 @@
   - `Text Domain: bonus-hunt-guesser`
   - `Domain Path: /languages`
   - `Requires PHP: 7.4`
-  - `Requires at least: 6.3.0`
+  - `Requires at least: 6.3.5`
   - `Requires MySQL: 5.5.5`
   - `License: GPLv2 or later`
     - Where to check: main plugin file `bonus-hunt-guesser.php` top header.
