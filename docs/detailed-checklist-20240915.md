@@ -216,4 +216,3 @@ Status Legend:
 | List view of latest jackpots | ❌ | Pending. |
 | Logic to hit/increase jackpots on hunt close | ❌ | Pending. |
 | Shortcodes `[bhg_jackpot_current]`, `[bhg_jackpot_latest]`, `[bhg_jackpot_ticker]`, `[bhg_jackpot_winners]` | ❌ | Pending implementation. |
-
