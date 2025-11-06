@@ -226,8 +226,8 @@ if ( ! function_exists( 'bhg_dispatch_hunt_notifications' ) ) {
 					$guess_value = isset( $winner->guess ) ? (float) $winner->guess : 0.0;
 					$diff_value  = isset( $winner->diff ) ? abs( (float) $winner->diff ) : 0.0;
 
-					$guess_display = bhg_format_currency( $guess_value );
-					$diff_display  = bhg_format_currency( $diff_value );
+                                    $guess_display = bhg_format_money( $guess_value );
+                                    $diff_display  = bhg_format_money( $diff_value );
 
 					$winner_lines[] = sprintf(
 						'%1$d. %2$s — %3$s (±%4$s)',
@@ -253,7 +253,7 @@ if ( ! function_exists( 'bhg_dispatch_hunt_notifications' ) ) {
 			$winner_names_line = $winner_usernames ? implode( ', ', array_map( 'esc_html', $winner_usernames ) ) : '';
 
 			$hunt_title_safe    = '' !== $hunt_title ? esc_html( $hunt_title ) : esc_html( bhg_t( 'bonus_hunt', 'Bonus Hunt' ) );
-			$final_balance_safe = esc_html( bhg_format_currency( $final_balance ) );
+                    $final_balance_safe = esc_html( bhg_format_money( $final_balance ) );
 
 			// Winner notifications.
 		if ( ! empty( $settings['winner']['enabled'] ) && ! empty( $winner_lookup ) ) {

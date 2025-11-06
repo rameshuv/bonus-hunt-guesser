@@ -415,7 +415,10 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_active'                                 => 'Active',
 			'label_closed'                                 => 'Closed',
 			'label_type'                                   => 'Type',
-			'label_details'                                => 'Details',
+                        'label_details'                                => 'Details',
+                        'link_show_results'                            => 'Show Results',
+                        'link_guess_now'                               => 'Guess Now',
+                        'label_guessing_closed'                        => 'Guessing Closed',
 			'label_show_details'                           => 'Show details',
 			'label_bonus_hunt'                             => 'Bonushunt',
 			'label_bonus_hunts'                            => 'Bonus Hunts',
@@ -443,8 +446,19 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'label_email_bcc'                              => 'BCC Recipients',
                         'notification_placeholders_hint'               => 'Available placeholders: %s',
                         'notification_bcc_hint'                        => 'Separate multiple email addresses with commas or new lines.',
-			'label_timeline'                               => 'Timeline',
-			'label_choose_hunt'                            => 'Choose a hunt:',
+                        'label_timeline'                               => 'Timeline',
+                        'period_week'                                   => 'week',
+                        'period_month'                                  => 'month',
+                        'period_quarter'                                => 'quarter',
+                        'period_year'                                   => 'year',
+                        'period_default'                                => 'period',
+                        'phrase_win_limit_count_single'                 => '%s win',
+                        'phrase_win_limit_count_plural'                 => '%s wins',
+                        'phrase_win_limit_skipped_single'               => '%s entry',
+                        'phrase_win_limit_skipped_plural'               => '%s entries',
+                        'notice_hunt_win_limit_skip'                    => 'Some entrants were skipped due to the bonus hunt win limit (%1$s per %2$s). %3$s were recorded and the next eligible players were promoted automatically.',
+                        'notice_tournament_win_limit_skip'              => 'Some entrants were skipped due to the tournament win limit (%1$s per %2$s). %3$s were recorded and the next eligible players were promoted automatically.',
+                        'label_choose_hunt'                            => 'Choose a hunt:',
                         'label_select_hunt'                            => 'Select a hunt',
                         'label_guess_final_balance'                    => 'Your guess (final balance):',
                         'button_apply'                                 => 'Apply',
@@ -945,14 +959,15 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-		$settings = get_option( 'bhg_plugin_settings', array() );
-		$currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
-		$map      = array(
-			'usd' => '$',
-			'eur' => '€',
-		);
-		$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
-		return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+                $option   = get_option( 'bhg_currency', 'EUR' );
+                $currency = is_string( $option ) ? strtoupper( $option ) : 'EUR';
+                $map      = array(
+                        'USD' => '$',
+                        'EUR' => '€',
+                );
+                $symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
+
+                return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
@@ -961,8 +976,20 @@ function bhg_currency_symbol() {
  * @param float $amount Amount to format.
  * @return string
  */
-function bhg_format_currency( $amount ) {
+function bhg_format_money( $amount ) {
                 return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+}
+
+if ( ! function_exists( 'bhg_format_currency' ) ) {
+        /**
+         * Backwards-compatible wrapper for legacy helper name.
+         *
+         * @param float $amount Amount to format.
+         * @return string
+         */
+        function bhg_format_currency( $amount ) {
+                return bhg_format_money( $amount );
+        }
 }
 
 if ( ! function_exists( 'bhg_get_win_limit_config' ) ) {
@@ -1009,7 +1036,7 @@ if ( ! function_exists( 'bhg_get_period_interval_seconds' ) ) {
          * @param string $period Period keyword.
          * @return int Number of seconds or 0 when period is disabled.
          */
-        function bhg_get_period_interval_seconds( $period ) {
+function bhg_get_period_interval_seconds( $period ) {
                 switch ( $period ) {
                         case 'week':
                                 return WEEK_IN_SECONDS;
@@ -1022,6 +1049,132 @@ if ( ! function_exists( 'bhg_get_period_interval_seconds' ) ) {
                         default:
                                 return 0;
                 }
+}
+}
+
+if ( ! function_exists( 'bhg_get_period_label' ) ) {
+        /**
+         * Retrieve a human-readable label for a rolling period key.
+         *
+         * @param string $period Period keyword.
+         * @return string
+         */
+        function bhg_get_period_label( $period ) {
+                $period = sanitize_key( $period );
+                $map    = array(
+                        'week'    => bhg_t( 'period_week', 'week' ),
+                        'month'   => bhg_t( 'period_month', 'month' ),
+                        'quarter' => bhg_t( 'period_quarter', 'quarter' ),
+                        'year'    => bhg_t( 'period_year', 'year' ),
+                );
+
+                return isset( $map[ $period ] ) ? $map[ $period ] : bhg_t( 'period_default', 'period' );
+        }
+}
+
+if ( ! function_exists( 'bhg_build_win_limit_notice' ) ) {
+        /**
+         * Build the display notice when win limits skip entrants.
+         *
+         * @param string $context       Either 'hunt' or 'tournament'.
+         * @param int    $limit_count   Maximum wins allowed in window.
+         * @param string $limit_period  Period keyword.
+         * @param int    $skipped_count Number of entrants skipped.
+         * @return string
+         */
+        function bhg_build_win_limit_notice( $context, $limit_count, $limit_period, $skipped_count ) {
+                $limit_count   = (int) $limit_count;
+                $skipped_count = (int) $skipped_count;
+                $limit_period  = sanitize_key( $limit_period );
+                $context       = ( 'tournament' === $context ) ? 'tournament' : 'hunt';
+
+                if ( $limit_count <= 0 || 'none' === $limit_period || $skipped_count <= 0 ) {
+                        return '';
+                }
+
+                $count_value  = number_format_i18n( $limit_count );
+                $skipped_value = number_format_i18n( $skipped_count );
+
+                $count_label = ( 1 === $limit_count )
+                        ? sprintf( bhg_t( 'phrase_win_limit_count_single', '%s win' ), $count_value )
+                        : sprintf( bhg_t( 'phrase_win_limit_count_plural', '%s wins' ), $count_value );
+
+                $skipped_label = ( 1 === $skipped_count )
+                        ? sprintf( bhg_t( 'phrase_win_limit_skipped_single', '%s entry' ), $skipped_value )
+                        : sprintf( bhg_t( 'phrase_win_limit_skipped_plural', '%s entries' ), $skipped_value );
+
+                $period_label = bhg_get_period_label( $limit_period );
+
+                $message_key = ( 'tournament' === $context )
+                        ? 'notice_tournament_win_limit_skip'
+                        : 'notice_hunt_win_limit_skip';
+
+                return sprintf(
+                        bhg_t(
+                                $message_key,
+                                'Some entrants were skipped due to the win limit (%1$s per %2$s). %3$s were recorded and the next eligible players were promoted automatically.'
+                        ),
+                        $count_label,
+                        $period_label,
+                        $skipped_label
+                );
+        }
+}
+
+if ( ! function_exists( 'bhg_get_hunt_results_url' ) ) {
+        /**
+         * Build the preferred URL for viewing hunt results.
+         *
+         * @param int $hunt_id Hunt identifier.
+         * @return string
+         */
+        function bhg_get_hunt_results_url( $hunt_id ) {
+                $hunt_id = (int) $hunt_id;
+
+                if ( $hunt_id <= 0 ) {
+                        return '';
+                }
+
+                $front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'user-guesses' ) : '';
+                if ( '' !== $front_url ) {
+                        return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
+                }
+
+                if ( function_exists( 'current_user_can' ) && current_user_can( 'manage_options' ) ) {
+                        return add_query_arg(
+                                array(
+                                        'page'    => 'bhg-bonus-hunts-results',
+                                        'hunt_id' => $hunt_id,
+                                        'id'      => $hunt_id,
+                                ),
+                                admin_url( 'admin.php' )
+                        );
+                }
+
+                return '';
+        }
+}
+
+if ( ! function_exists( 'bhg_get_guess_submission_url' ) ) {
+        /**
+         * Build the preferred URL for submitting or editing a guess.
+         *
+         * @param int $hunt_id Hunt identifier.
+         * @return string
+         */
+        function bhg_get_guess_submission_url( $hunt_id ) {
+                $hunt_id = (int) $hunt_id;
+
+                if ( $hunt_id <= 0 ) {
+                        return '';
+                }
+
+                $front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'active-bonus-hunt' ) : '';
+                if ( '' === $front_url ) {
+                        return '';
+                }
+
+                return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
         }
 }
 
