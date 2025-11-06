@@ -183,10 +183,10 @@ class BHG_Bonus_Hunts_List_Table extends WP_List_Table {
     protected function column_default( $item, $column_name ) {
         switch ( $column_name ) {
             case 'starting_balance':
-                return esc_html( bhg_format_currency( (float) $item['starting_balance'] ) );
+                return esc_html( bhg_format_money( (float) $item['starting_balance'] ) );
             case 'final_balance':
                 if ( 'closed' === $item['status'] && null !== $item['final_balance'] ) {
-                    return esc_html( bhg_format_currency( (float) $item['final_balance'] ) );
+                    return esc_html( bhg_format_money( (float) $item['final_balance'] ) );
                 }
 
                 return esc_html( bhg_t( 'label_en_dash', '–' ) );
