@@ -2,11 +2,13 @@
 
 > **Superseded:** See `docs/detailed-checklist-20240916.md` for the current 8.0.16 compliance snapshot. This document remains for historical reference.
 
-Status Legend:
+**Status Legend**
 
-* ✅ — Requirement fully satisfied and verified.
-* ⚠️ — Requirement partially satisfied or requires follow-up/verification.
-* ❌ — Requirement not implemented.
+- ✅ — Requirement fully satisfied and verified.
+- ⚠️ — Requirement partially satisfied or requires follow-up/verification.
+- ❌ — Requirement not implemented.
+
+---
 
 ## 0. Plugin Bootstrap & Tooling
 
@@ -216,4 +218,3 @@ Status Legend:
 | List view of latest jackpots | ❌ | Pending. |
 | Logic to hit/increase jackpots on hunt close | ❌ | Pending. |
 | Shortcodes `[bhg_jackpot_current]`, `[bhg_jackpot_latest]`, `[bhg_jackpot_ticker]`, `[bhg_jackpot_winners]` | ❌ | Pending implementation. |
-
