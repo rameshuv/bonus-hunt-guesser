@@ -1,5 +1,7 @@
 # Bonus Hunt Guesser – Detailed Delivery Checklist (2024-09-15)
 
+> **Superseded:** See `docs/detailed-checklist-20240916.md` for the current 8.0.16 compliance snapshot. This document remains for historical reference.
+
 Status Legend:
 
 * ✅ — Requirement fully satisfied and verified.
@@ -214,4 +216,3 @@ Status Legend:
 | List view of latest jackpots | ❌ | Pending. |
 | Logic to hit/increase jackpots on hunt close | ❌ | Pending. |
 | Shortcodes `[bhg_jackpot_current]`, `[bhg_jackpot_latest]`, `[bhg_jackpot_ticker]`, `[bhg_jackpot_winners]` | ❌ | Pending implementation. |
-

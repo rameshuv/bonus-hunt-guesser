@@ -23,6 +23,7 @@ if ( ! class_exists( 'BHG_Prizes' ) && file_exists( BHG_PLUGIN_DIR . 'includes/c
 	require_once BHG_PLUGIN_DIR . 'includes/class-bhg-prizes.php';
 }
 
+// Controls: timeframe & selection.
 $timeframe        = isset( $_GET['timeframe'] ) ? sanitize_key( wp_unslash( $_GET['timeframe'] ) ) : 'month';
 $valid_timeframes = array( 'month', 'year', 'all' );
 if ( ! in_array( $timeframe, $valid_timeframes, true ) ) {
@@ -33,6 +34,7 @@ $selector_limit       = (int) apply_filters( 'bhg_results_selector_limit', 50 );
 $hunts_selector       = BHG_Bonus_Hunts::get_closed_hunts_for_selector( $timeframe, $selector_limit );
 $tournaments_selector = BHG_Bonus_Hunts::get_tournaments_for_selector( $timeframe, $selector_limit );
 
+// Build quick lookup maps for select controls.
 $hunts_map = array();
 foreach ( (array) $hunts_selector as $hunt_row ) {
 	$hunts_map[ (int) $hunt_row->id ] = $hunt_row;
@@ -43,6 +45,7 @@ foreach ( (array) $tournaments_selector as $tournament_row ) {
 	$tournaments_map[ (int) $tournament_row->id ] = $tournament_row;
 }
 
+// View selection.
 $requested_type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : 'hunt';
 $requested_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
 $view_type      = in_array( $requested_type, array( 'hunt', 'tournament' ), true ) ? $requested_type : 'hunt';
@@ -50,6 +53,7 @@ $view_type      = in_array( $requested_type, array( 'hunt', 'tournament' ), true
 $hunt_id       = ( 'tournament' === $view_type ) ? 0 : $requested_id;
 $tournament_id = ( 'tournament' === $view_type ) ? $requested_id : 0;
 
+// Fallback gracefully if the requested item isn't available in the current timeframe.
 if ( 'tournament' === $view_type ) {
 	if ( ! $tournament_id || ! isset( $tournaments_map[ $tournament_id ] ) ) {
 		$tournament_id = $tournaments_map ? (int) array_key_first( $tournaments_map ) : 0;
@@ -68,13 +72,15 @@ if ( 'tournament' === $view_type ) {
 	}
 }
 
+// Derive the currently selected value for the control.
 $selected_control_value = '';
 if ( 'tournament' === $view_type && $tournament_id ) {
-	$selected_control_value = 'tournament-' . $tournament_id;
+	$selected_control_value = 'tournament-' . (int) $tournament_id;
 } elseif ( 'hunt' === $view_type && $hunt_id ) {
-	$selected_control_value = 'hunt-' . $hunt_id;
+	$selected_control_value = 'hunt-' . (int) $hunt_id;
 }
 
+// Labels & defaults.
 $timeframe_labels = array(
 	'month' => bhg_t( 'option_timeframe_this_month', 'This Month' ),
 	'year'  => bhg_t( 'option_timeframe_this_year', 'This Year' ),
@@ -94,11 +100,14 @@ $final_balance_display = '';
 $winners_display       = '';
 $participants_display  = '';
 $has_final_balance     = false;
-$prize_titles          = array(
+
+// Prize titles will be collected by set, used when mapping per affiliate status.
+$prize_titles = array(
 	'regular' => array(),
 	'premium' => array(),
 );
 
+// No data at all for current timeframe?
 if ( empty( $hunts_map ) && empty( $tournaments_map ) ) {
 	$notices[] = array(
 		'type'    => 'info',
@@ -106,6 +115,7 @@ if ( empty( $hunts_map ) && empty( $tournaments_map ) ) {
 	);
 }
 
+// Load data for selected view.
 if ( 'tournament' === $view_type && $tournament_id ) {
 	$tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 	$results_table     = esc_sql( $wpdb->prefix . 'bhg_tournament_results' );
@@ -127,19 +137,22 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 		$page_title = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $tournament->title );
 		$results    = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
-				"SELECT r.*, u.display_name FROM {$results_table} r"
-				. " LEFT JOIN {$users_table} u ON u.ID = r.user_id"
-				. " WHERE r.tournament_id = %d"
-				. " ORDER BY r.points DESC, r.wins DESC, r.last_win_date ASC, r.id ASC",
+				"SELECT r.*, u.display_name
+				 FROM {$results_table} r
+				 LEFT JOIN {$users_table} u ON u.ID = r.user_id
+				 WHERE r.tournament_id = %d
+				 ORDER BY r.points DESC, r.wins DESC, r.last_win_date ASC, r.id ASC",
 				$tournament_id
 			)
 		);
+
 		$total_participants = count( $results );
 		$winners_limit      = apply_filters( 'bhg_tournament_winners_limit', 3, $tournament );
 		$winners_limit      = max( 1, (int) $winners_limit );
 	}
 } elseif ( 'hunt' === $view_type && $hunt_id ) {
 	$hunt = BHG_Bonus_Hunts::get_hunt( $hunt_id );
+
 	if ( ! $hunt ) {
 		$notices[] = array(
 			'type'    => 'error',
@@ -166,6 +179,7 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 		$winners_display       = number_format_i18n( $actual_winner_count ? $actual_winner_count : $winners_limit );
 		$participants_display  = number_format_i18n( $total_participants );
 
+		// If win-limit rules exclude some winners, show a friendly notice.
 		if ( ! empty( $ineligible_winner_ids ) && function_exists( 'bhg_get_win_limit_config' ) && function_exists( 'bhg_build_win_limit_notice' ) ) {
 			$limit_config = bhg_get_win_limit_config( 'hunt' );
 			$limit_count  = isset( $limit_config['count'] ) ? (int) $limit_config['count'] : 0;
@@ -223,7 +237,7 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 		$label .= sprintf( ' (%s)', $closed );
 	}
 	?>
-					<option value="<?php echo esc_attr( $value ); ?>"<?php echo $selected; ?>><?php echo esc_html( $label ); ?></option>
+					<option value="<?php echo esc_attr( $value ); ?>"<?php echo $selected; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php // selected() is already escaped and includes leading space. ?> ><?php echo esc_html( $label ); ?></option>
 <?php endforeach; ?>
 				</optgroup>
 <?php endif; ?>
@@ -245,12 +259,12 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 		$label .= sprintf( ' (%s)', $end_date );
 	}
 	?>
-					<option value="<?php echo esc_attr( $value ); ?>"<?php echo $selected; ?>><?php echo esc_html( $label ); ?></option>
+					<option value="<?php echo esc_attr( $value ); ?>"<?php echo $selected; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> ><?php echo esc_html( $label ); ?></option>
 <?php endforeach; ?>
 				</optgroup>
 <?php endif; ?>
 <?php if ( '' === $selected_control_value ) : ?>
-				<option value="" selected><?php echo esc_html( bhg_t( 'label_select_result', 'Select an item' ) ); ?></option>
+				<option value="" selected="selected"><?php echo esc_html( bhg_t( 'label_select_result', 'Select an item' ) ); ?></option>
 <?php endif; ?>
 			</select>
 		</label>
@@ -306,13 +320,17 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 			</tr>
 <?php else : ?>
 <?php foreach ( $results as $index => $row ) :
-	$position    = $index + 1;
+	$position    = (int) $index + 1;
 	$is_winner   = ( $position <= $winners_limit );
 	$row_classes = array( 'bhg-results-row' );
 	if ( $is_winner ) {
 		$row_classes[] = 'bhg-results-row--winner';
 	}
-	$name = $row->display_name ? $row->display_name : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+	$name = $row->display_name ? $row->display_name : sprintf(
+		/* translators: %d: user ID. */
+		bhg_t( 'label_user_hash', 'user#%d' ),
+		(int) $row->user_id
+	);
 	?>
 			<tr class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
 				<td><span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span></td>
@@ -364,9 +382,9 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 			</tr>
 <?php else : ?>
 <?php foreach ( $guesses as $index => $row ) :
-	$position    = $index + 1;
+	$position    = (int) $index + 1;
 	$user_id     = isset( $row->user_id ) ? (int) $row->user_id : 0;
-	$is_winner   = $user_id > 0 && isset( $winner_lookup[ $user_id ] );
+	$is_winner   = ( $user_id > 0 && isset( $winner_lookup[ $user_id ] ) );
 	$row_classes = array( 'bhg-results-row' );
 	if ( $is_winner ) {
 		$row_classes[] = 'bhg-results-row--winner';
