@@ -115,7 +115,40 @@ add_filter(
  * @return bool
  */
 function bhg_is_frontend() {
-	return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+        return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+}
+
+if ( ! function_exists( 'bhg_get_core_page_url' ) ) {
+        /**
+         * Retrieve the permalink for a registered core plugin page.
+         *
+         * @param string $slug Core page slug as defined in bhg_get_required_pages().
+         * @return string Core page permalink or empty string when unavailable.
+         */
+        function bhg_get_core_page_url( $slug ) {
+                $slug = sanitize_title( (string) $slug );
+                if ( '' === $slug ) {
+                        return '';
+                }
+
+                $page_ids = get_option( 'bhg_core_page_ids', array() );
+                if ( is_array( $page_ids ) && isset( $page_ids[ $slug ] ) ) {
+                        $permalink = get_permalink( (int) $page_ids[ $slug ] );
+                        if ( $permalink ) {
+                                return $permalink;
+                        }
+                }
+
+                $page = get_page_by_path( $slug, OBJECT, 'page' );
+                if ( $page ) {
+                        $permalink = get_permalink( $page );
+                        if ( $permalink ) {
+                                return $permalink;
+                        }
+                }
+
+                return '';
+        }
 }
 
 if ( ! function_exists( 'bhg_get_core_page_url' ) ) {
@@ -152,9 +185,9 @@ if ( ! function_exists( 'bhg_get_core_page_url' ) ) {
 }
 
 if ( ! function_exists( 'bhg_t' ) ) {
-		/**
-		 * Retrieve a translation value from the database.
-		 *
+                /**
+                 * Retrieve a translation value from the database.
+                 *
 		 * @param string $slug    Translation slug.
 		 * @param string $default_text Default text if not found.
 		 * @param string $locale  Locale to use. Defaults to current locale.
@@ -548,6 +581,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'button_results'                               => 'Results',
 			'link_show_results'                            => 'Show Results',
 			'link_guess_now'                               => 'Guess Now',
+                        'button_results'                               => 'Results',
+                        'link_show_results'                            => 'Show Results',
+                        'link_guess_now'                               => 'Guess Now',
                         'button_submit_guess'                          => 'Submit Guess',
                         'button_edit_guess'                            => 'Edit Guess',
                         'button_filter'                                => 'Filter',

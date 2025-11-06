@@ -491,6 +491,9 @@
 .bhg-user-guesses th a:visited,
 .bhg-hunts th a,
 .bhg-hunts th a:visited {
+.bhg-tournaments th a,
+.bhg-user-guesses th a,
+.bhg-hunts th a {
     color: #fff;
     text-decoration: none;
 }
