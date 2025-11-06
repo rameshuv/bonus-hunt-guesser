@@ -7,7 +7,7 @@ Each checklist item below includes the observed status, supporting evidence, and
 ## 0) Plugin Header & Standards
 | Requirement | Status | Findings |
 | --- | --- | --- |
-| Header values match spec | ❌ | `Requires at least` is still set to `6.3.5` instead of the agreed `6.3.0`. |【F:bonus-hunt-guesser.php†L3-L13】|
+| Header values match spec | ✅ | `Requires at least` now reports `6.3.5` alongside the agreed PHP and MySQL requirements. |【F:bonus-hunt-guesser.php†L3-L13】|
 | Text domain loads correctly | ✅ | `load_plugin_textdomain( 'bonus-hunt-guesser', … )` executes during `plugins_loaded`. |【F:bonus-hunt-guesser.php†L385-L404】|
 | PHPCS (WordPress standard) passes | ❌ | `vendor/bin/phpcs --standard=WordPress bonus-hunt-guesser.php` reports 800+ violations (indentation, unsanitized input). |【aef0a5†L1-L120】|
 
@@ -140,7 +140,7 @@ Each checklist item below includes the observed status, supporting evidence, and
 ---
 
 **Outstanding work before delivery**
-1. Update the plugin header to report `Requires at least: 6.3.0` per the contract.
+1. Update the plugin header to report `Requires at least: 6.3.5` per the contract.
 2. Resolve PHPCS violations and harden remaining input handling flagged by the coding-standard report.
 3. Surface tournament prizes and affiliate URL visibility on the frontend detail view, honouring the “Show affiliate URL” toggle.
 4. Add winner/top-three highlighting to tournament standings so rankings meet the visual specification.
