@@ -132,7 +132,7 @@ foreach ( (array) $hunts as $entry ) {
         $start    = isset( $hunt->starting_balance ) ? (float) $hunt->starting_balance : 0.0;
         $final    = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
         $closed   = isset( $hunt->closed_at ) ? (string) $hunt->closed_at : '';
-        $final_display = null === $final ? '–' : bhg_format_currency( (float) $final );
+        $final_display = null === $final ? '–' : bhg_format_money( (float) $final );
         $closed_time   = '–';
         if ( $closed ) {
                 $timestamp = strtotime( $closed );
@@ -172,9 +172,9 @@ foreach ( (array) $hunts as $entry ) {
                 }
                 $guess_value = isset( $winner->guess ) ? (float) $winner->guess : 0.0;
                 $diff_value  = isset( $winner->diff ) ? (float) $winner->diff : null;
-                $guess_out   = sprintf( '%s %s', bhg_t( 'label_guess', 'Guess:' ), bhg_format_currency( $guess_value ) );
+                $guess_out   = sprintf( '%s %s', bhg_t( 'label_guess', 'Guess:' ), bhg_format_money( $guess_value ) );
                 if ( null !== $diff_value ) {
-                        $diff_out = sprintf( '%s %s', bhg_t( 'label_difference', 'Difference:' ), bhg_format_currency( abs( $diff_value ) ) );
+                        $diff_out = sprintf( '%s %s', bhg_t( 'label_difference', 'Difference:' ), bhg_format_money( abs( $diff_value ) ) );
                 }
         }
 ?>
@@ -198,7 +198,7 @@ foreach ( (array) $hunts as $entry ) {
                                                                         <?php endif; ?>
                                                                 </td>
                                                                 <?php if ( $is_first ) : ?>
-                                                                <td rowspan="<?php echo esc_attr( $rowspan ); ?>"><?php echo esc_html( bhg_format_currency( $start ) ); ?></td>
+                                                                <td rowspan="<?php echo esc_attr( $rowspan ); ?>"><?php echo esc_html( bhg_format_money( $start ) ); ?></td>
                                                                 <td rowspan="<?php echo esc_attr( $rowspan ); ?>"><?php echo esc_html( $final_display ); ?></td>
                                                                 <td rowspan="<?php echo esc_attr( $rowspan ); ?>"><?php echo esc_html( $closed_time ); ?></td>
                                                                 <?php endif; ?>
