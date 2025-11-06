@@ -215,6 +215,54 @@ class BHG_Prizes {
         }
 
         /**
+         * Retrieve multiple prizes by ID.
+         *
+         * The resulting array preserves the order of the provided identifiers.
+         *
+         * @param array $ids Prize identifiers.
+         * @return array List of prize objects.
+         */
+        public static function get_prizes_by_ids( $ids ) {
+                global $wpdb;
+
+                $clean_ids = array();
+                foreach ( (array) $ids as $maybe_id ) {
+                        $maybe_id = absint( $maybe_id );
+                        if ( $maybe_id > 0 ) {
+                                $clean_ids[ $maybe_id ] = $maybe_id;
+                        }
+                }
+
+                if ( empty( $clean_ids ) ) {
+                        return array();
+                }
+
+                $table        = $wpdb->prefix . 'bhg_prizes';
+                $placeholders = implode( ', ', array_fill( 0, count( $clean_ids ), '%d' ) );
+                $sql          = "SELECT * FROM {$table} WHERE id IN ({$placeholders})";
+
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+                $results = $wpdb->get_results( $wpdb->prepare( $sql, array_values( $clean_ids ) ) );
+                if ( empty( $results ) ) {
+                        return array();
+                }
+
+                $indexed = array();
+                foreach ( $results as $row ) {
+                        $indexed[ (int) $row->id ] = $row;
+                }
+
+                $ordered = array();
+                foreach ( $clean_ids as $id ) {
+                        if ( isset( $indexed[ $id ] ) ) {
+                                $ordered[] = $indexed[ $id ];
+                        }
+                }
+
+                return $ordered;
+        }
+
+        /**
          * Insert or update a prize.
          *
          * @param array $data Prize data.

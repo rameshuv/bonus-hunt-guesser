@@ -327,4 +327,33 @@ class BHG_Bonus_Hunts {
 
                 return array_map( 'intval', $rows );
         }
+
+        /**
+         * Retrieve user IDs that were marked ineligible for a hunt due to win limits.
+         *
+         * @param int $hunt_id Hunt ID.
+         * @return int[] List of user IDs.
+         */
+        public static function get_ineligible_winner_ids( $hunt_id ) {
+                global $wpdb;
+
+                $winners_table = esc_sql( $wpdb->prefix . 'bhg_hunt_winners' );
+
+                if ( ! $winners_table ) {
+                        return array();
+                }
+
+                $rows = $wpdb->get_col(
+                        $wpdb->prepare(
+                                "SELECT user_id FROM {$winners_table} WHERE hunt_id = %d AND eligible = 0",
+                                (int) $hunt_id
+                        )
+                );
+
+                if ( empty( $rows ) ) {
+                        return array();
+                }
+
+                return array_map( 'intval', $rows );
+        }
 }
