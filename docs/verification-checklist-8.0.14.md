@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser — v8.0.14 Verification Checklist
 
-- Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+
+- Runtime: PHP 7.4 · WordPress 6.3.0 · MySQL 5.5.5+
 - Standards: PHPCS (`WordPress-Extra`, `WordPress-Docs`, `WordPress-Core`)
 - Text Domain: `bonus-hunt-guesser`
 
