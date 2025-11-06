@@ -94,7 +94,10 @@ $final_balance_display = '';
 $winners_display       = '';
 $participants_display  = '';
 $has_final_balance     = false;
-$prize_titles          = array();
+$prize_titles          = array(
+        'regular' => array(),
+        'premium' => array(),
+);
 
 if ( empty( $hunts_map ) && empty( $tournaments_map ) ) {
 	$notices[] = array(
@@ -142,31 +145,53 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 			'type'    => 'error',
 			'message' => bhg_t( 'invalid_hunt', 'Invalid hunt' ),
 		);
-	} else {
-		$page_title = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
+        } else {
+                $hunt_site_id = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
+                $page_title = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
 		$guesses    = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
-		$official_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
-		foreach ( $official_winner_ids as $index => $winner_user_id ) {
-			$winner_lookup[ (int) $winner_user_id ] = (int) $index;
-		}
-		$winners_limit       = max( 1, (int) $hunt->winners_count );
-		$final_balance_raw   = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
-		$has_final_balance   = null !== $final_balance_raw;
-		$final_balance_value = $has_final_balance ? (float) $final_balance_raw : null;
-		$total_participants  = count( $guesses );
-		$actual_winner_count = count( $official_winner_ids );
-		$final_balance_display = $has_final_balance ? bhg_format_currency( $final_balance_value ) : bhg_t( 'label_emdash', '—' );
-		$winners_display       = number_format_i18n( $actual_winner_count ? $actual_winner_count : $winners_limit );
-		$participants_display  = number_format_i18n( $total_participants );
+                $official_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
+                $ineligible_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_ineligible_winner_ids' ) ? BHG_Bonus_Hunts::get_ineligible_winner_ids( (int) $hunt->id ) : array();
+                foreach ( $official_winner_ids as $index => $winner_user_id ) {
+                        $winner_lookup[ (int) $winner_user_id ] = (int) $index;
+                }
+                $winners_limit       = max( 1, (int) $hunt->winners_count );
+                $final_balance_raw   = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
+                $has_final_balance   = null !== $final_balance_raw;
+                $final_balance_value = $has_final_balance ? (float) $final_balance_raw : null;
+                $total_participants  = count( $guesses );
+                $actual_winner_count = count( $official_winner_ids );
+                $final_balance_display = $has_final_balance ? bhg_format_money( $final_balance_value ) : bhg_t( 'label_emdash', '—' );
+                $winners_display       = number_format_i18n( $actual_winner_count ? $actual_winner_count : $winners_limit );
+                $participants_display  = number_format_i18n( $total_participants );
 
-		if ( class_exists( 'BHG_Prizes' ) ) {
-			$hunt_prizes = BHG_Prizes::get_prizes_for_hunt( (int) $hunt->id );
-			foreach ( (array) $hunt_prizes as $prize_row ) {
-				if ( isset( $prize_row->title ) && '' !== $prize_row->title ) {
-					$prize_titles[] = (string) $prize_row->title;
-				}
-			}
-		}
+                if ( ! empty( $ineligible_winner_ids ) && function_exists( 'bhg_get_win_limit_config' ) && function_exists( 'bhg_build_win_limit_notice' ) ) {
+                        $limit_config = bhg_get_win_limit_config( 'hunt' );
+                        $limit_count  = isset( $limit_config['count'] ) ? (int) $limit_config['count'] : 0;
+                        $limit_period = isset( $limit_config['period'] ) ? $limit_config['period'] : 'none';
+                        $notice_text  = bhg_build_win_limit_notice( 'hunt', $limit_count, $limit_period, count( $ineligible_winner_ids ) );
+
+                        if ( '' !== $notice_text ) {
+                                $notices[] = array(
+                                        'type'    => 'info',
+                                        'message' => $notice_text,
+                                );
+                        }
+                }
+
+                if ( class_exists( 'BHG_Prizes' ) ) {
+                        $prize_sets = BHG_Prizes::get_prizes_for_hunt( (int) $hunt->id, array( 'grouped' => true ) );
+                        foreach ( array( 'regular', 'premium' ) as $set_key ) {
+                                if ( empty( $prize_sets[ $set_key ] ) || ! is_array( $prize_sets[ $set_key ] ) ) {
+                                        continue;
+                                }
+
+                                foreach ( $prize_sets[ $set_key ] as $prize_row ) {
+                                        if ( isset( $prize_row->title ) && '' !== $prize_row->title ) {
+                                                $prize_titles[ $set_key ][] = (string) $prize_row->title;
+                                        }
+                                }
+                        }
+                }
 	}
 }
 
@@ -346,15 +371,29 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
         }
 
         $name          = $row->display_name ? $row->display_name : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-        $guess_display = isset( $row->guess ) ? bhg_format_currency( (float) $row->guess ) : bhg_t( 'label_emdash', '—' );
-        $diff_value    = ( isset( $row->diff ) && null !== $row->diff ) ? bhg_format_currency( abs( (float) $row->diff ) ) : bhg_t( 'label_emdash', '—' );
+        $guess_display = isset( $row->guess ) ? bhg_format_money( (float) $row->guess ) : bhg_t( 'label_emdash', '—' );
+        $diff_value    = ( isset( $row->diff ) && null !== $row->diff ) ? bhg_format_money( abs( (float) $row->diff ) ) : bhg_t( 'label_emdash', '—' );
         $created_at    = isset( $row->created_at ) ? $row->created_at : null;
         $submitted_on  = $created_at ? mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $created_at ) : bhg_t( 'label_emdash', '—' );
         $prize_title   = '';
         if ( $is_winner ) {
-                $prize_index = isset( $winner_lookup[ $user_id ] ) ? (int) $winner_lookup[ $user_id ] : 0;
-                if ( isset( $prize_titles[ $prize_index ] ) ) {
-                        $prize_title = $prize_titles[ $prize_index ];
+                $prize_index         = isset( $winner_lookup[ $user_id ] ) ? (int) $winner_lookup[ $user_id ] : 0;
+                $is_affiliate_winner = false;
+
+                if ( $hunt_site_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
+                        $is_affiliate_winner = bhg_is_user_affiliate_for_site( $user_id, $hunt_site_id );
+                } elseif ( function_exists( 'bhg_is_user_affiliate' ) ) {
+                        $is_affiliate_winner = bhg_is_user_affiliate( $user_id );
+                } else {
+                        $is_affiliate_winner = (bool) get_user_meta( $user_id, 'bhg_is_affiliate', true );
+                }
+
+                if ( $is_affiliate_winner && isset( $prize_titles['premium'][ $prize_index ] ) ) {
+                        $prize_title = $prize_titles['premium'][ $prize_index ];
+                } elseif ( isset( $prize_titles['regular'][ $prize_index ] ) ) {
+                        $prize_title = $prize_titles['regular'][ $prize_index ];
+                } elseif ( $is_affiliate_winner && isset( $prize_titles['premium'][0] ) ) {
+                        $prize_title = $prize_titles['premium'][0];
                 }
         }
 ?>

@@ -153,3 +153,36 @@ function bhg_ensure_required_pages() {
                 update_option( 'bhg_core_page_ids', $updated_ids );
         }
 }
+
+/**
+ * Retrieve the permalink for a managed core page.
+ *
+ * @param string $slug Page slug from bhg_get_required_pages().
+ * @return string Core page URL or empty string if unavailable.
+ */
+function bhg_get_core_page_url( $slug ) {
+        $slug = sanitize_title( $slug );
+
+        if ( '' === $slug ) {
+                return '';
+        }
+
+        $page_ids = get_option( 'bhg_core_page_ids', array() );
+        if ( is_array( $page_ids ) && isset( $page_ids[ $slug ] ) ) {
+                $page_id  = (int) $page_ids[ $slug ];
+                $permalink = get_permalink( $page_id );
+                if ( $permalink ) {
+                        return $permalink;
+                }
+        }
+
+        $page = get_page_by_path( $slug, OBJECT, 'page' );
+        if ( $page && isset( $page->ID ) ) {
+                $permalink = get_permalink( $page );
+                if ( $permalink ) {
+                        return $permalink;
+                }
+        }
+
+        return '';
+}

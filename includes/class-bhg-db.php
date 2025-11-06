@@ -240,11 +240,13 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    prize_id BIGINT UNSIGNED NOT NULL,
+                                   prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
-                                   UNIQUE KEY hunt_prize (hunt_id, prize_id),
+                                   UNIQUE KEY hunt_prize (hunt_id, prize_id, prize_type),
                                    KEY hunt_id (hunt_id),
-                                   KEY prize_id (prize_id)
+                                   KEY prize_id (prize_id),
+                                   KEY prize_type (prize_type)
                    ) {$charset_collate};";
 
                 // Hunt to tournament mapping.
@@ -346,6 +348,36 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
                         if ( ! $this->index_exists( $tours_table, 'affiliate_website' ) ) {
                                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
                                 $wpdb->query( "ALTER TABLE `{$tours_table}` ADD KEY affiliate_website (affiliate_website)" );
+                        }
+
+                        // Hunt prize relation columns.
+                        $hpneed = array(
+                                'prize_type' => "ADD COLUMN prize_type VARCHAR(20) NOT NULL DEFAULT 'regular' AFTER prize_id",
+                        );
+
+                        foreach ( $hpneed as $c => $alter ) {
+                                if ( ! $this->column_exists( $hunt_prizes_table, $c ) ) {
+                                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                        $wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` {$alter}" );
+
+                                        if ( 'prize_type' === $c ) {
+                                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                                $wpdb->query( "UPDATE `{$hunt_prizes_table}` SET prize_type = 'regular' WHERE prize_type = '' OR prize_type IS NULL" );
+                                        }
+                                }
+                        }
+
+                        if ( $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
+                        }
+
+                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                        $wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD UNIQUE KEY hunt_prize (hunt_id, prize_id, prize_type)" );
+
+                        if ( ! $this->index_exists( $hunt_prizes_table, 'prize_type' ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD KEY prize_type (prize_type)" );
                         }
 
                         // Tournament results columns.
