@@ -811,9 +811,18 @@ return ob_get_clean();
 
                        $selected_hunt = $hunts_map[ $selected_hunt_id ];
 
-                       $hunt_prizes = array();
+                       $prize_sets = array(
+                               'regular' => array(),
+                               'premium' => array(),
+                       );
                        if ( class_exists( 'BHG_Prizes' ) ) {
-                               $hunt_prizes = BHG_Prizes::get_prizes_for_hunt( $selected_hunt_id, array( 'active_only' => true ) );
+                               $prize_sets = BHG_Prizes::get_prizes_for_hunt(
+                                       $selected_hunt_id,
+                                       array(
+                                               'active_only' => true,
+                                               'grouped'     => true,
+                                       )
+                               );
                        }
 
                        $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 30 );
@@ -980,8 +989,33 @@ return ob_get_clean();
                                echo '<div class="bhg-win-limit-notice">' . esc_html( $win_limit_notice ) . '</div>';
                        }
 
-                       if ( ! empty( $hunt_prizes ) ) {
-                               echo $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size );
+                       $regular_prizes = isset( $prize_sets['regular'] ) && is_array( $prize_sets['regular'] ) ? $prize_sets['regular'] : array();
+                       $premium_prizes = isset( $prize_sets['premium'] ) && is_array( $prize_sets['premium'] ) ? $prize_sets['premium'] : array();
+                       $show_premium   = false;
+
+                       if ( ! empty( $premium_prizes ) && is_user_logged_in() ) {
+                               if ( $hunt_site_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
+                                       $show_premium = bhg_is_user_affiliate_for_site( get_current_user_id(), $hunt_site_id );
+                               } elseif ( function_exists( 'bhg_is_user_affiliate' ) ) {
+                                       $show_premium = bhg_is_user_affiliate( get_current_user_id() );
+                               } else {
+                                       $show_premium = (bool) get_user_meta( get_current_user_id(), 'bhg_is_affiliate', true );
+                               }
+                       }
+
+                       if ( $show_premium && ! empty( $premium_prizes ) ) {
+                               echo '<div class="bhg-hunt-prizes bhg-hunt-prizes-premium">';
+                               echo '<h4 class="bhg-prize-heading bhg-prize-heading-premium">' . esc_html( bhg_t( 'premium_prizes_heading', 'Premium Prizes' ) ) . '</h4>';
+                               echo $this->render_prize_section( $premium_prizes, $prize_layout, $prize_size );
+                               if ( ! empty( $regular_prizes ) ) {
+                                       echo '<h4 class="bhg-prize-heading bhg-prize-heading-regular">' . esc_html( bhg_t( 'regular_prizes_heading', 'Regular Prizes' ) ) . '</h4>';
+                                       echo $this->render_prize_section( $regular_prizes, $prize_layout, $prize_size );
+                               }
+                               echo '</div>';
+                       } elseif ( ! empty( $regular_prizes ) ) {
+                               echo '<div class="bhg-hunt-prizes">';
+                               echo $this->render_prize_section( $regular_prizes, $prize_layout, $prize_size );
+                               echo '</div>';
                        }
                        echo '</div>';
 

@@ -105,6 +105,20 @@
     margin: 12px 0;
 }
 
+.bhg-hunt-prizes {
+    margin: 16px 0;
+}
+
+.bhg-prize-heading {
+    margin: 0 0 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.bhg-prize-heading-premium {
+    color: #d4af37;
+}
+
 .bhg-hunt-selector {
     display: flex;
     align-items: center;
