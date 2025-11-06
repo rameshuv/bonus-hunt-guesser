@@ -145,19 +145,34 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 	} else {
 		$page_title = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
 		$guesses    = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
-		$official_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
-		foreach ( $official_winner_ids as $index => $winner_user_id ) {
-			$winner_lookup[ (int) $winner_user_id ] = (int) $index;
-		}
-		$winners_limit       = max( 1, (int) $hunt->winners_count );
-		$final_balance_raw   = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
-		$has_final_balance   = null !== $final_balance_raw;
-		$final_balance_value = $has_final_balance ? (float) $final_balance_raw : null;
-		$total_participants  = count( $guesses );
-		$actual_winner_count = count( $official_winner_ids );
-		$final_balance_display = $has_final_balance ? bhg_format_currency( $final_balance_value ) : bhg_t( 'label_emdash', '—' );
-		$winners_display       = number_format_i18n( $actual_winner_count ? $actual_winner_count : $winners_limit );
-		$participants_display  = number_format_i18n( $total_participants );
+                $official_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
+                $ineligible_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_ineligible_winner_ids' ) ? BHG_Bonus_Hunts::get_ineligible_winner_ids( (int) $hunt->id ) : array();
+                foreach ( $official_winner_ids as $index => $winner_user_id ) {
+                        $winner_lookup[ (int) $winner_user_id ] = (int) $index;
+                }
+                $winners_limit       = max( 1, (int) $hunt->winners_count );
+                $final_balance_raw   = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
+                $has_final_balance   = null !== $final_balance_raw;
+                $final_balance_value = $has_final_balance ? (float) $final_balance_raw : null;
+                $total_participants  = count( $guesses );
+                $actual_winner_count = count( $official_winner_ids );
+                $final_balance_display = $has_final_balance ? bhg_format_money( $final_balance_value ) : bhg_t( 'label_emdash', '—' );
+                $winners_display       = number_format_i18n( $actual_winner_count ? $actual_winner_count : $winners_limit );
+                $participants_display  = number_format_i18n( $total_participants );
+
+                if ( ! empty( $ineligible_winner_ids ) && function_exists( 'bhg_get_win_limit_config' ) && function_exists( 'bhg_build_win_limit_notice' ) ) {
+                        $limit_config = bhg_get_win_limit_config( 'hunt' );
+                        $limit_count  = isset( $limit_config['count'] ) ? (int) $limit_config['count'] : 0;
+                        $limit_period = isset( $limit_config['period'] ) ? $limit_config['period'] : 'none';
+                        $notice_text  = bhg_build_win_limit_notice( 'hunt', $limit_count, $limit_period, count( $ineligible_winner_ids ) );
+
+                        if ( '' !== $notice_text ) {
+                                $notices[] = array(
+                                        'type'    => 'info',
+                                        'message' => $notice_text,
+                                );
+                        }
+                }
 
 		if ( class_exists( 'BHG_Prizes' ) ) {
 			$hunt_prizes = BHG_Prizes::get_prizes_for_hunt( (int) $hunt->id );
@@ -346,8 +361,8 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
         }
 
         $name          = $row->display_name ? $row->display_name : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-        $guess_display = isset( $row->guess ) ? bhg_format_currency( (float) $row->guess ) : bhg_t( 'label_emdash', '—' );
-        $diff_value    = ( isset( $row->diff ) && null !== $row->diff ) ? bhg_format_currency( abs( (float) $row->diff ) ) : bhg_t( 'label_emdash', '—' );
+        $guess_display = isset( $row->guess ) ? bhg_format_money( (float) $row->guess ) : bhg_t( 'label_emdash', '—' );
+        $diff_value    = ( isset( $row->diff ) && null !== $row->diff ) ? bhg_format_money( abs( (float) $row->diff ) ) : bhg_t( 'label_emdash', '—' );
         $created_at    = isset( $row->created_at ) ? $row->created_at : null;
         $submitted_on  = $created_at ? mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $created_at ) : bhg_t( 'label_emdash', '—' );
         $prize_title   = '';
