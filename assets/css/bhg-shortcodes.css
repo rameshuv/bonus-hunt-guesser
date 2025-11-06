@@ -483,6 +483,26 @@
     color: #fff;
 }
 
+.bhg-leaderboard th a,
+.bhg-tournaments th a,
+.bhg-user-guesses th a,
+.bhg-hunts th a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.bhg-leaderboard th a:focus,
+.bhg-leaderboard th a:hover,
+.bhg-tournaments th a:focus,
+.bhg-tournaments th a:hover,
+.bhg-user-guesses th a:focus,
+.bhg-user-guesses th a:hover,
+.bhg-hunts th a:focus,
+.bhg-hunts th a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
 .bhg-leaderboard td,
 .bhg-tournaments td,
 .bhg-user-guesses td,
