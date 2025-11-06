@@ -1,7 +1,7 @@
 # Bonus Hunt Guesser – v8.0.14 Delivery Checklist
 
 Use this checklist to track every customer-mandated requirement for version **8.0.14**.
-Check off an item only after it is implemented, tested on PHP 7.4 / WordPress 6.3.0 / MySQL 5.5.5,
+Check off an item only after it is implemented, tested on PHP 7.4 / WordPress 6.3.5 / MySQL 5.5.5,
 meets WordPress coding standards (`WordPress-Core`, `WordPress-Docs`, `WordPress-Extra`), and the
 referenced file(s) have been reviewed.
 

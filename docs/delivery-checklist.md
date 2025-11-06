@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser v8.0.14 Delivery Checklist
 
-> **Environment targets:** PHP 7.4 · WordPress 6.3.0 · MySQL 5.5.5+
+> **Environment targets:** PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+
 > **Standards:** PHPCS (`WordPress-Extra`, `WordPress-Docs`, `WordPress-Core`)
 > **Text Domain:** `bonus-hunt-guesser`
 
@@ -160,7 +160,7 @@ This checklist consolidates all customer-approved functionality and QA expectati
 - [ ] Inputs sanitized/validated (`sanitize_text_field`, `absint`, etc.) and outputs escaped (`esc_html`, `esc_attr`, `wp_kses_post`).
 - [ ] Database schema migrations up to date; indexes added for frequently queried columns.
 - [ ] Avoid N+1 queries; use caching/transients where appropriate.
-- [ ] Compatible with PHP 7.4, WordPress 6.3.0, MySQL 5.5.5+ (no deprecated API usage).
+- [ ] Compatible with PHP 7.4, WordPress 6.3.5, MySQL 5.5.5+ (no deprecated API usage).
 
 ---
 
