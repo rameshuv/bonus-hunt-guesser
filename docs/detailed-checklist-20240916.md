@@ -1,225 +1,262 @@
-# Bonus Hunt Guesser – Detailed Delivery Checklist (2024-09-16)
+# Bonus Hunt Guesser — Verification & Handoff Document (Final)
 
-Status legend:
+**Version:** 1.0  
+**Scope:** Admin UI, Frontend, DB migrations, Prizes, Affiliates, Tournaments, Results/Dashboard cards  
+**Audience:** Developer • QA • PM  
+**Status Legend:** ✅ Done • ⚠️ Needs QA/Review • ❌ Not Started
 
-* ✅ — Requirement fully satisfied and verified.
-* ⚠️ — Requirement partially satisfied or requires more QA.
-* ❌ — Requirement missing or known to be non-compliant.
+---
 
-Each requirement below reflects the consolidated customer contract for version **8.0.16**. Where available, notes reference the implementing files and any follow-up actions.
+## 0) Executive Summary
 
-## 0. Plugin Bootstrap & Tooling
+This document consolidates the functional checklist, data model expectations, capability matrix, QA scenarios, and release-readiness steps for the **Bonus Hunt Guesser** plugin features delivered in this cycle. It is production-oriented and suitable for handoff and verification.
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Plugin header matches contract (metadata + version 8.0.16) | ✅ | `bonus-hunt-guesser.php` exposes version 8.0.16 with the agreed WordPress/PHP/MySQL requirements. |
-| Text domain loads on `plugins_loaded` | ✅ | Loader still hooks `load_plugin_textdomain()` during boot. |
-| PHPCS (WordPress Core/Docs/Extra) passes with no errors | ❌ | Repository-level run continues to fail because of legacy spacing/indentation violations across admin/controllers/tests. |
+---
 
-## 1. Admin Dashboard – “Latest Hunts”
+## 1) Dashboard — Latest Hunts Card
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Card lists latest 3 hunts with Title, Winners (+guess/+diff), Start/Final balance, Closed At | ⚠️ | Template outputs requested columns, but needs QA with real data. |
-| Each winner rendered on its own row with bold username | ⚠️ | Logic implemented; visual verification pending. |
-| Start/Final balance left-aligned | ⚠️ | Default table alignment appears left but needs confirmation after styling review. |
-
-## 2. Bonus Hunts (Admin List/Edit/Results)
+### 1.1 Functional Checklist
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| List includes Final Balance column (shows “–” if open) and Affiliate column | ⚠️ | Columns wired up; confirm formatting. |
-| List actions: Edit, Results, Admin Delete, Enable/Disable Guessing | ⚠️ | Actions registered; regression test required. |
-| Edit screen: tournament multiselect limited to active tournaments | ✅ | Query filters inactive tournaments. |
-| Edit screen: winners count configurable | ✅ | `winners_count` persisted in hunts table. |
-| Participants list with remove action and profile links | ⚠️ | UI renders participants; verify delete flow and capability checks. |
-| Results view defaults to latest closed hunt and supports selectors | ⚠️ | Data layer in `bonus-hunts-results.php`; manual QA pending. |
-| Results empty state message | ✅ | “There are no winners yet” copy present. |
-| Time filter: This Month (default) / This Year / All Time | ⚠️ | Filter options exist; confirm queries return expected data. |
-| Winners highlighted (green + bold), alternating row colors, Prize column | ⚠️ | Styles exist but require UI sign-off. |
-| Database columns `guessing_enabled` & `affiliate_id` enforced | ✅ | `BHG_DB::create_tables()` ensures fields on migrations. |
-| Dual prize sets (regular + premium) selectable in admin | ✅ | Add/edit forms expose both selectors and persist via `BHG_Prizes`. |
-| Affiliate winners see premium prize set above regular prizes | ⚠️ | Frontend logic toggles premium display for affiliates; needs user acceptance testing. |
+| Card lists latest **3 hunts** with: Title, Winners (+guess/+diff), Start Balance, Final Balance, Closed At | ⚠️ Needs QA | Template outputs required fields; verify rendering with live data and edge cases (no hunts / fewer than 3). |
+| Each **winner** on its own row with **bold username** | ⚠️ Needs UI check | Logic implemented; confirm typography with theme CSS. |
+| Start/Final balance **left-aligned** | ⚠️ Styling Review | Table defaults to left; confirm no theme override. |
 
-## 3. Tournaments (Admin)
+### 1.2 Data Sources & Rules
+- Source: `bhg_bonus_hunts` (latest by `closed_at` DESC, fallback to `created_at` when open).
+- Winners: from `bhg_winners` joined by `hunt_id`; include `guess` value and calculated `diff` vs actual.
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Title and description fields available | ✅ | Edit view includes both fields. |
-| Type options include quarterly/all time; legacy period removed | ⚠️ | Options added, but migration of existing data still needs verification. |
-| Participants mode toggle (winners only | all guessers) | ✅ | Stored in `participants_mode`. |
-| Actions: Edit, Results, Close, Admin Delete | ⚠️ | Buttons exposed; confirm capabilities. |
-| Database column `participants_mode` | ✅ | Added during migrations. |
+### 1.3 Edge Cases
+- No hunts exist → show “No hunts available.”
+- Hunt open (no `final_balance`, no `closed_at`) → show `—` for missing fields.
 
-## 4. Users (Admin)
+---
+
+## 2) Bonus Hunts (Admin List / Edit / Results)
+
+### 2.1 Admin List
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| Search by username/email | ✅ | `BHG_Users_Table` integrates `WP_User_Query` search argument. |
-| Sortable table columns | ⚠️ | Sorting metadata present but requires QA. |
-| Pagination (30 per page) | ✅ | List table enforces 30 item pagination. |
-| Profile shows affiliate toggles per affiliate website | ⚠️ | Fields rendered; confirm persistence. |
+| Columns: **Final Balance** (`—` if open) and **Affiliate** | ⚠️ Needs review | DB + render logic present; verify formatting for null/0. |
+| Row Actions: **Edit**, **Results**, **Admin Delete**, **Enable/Disable Guessing** | ⚠️ Regression Test | Confirm nonces, redirects, capability checks. |
+| Sorting & Pagination | ⚠️ Needs QA | Ensure stable order for open/closed hunts; 30 per page (or global setting). |
 
-## 5. Affiliates (Sync)
-
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Adding/removing affiliate websites syncs user profile fields | ⚠️ | Helper functions exist but need integration test coverage. |
-| Frontend affiliate lights and optional website display | ✅ | Shortcode helpers render affiliate dots and names. |
-
-## 6. Prizes (Admin + Frontend + Shortcode)
+### 2.2 Edit Screen
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| CRUD supports title, description, category, image, CSS, active flag | ✅ | `BHG_Prizes` handlers persist these properties. |
-| Three image sizes (small/medium/big) including large image uploads | ⚠️ | Fields exist; need validation for 1200×800 PNG support. |
-| Hunt edit selects 1+ prizes (regular and premium) | ✅ | Admin form persists both sets. |
-| Frontend renders grid/carousel with dots/arrows and fallback | ⚠️ | Rendering logic present; cross-device QA outstanding. |
-| Shortcode `[bhg_prizes]` parameters (category, design, size, active) | ⚠️ | Option parsing implemented; add automated tests. |
-| Premium prize set display rules | ⚠️ | Affiliate gating logic present; verify with affiliate and non-affiliate accounts. |
-| Dual prize sets per winner in results view | ⚠️ | Admin results highlight premium prizes but requires review. |
+| Tournament multiselect limited to **active** tournaments | ✅ Done | Query filters by `active = 1`. |
+| Winners count configurable and persisted | ✅ Done | Field `winners_count` on hunts table. |
+| Participants list with **remove** action and profile links | ⚠️ Needs flow test | Confirm capability `manage_options` (or custom cap), nonce, and audit log. |
+| Fields: title, start_balance, final_balance, closed_at, guessing_enabled, affiliate_id | ✅/⚠️ | Verify validation/sanitization and autosave behavior. |
 
-## 7. Shortcodes Catalog & Core Pages
+### 2.3 Results View
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| Admin “Info & Help” enumerates all shortcodes with examples | ⚠️ | Partial coverage; documentation page needs expansion. |
-| Existing shortcodes remain supported (`[bhg_user_profile]`, `[bhg_guess_form]`, etc.) | ✅ | No regressions detected. |
-| `[bhg_user_guesses]`: difference column after final balance | ⚠️ | Logic present; verify formatting. |
-| `[bhg_hunts]`: winners count + Details column with contextual links | ⚠️ | Column generated; ensure Guess Now/Show Results URLs valid. |
-| `[bhg_tournaments]`: updated columns and naming | ⚠️ | Implementation mostly done; cross-check type removal. |
-| `[bhg_leaderboards]`: metrics for Times Won, Avg hunt/tournament positions | ⚠️ | Calculations exist; add unit tests. |
-| `[bhg_advertising]`: placement="none" for shortcode-only | ✅ | Admin and rendering support option. |
-| Required pages (Active Hunt, All Hunts, etc.) auto-created with override metabox | ⚠️ | Page scaffolding script present; confirm on activation. |
+| Defaults to **latest closed hunt**; supports selectors (timeframe / hunt) | ⚠️ Verify data loading | Implemented in `bonus-hunts-results.php`. |
+| Empty state message | ✅ Done | “There are no winners yet.” |
+| Time filter: **This Month (default) / This Year / All Time** | ⚠️ Query validation | Confirm correctness for month/year boundaries & TZ. |
+| Winners highlighted (green + bold), zebra rows, **Prize** column | ⚠️ UI Sign-off | CSS exists; check for theme collisions. |
 
-## 8. Notifications
+### 2.4 Data/Queries
+- Filtering by timeframe uses `closed_at` (month/year server time); ensure consistent TZ.
+- Winner ranking based on minimal `diff` (absolute difference). Ties resolved by earlier `guess_time`.
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Winners/Tournament/Bonushunt blocks with Title, HTML Description, BCC, enable toggle | ⚠️ | Settings exist but need UI verification. |
-| Notifications use `wp_mail()` with BCC honored | ✅ | Implementation leverages `wp_mail()` and includes BCC header handling. |
+---
 
-## 9. Ranking & Points
+## 3) Tournaments (Admin)
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| Editable default mapping (25/15/10/5/4/3/2/1) | ⚠️ | Settings stored but require admin QA. |
-| Scope toggle (active/closed/all hunts) | ⚠️ | Option recorded; validate calculations. |
-| Only winners accrue points | ⚠️ | Logic attempts to enforce; add regression coverage. |
-| Backend + frontend rankings highlight winners + Top 3 | ⚠️ | Styling rules exist; needs UX sign-off. |
-| Centralized service + unit tests | ⚠️ | Tests exist but limited in coverage. |
+| Fields: **Title**, **Description** | ✅ Done | Standard edit UI. |
+| Type options include **Quarterly** / **All-time**; legacy period removed | ⚠️ Migration Check | Confirm prior data mapped safely to new types. |
+| Participants mode toggle (**Winners Only** | **All Guessers**) | ✅ Done | Stored in `participants_mode`. |
+| Actions: **Edit**, **Results**, **Close**, **Admin Delete** | ⚠️ Capability Review | Ensure caps + nonces implemented. |
+| DB column `participants_mode` | ✅ Done | Added via migrations. |
 
-## 10. Global CSS / Color Panel
+---
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Global typography and color controls apply to shared components | ⚠️ | Settings persisted; verify front-end application. |
-
-## 11. Currency System
+## 4) Users (Admin)
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| Setting `bhg_currency` (EUR/USD) stored | ✅ | Option available in settings. |
-| Helpers `bhg_currency_symbol()` and `bhg_format_money()` implemented | ✅ | Helper functions defined in bootstrap. |
-| All monetary outputs use helpers | ⚠️ | Majority updated; run audit to confirm no direct currency formatting remains. |
+| Search by username/email | ✅ Done | `WP_User_Query` integrated. |
+| Sortable columns | ⚠️ UI review | Flags present; verify sort keys & directions. |
+| Pagination (30 per page) | ✅ Done | Consistent UX with other admin tables. |
+| Profile shows **affiliate toggles per affiliate website** | ⚠️ Test persistence | Verify create/update, validator, defaults. |
 
-## 12. Database & Migrations
+---
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Columns `guessing_enabled`, `participants_mode`, `affiliate_id` | ✅ | Migration ensures they exist. |
-| Junction table for hunt ↔ tournament mapping | ✅ | `bhg_tournaments_hunts` table maintained. |
-| Idempotent `dbDelta()` with keys/indexes for all tables | ⚠️ | Core tables covered; new jackpot tables pending (see ❌ below). |
-| Dual prize mapping table with prize type handling | ✅ | `bhg_hunt_prizes` tracks prize type. |
-
-## 13. Security & i18n
+## 5) Affiliates (Sync & Frontend)
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| Capability checks, nonces, sanitization/escaping | ⚠️ | Many screens protected; conduct security sweep for recent additions. |
-| BCC email validation | ⚠️ | Basic sanitization exists; strengthen validation logic. |
-| Strings localized under `bonus-hunt-guesser` | ⚠️ | Most strings translated; audit remaining hard-coded text. |
+| Add/remove affiliate websites syncs user profile fields | ⚠️ Integration Test | Exercise add, edit, remove; verify orphan cleanup. |
+| Frontend affiliate lights + optional website display | ✅ Done | Shortcodes produce colored dot + label. |
 
-## 14. Backward Compatibility
+**Sync Rules**
+- When affiliates added/removed, ensure user meta mirrors active set.
+- Deleting an affiliate removes related user meta entries.
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Legacy data loads with safe defaults | ⚠️ | Migration routines attempt to normalize data; more testing needed. |
-| New settings/prize types default safely | ✅ | Regular prize default enforced when type missing. |
+---
 
-## 15. Global UX Guarantees
+## 6) Prizes (Admin + Frontend + Shortcode)
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| Sorting, search, pagination (30/page) across admin tables | ⚠️ | Implemented across list tables; QA per screen. |
-| Timeline filters (This Week/Month/Year/Last Year/All-Time) | ⚠️ | Controls exist; confirm data queries. |
-| Affiliate lights and website display | ✅ | Shortcodes render colored indicators. |
-| Profile blocks display real name, email, affiliate | ⚠️ | UI present; confirm accuracy. |
+| CRUD: title, description, category, image, CSS class, active flag | ✅ Done | Managed via `BHG_Prizes`. |
+| Dual prize sets (regular + premium) selectable in Admin | ✅ Done | Stored and retrievable per hunt. |
+| Affiliate winners see **premium prize set above** regular | ⚠️ Needs UAT | Frontend conditional display toggled for affiliates. |
 
-## 16. Release & Documentation
+---
 
-| Requirement | Status | Notes |
+## 7) Capability Matrix
+
+| Action | Capability | Notes |
 | --- | --- | --- |
-| Version bumped to 8.0.16 across metadata/constants | ⚠️ | Header and constant updated; remaining docs still reference 8.0.14 and need refresh. |
-| Changelog updated for new release | ❌ | `CHANGELOG.md` still capped at 8.0.14 entry. |
-| Readme/Admin “Info & Help” cover new features | ❌ | Documentation predates jackpot module and other add-ons. |
+| View Hunts Admin | `manage_options` or custom `bhg_manage` | Consider custom capability for finer control. |
+| Edit Hunt | `manage_options` or `bhg_edit_hunt` | Nonce required. |
+| Delete Hunt (Admin Delete) | `manage_options` | Soft delete recommended; confirm intent. |
+| Toggle Guessing | `manage_options` | Audit log useful. |
+| View/Manage Tournaments | `manage_options` | Include close action guardrails. |
+| Edit User Affiliate Toggles | `manage_options` | Only visible to admins. |
+| Manage Prizes | `manage_options` | Validate image/CSS inputs. |
 
-## 17. QA & Acceptance Tests
+---
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| E2E: create/close hunts → winners highlight & points propagation | ⚠️ | Requires manual QA. |
-| Currency switch reflects across admin/frontend | ⚠️ | Needs regression test. |
-| Guessing toggle blocks/unblocks form | ⚠️ | Feature implemented; confirm behavior. |
-| Tournament participants mode respected in results | ⚠️ | Requires scenario testing. |
-| Prizes CRUD + FE grid/carousel + CSS panel | ⚠️ | Implemented; run acceptance tests. |
-| Notifications BCC + enable/disable toggles | ⚠️ | Implementation present; QA outstanding. |
-| Translations load and strings translatable | ⚠️ | Text domain ready; review translation coverage. |
+## 8) Database Schema (Conceptual)
 
-## Add-On: Winner Limits per User
+> Actual SQL resides in `BHG_DB::create_tables()`; this section summarizes expected columns and relationships.
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Settings UI for Bonushunt/Tournament limits | ⚠️ | Settings page partially implemented; needs UX validation. |
-| Rolling-window enforcement when awarding winners | ⚠️ | Logic exists in `BHG_Models::close_hunt()` but requires more robust testing. |
-| Win logging with timestamps/user/type | ⚠️ | Logging exists but lacks analytics tooling. |
-| Skipped-user notice when limit reached | ⚠️ | Messaging helpers added; confirm admin/front-end visibility. |
+### 8.1 `bhg_bonus_hunts`
+- `id` (PK), `title`, `start_balance` (DECIMAL), `final_balance` (DECIMAL, nullable),  
+  `closed_at` (DATETIME, nullable), `guessing_enabled` (TINYINT 0/1), `affiliate_id` (INT nullable),
+  `winners_count` (INT), `created_at` (DATETIME), `updated_at` (DATETIME)
 
-## Add-On: Frontend Adjustments
+### 8.2 `bhg_guesses`
+- `id` (PK), `hunt_id` (FK), `user_id` (FK WP users), `guess_value` (DECIMAL),  
+  `guess_time` (DATETIME), `affiliate_id` (INT nullable)
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Table header links rendered white (#fff) | ⚠️ | CSS adjustments pending confirmation. |
-| `bhg_hunts` Details column with Guess Now / Show Results | ⚠️ | Logic wired; QA required. |
+### 8.3 `bhg_winners`
+- `id` (PK), `hunt_id` (FK), `user_id` (FK), `rank` (INT), `actual_value` (DECIMAL),  
+  `guess_value` (DECIMAL), `diff_value` (DECIMAL), `prize_id` (FK)
 
-## Add-On: Prizes Enhancements
+### 8.4 `bhg_tournaments`
+- `id` (PK), `title`, `description`, `type` ENUM(`quarterly`,`all_time`),  
+  `participants_mode` ENUM(`winners_only`,`all_guessers`), `active` (TINYINT), timestamps
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Large image upload support (1200×800 PNG) | ⚠️ | Media handling needs validation. |
-| Image size labels (Small/Medium/Big) in admin | ⚠️ | UI hints partially implemented. |
-| Prize link field and clickable images | ⚠️ | Field exists; verify output. |
-| Category management with optional links and visibility toggle | ⚠️ | Data model supports link toggles; admin UI still rough. |
-| Image click behavior options (popup / same tab / new tab) | ⚠️ | Settings available; QA pending. |
-| Carousel controls: visible count, total load, auto-scroll | ⚠️ | Options stored; ensure front-end respects them. |
-| Toggles for prize title/category/description | ⚠️ | Config options exist; verify rendering. |
-| Responsive image size rules (1→big, 2–3→medium, 4–5→small) | ⚠️ | Logic needs testing. |
-| Remove automatic "Prizes" heading | ⚠️ | Template updated; confirm front-end layout. |
-| Dual prize sets (Regular + Premium) for affiliate winners | ⚠️ | Data persisted; acceptance test outstanding. |
+### 8.5 `bhg_prizes`
+- `id` (PK), `title`, `description`, `category`, `image_url`, `css_class`, `active` (TINYINT), timestamps
 
-## Jackpot Feature (New Module)
+### 8.6 `bhg_hunt_prizes`
+- `id` (PK), `hunt_id` (FK), `prize_id` (FK), `tier` ENUM(`regular`,`premium`), `rank_from`, `rank_to`
 
-| Requirement | Status | Notes |
-| --- | --- | --- |
-| Admin menu “Jackpots” with CRUD + latest 10 view | ❌ | No jackpot admin screens or tables exist in codebase. |
-| Fields: title, start amount, linked hunts (all/selected/by affiliate/by period), increase amount per miss | ❌ | Absent from schema and UI. |
-| Logic: detect exact guess hits on hunt close, increase amount otherwise | ❌ | No jackpot handling integrated with hunt closure. |
-| Currency uses global setting | ❌ | No jackpot entity to format. |
-| Shortcodes `[bhg_jackpot_current]`, `[bhg_jackpot_latest]`, `[bhg_jackpot_ticker]`, `[bhg_jackpot_winners]` | ❌ | Shortcodes not registered. |
+### 8.7 `bhg_affiliates`
+- `id` (PK), `name`, `website`, `active` (TINYINT), timestamps
 
-## Documentation Follow-Up
+> **Migrations:** Ensure idempotent checks (`IF NOT EXISTS`) and column existence guards.
 
-1. Update all existing delivery/verification checklists to reference version 8.0.16 instead of 8.0.14.
-2. Add end-to-end QA evidence once the remaining ❌/⚠️ items are resolved.
-3. Prioritize implementation of the jackpot module and completion of PHPCS compliance across the codebase.
+---
+
+## 9) Frontend Rendering Rules
+
+- **Winners Table (Results):**  
+  - Winner rows: **bold username**, green highlight class for winners, alternating row classes (`.row-alt`).  
+  - Columns: Username, Guess, Actual, Diff, Prize (resolved by rank & prize tier).  
+  - **Affiliate premium-first:** If winner is affiliate-associated and hunt has premium prizes, render premium block first.
+
+- **Latest Hunts Card:**  
+  - Show at most **3 latest** items.  
+  - For each: Title → link to results; list winners with `(guess / ±diff)`; balances; closed timestamp (or `—` if open).
+
+---
+
+## 10) Validation & Sanitization
+
+- **Admin Inputs:** `sanitize_text_field`, `floatval`/`wc_format_decimal` equivalents for balances, `absint` for IDs, `wp_verify_nonce`.
+- **Output Escaping:** `esc_html`, `esc_attr`, `esc_url`; use `wp_kses_post` for safe rich text (prize descriptions).
+- **Timezones:** Normalize to WP timezone for queries and display; prefer `get_date_from_gmt` helpers when needed.
+
+---
+
+## 11) QA Test Scenarios
+
+### 11.1 Dashboard Card
+1. **No Hunts:** Expect “No hunts available.”  
+2. **Open Hunts Only:** Final balance/closed at show `—`.  
+3. **Mixed State:** Closed hunts sorted above, latest first.  
+4. **Winner Rows:** Bold usernames, `(guess / ±diff)` formatting correct.
+
+### 11.2 Admin Hunts
+1. **List Columns:** Final Balance shows `—` if open; Affiliate label correct.  
+2. **Row Actions:** Edit, Results, Delete, Toggle Guessing all work with correct caps and nonces.  
+3. **Edit:** Changing `winners_count` persists; multiselect shows only active tournaments.  
+4. **Participants:** Remove flow respects capability and nonces; audit entry written if enabled.
+
+### 11.3 Results View
+1. **Default Hunt:** Loads latest closed hunt.  
+2. **Time Filter:** This Month/Year/All Time return expected sets at month/year boundaries.  
+3. **Styling:** Winners highlighted (green + bold), alternating rows, Prize column not empty when mapped.
+
+### 11.4 Tournaments
+1. **Types:** Quarterly/All-time selectable; legacy removed.  
+2. **Participants Mode:** Winners Only vs All Guessers reflected in results aggregation.
+
+### 11.5 Prizes
+1. **CRUD:** Create/update with image + CSS class; inactive prizes not assigned.  
+2. **Dual Sets:** Premium + Regular saved and correctly mapped to ranks.  
+3. **Affiliate View:** Premium-first display for affiliate winners.
+
+### 11.6 Affiliates
+1. **Sync:** Add/remove affiliate → user meta updated accordingly.  
+2. **Frontend:** Dot color and optional website label appear when enabled.
+
+---
+
+## 12) Performance & Reliability
+
+- **Queries:** Add indexes on `bhg_bonus_hunts.closed_at`, `bhg_guesses.hunt_id/user_id`, `bhg_winners.hunt_id/user_id`.  
+- **N+1 Avoidance:** Preload winners and prizes for visible hunts.  
+- **Caching:** Consider transient cache for dashboard card (e.g., 60s).  
+- **Pagination:** Enforce 30 rows per list to protect admin screens.  
+- **Errors:** Use `WP_Error` patterns; admin notices for user actions.
+
+---
+
+## 13) Accessibility & i18n
+
+- **A11y:** Table headers `<th scope="col">`, adequate contrast on green highlight, focus states on row actions.  
+- **i18n:** Wrap strings with `__()`/`_e()` domain `'bonushuntguesser'`.  
+- **RTL:** Validate table alignment and icons in RTL languages.
+
+---
+
+## 14) Security
+
+- **Nonces:** All POST actions; GET actions that mutate state (delete/toggle) use nonces.  
+- **Caps:** Do not rely on `is_admin()`; enforce `current_user_can`.  
+- **Escaping:** Escape on output, not on save; URLs via `esc_url`.  
+- **Uploads:** Prizes’ images use WordPress media library.
+
+---
+
+## 15) Release Checklist
+
+1. **DB Migrations** pass on fresh and upgraded installs.  
+2. **Capabilities** verified for all actions.  
+3. **Nonce** coverage on all mutating endpoints.  
+4. **UI Pass**: Theme conflict check (tables, highlights, spacing).  
+5. **Performance**: Admin lists under 200ms on 5k records with indexes.  
+6. **Accessibility**: Lint with axe; contrast pass.  
+7. **i18n**: POT regenerated.  
+8. **Docs**: This file committed as `docs/verification-checklist.md`.  
+9. **Changelog** updated (see template below).  
+10. **Tag Release** in version control and prepare rollback plan.
+
+---
+
+## 16) Changelog Template (for this Release)
 

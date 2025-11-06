@@ -2,11 +2,13 @@
 
 > **Superseded:** See `docs/detailed-checklist-20240916.md` for the current 8.0.16 compliance snapshot. This document remains for historical reference.
 
-Status Legend:
+**Status Legend**
 
-* ✅ — Requirement fully satisfied and verified.
-* ⚠️ — Requirement partially satisfied or requires follow-up/verification.
-* ❌ — Requirement not implemented.
+- ✅ — Requirement fully satisfied and verified.
+- ⚠️ — Requirement partially satisfied or requires follow-up/verification.
+- ❌ — Requirement not implemented.
+
+---
 
 ## 0. Plugin Bootstrap & Tooling
 

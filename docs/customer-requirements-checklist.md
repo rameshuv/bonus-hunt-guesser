@@ -2,6 +2,8 @@
 
 Status legend: ✅ Complete · ⚠️ Not verified · ❌ Missing / incomplete · ➖ Not applicable
 
+> Reference: For the detailed compliance matrix, consult `docs/final-checklist-20240917.md`.
+
 ## 0) Plugin Header & Bootstrapping
 - ✅ Plugin header exposes the requested metadata (name, version 8.0.16, PHP 7.4, WP 6.3.5+, MySQL 5.5.5+, text domain, license). 【F:bonus-hunt-guesser.php†L1-L16】
 - ✅ Text domain loads during `plugins_loaded`. 【F:bonus-hunt-guesser.php†L386-L404】

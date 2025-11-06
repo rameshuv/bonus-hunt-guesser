@@ -159,10 +159,10 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 			'message' => bhg_t( 'invalid_hunt', 'Invalid hunt' ),
 		);
 	} else {
-		$hunt_site_id         = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
-		$page_title           = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
-		$guesses              = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
-		$official_winner_ids  = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
+		$hunt_site_id          = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
+		$page_title            = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
+		$guesses               = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
+		$official_winner_ids   = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
 		$ineligible_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_ineligible_winner_ids' ) ? BHG_Bonus_Hunts::get_ineligible_winner_ids( (int) $hunt->id ) : array();
 
 		foreach ( $official_winner_ids as $index => $winner_user_id ) {
@@ -237,7 +237,7 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 		$label .= sprintf( ' (%s)', $closed );
 	}
 	?>
-					<option value="<?php echo esc_attr( $value ); ?>"<?php echo $selected; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php // selected() is already escaped and includes leading space. ?> ><?php echo esc_html( $label ); ?></option>
+					<option value="<?php echo esc_attr( $value ); ?>"<?php echo $selected; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> ><?php echo esc_html( $label ); ?></option>
 <?php endforeach; ?>
 				</optgroup>
 <?php endif; ?>

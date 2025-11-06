@@ -538,8 +538,8 @@ if ( ! function_exists( 'bhg_build_global_styles_css' ) ) {
 			}
 		}
 
-		if ( isset( $styles['description'] ) && is_array( $styles['description'] ) ) {
-			$block = $styles['description'];
+		if ( isset( $styles['description'] ) ) {
+			$block = is_array( $styles['description'] ) ? $styles['description'] : array();
 			$decl  = array();
 
 			if ( ! empty( $block['size'] ) ) {
