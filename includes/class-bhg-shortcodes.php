@@ -770,23 +770,30 @@ return ob_get_clean();
                                        $sql = "SELECT * FROM {$hunts_table} WHERE status = %s ORDER BY created_at DESC"; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name sanitized above.
                                }
 
-                               $hunts = $wpdb->get_results(
-                                       $wpdb->prepare(
-                                               $sql,
-                                               'open'
-                                       )
-                               ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                               wp_cache_set( $cache_key, $hunts, 'bhg', 300 );
+                       $hunts = $wpdb->get_results(
+                               $wpdb->prepare(
+                                       $sql,
+                                       'open'
+                               )
+                       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                       wp_cache_set( $cache_key, $hunts, 'bhg', 300 );
                        }
 
-		       if ( empty( $hunts ) ) {
+                       if ( empty( $hunts ) ) {
                        return '<div class="bhg-active-hunt"><p>' . esc_html( bhg_t( 'notice_no_active_hunts', 'No active bonus hunts at the moment.' ) ) . '</p></div>';
                        }
 
-		       $hunts_map = array();
-		       foreach ( $hunts as $hunt ) {
-			       $hunts_map[ (int) $hunt->id ] = $hunt;
-		       }
+                       if ( ! class_exists( 'BHG_Bonus_Hunts' ) && defined( 'BHG_PLUGIN_DIR' ) ) {
+                               $hunts_class = BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts.php';
+                               if ( file_exists( $hunts_class ) ) {
+                                       require_once $hunts_class;
+                               }
+                       }
+
+                       $hunts_map = array();
+                       foreach ( $hunts as $hunt ) {
+                               $hunts_map[ (int) $hunt->id ] = $hunt;
+                       }
 
 		       $selected_hunt_id = 0;
 		       if ( isset( $_GET['bhg_hunt'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data.
@@ -868,7 +875,21 @@ return ob_get_clean();
 			       )
 		       ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-		       $total_pages = $total_guesses > 0 ? (int) ceil( $total_guesses / $per_page ) : 1;
+                       $total_pages = $total_guesses > 0 ? (int) ceil( $total_guesses / $per_page ) : 1;
+
+                       $win_limit_notice = '';
+                       if ( $has_final && method_exists( 'BHG_Bonus_Hunts', 'get_ineligible_winner_ids' ) && function_exists( 'bhg_get_win_limit_config' ) && function_exists( 'bhg_build_win_limit_notice' ) ) {
+                               $skipped_ids = BHG_Bonus_Hunts::get_ineligible_winner_ids( $selected_hunt_id );
+                               if ( ! empty( $skipped_ids ) ) {
+                                       $limit_config = bhg_get_win_limit_config( 'hunt' );
+                                       $limit_count  = isset( $limit_config['count'] ) ? (int) $limit_config['count'] : 0;
+                                       $limit_period = isset( $limit_config['period'] ) ? $limit_config['period'] : 'none';
+                                       $notice_text  = bhg_build_win_limit_notice( 'hunt', $limit_count, $limit_period, count( $skipped_ids ) );
+                                       if ( '' !== $notice_text ) {
+                                               $win_limit_notice = $notice_text;
+                                       }
+                               }
+                       }
 
 			       wp_enqueue_style(
 				       'bhg-shortcodes',
@@ -917,7 +938,7 @@ return ob_get_clean();
 		       echo '<div class="bhg-hunt-card">';
 		       echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
                        echo '<ul class="bhg-hunt-meta">';
-                       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $selected_hunt->starting_balance ) ) . '</li>';
+                       echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $selected_hunt->starting_balance ) ) . '</li>';
                        echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
 
                        $opened_at = isset( $selected_hunt->created_at ) ? (string) $selected_hunt->created_at : '';
@@ -951,9 +972,13 @@ return ob_get_clean();
                                echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
                        }
                        if ( $has_final ) {
-                               echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_currency( (float) $final_balance ) ) . '</li>';
+                               echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $final_balance ) ) . '</li>';
                        }
                        echo '</ul>';
+
+                       if ( '' !== $win_limit_notice ) {
+                               echo '<div class="bhg-win-limit-notice">' . esc_html( $win_limit_notice ) . '</div>';
+                       }
 
                        if ( ! empty( $hunt_prizes ) ) {
                                echo $this->render_prize_section( $hunt_prizes, $prize_layout, $prize_size );
@@ -982,10 +1007,10 @@ return ob_get_clean();
 				       echo '<tr>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
 				       echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'Username' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
-				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
+				       echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
 				       if ( $has_final ) {
 					       $diff = isset( $row->diff ) ? (float) $row->diff : 0.0;
-					       echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_currency( $diff ) ) . '</td>';
+					       echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . esc_html( bhg_format_money( $diff ) ) . '</td>';
 				       }
 				       echo '</tr>';
 			       }
@@ -1339,7 +1364,7 @@ return ob_get_clean();
 					} elseif ( 'user' === $field ) {
 																											echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 					} elseif ( 'guess' === $field ) {
-						echo '<td data-column="guess">' . esc_html( bhg_format_currency( (float) $r->guess ) ) . '</td>';
+						echo '<td data-column="guess">' . esc_html( bhg_format_money( (float) $r->guess ) ) . '</td>';
 					}
 				}
 								echo '</tr>';
@@ -1737,12 +1762,12 @@ return ob_get_clean();
                         $user_cell .= '<span class="bhg-user-name">' . esc_html( $user_display ) . '</span>';
                         echo '<td>' . wp_kses_post( $user_cell ) . '</td>';
                 }
-                echo '<td>' . esc_html( bhg_format_currency( (float) $row->guess ) ) . '</td>';
+                echo '<td>' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
                 if ( $need_site ) {
                         echo '<td>' . esc_html( $row->site_name ? $row->site_name : bhg_t( 'label_emdash', '—' ) ) . '</td>';
                 }
-                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-                echo '<td>' . ( isset( $row->difference ) ? esc_html( bhg_format_currency( (float) $row->difference ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_money( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                echo '<td>' . ( isset( $row->difference ) ? esc_html( bhg_format_money( (float) $row->difference ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                 echo '</tr>';
         }
         echo '</tbody></table>';
@@ -1896,7 +1921,7 @@ return ob_get_clean();
                         }
                         $total = (int) ( $params ? $wpdb->get_var( $wpdb->prepare( $count_sql, ...$params ) ) : $wpdb->get_var( $count_sql ) );
 
-                        $select = "SELECT h.id, h.title, h.starting_balance, h.final_balance, h.winners_count, h.status, h.created_at, h.closed_at";
+                        $select = "SELECT h.id, h.title, h.starting_balance, h.final_balance, h.winners_count, h.status, h.created_at, h.closed_at, h.guessing_enabled";
                         $join   = '';
                         if ( $need_site_field ) {
                                 $select .= ', a.name AS site_name';
@@ -1968,6 +1993,7 @@ return ob_get_clean();
                         echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'winners' ) ) . '">' . esc_html( bhg_t( 'sc_winners', 'Winners' ) ) . '</a></th>';
                         echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
+                        echo '<th>' . esc_html( bhg_t( 'label_details', 'Details' ) ) . '</th>';
                         if ( $show_site ) {
                                 echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
                         }
@@ -1976,12 +2002,30 @@ return ob_get_clean();
 			foreach ( $rows as $row ) {
 				echo '<tr>';
 				echo '<td>' . esc_html( $row->title ) . '</td>';
-							echo '<td>' . esc_html( bhg_format_currency( (float) $row->starting_balance ) ) . '</td>';
-                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_currency( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+							echo '<td>' . esc_html( bhg_format_money( (float) $row->starting_balance ) ) . '</td>';
+                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_money( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                                 $winners_display = isset( $row->winners_count ) ? number_format_i18n( (int) $row->winners_count ) : bhg_t( 'label_emdash', '—' );
                                 echo '<td>' . esc_html( $winners_display ) . '</td>';
                                 $status_key = strtolower( (string) $row->status );
                                 echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
+                                $details_html = esc_html( bhg_t( 'label_emdash', '—' ) );
+                                if ( 'closed' === $status_key ) {
+                                        $results_url = function_exists( 'bhg_get_hunt_results_url' ) ? bhg_get_hunt_results_url( (int) $row->id ) : '';
+                                        if ( '' !== $results_url ) {
+                                                $details_html = '<a class="bhg-hunt-link" href="' . esc_url( $results_url ) . '">' . esc_html( bhg_t( 'link_show_results', 'Show Results' ) ) . '</a>';
+                                        }
+                                } elseif ( 'open' === $status_key ) {
+                                        $guessing_enabled = isset( $row->guessing_enabled ) ? (int) $row->guessing_enabled : 1;
+                                        if ( $guessing_enabled > 0 ) {
+                                                $guess_url = function_exists( 'bhg_get_guess_submission_url' ) ? bhg_get_guess_submission_url( (int) $row->id ) : '';
+                                                if ( '' !== $guess_url ) {
+                                                        $details_html = '<a class="bhg-hunt-link" href="' . esc_url( $guess_url ) . '">' . esc_html( bhg_t( 'link_guess_now', 'Guess Now' ) ) . '</a>';
+                                                }
+                                        } else {
+                                                $details_html = esc_html( bhg_t( 'label_guessing_closed', 'Guessing Closed' ) );
+                                        }
+                                }
+                                echo '<td>' . $details_html . '</td>';
                                 if ( $show_site ) {
                                         echo '<td>' . ( $row->site_name ? esc_html( $row->site_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
                                 }
@@ -3093,7 +3137,7 @@ global $wpdb;
 				echo '<div class="bhg-winner">';
 				echo '<p><strong>' . esc_html( $hunt->title ) . '</strong></p>';
 				if ( null !== $hunt->final_balance ) {
-					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_currency( (float) $hunt->final_balance ) ) . '</p>';
+					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_money( (float) $hunt->final_balance ) ) . '</p>';
 				}
 
 				if ( $winners ) {
@@ -3101,7 +3145,7 @@ global $wpdb;
 					foreach ( $winners as $w ) {
 						$u  = get_userdata( (int) $w->user_id );
 						$nm = $u ? $u->user_login : sprintf( bhg_t( 'label_user_number', 'User #%d' ), (int) $w->user_id );
-											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_currency( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_currency( (float) $w->diff ) ) . ')</li>';
+											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_money( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_money( (float) $w->diff ) ) . ')</li>';
 					}
 					echo '</ul>';
 				}
@@ -3141,7 +3185,7 @@ $user_id = get_current_user_id();
 $limit   = max( 1, min( 200, (int) $atts['limit'] ) );
 $rows    = $this->get_user_bonus_hunt_rows( $user_id, $limit );
 
-$currency_callback = function_exists( 'bhg_format_currency' ) ? 'bhg_format_currency' : static function( $value ) {
+$currency_callback = function_exists( 'bhg_format_money' ) ? 'bhg_format_money' : static function( $value ) {
 return number_format_i18n( $value, 2 );
 };
 
@@ -3341,7 +3385,7 @@ $best_rank = (int) $row['rank'];
 }
 }
 
-$currency_callback = function_exists( 'bhg_format_currency' ) ? 'bhg_format_currency' : static function( $value ) {
+$currency_callback = function_exists( 'bhg_format_money' ) ? 'bhg_format_money' : static function( $value ) {
 return number_format_i18n( $value, 2 );
 };
 
