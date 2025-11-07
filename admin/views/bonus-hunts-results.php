@@ -222,7 +222,8 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 			<select id="bhg-results-select" class="bhg-results-select">
 <?php if ( $hunts_map ) : ?>
 				<optgroup label="<?php echo esc_attr( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ); ?>">
-<?php foreach ( $hunts_map as $hunt_row ) :
+<?php
+foreach ( $hunts_map as $hunt_row ) :
 	$value    = 'hunt-' . (int) $hunt_row->id;
 	$selected = selected( $selected_control_value, $value, false );
 	$label    = isset( $hunt_row->title ) ? (string) $hunt_row->title : '';
@@ -243,7 +244,8 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 <?php endif; ?>
 <?php if ( $tournaments_map ) : ?>
 				<optgroup label="<?php echo esc_attr( bhg_t( 'tournaments', 'Tournaments' ) ); ?>">
-<?php foreach ( $tournaments_map as $tournament_row ) :
+<?php
+foreach ( $tournaments_map as $tournament_row ) :
 	$value     = 'tournament-' . (int) $tournament_row->id;
 	$selected  = selected( $selected_control_value, $value, false );
 	$label     = isset( $tournament_row->title ) ? (string) $tournament_row->title : '';
@@ -280,7 +282,8 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 		<div class="bhg-results-timeframe-label"><?php echo esc_html( $timeframe_label ); ?></div>
 	</div>
 
-<?php foreach ( $notices as $notice ) :
+<?php
+foreach ( $notices as $notice ) :
 	$type    = isset( $notice['type'] ) ? $notice['type'] : 'info';
 	$message = isset( $notice['message'] ) ? $notice['message'] : '';
 	if ( '' === $message ) {
@@ -319,19 +322,20 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 				<td colspan="4" class="bhg-text-center"><?php echo esc_html( bhg_t( 'no_results_yet', 'No results yet.' ) ); ?></td>
 			</tr>
 <?php else : ?>
-<?php foreach ( $results as $index => $row ) :
-	$position    = (int) $index + 1;
-	$is_winner   = ( $position <= $winners_limit );
-	$row_classes = array( 'bhg-results-row' );
-	if ( $is_winner ) {
-		$row_classes[] = 'bhg-results-row--winner';
-	}
-	$name = $row->display_name ? $row->display_name : sprintf(
-		/* translators: %d: user ID. */
-		bhg_t( 'label_user_hash', 'user#%d' ),
-		(int) $row->user_id
-	);
-	?>
+<?php foreach ( $results as $index => $row ) : ?>
+			<?php
+			$position    = (int) $index + 1;
+			$is_winner   = ( $position <= $winners_limit );
+			$row_classes = array( 'bhg-results-row' );
+			if ( $is_winner ) {
+				$row_classes[] = 'bhg-results-row--winner';
+			}
+			$name = $row->display_name ? $row->display_name : sprintf(
+				/* translators: %d: user ID. */
+				bhg_t( 'label_user_hash', 'user#%d' ),
+				(int) $row->user_id
+			);
+			?>
 			<tr class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
 				<td><span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span></td>
 				<td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $row->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
@@ -381,7 +385,8 @@ $timeframe_label = isset( $timeframe_labels[ $timeframe ] ) ? $timeframe_labels[
 				<td colspan="6" class="bhg-text-center"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'There are no winners yet' ) ); ?></td>
 			</tr>
 <?php else : ?>
-<?php foreach ( $guesses as $index => $row ) :
+<?php foreach ( $guesses as $index => $row ) : ?>
+	<?php
 	$position    = (int) $index + 1;
 	$user_id     = isset( $row->user_id ) ? (int) $row->user_id : 0;
 	$is_winner   = ( $user_id > 0 && isset( $winner_lookup[ $user_id ] ) );

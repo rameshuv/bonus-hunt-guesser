@@ -124,7 +124,7 @@ if ( ! function_exists( 'bhg_sanitize_tournament_ids' ) ) {
 	 */
 	function bhg_sanitize_tournament_ids( $ids ) {
 		$ids        = is_array( $ids ) ? $ids : array( $ids );
-		$normalized = array();
+	$normalized = array();
 
 		foreach ( $ids as $id ) {
 			$id = bhg_sanitize_tournament_id( $id );
@@ -865,7 +865,7 @@ function bhg_handle_settings_save() {
 		$row   = array();
 
 		if ( isset( $block['size'] ) ) {
-		 * 	$size = bhg_sanitize_css_dimension_value( $block['size'] );
+			$size = bhg_sanitize_css_dimension_value( $block['size'] );
 			if ( '' !== $size ) {
 				$row['size'] = $size;
 			}
@@ -1034,7 +1034,7 @@ function bhg_handle_notifications_save() {
 			'body'    => $body,
 			'bcc'     => $bcc,
 		);
- 	}
+	}
 
 	update_option( BHG_EMAIL_NOTIFICATIONS_OPTION, $sanitized );
 
