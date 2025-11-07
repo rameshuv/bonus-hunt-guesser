@@ -7,6 +7,13 @@ Status Legend:
 * ✅ — Requirement fully satisfied and verified.
 * ⚠️ — Requirement partially satisfied or requires follow-up/verification.
 * ❌ — Requirement not implemented.
+**Status Legend**
+
+- ✅ — Requirement fully satisfied and verified.
+- ⚠️ — Requirement partially satisfied or requires follow-up/verification.
+- ❌ — Requirement not implemented.
+
+---
 
 ## 0. Plugin Bootstrap & Tooling
 
