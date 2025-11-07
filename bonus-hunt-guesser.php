@@ -865,7 +865,7 @@ function bhg_handle_settings_save() {
 		$row   = array();
 
 		if ( isset( $block['size'] ) ) {
-			$size = bhg_sanitize_css_dimension_value( $block['size'] );
+		 * 	$size = bhg_sanitize_css_dimension_value( $block['size'] );
 			if ( '' !== $size ) {
 				$row['size'] = $size;
 			}
