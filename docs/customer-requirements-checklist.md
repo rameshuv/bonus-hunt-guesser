@@ -1,9 +1,11 @@
-# Customer Requirements Checklist — Bonus Hunt Guesser v8.0.14
+# Customer Requirements Checklist — Bonus Hunt Guesser v8.0.16
 
 Status legend: ✅ Complete · ⚠️ Not verified · ❌ Missing / incomplete · ➖ Not applicable
 
+> Reference: For the detailed compliance matrix, consult `docs/final-checklist-20240917.md`.
+
 ## 0) Plugin Header & Bootstrapping
-- ✅ Plugin header exposes the requested metadata (name, version 8.0.14, PHP 7.4, WP 6.3.5+, MySQL 5.5.5+, text domain, license). 【F:bonus-hunt-guesser.php†L1-L16】
+- ✅ Plugin header exposes the requested metadata (name, version 8.0.16, PHP 7.4, WP 6.3.5+, MySQL 5.5.5+, text domain, license). 【F:bonus-hunt-guesser.php†L1-L16】
 - ✅ Text domain loads during `plugins_loaded`. 【F:bonus-hunt-guesser.php†L386-L404】
 - ❌ PHPCS compliance not confirmed (sniffs not executed in this review).
 
@@ -13,15 +15,15 @@ Status legend: ✅ Complete · ⚠️ Not verified · ❌ Missing / incomplete �
 ## 2) Bonus Hunts (List · Edit · Results)
 - ✅ List view includes Final Balance (em dash when open), Affiliate, configurable Winners count, and actions for Edit/Close/Results plus Delete and Guessing toggle. 【F:admin/views/bonus-hunts.php†L226-L320】
 - ✅ Edit view restricts tournaments to active entries, exposes winners count, participant removal table with profile links, and affiliate selection. 【F:admin/views/bonus-hunts-edit.php†L92-L229】
-- ❌ Results page lacks hunt/tournament selectors or timeframe filters; it only shows a static table with no controls for “Latest closed hunt by default” overrides or “This Month/Year/All Time” filtering. 【F:admin/views/bonus-hunts-results.php†L124-L243】
-- ❌ Empty state string remains “No participants yet.” instead of the required “There are no winners yet.” 【F:admin/views/bonus-hunts-results.php†L198-L213】
+- ⚠️ Results page implements selectors and timeframe filters, but requires verification to confirm default selection and empty-state copy. 【F:admin/views/bonus-hunts-results.php†L86-L320】
+- ⚠️ Empty state string should be confirmed as “There are no winners yet.” 【F:admin/views/bonus-hunts-results.php†L249-L269】
 - ✅ Winners highlighted (row class `bhg-results-row--winner`) and include Price column. 【F:admin/views/bonus-hunts-results.php†L198-L238】
 - ✅ Database migrations add `guessing_enabled` and `affiliate_id`. 【F:includes/class-bhg-db.php†L96-L114】【F:includes/class-bhg-db.php†L269-L296】
 
 ## 3) Tournaments (List · Edit)
 - ✅ List screen implements search, sorting, pagination, and actions (Edit, Close, Results, Delete). 【F:admin/views/tournaments.php†L144-L296】
 - ✅ Edit form exposes Title, Description, and Participants Mode options. 【F:admin/views/tournaments.php†L300-L380】
-- ❌ Legacy `type` select still present (weekly/monthly/quarterly/yearly/alltime) instead of being removed as requested. 【F:admin/views/tournaments.php†L319-L349】
+- ⚠️ Type selector now offers requested options but still surfaces legacy values in some contexts; requires UX confirmation. 【F:admin/views/tournaments.php†L312-L375】
 - ✅ Database migration adds `participants_mode`. 【F:includes/class-bhg-db.php†L130-L139】【F:includes/class-bhg-db.php†L317-L324】
 
 ## 4) Users (Admin)
@@ -65,16 +67,19 @@ Status legend: ✅ Complete · ⚠️ Not verified · ❌ Missing / incomplete �
 - ⚠️ Changelog, readme, and “Info & Help” updates still need manual confirmation.
 
 ## 17) QA (Acceptance)
-- ❌ Winner-limit add-on (per-user max wins with rolling periods, logging, enforcement, and admin settings) is absent; hunt closure logic never consults historical wins. 【F:includes/class-bhg-models.php†L24-L249】
+- ⚠️ Winner-limit add-on partially implemented (settings, enforcement hooks, notices) but needs integration testing to confirm rolling windows and messaging. 【F:includes/class-bhg-models.php†L24-L249】【F:includes/helpers.php†L240-L347】
 - ⚠️ Other acceptance tests (currency switch, guessing toggle behavior, prizes FE grid/carousel, notifications) not executed.
 
 ## Add-On: Winner Limits per User
-- ❌ No settings page or database log tracks per-user win counts; enforcement hook in `close_hunt()` lacks rolling-window checks, so the add-on requirement remains unfulfilled. 【F:includes/class-bhg-models.php†L24-L249】
+- ⚠️ Settings page and logging utilities exist for win limits, yet rolling-window accuracy and admin feedback still need end-to-end validation. 【F:includes/helpers.php†L240-L347】【F:includes/class-bhg-models.php†L24-L249】
+
+## Add-On: Jackpot Feature (New Module)
+- ❌ No jackpot schema, admin UI, hunt-close logic, or front-end shortcodes exist. Repository searches for “jackpot” only surface QA notes, confirming the module is outstanding. 【7a8486†L1-L10】
 
 ---
 
 ### Follow-up Actions
 1. Add hunt/tournament selectors, timeframe filters, and the specified empty-state copy to the results screen to satisfy section 2.
 2. Remove or repurpose the legacy tournament `type` selector per section 3.
-3. Implement the per-user winner-limit feature (settings UI, logging table, enforcement) outlined in the add-on brief.
+3. Deliver the full jackpot module (schema, admin CRUD, hunt-close integration, shortcodes) per the add-on contract.
 4. Run PHPCS and execute functional/end-to-end tests for sections still flagged ⚠️.

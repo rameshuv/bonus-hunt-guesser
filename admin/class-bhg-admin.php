@@ -333,24 +333,35 @@ class BHG_Admin {
                 $affiliate_site        = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
                 $tournament_ids_input  = isset( $_POST['tournament_ids'] ) ? wp_unslash( $_POST['tournament_ids'] ) : array();
                 $tournament_ids        = bhg_sanitize_tournament_ids( $tournament_ids_input );
-                $prize_ids_input       = isset( $_POST['prize_ids'] ) ? wp_unslash( $_POST['prize_ids'] ) : array();
-                $prize_ids             = array();
+                $extract_prize_ids = static function ( $field ) {
+                        $raw = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : array();
+                        $ids = array();
 
-                if ( is_array( $prize_ids_input ) ) {
-                        foreach ( $prize_ids_input as $maybe_id ) {
-                                $pid = absint( $maybe_id );
+                        if ( is_array( $raw ) ) {
+                                foreach ( $raw as $maybe_id ) {
+                                        $pid = absint( $maybe_id );
+                                        if ( $pid > 0 ) {
+                                                $ids[ $pid ] = $pid;
+                                        }
+                                }
+                        } elseif ( '' !== $raw ) {
+                                $pid = absint( $raw );
                                 if ( $pid > 0 ) {
-                                        $prize_ids[ $pid ] = $pid;
+                                        $ids[ $pid ] = $pid;
                                 }
                         }
-                } elseif ( $prize_ids_input ) {
-                        $pid = absint( $prize_ids_input );
-                        if ( $pid > 0 ) {
-                                $prize_ids[ $pid ] = $pid;
-                        }
-                }
 
-                $prize_ids = array_values( $prize_ids );
+                        return array_values( $ids );
+                };
+
+                $prize_sets = array(
+                        'regular' => $extract_prize_ids( 'regular_prize_ids' ),
+                        'premium' => $extract_prize_ids( 'premium_prize_ids' ),
+                );
+
+                if ( empty( $prize_sets['regular'] ) && empty( $prize_sets['premium'] ) ) {
+                        $prize_sets['regular'] = $extract_prize_ids( 'prize_ids' );
+                }
                 if ( empty( $tournament_ids ) && isset( $_POST['tournament_id'] ) ) {
                         $legacy = bhg_sanitize_tournament_id( wp_unslash( $_POST['tournament_id'] ) );
                         if ( $legacy > 0 ) {
@@ -427,7 +438,7 @@ $id = (int) $wpdb->insert_id;
                 }
 
                 if ( class_exists( 'BHG_Prizes' ) && $id > 0 ) {
-                        BHG_Prizes::set_hunt_prizes( $id, $prize_ids );
+                        BHG_Prizes::set_hunt_prize_sets( $id, $prize_sets );
                 }
 
                                 $should_close = (
@@ -920,23 +931,37 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                         $ranking_scope = 'all';
                 }
 
-                $prize_ids_input = isset( $_POST['prize_ids'] ) ? wp_unslash( $_POST['prize_ids'] ) : array();
-                $prize_ids       = array();
-                if ( is_array( $prize_ids_input ) ) {
-                        foreach ( $prize_ids_input as $maybe_id ) {
-                                $maybe_id = absint( $maybe_id );
+                $extract_prize_ids = static function ( $field ) {
+                        $raw = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : array();
+                        $ids = array();
+
+                        if ( is_array( $raw ) ) {
+                                foreach ( $raw as $maybe_id ) {
+                                        $maybe_id = absint( $maybe_id );
+                                        if ( $maybe_id > 0 ) {
+                                                $ids[ $maybe_id ] = $maybe_id;
+                                        }
+                                }
+                        } elseif ( '' !== $raw ) {
+                                $maybe_id = absint( $raw );
                                 if ( $maybe_id > 0 ) {
-                                        $prize_ids[ $maybe_id ] = $maybe_id;
+                                        $ids[ $maybe_id ] = $maybe_id;
                                 }
                         }
-                } elseif ( '' !== $prize_ids_input ) {
-                        $single_prize = absint( $prize_ids_input );
-                        if ( $single_prize > 0 ) {
-                                $prize_ids[ $single_prize ] = $single_prize;
-                        }
+
+                        return array_values( $ids );
+                };
+
+                $prize_sets = array(
+                        'regular' => $extract_prize_ids( 'regular_prize_ids' ),
+                        'premium' => $extract_prize_ids( 'premium_prize_ids' ),
+                );
+
+                if ( empty( $prize_sets['regular'] ) && empty( $prize_sets['premium'] ) ) {
+                        $prize_sets['regular'] = $extract_prize_ids( 'prize_ids' );
                 }
-                $prize_ids   = array_values( $prize_ids );
-                $prizes_json = wp_json_encode( $prize_ids );
+
+                $prizes_json = wp_json_encode( $prize_sets['regular'] );
                 if ( false === $prizes_json ) {
                         $prizes_json = wp_json_encode( array() );
                 }

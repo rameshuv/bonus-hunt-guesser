@@ -24,6 +24,22 @@ class BHG_Prizes {
         }
 
         /**
+         * Normalize a prize type string.
+         *
+         * @param string $type Raw prize type.
+         * @return string Normalized prize type (regular|premium).
+         */
+        protected static function normalize_prize_type( $type ) {
+                $type = sanitize_key( (string) $type );
+
+                if ( 'premium' === $type ) {
+                        return 'premium';
+                }
+
+                return 'regular';
+        }
+
+        /**
          * Default CSS settings for prize blocks.
          *
          * @return array
@@ -140,6 +156,7 @@ class BHG_Prizes {
                         'description' => isset( $prize->description ) ? wp_kses_post( $prize->description ) : '',
                         'category'    => isset( $prize->category ) ? sanitize_key( $prize->category ) : 'various',
                         'active'      => ! empty( $prize->active ) ? 1 : 0,
+                        'type'        => isset( $prize->prize_type ) ? self::normalize_prize_type( $prize->prize_type ) : 'regular',
                         'css'         => self::get_css_settings_from_row( $prize ),
                         'images'      => self::get_attachment_sources( $prize ),
                 );
@@ -212,6 +229,54 @@ class BHG_Prizes {
 
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                 return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ) );
+        }
+
+        /**
+         * Retrieve multiple prizes by ID.
+         *
+         * The resulting array preserves the order of the provided identifiers.
+         *
+         * @param array $ids Prize identifiers.
+         * @return array List of prize objects.
+         */
+        public static function get_prizes_by_ids( $ids ) {
+                global $wpdb;
+
+                $clean_ids = array();
+                foreach ( (array) $ids as $maybe_id ) {
+                        $maybe_id = absint( $maybe_id );
+                        if ( $maybe_id > 0 ) {
+                                $clean_ids[ $maybe_id ] = $maybe_id;
+                        }
+                }
+
+                if ( empty( $clean_ids ) ) {
+                        return array();
+                }
+
+                $table        = $wpdb->prefix . 'bhg_prizes';
+                $placeholders = implode( ', ', array_fill( 0, count( $clean_ids ), '%d' ) );
+                $sql          = "SELECT * FROM {$table} WHERE id IN ({$placeholders})";
+
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+                $results = $wpdb->get_results( $wpdb->prepare( $sql, array_values( $clean_ids ) ) );
+                if ( empty( $results ) ) {
+                        return array();
+                }
+
+                $indexed = array();
+                foreach ( $results as $row ) {
+                        $indexed[ (int) $row->id ] = $row;
+                }
+
+                $ordered = array();
+                foreach ( $clean_ids as $id ) {
+                        if ( isset( $indexed[ $id ] ) ) {
+                                $ordered[] = $indexed[ $id ];
+                        }
+                }
+
+                return $ordered;
         }
 
         /**
@@ -316,7 +381,7 @@ class BHG_Prizes {
          * @param int[] $prize_ids Prize IDs.
          * @return void
          */
-        public static function set_hunt_prizes( $hunt_id, $prize_ids ) {
+        public static function set_hunt_prizes( $hunt_id, $prize_ids, $type = 'regular' ) {
                 global $wpdb;
 
                 $hunt_id = absint( $hunt_id );
@@ -325,21 +390,25 @@ class BHG_Prizes {
                 }
 
                 $table      = $wpdb->prefix . 'bhg_hunt_prizes';
-                $current    = self::get_hunt_prize_ids( $hunt_id );
+                $type       = self::normalize_prize_type( $type );
+                $current    = self::get_hunt_prize_ids( $hunt_id, $type );
                 $new        = array_map( 'absint', (array) $prize_ids );
                 $new        = array_filter( array_unique( $new ) );
                 $to_add     = array_diff( $new, $current );
                 $to_remove  = array_diff( $current, $new );
 
                 if ( ! empty( $to_remove ) ) {
-                        $placeholders = implode( ',', array_fill( 0, count( $to_remove ), '%d' ) );
-                        $params       = array_merge( array( $hunt_id ), array_values( $to_remove ) );
-                        $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                                $wpdb->prepare(
-                                        "DELETE FROM {$table} WHERE hunt_id = %d AND prize_id IN ({$placeholders})",
-                                        ...$params
+                        $placeholders = implode( ', ', array_fill( 0, count( $to_remove ), '%d' ) );
+                        $sql          = "DELETE FROM {$table} WHERE hunt_id = %d AND prize_type = %s AND prize_id IN ({$placeholders})";
+                        $prepared     = call_user_func_array(
+                                array( $wpdb, 'prepare' ),
+                                array_merge(
+                                        array( $sql, $hunt_id, $type ),
+                                        array_values( $to_remove )
                                 )
                         );
+
+                        $wpdb->query( $prepared ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 }
 
                 if ( ! empty( $to_add ) ) {
@@ -350,11 +419,37 @@ class BHG_Prizes {
                                         array(
                                                 'hunt_id'   => $hunt_id,
                                                 'prize_id'  => $pid,
+                                                'prize_type'=> $type,
                                                 'created_at'=> $now,
                                         ),
-                                        array( '%d', '%d', '%s' )
+                                        array( '%d', '%d', '%s', '%s' )
                                 );
                         }
+                }
+        }
+
+        /**
+         * Set the regular and premium prize sets for a hunt.
+         *
+         * @param int   $hunt_id Hunt ID.
+         * @param array $sets    Associative array of prize IDs keyed by type.
+         * @return void
+         */
+        public static function set_hunt_prize_sets( $hunt_id, $sets ) {
+                $hunt_id = absint( $hunt_id );
+                if ( $hunt_id <= 0 ) {
+                        return;
+                }
+
+                $types = array( 'regular', 'premium' );
+
+                foreach ( $types as $type ) {
+                        $ids = array();
+                        if ( isset( $sets[ $type ] ) ) {
+                                $ids = (array) $sets[ $type ];
+                        }
+
+                        self::set_hunt_prizes( $hunt_id, $ids, $type );
                 }
         }
 
@@ -364,7 +459,7 @@ class BHG_Prizes {
          * @param int $hunt_id Hunt ID.
          * @return int[]
          */
-        public static function get_hunt_prize_ids( $hunt_id ) {
+        public static function get_hunt_prize_ids( $hunt_id, $type = '' ) {
                 global $wpdb;
                 $hunt_id = absint( $hunt_id );
                 if ( $hunt_id <= 0 ) {
@@ -373,12 +468,19 @@ class BHG_Prizes {
 
                 $table = $wpdb->prefix . 'bhg_hunt_prizes';
 
-                $ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                        $wpdb->prepare(
-                                "SELECT prize_id FROM {$table} WHERE hunt_id = %d ORDER BY created_at ASC, id ASC",
-                                $hunt_id
-                        )
-                );
+                $type   = ( '' === $type ) ? '' : self::normalize_prize_type( $type );
+                $sql    = "SELECT prize_id FROM {$table} WHERE hunt_id = %d";
+                $params = array( $hunt_id );
+
+                if ( '' !== $type ) {
+                        $sql     .= ' AND prize_type = %s';
+                        $params[] = $type;
+                }
+
+                $sql      .= ' ORDER BY created_at ASC, id ASC';
+                $prepared = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql ), $params ) );
+
+                $ids = $wpdb->get_col( $prepared ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
                 return array_map( 'intval', array_filter( array_unique( (array) $ids ) ) );
         }
@@ -399,17 +501,44 @@ class BHG_Prizes {
                 $table       = $wpdb->prefix . 'bhg_prizes';
                 $relation    = $wpdb->prefix . 'bhg_hunt_prizes';
                 $active_only = isset( $args['active_only'] ) ? (bool) $args['active_only'] : false;
+                $grouped     = ! empty( $args['grouped'] );
+                $type_filter = isset( $args['type'] ) ? sanitize_key( $args['type'] ) : '';
+
+                if ( $grouped ) {
+                        $results = array();
+                        foreach ( array( 'regular', 'premium' ) as $set_type ) {
+                                $results[ $set_type ] = self::get_prizes_for_hunt(
+                                        $hunt_id,
+                                        array_merge(
+                                                $args,
+                                                array(
+                                                        'grouped' => false,
+                                                        'type'    => $set_type,
+                                                )
+                                        )
+                                );
+                        }
+
+                        return $results;
+                }
 
                 $where = '';
                 if ( $active_only ) {
                         $where = 'AND p.active = 1';
                 }
 
-                $sql = "SELECT p.* FROM {$table} p INNER JOIN {$relation} r ON r.prize_id = p.id WHERE r.hunt_id = %d {$where} ORDER BY r.created_at ASC, r.id ASC";
+                $type_sql  = '';
+                $bindings  = array( $hunt_id );
+                if ( '' !== $type_filter && 'all' !== $type_filter ) {
+                        $type_sql   = ' AND r.prize_type = %s';
+                        $bindings[] = self::normalize_prize_type( $type_filter );
+                }
 
-                return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                        $wpdb->prepare( $sql, $hunt_id )
-                );
+                $sql = "SELECT p.*, r.prize_type FROM {$table} p INNER JOIN {$relation} r ON r.prize_id = p.id WHERE r.hunt_id = %d {$where}{$type_sql} ORDER BY r.created_at ASC, r.id ASC";
+
+                $prepared = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql ), $bindings ) );
+
+                return $wpdb->get_results( $prepared ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         }
 
         /**
