@@ -161,6 +161,51 @@ class BHG_Admin {
 								BHG_VERSION,
 								true
 							);
+			}
+
+			if ( false !== strpos( $hook, 'bhg-prizes' ) ) {
+					wp_enqueue_media();
+					$prize_script = BHG_PLUGIN_DIR . 'assets/js/admin-prizes.js';
+				if ( file_exists( $prize_script ) ) {
+								wp_enqueue_script(
+									'bhg-admin-prizes',
+									BHG_PLUGIN_URL . 'assets/js/admin-prizes.js',
+									array( 'jquery' ),
+									defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
+									true
+								);
+
+								$css_defaults = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::default_css_settings() : array();
+
+								wp_localize_script(
+									'bhg-admin-prizes',
+									'BHGPrizesL10n',
+									array(
+										'chooseImage' => bhg_t( 'select_image', 'Select Image' ),
+										'noImage'     => bhg_t( 'no_image_selected', 'No image selected' ),
+										'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+										'fetchNonce'  => wp_create_nonce( 'bhg_get_prize' ),
+										'cssDefaults' => $css_defaults,
+										'strings'     => array(
+											'saveLabel'    => bhg_t( 'add_prize', 'Add Prize' ),
+											'updateLabel'  => bhg_t( 'update_prize', 'Update Prize' ),
+											'modalAddTitle' => bhg_t( 'add_new_prize', 'Add New Prize' ),
+											'modalEditTitle' => bhg_t( 'edit_prize', 'Edit Prize' ),
+											'errorLoading' => bhg_t( 'prize_error_loading', 'Unable to load prize details.' ),
+										),
+									)
+								);
+				}
+			}
+
+			if ( false !== strpos( $hook, 'bhg-bonus-hunts-results' ) ) {
+							wp_enqueue_script(
+								'bhg-admin-results',
+								BHG_PLUGIN_URL . 'assets/js/admin-results.js',
+								array(),
+								BHG_VERSION,
+								true
+							);
 							wp_localize_script(
 								'bhg-admin-results',
 								'bhgResults',
@@ -208,6 +253,13 @@ class BHG_Admin {
                 require BHG_PLUGIN_DIR . 'admin/views/bonus-hunts-results.php';
 	}
 
+		/**
+		 * Render the bonus hunts results page.
+		 */
+	public function bonus_hunts_results() {
+			require BHG_PLUGIN_DIR . 'admin/views/bonus-hunts-results.php';
+	}
+
 	/**
 	 * Render the tournaments page.
 	 */
@@ -231,6 +283,12 @@ class BHG_Admin {
 			require $view; } else {
 			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_affiliates', 'Affiliates' ) ) . '</h1><p>' . esc_html( bhg_t( 'affiliate_management_ui_not_provided_yet', 'Affiliate management UI not provided yet.' ) ) . '</p></div>'; }
 	}
+		/**
+		 * Render the advertising page.
+		 */
+	public function advertising() {
+			require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
+	}
         /**
          * Render the advertising page.
          */
@@ -250,6 +308,15 @@ class BHG_Admin {
          */
         public function translations() {
                 $view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
+		if ( file_exists( $view ) ) {
+			require $view; } else {
+			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
+	}
+		/**
+		 * Render the database maintenance page.
+		 */
+	public function translations() {
+			$view = BHG_PLUGIN_DIR . 'admin/views/translations.php';
 		if ( file_exists( $view ) ) {
 			require $view; } else {
 			echo '<div class="wrap"><h1>' . esc_html( bhg_t( 'menu_translations', 'Translations' ) ) . '</h1><p>' . esc_html( bhg_t( 'no_translations_ui_found', 'No translations UI found.' ) ) . '</p></div>'; }
@@ -418,6 +485,23 @@ $data = array(
 								// Use a float format to match the stored value.
 								$format[] = '%f';
 				}
+
+				$data['status']                  = $status;
+				$data['updated_at']              = current_time( 'mysql' );
+				$format[]                        = '%s';
+				$format[]                        = '%s';
+								$previous_status = null;
+				if ( $id ) {
+					$existing_row = $wpdb->get_row(
+						$wpdb->prepare(
+							'SELECT status FROM ' . $hunts_table . ' WHERE id = %d',
+							(int) $id
+						)
+					);
+
+					if ( $existing_row && isset( $existing_row->status ) ) {
+							$previous_status = (string) $existing_row->status;
+					}
 
 				$data['status']     = $status;
 				$data['updated_at'] = current_time( 'mysql' );
@@ -708,6 +792,42 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
 
 				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-bonus-hunts' ) );
 		exit;
+	}
+
+		/**
+		 * Handle deletion of advertising entries.
+		 */
+	public function handle_delete_ad() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+		}
+			check_admin_referer( 'bhg_delete_ad', 'bhg_delete_ad_nonce' );
+						global $wpdb;
+						$ads_table = esc_sql( $wpdb->prefix . 'bhg_ads' );
+			$ad_id                 = isset( $_POST['ad_id'] ) ? absint( wp_unslash( $_POST['ad_id'] ) ) : 0;
+			$bulk_action           = isset( $_POST['bulk_action'] ) ? sanitize_key( wp_unslash( $_POST['bulk_action'] ) ) : '';
+			$bulk_ad_ids           = isset( $_POST['ad_ids'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['ad_ids'] ) ) : array();
+
+		if ( $ad_id ) {
+						$wpdb->query(
+							$wpdb->prepare(
+								'DELETE FROM `' . $ads_table . '` WHERE id = %d',
+								$ad_id
+							)
+						);
+		} elseif ( 'delete' === $bulk_action && ! empty( $bulk_ad_ids ) ) {
+						$placeholders = implode( ', ', array_fill( 0, count( $bulk_ad_ids ), '%d' ) );
+						$wpdb->query(
+							$wpdb->prepare(
+								'DELETE FROM `' . $ads_table . '` WHERE id IN (' . $placeholders . ')',
+								...$bulk_ad_ids
+							)
+						);
+		}
+
+			$referer = wp_get_referer();
+						wp_safe_redirect( $referer ? $referer : BHG_Utils::admin_url( 'admin.php?page=bhg-ads' ) );
+			exit;
 	}
 
 		/**
@@ -1378,8 +1498,8 @@ exit;
 				$data['created_at'] = current_time( 'mysql' );
 				$format[]           = '%s';
 				$wpdb->insert( $table, $data, $format );
-		}
-						wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
+			}
+					wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-affiliates' ) );
 			exit;
 	}
 
