@@ -50,74 +50,74 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 				add_action( 'admin_post_bhg_delete_guess', array( $this, 'delete_guess' ) );
 		}
 
-	/**
-	 * Retrieve data for bonus hunt admin views.
-	 *
-	 * @return array
-	 */
-	public function get_admin_view_vars() {
-		$db = new BHG_DB();
+		/**
+		 * Retrieve data for bonus hunt admin views.
+		 *
+		 * @return array
+		 */
+		public function get_admin_view_vars() {
+			$db = new BHG_DB();
 
-		return array(
-			'bonus_hunts'        => $db->get_all_bonus_hunts(),
-			'affiliate_websites' => $db->get_affiliate_websites(),
-		);
-	}
-
-	/**
-	 * Retrieve the latest hunts with winner information for dashboard displays.
-	 *
-	 * @param int $limit Number of hunts to fetch.
-	 * @return array
-	 */
-	public function get_latest_hunts( $limit = 3 ) {
-		$limit = max( 1, (int) $limit );
-
-		if ( ! class_exists( 'BHG_Bonus_Hunts' ) ) {
-			$file = BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts.php';
-			if ( file_exists( $file ) ) {
-				require_once $file;
-			}
+			return array(
+				'bonus_hunts'        => $db->get_all_bonus_hunts(),
+				'affiliate_websites' => $db->get_affiliate_websites(),
+			);
 		}
 
-		if ( class_exists( 'BHG_Bonus_Hunts' ) && method_exists( 'BHG_Bonus_Hunts', 'get_latest_hunts_with_winners' ) ) {
-			$hunts = BHG_Bonus_Hunts::get_latest_hunts_with_winners( $limit );
-			if ( is_array( $hunts ) ) {
-				return $hunts;
-			}
-		}
+		/**
+		 * Retrieve the latest hunts with winner information for dashboard displays.
+		 *
+		 * @param int $limit Number of hunts to fetch.
+		 * @return array
+		 */
+		public function get_latest_hunts( $limit = 3 ) {
+			$limit = max( 1, (int) $limit );
 
-		$results = array();
-
-		if ( function_exists( 'bhg_get_latest_closed_hunts' ) ) {
-			$legacy_hunts = bhg_get_latest_closed_hunts( $limit );
-
-			foreach ( (array) $legacy_hunts as $hunt ) {
-				$hunt_id       = isset( $hunt->id ) ? (int) $hunt->id : 0;
-				$winners_limit = isset( $hunt->winners_count ) ? (int) $hunt->winners_count : 0;
-				$winners_limit = $winners_limit > 0 ? $winners_limit : 25;
-				$winners       = array();
-
-				if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
-					$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_limit );
+			if ( ! class_exists( 'BHG_Bonus_Hunts' ) ) {
+				$file = BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts.php';
+				if ( file_exists( $file ) ) {
+					require_once $file;
 				}
-
-				$results[] = array(
-					'hunt'    => $hunt,
-					'winners' => $winners,
-				);
 			}
+
+			if ( class_exists( 'BHG_Bonus_Hunts' ) && method_exists( 'BHG_Bonus_Hunts', 'get_latest_hunts_with_winners' ) ) {
+				$hunts = BHG_Bonus_Hunts::get_latest_hunts_with_winners( $limit );
+				if ( is_array( $hunts ) ) {
+					return $hunts;
+				}
+			}
+
+			$results = array();
+
+			if ( function_exists( 'bhg_get_latest_closed_hunts' ) ) {
+				$legacy_hunts = bhg_get_latest_closed_hunts( $limit );
+
+				foreach ( (array) $legacy_hunts as $hunt ) {
+					$hunt_id       = isset( $hunt->id ) ? (int) $hunt->id : 0;
+					$winners_limit = isset( $hunt->winners_count ) ? (int) $hunt->winners_count : 0;
+					$winners_limit = $winners_limit > 0 ? $winners_limit : 25;
+					$winners       = array();
+
+					if ( $hunt_id && function_exists( 'bhg_get_top_winners_for_hunt' ) ) {
+						$winners = bhg_get_top_winners_for_hunt( $hunt_id, $winners_limit );
+					}
+
+					$results[] = array(
+						'hunt'    => $hunt,
+						'winners' => $winners,
+					);
+				}
+			}
+
+			return $results;
 		}
 
-		return $results;
-	}
-
-	/**
-	 * Handle bonus hunt form submissions.
-	 *
-	 * @return void
-	 */
-	public function handle_form_submissions() {
+		/**
+		 * Handle bonus hunt form submissions.
+		 *
+		 * @return void
+		 */
+		public function handle_form_submissions() {
 			if ( empty( $_POST['action'] ) ) {
 						return;
 			}
@@ -237,160 +237,160 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 }
 
 if ( ! class_exists( 'BHG_Prizes_Controller' ) ) {
-        /**
-         * Handles admin interactions for managing prizes.
-         */
-        class BHG_Prizes_Controller {
-                /**
-                 * Singleton instance.
-                 *
-                 * @var BHG_Prizes_Controller|null
-                 */
-                private static $instance = null;
+		/**
+		 * Handles admin interactions for managing prizes.
+		 */
+	class BHG_Prizes_Controller {
+			/**
+			 * Singleton instance.
+			 *
+			 * @var BHG_Prizes_Controller|null
+			 */
+		private static $instance = null;
 
-                /**
-                 * Retrieve singleton instance.
-                 *
-                 * @return BHG_Prizes_Controller
-                 */
-                public static function get_instance() {
-                        if ( null === self::$instance ) {
-                                self::$instance = new self();
-                        }
+			/**
+			 * Retrieve singleton instance.
+			 *
+			 * @return BHG_Prizes_Controller
+			 */
+		public static function get_instance() {
+			if ( null === self::$instance ) {
+				self::$instance = new self();
+			}
 
-                        return self::$instance;
-                }
+				return self::$instance;
+		}
 
-                /**
-                 * Constructor.
-                 */
-                private function __construct() {}
+			/**
+			 * Constructor.
+			 */
+		private function __construct() {}
 
-                /**
-                 * Register hooks for prize CRUD.
-                 *
-                 * @return void
-                 */
-                public function init() {
-                        add_action( 'admin_post_bhg_prize_save', array( $this, 'save_prize' ) );
-                        add_action( 'admin_post_bhg_prize_delete', array( $this, 'delete_prize' ) );
-                        add_action( 'wp_ajax_bhg_get_prize', array( $this, 'ajax_get_prize' ) );
-                }
+			/**
+			 * Register hooks for prize CRUD.
+			 *
+			 * @return void
+			 */
+		public function init() {
+				add_action( 'admin_post_bhg_prize_save', array( $this, 'save_prize' ) );
+				add_action( 'admin_post_bhg_prize_delete', array( $this, 'delete_prize' ) );
+				add_action( 'wp_ajax_bhg_get_prize', array( $this, 'ajax_get_prize' ) );
+		}
 
-                /**
-                 * Determine if the current user can manage prizes.
-                 *
-                 * @return bool
-                 */
-                protected function current_user_can_manage() {
-                        $capability = apply_filters( 'bhg_manage_prizes_capability', 'manage_options' );
+			/**
+			 * Determine if the current user can manage prizes.
+			 *
+			 * @return bool
+			 */
+		protected function current_user_can_manage() {
+				$capability = apply_filters( 'bhg_manage_prizes_capability', 'manage_options' );
 
-                        return current_user_can( $capability );
-                }
+				return current_user_can( $capability );
+		}
 
-                /**
-                 * Ensure the current user has permission to manage prizes.
-                 *
-                 * @return void
-                 */
-                protected function ensure_permission() {
-                        if ( $this->current_user_can_manage() ) {
-                                return;
-                        }
+			/**
+			 * Ensure the current user has permission to manage prizes.
+			 *
+			 * @return void
+			 */
+		protected function ensure_permission() {
+			if ( $this->current_user_can_manage() ) {
+					return;
+			}
 
-                        wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
-                }
+				wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'bonus-hunt-guesser' ) );
+		}
 
-                /**
-                 * Handle create/update submissions.
-                 *
-                 * @return void
-                 */
-                public function save_prize() {
-                        $this->ensure_permission();
+			/**
+			 * Handle create/update submissions.
+			 *
+			 * @return void
+			 */
+		public function save_prize() {
+				$this->ensure_permission();
 
-                        check_admin_referer( 'bhg_prize_save', 'bhg_prize_nonce' );
+				check_admin_referer( 'bhg_prize_save', 'bhg_prize_nonce' );
 
-                        $redirect = BHG_Utils::admin_url( 'admin.php?page=bhg-prizes' );
+				$redirect = BHG_Utils::admin_url( 'admin.php?page=bhg-prizes' );
 
-                        $id       = isset( $_POST['prize_id'] ) ? absint( wp_unslash( $_POST['prize_id'] ) ) : 0;
-                        $category = isset( $_POST['category'] ) ? sanitize_key( wp_unslash( $_POST['category'] ) ) : 'various';
+				$id       = isset( $_POST['prize_id'] ) ? absint( wp_unslash( $_POST['prize_id'] ) ) : 0;
+				$category = isset( $_POST['category'] ) ? sanitize_key( wp_unslash( $_POST['category'] ) ) : 'various';
 
-                        $data = array(
-                                'title'        => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
-                                'description'  => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
-                                'category'     => $category,
-                                'image_small'  => isset( $_POST['image_small'] ) ? absint( wp_unslash( $_POST['image_small'] ) ) : 0,
-                                'image_medium' => isset( $_POST['image_medium'] ) ? absint( wp_unslash( $_POST['image_medium'] ) ) : 0,
-                                'image_large'  => isset( $_POST['image_large'] ) ? absint( wp_unslash( $_POST['image_large'] ) ) : 0,
-                                'css_settings' => array(
-                                        'border'       => isset( $_POST['css_border'] ) ? wp_unslash( $_POST['css_border'] ) : '',
-                                        'border_color' => isset( $_POST['css_border_color'] ) ? wp_unslash( $_POST['css_border_color'] ) : '',
-                                        'padding'      => isset( $_POST['css_padding'] ) ? wp_unslash( $_POST['css_padding'] ) : '',
-                                        'margin'       => isset( $_POST['css_margin'] ) ? wp_unslash( $_POST['css_margin'] ) : '',
-                                        'background'   => isset( $_POST['css_background'] ) ? wp_unslash( $_POST['css_background'] ) : '',
-                                ),
-                                'active'       => isset( $_POST['active'] ) ? 1 : 0,
-                        );
+				$data = array(
+					'title'        => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+					'description'  => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
+					'category'     => $category,
+					'image_small'  => isset( $_POST['image_small'] ) ? absint( wp_unslash( $_POST['image_small'] ) ) : 0,
+					'image_medium' => isset( $_POST['image_medium'] ) ? absint( wp_unslash( $_POST['image_medium'] ) ) : 0,
+					'image_large'  => isset( $_POST['image_large'] ) ? absint( wp_unslash( $_POST['image_large'] ) ) : 0,
+					'css_settings' => array(
+						'border'       => isset( $_POST['css_border'] ) ? wp_unslash( $_POST['css_border'] ) : '',
+						'border_color' => isset( $_POST['css_border_color'] ) ? wp_unslash( $_POST['css_border_color'] ) : '',
+						'padding'      => isset( $_POST['css_padding'] ) ? wp_unslash( $_POST['css_padding'] ) : '',
+						'margin'       => isset( $_POST['css_margin'] ) ? wp_unslash( $_POST['css_margin'] ) : '',
+						'background'   => isset( $_POST['css_background'] ) ? wp_unslash( $_POST['css_background'] ) : '',
+					),
+					'active'       => isset( $_POST['active'] ) ? 1 : 0,
+				);
 
-                        $result = BHG_Prizes::save_prize( $data, $id );
+				$result = BHG_Prizes::save_prize( $data, $id );
 
-                        if ( false === $result ) {
-                                wp_safe_redirect( add_query_arg( 'bhg_msg', 'p_error', $redirect ) );
-                                exit;
-                        }
+				if ( false === $result ) {
+						wp_safe_redirect( add_query_arg( 'bhg_msg', 'p_error', $redirect ) );
+						exit;
+				}
 
-                        $message = $id ? 'p_updated' : 'p_saved';
+				$message = $id ? 'p_updated' : 'p_saved';
 
-                        wp_safe_redirect( add_query_arg( 'bhg_msg', $message, $redirect ) );
-                        exit;
-                }
+				wp_safe_redirect( add_query_arg( 'bhg_msg', $message, $redirect ) );
+				exit;
+		}
 
-                /**
-                 * Handle prize deletions.
-                 *
-                 * @return void
-                 */
-                public function delete_prize() {
-                        $this->ensure_permission();
+			/**
+			 * Handle prize deletions.
+			 *
+			 * @return void
+			 */
+		public function delete_prize() {
+				$this->ensure_permission();
 
-                        check_admin_referer( 'bhg_prize_delete', 'bhg_prize_delete_nonce' );
+				check_admin_referer( 'bhg_prize_delete', 'bhg_prize_delete_nonce' );
 
-                        $id = isset( $_POST['prize_id'] ) ? absint( wp_unslash( $_POST['prize_id'] ) ) : 0;
+				$id = isset( $_POST['prize_id'] ) ? absint( wp_unslash( $_POST['prize_id'] ) ) : 0;
 
-                        if ( $id ) {
-                                BHG_Prizes::delete_prize( $id );
-                        }
+			if ( $id ) {
+					BHG_Prizes::delete_prize( $id );
+			}
 
-                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'p_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-prizes' ) ) );
-                        exit;
-                }
+				wp_safe_redirect( add_query_arg( 'bhg_msg', 'p_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-prizes' ) ) );
+				exit;
+		}
 
-                /**
-                 * Provide prize data via AJAX.
-                 *
-                 * @return void
-                 */
-                public function ajax_get_prize() {
-                        if ( ! $this->current_user_can_manage() ) {
-                                wp_send_json_error( array( 'message' => __( 'You are not allowed to view this prize.', 'bonus-hunt-guesser' ) ), 403 );
-                        }
+			/**
+			 * Provide prize data via AJAX.
+			 *
+			 * @return void
+			 */
+		public function ajax_get_prize() {
+			if ( ! $this->current_user_can_manage() ) {
+					wp_send_json_error( array( 'message' => __( 'You are not allowed to view this prize.', 'bonus-hunt-guesser' ) ), 403 );
+			}
 
-                        check_ajax_referer( 'bhg_get_prize', 'nonce' );
+				check_ajax_referer( 'bhg_get_prize', 'nonce' );
 
-                        $id = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+				$id = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
 
-                        if ( ! $id ) {
-                                wp_send_json_error( array( 'message' => __( 'Invalid prize ID supplied.', 'bonus-hunt-guesser' ) ), 400 );
-                        }
+			if ( ! $id ) {
+					wp_send_json_error( array( 'message' => __( 'Invalid prize ID supplied.', 'bonus-hunt-guesser' ) ), 400 );
+			}
 
-                        $prize = BHG_Prizes::get_prize( $id );
+				$prize = BHG_Prizes::get_prize( $id );
 
-                        if ( ! $prize ) {
-                                wp_send_json_error( array( 'message' => __( 'Prize not found.', 'bonus-hunt-guesser' ) ), 404 );
-                        }
+			if ( ! $prize ) {
+					wp_send_json_error( array( 'message' => __( 'Prize not found.', 'bonus-hunt-guesser' ) ), 404 );
+			}
 
-                        wp_send_json_success( BHG_Prizes::format_prize_for_response( $prize ) );
-                }
-        }
+				wp_send_json_success( BHG_Prizes::format_prize_for_response( $prize ) );
+		}
+	}
 }

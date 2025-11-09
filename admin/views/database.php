@@ -27,11 +27,11 @@ if ( 'db_cleanup' === $db_action && ! empty( $cleanup_request ) ) {
 	bhg_database_cleanup();
 	$cleanup_completed = true;
 } elseif ( 'db_optimize' === $db_action && ! empty( $optimize_request ) ) {
-        check_admin_referer( 'bhg_db_optimize_action', 'bhg_nonce' );
+		check_admin_referer( 'bhg_db_optimize_action', 'bhg_nonce' );
 
-        // Perform database optimization.
-        bhg_database_optimize();
-        $optimize_completed = true;
+		// Perform database optimization.
+		bhg_database_optimize();
+		$optimize_completed = true;
 }
 
 ?>

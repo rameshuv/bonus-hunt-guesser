@@ -105,11 +105,11 @@ class BHG_Jackpots {
 		if ( ! empty( $args['status'] ) ) {
 			$statuses = (array) $args['status'];
 			$statuses = array_filter(
-                array_map( 'sanitize_key', $statuses ),
-                static function ( $status ) {
-                    return '' !== $status;
-                }
-            );
+				array_map( 'sanitize_key', $statuses ),
+				static function ( $status ) {
+					return '' !== $status;
+				}
+			);
 
 			if ( ! empty( $statuses ) ) {
 				$placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
@@ -375,9 +375,9 @@ class BHG_Jackpots {
 			return array();
 		}
 
-		$affiliate_id     = isset( $context['affiliate_id'] ) ? (int) $context['affiliate_id'] : 0;
-		$affiliate_site   = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
-		$closed_at        = isset( $context['closed_at'] ) ? (string) $context['closed_at'] : '';
+		$affiliate_id   = isset( $context['affiliate_id'] ) ? (int) $context['affiliate_id'] : 0;
+		$affiliate_site = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
+		$closed_at      = isset( $context['closed_at'] ) ? (string) $context['closed_at'] : '';
 
 		// Prefer WP-aware UTC timestamp; fallback to time() as last resort.
 		$now_ts           = function_exists( 'current_time' ) ? (int) current_time( 'timestamp', true ) : time();
