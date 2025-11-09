@@ -234,7 +234,8 @@ class BHG_Jackpots {
 		);
 
 		if ( false === $inserted ) {
-			return 0;
+return 0;
+ main
 		}
 
 		return (int) $wpdb->insert_id;
@@ -375,10 +376,15 @@ class BHG_Jackpots {
 			return array();
 		}
 
-		$affiliate_id     = isset( $context['affiliate_id'] ) ? (int) $context['affiliate_id'] : 0;
-		$affiliate_site   = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
-		$closed_at        = isset( $context['closed_at'] ) ? (string) $context['closed_at'] : '';
-		$closed_timestamp = $closed_at ? mysql2date( 'U', $closed_at, false ) : time();
+// Context inputs.
+		$affiliate_id   = isset( $context['affiliate_id'] ) ? (int) $context['affiliate_id'] : 0;
+		$affiliate_site = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
+		$closed_at      = isset( $context['closed_at'] ) ? (string) $context['closed_at'] : '';
+
+		// Prefer WP-aware UTC timestamp; fallback to time() as last resort.
+		$now_ts           = function_exists( 'current_time' ) ? (int) current_time( 'timestamp', true ) : time();
+		$closed_timestamp = $closed_at ? mysql2date( 'U', $closed_at, false ) : $now_ts;
+ main
 
 		$eligible = array();
 
@@ -386,7 +392,8 @@ class BHG_Jackpots {
 			$link_mode   = isset( $jackpot['link_mode'] ) ? sanitize_key( $jackpot['link_mode'] ) : 'all';
 			$link_config = array();
 			if ( ! empty( $jackpot['link_config'] ) ) {
-				$decoded = json_decode( $jackpot['link_config'], true );
+$decoded = json_decode( $jackpot['link_config'], true );
+ main
 				if ( is_array( $decoded ) ) {
 					$link_config = $decoded;
 				}
@@ -399,6 +406,8 @@ class BHG_Jackpots {
 					$hunts   = isset( $link_config['hunts'] ) ? array_map( 'intval', (array) $link_config['hunts'] ) : array();
 					$applies = in_array( $hunt_id, $hunts, true );
 					break;
+
+ main
 				case 'affiliate':
 					$ids = isset( $link_config['affiliates'] ) ? array_map( 'intval', (array) $link_config['affiliates'] ) : array();
 					if ( $affiliate_site && in_array( $affiliate_site, $ids, true ) ) {
@@ -407,16 +416,19 @@ class BHG_Jackpots {
 						$applies = true;
 					}
 					break;
+
+ main
 				case 'period':
 					$period = isset( $link_config['period'] ) ? sanitize_key( $link_config['period'] ) : 'this_month';
 					if ( 'all_time' === $period ) {
 						$applies = true;
 					} elseif ( 'this_year' === $period ) {
-						$applies = gmdate( 'Y', $closed_timestamp ) === gmdate( 'Y', time() );
+$applies = gmdate( 'Y', $closed_timestamp ) === gmdate( 'Y', $now_ts );
 					} else {
-						$applies = gmdate( 'Ym', $closed_timestamp ) === gmdate( 'Ym', time() );
+						$applies = gmdate( 'Ym', $closed_timestamp ) === gmdate( 'Ym', $now_ts );
 					}
 					break;
+ main
 				case 'all':
 				default:
 					$applies = true;
@@ -434,10 +446,11 @@ class BHG_Jackpots {
 	/**
 	 * Record jackpot hit event.
 	 *
-	 * @param array $jackpot    Jackpot row.
-	 * @param int   $user_id    Winning user ID.
-	 * @param int   $hunt_id    Hunt ID.
-	 * @param int   $guess_id   Guess ID.
+* @param array $jackpot       Jackpot row.
+	 * @param int   $user_id       Winning user ID.
+	 * @param int   $hunt_id       Hunt ID.
+	 * @param int   $guess_id      Guess ID.
+ main
 	 * @param float $final_balance Final balance.
 	 * @return void
 	 */
@@ -519,13 +532,14 @@ class BHG_Jackpots {
 	/**
 	 * Store jackpot event log.
 	 *
-	 * @param int    $jackpot_id Jackpot ID.
-	 * @param string $event_type Event type.
-	 * @param float  $amount_before Amount before change.
-	 * @param float  $amount_after Amount after change.
-	 * @param int    $user_id User ID.
-	 * @param int    $hunt_id Hunt ID.
-	 * @param array  $meta Additional meta.
+* @param int    $jackpot_id     Jackpot ID.
+	 * @param string $event_type     Event type.
+	 * @param float  $amount_before  Amount before change.
+	 * @param float  $amount_after   Amount after change.
+	 * @param int    $user_id        User ID.
+	 * @param int    $hunt_id        Hunt ID.
+	 * @param array  $meta           Additional meta.
+ main
 	 * @return void
 	 */
 	protected function log_event( $jackpot_id, $event_type, $amount_before, $amount_after, $user_id = 0, $hunt_id = 0, array $meta = array() ) {
