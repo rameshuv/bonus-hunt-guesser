@@ -170,6 +170,41 @@ $shortcodes = array(
 		'description' => bhg_t( 'shortcode_bonus_hunt_login_desc', 'Displays a login prompt with redirect for guests.' ),
 		'attributes'  => array(),
 	),
+	array(
+		'tag'         => 'bhg_jackpot_current',
+		'description' => bhg_t( 'shortcode_jackpot_current_desc', 'Displays the current amount for a specific jackpot.' ),
+		'attributes'  => array(
+			'id' => bhg_t( 'shortcode_attr_jackpot_id', 'Numeric jackpot ID to display.' ),
+		),
+	),
+	array(
+		'tag'         => 'bhg_jackpot_latest',
+		'description' => bhg_t( 'shortcode_jackpot_latest_desc', 'List of the most recent jackpot wins.' ),
+		'attributes'  => array(
+			'limit'     => bhg_t( 'shortcode_attr_limit', 'Number of results to show.' ),
+			'affiliate' => bhg_t( 'shortcode_attr_jackpot_affiliate', 'Optional affiliate website ID filter.' ),
+			'year'      => bhg_t( 'shortcode_attr_jackpot_year', 'Filter wins by calendar year.' ),
+			'empty'     => bhg_t( 'shortcode_attr_empty_text', 'Fallback message when no wins are available.' ),
+		),
+	),
+	array(
+		'tag'         => 'bhg_jackpot_ticker',
+		'description' => bhg_t( 'shortcode_jackpot_ticker_desc', 'Ticker of live jackpot totals or recent winners.' ),
+		'attributes'  => array(
+			'mode' => bhg_t( 'shortcode_attr_jackpot_mode', 'Display mode: amount (default) or winners.' ),
+		),
+	),
+	array(
+		'tag'         => 'bhg_jackpot_winners',
+		'description' => bhg_t( 'shortcode_jackpot_winners_desc', 'Formatted table or list of jackpot winners.' ),
+		'attributes'  => array(
+			'layout'    => bhg_t( 'shortcode_attr_jackpot_layout', 'Layout style: table or list.' ),
+			'limit'     => bhg_t( 'shortcode_attr_limit', 'Number of rows to display.' ),
+			'affiliate' => bhg_t( 'shortcode_attr_jackpot_affiliate', 'Affiliate website ID filter.' ),
+			'year'      => bhg_t( 'shortcode_attr_jackpot_year', 'Limit winners to a specific year.' ),
+			'empty'     => bhg_t( 'shortcode_attr_empty_text', 'Fallback message when no winners are available.' ),
+		),
+	),
 );
 ?>
 <div class="wrap">

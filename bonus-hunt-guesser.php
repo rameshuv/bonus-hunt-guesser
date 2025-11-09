@@ -124,7 +124,7 @@ if ( ! function_exists( 'bhg_sanitize_tournament_ids' ) ) {
 	 */
 	function bhg_sanitize_tournament_ids( $ids ) {
 		$ids        = is_array( $ids ) ? $ids : array( $ids );
-	$normalized = array();
+		$normalized = array();
 
 		foreach ( $ids as $id ) {
 			$id = bhg_sanitize_tournament_id( $id );
@@ -223,6 +223,7 @@ spl_autoload_register(
 			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
 			'BHG_Ads'                    => 'includes/class-bhg-ads.php',
 			'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
+			'BHG_Jackpots'               => 'includes/class-bhg-jackpots.php',
 			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
 			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
 		);
@@ -716,7 +717,7 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	$limit_fields = array(
+	$limit_fields    = array(
 		'hunt_win_limit'       => isset( $_POST['bhg_hunt_win_limit'] ) ? wp_unslash( $_POST['bhg_hunt_win_limit'] ) : array(),
 		'tournament_win_limit' => isset( $_POST['bhg_tournament_win_limit'] ) ? wp_unslash( $_POST['bhg_tournament_win_limit'] ) : array(),
 	);

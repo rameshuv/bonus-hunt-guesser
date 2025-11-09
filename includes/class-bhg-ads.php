@@ -91,7 +91,7 @@ class BHG_Ads {
 	 * @return bool
 	 */
 	protected static function visibility_ok( $visibility, $context = array() ) {
-		$visibility         = is_string( $visibility ) ? strtolower( $visibility ) : 'all';
+		$visibility        = is_string( $visibility ) ? strtolower( $visibility ) : 'all';
 		$affiliate_site_id = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
 
 		switch ( $visibility ) {
