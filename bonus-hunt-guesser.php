@@ -1,6 +1,7 @@
 <?php
 /**
  * Plugin Name: Bonus Hunt Guesser
+ * Plugin URI: https://yourdomain.com/
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality.
  * Version: 8.0.16
  * Requires at least: 6.3.5
