@@ -192,17 +192,83 @@ $wpdb->usermeta,
 				return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
 		}
 
-		/**
-		 * Normalize prize card size keyword.
-		 *
-		 * @param string $size Size keyword.
-		 * @return string
-		 */
-		private function normalize_prize_size( $size ) {
-				$size = strtolower( (string) $size );
+/**
+ * Normalize prize card size keyword.
+ *
+ * @param string $size Size keyword.
+ * @return string
+ */
+private function normalize_prize_size( $size ) {
+$size = strtolower( (string) $size );
 
-				return in_array( $size, array( 'small', 'medium', 'big' ), true ) ? $size : 'medium';
-		}
+return in_array( $size, array( 'small', 'medium', 'big' ), true ) ? $size : 'medium';
+}
+
+/**
+ * Normalize a yes/no shortcode attribute.
+ *
+ * @param mixed $value         Raw attribute value.
+ * @param bool  $allow_inherit Whether to allow inherit/default keywords.
+ * @return string Either '1', '0', or 'inherit'.
+ */
+private function normalize_yes_no_attr( $value, $allow_inherit = true ) {
+$value = strtolower( trim( (string) $value ) );
+
+if ( $allow_inherit && in_array( $value, array( 'inherit', 'default', '' ), true ) ) {
+return 'inherit';
+}
+
+if ( in_array( $value, array( 'no', '0', 'false', 'off' ), true ) ) {
+return '0';
+}
+
+return '1';
+}
+
+/**
+ * Normalize a click action shortcode attribute.
+ *
+ * @param mixed $value Raw attribute value.
+ * @return string Normalized keyword or empty string when invalid.
+ */
+private function normalize_click_action_attr( $value ) {
+if ( ! class_exists( 'BHG_Prizes' ) ) {
+return '';
+}
+
+$action = sanitize_key( (string) $value );
+
+if ( '' === $action ) {
+return '';
+}
+
+if ( in_array( $action, array( 'inherit', 'default' ), true ) ) {
+return 'inherit';
+}
+
+return BHG_Prizes::sanitize_click_action( $action, 'link' );
+}
+
+/**
+ * Normalize a link target shortcode attribute.
+ *
+ * @param mixed $value         Raw attribute value.
+ * @param bool  $allow_inherit Whether to accept inherit/default keywords.
+ * @return string Normalized target keyword or empty string when invalid.
+ */
+private function normalize_link_target_attr( $value, $allow_inherit = true ) {
+if ( ! class_exists( 'BHG_Prizes' ) ) {
+return '';
+}
+
+$target = sanitize_key( (string) $value );
+
+if ( $allow_inherit && in_array( $target, array( 'inherit', 'default', '' ), true ) ) {
+return 'inherit';
+}
+
+return BHG_Prizes::sanitize_link_target( $target, '_self' );
+}
 
 		/**
 		 * Locate a shortcode view file.
@@ -328,72 +394,112 @@ $wpdb->usermeta,
 				return (bool) $this->profile_visibility_settings[ $section ];
 		}
 
-		/**
-		 * Render prizes section markup.
-		 *
-		 * @param array  $prizes Prize rows.
-		 * @param string $layout Layout keyword.
-		 * @param string $size   Image size keyword.
-		 * @return string
-		 */
-		private function render_prize_section( $prizes, $layout, $size ) {
-				if ( empty( $prizes ) || ! class_exists( 'BHG_Prizes' ) ) {
-						return '';
-				}
+/**
+ * Render prizes section markup.
+ *
+ * @param array  $prizes  Prize rows.
+ * @param string $layout  Layout keyword.
+ * @param string $size    Image size keyword.
+ * @param array  $display Display overrides.
+ * @param array  $options Section-level options.
+ * @return string
+ */
+private function render_prize_section( $prizes, $layout, $size, $display = array(), $options = array() ) {
+if ( empty( $prizes ) || ! class_exists( 'BHG_Prizes' ) ) {
+return '';
+}
 
-				$layout = $this->normalize_prize_layout( $layout );
-				$size   = $this->normalize_prize_size( $size );
+$layout = $this->normalize_prize_layout( $layout );
+$size   = $this->normalize_prize_size( $size );
 
-				$this->enqueue_prize_assets();
+$this->enqueue_prize_assets();
 
-				$view          = $this->get_view_path( 'prizes/section' );
-				$title_text    = bhg_t( 'label_prizes', 'Prizes' );
-				$card_renderer = array( $this, 'render_prize_card' );
-				$count         = count( $prizes );
+$section_options = BHG_Prizes::prepare_section_options( $options );
+$display_options = BHG_Prizes::prepare_display_overrides( $display );
 
-				if ( $view ) {
-						ob_start();
-						include $view;
+$limit = isset( $section_options['limit'] ) ? (int) $section_options['limit'] : 0;
+if ( $limit > 0 && count( $prizes ) > $limit ) {
+$prizes = array_slice( $prizes, 0, $limit );
+}
 
-						return ob_get_clean();
-				}
+if ( empty( $prizes ) ) {
+return '';
+}
 
-				ob_start();
-				echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
-				if ( '' !== $title_text ) {
-						echo '<h4 class="bhg-prizes-title">' . esc_html( $title_text ) . '</h4>';
-				}
+$count             = count( $prizes );
+$heading_text      = isset( $section_options['heading_text'] ) ? $section_options['heading_text'] : '';
+$hide_heading      = ! empty( $section_options['hide_heading'] );
+$carousel_visible  = isset( $section_options['carousel_visible'] ) ? max( 1, (int) $section_options['carousel_visible'] ) : 1;
+$carousel_autoplay = ! empty( $section_options['carousel_autoplay'] );
+$carousel_interval = isset( $section_options['carousel_interval'] ) ? max( 1000, (int) $section_options['carousel_interval'] ) : 5000;
+$carousel_pages    = max( 1, (int) ceil( $count / max( 1, $carousel_visible ) ) );
 
-				if ( 'carousel' === $layout ) {
-						$show_nav = $count > 1;
-						echo '<div class="bhg-prize-carousel" data-count="' . (int) $count . '">';
-						if ( $show_nav ) {
-								echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '"><span aria-hidden="true">&lsaquo;</span></button>';
-						}
-						echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
-						foreach ( $prizes as $prize ) {
-								echo $this->render_prize_card( $prize, $size );
-						}
-						echo '</div></div>';
-						if ( $show_nav ) {
-								echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '"><span aria-hidden="true">&rsaquo;</span></button>';
-								echo '<div class="bhg-prize-dots" role="tablist">';
-								for ( $i = 0; $i < $count; $i++ ) {
-										$active = 0 === $i ? ' active' : '';
-										echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
-								}
-								echo '</div>';
-						}
-						echo '</div>';
-				} else {
-						echo '<div class="bhg-prizes-grid">';
-						foreach ( $prizes as $prize ) {
-								echo $this->render_prize_card( $prize, $size );
-						}
-						echo '</div>';
-				}
+if ( '' === $heading_text ) {
+$heading_text = bhg_t( 'label_prizes', 'Prizes' );
+}
 
-				echo '</div>';
+$view          = $this->get_view_path( 'prizes/section' );
+$card_renderer = array( $this, 'render_prize_card' );
+$context       = array(
+'layout'            => $layout,
+'carousel_visible'  => $carousel_visible,
+'carousel_autoplay' => $carousel_autoplay,
+'carousel_interval' => $carousel_interval,
+);
+
+if ( $view ) {
+$view_layout        = $layout;
+$view_size          = $size;
+$view_prizes        = $prizes;
+$view_display       = $display_options;
+$view_context       = $context;
+$view_title         = $hide_heading ? '' : $heading_text;
+$view_count         = $count;
+$view_pages         = $carousel_pages;
+$view_card_renderer = $card_renderer;
+
+ob_start();
+include $view;
+
+return ob_get_clean();
+}
+
+ob_start();
+echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
+if ( ! $hide_heading && '' !== $heading_text ) {
+echo '<h4 class="bhg-prizes-title">' . esc_html( $heading_text ) . '</h4>';
+}
+
+if ( 'carousel' === $layout ) {
+$show_nav = $carousel_pages > 1;
+echo '<div class="bhg-prize-carousel" data-count="' . (int) $count . '" data-visible="' . esc_attr( $carousel_visible ) . '" data-pages="' . esc_attr( $carousel_pages ) . '" data-autoplay="' . ( $carousel_autoplay ? '1' : '0' ) . '" data-interval="' . esc_attr( $carousel_interval ) . '">';
+if ( $show_nav ) {
+echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '"><span aria-hidden="true">&lsaquo;</span></button>';
+}
+echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
+foreach ( $prizes as $prize ) {
+echo $this->render_prize_card( $prize, $size, $display_options, $context );
+}
+echo '</div></div>';
+if ( $show_nav ) {
+echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '"><span aria-hidden="true">&rsaquo;</span></button>';
+echo '<div class="bhg-prize-dots" role="tablist">';
+for ( $i = 0; $i < $carousel_pages; $i++ ) {
+$active = 0 === $i ? ' active' : '';
+echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
+}
+echo '</div>';
+}
+echo '</div>';
+} else {
+echo '<div class="bhg-prizes-grid">';
+foreach ( $prizes as $prize ) {
+echo $this->render_prize_card( $prize, $size, $display_options, $context );
+}
+echo '</div>';
+}
+
+echo '</div>';
 
 return ob_get_clean();
 }
@@ -667,55 +773,149 @@ return ob_get_clean();
 /**
  * Render a single prize card.
  *
- * @param object $prize Prize row.
- * @param string $size  Image size keyword.
-		 * @return string
-		 */
-		private function render_prize_card( $prize, $size ) {
-				if ( ! class_exists( 'BHG_Prizes' ) ) {
-						return '';
-				}
+ * @param object $prize   Prize row.
+ * @param string $size    Image size keyword.
+ * @param array  $display Display overrides.
+ * @param array  $context Additional context.
+ * @return string
+ */
+private function render_prize_card( $prize, $size, $display = array(), $context = array() ) {
+if ( ! class_exists( 'BHG_Prizes' ) ) {
+return '';
+}
 
-				$style_attr = BHG_Prizes::build_style_attr( $prize );
-				$image_url  = BHG_Prizes::get_image_url( $prize, $size );
-				$category   = isset( $prize->category ) ? (string) $prize->category : '';
+$display = is_array( $display ) ? $display : array();
+$context = is_array( $context ) ? $context : array();
+$layout  = isset( $context['layout'] ) ? $context['layout'] : 'grid';
 
-				$classes = array( 'bhg-prize-card' );
-				if ( $style_attr ) {
-						$classes[] = 'bhg-prize-card--custom';
-				}
-				if ( ! empty( $prize->css_border ) || ! empty( $prize->css_border_color ) ) {
-						$classes[] = 'bhg-prize-card--has-border';
-				}
-				if ( ! empty( $prize->css_background ) ) {
-						$classes[] = 'bhg-prize-card--has-background';
-				}
-				if ( $image_url ) {
-						$classes[] = 'bhg-prize-card--has-image';
-				}
+$style_attr = BHG_Prizes::build_style_attr( $prize );
+$image_url  = BHG_Prizes::get_image_url( $prize, $size );
+$image_id   = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_image_id_for_size( $prize, $size ) : 0;
+$category   = isset( $prize->category ) ? (string) $prize->category : '';
+$wp_size    = 'medium';
 
-				$classes    = array_map( 'sanitize_html_class', $classes );
-				$class_attr = trim( implode( ' ', array_filter( $classes ) ) );
+if ( 'small' === $size ) {
+$wp_size = 'thumbnail';
+} elseif ( 'big' === $size ) {
+$wp_size = 'large';
+}
 
-				ob_start();
-				echo '<div class="' . esc_attr( $class_attr ) . '"' . $style_attr . '>';
-				if ( $image_url ) {
-						echo '<div class="bhg-prize-image"><img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $prize->title ) . '"></div>';
-				}
-				echo '<div class="bhg-prize-body">';
-				echo '<h5 class="bhg-prize-title">' . esc_html( $prize->title ) . '</h5>';
-				if ( $category ) {
-						echo '<div class="bhg-prize-category">' . esc_html( ucwords( str_replace( '_', ' ', $category ) ) ) . '</div>';
-				}
-				if ( ! empty( $prize->description ) ) {
-						$description = wp_kses_post( wpautop( $prize->description ) );
-						echo '<div class="bhg-prize-description">' . $description . '</div>';
-				}
-				echo '</div>';
-				echo '</div>';
+$show_title       = BHG_Prizes::resolve_display_flag( isset( $display['show_title'] ) ? $display['show_title'] : null, isset( $prize->show_title ) ? $prize->show_title : 1 );
+$show_description = BHG_Prizes::resolve_display_flag( isset( $display['show_description'] ) ? $display['show_description'] : null, isset( $prize->show_description ) ? $prize->show_description : 1 );
+$show_category    = BHG_Prizes::resolve_display_flag( isset( $display['show_category'] ) ? $display['show_category'] : null, isset( $prize->show_category ) ? $prize->show_category : 1 );
+$show_image       = BHG_Prizes::resolve_display_flag( isset( $display['show_image'] ) ? $display['show_image'] : null, isset( $prize->show_image ) ? $prize->show_image : 1 );
 
-				return ob_get_clean();
-		}
+$action_override = isset( $display['click_action'] ) ? $display['click_action'] : 'inherit';
+$prize_action    = isset( $prize->click_action ) ? $prize->click_action : 'link';
+$click_action    = BHG_Prizes::resolve_click_action( $action_override, $prize_action );
+
+$link_href = '';
+$target    = '_self';
+$rel_attr  = '';
+if ( in_array( $click_action, array( 'link', 'new' ), true ) ) {
+$link_href = BHG_Prizes::get_prize_link( $prize );
+if ( '' === $link_href ) {
+$click_action = 'none';
+} else {
+if ( 'new' === $click_action ) {
+$target   = '_blank';
+$rel_attr = ' rel="noopener noreferrer"';
+} else {
+$target   = BHG_Prizes::resolve_link_target( isset( $display['link_target'] ) ? $display['link_target'] : 'inherit', isset( $prize->link_target ) ? $prize->link_target : '_self' );
+$rel_attr = '_blank' === $target ? ' rel="noopener noreferrer"' : '';
+}
+}
+} elseif ( 'image' === $click_action ) {
+$link_href = BHG_Prizes::get_full_image_url( $prize );
+if ( '' === $link_href ) {
+$click_action = 'none';
+}
+}
+
+if ( 'image' === $click_action && ! $show_image ) {
+$click_action = 'none';
+}
+
+$classes = array( 'bhg-prize-card' );
+if ( $style_attr ) {
+$classes[] = 'bhg-prize-card--custom';
+}
+if ( ! empty( $prize->css_border ) || ! empty( $prize->css_border_color ) ) {
+$classes[] = 'bhg-prize-card--has-border';
+}
+if ( ! empty( $prize->css_background ) ) {
+$classes[] = 'bhg-prize-card--has-background';
+}
+if ( $show_image && $image_url ) {
+$classes[] = 'bhg-prize-card--has-image';
+}
+if ( 'none' !== $click_action && '' !== $link_href ) {
+$classes[] = 'bhg-prize-card--linked';
+if ( 'image' === $click_action ) {
+$classes[] = 'bhg-prize-card--popup';
+}
+}
+
+$classes    = array_map( 'sanitize_html_class', $classes );
+$class_attr = trim( implode( ' ', array_filter( $classes ) ) );
+
+$tag        = 'div';
+$attributes = '';
+if ( 'none' !== $click_action && '' !== $link_href ) {
+$tag        = 'a';
+$attributes = ' href="' . esc_url( $link_href ) . '"';
+if ( '_blank' === $target ) {
+$attributes .= ' target="_blank"' . $rel_attr;
+} elseif ( '_self' !== $target ) {
+$attributes .= ' target="' . esc_attr( $target ) . '"';
+}
+if ( 'image' === $click_action ) {
+$attributes .= ' data-bhg-prize-popup="image" data-bhg-prize-alt="' . esc_attr( $prize->title ) . '"';
+}
+}
+
+ob_start();
+echo '<' . $tag . ' class="' . esc_attr( $class_attr ) . '"' . $style_attr . $attributes . '>';
+if ( $show_image && $image_url ) {
+$img_attr = '';
+$srcset   = $image_id ? wp_get_attachment_image_srcset( $image_id, $wp_size ) : '';
+$sizes    = $image_id ? wp_get_attachment_image_sizes( $image_id, $wp_size ) : '';
+if ( $srcset ) {
+$img_attr .= ' srcset="' . esc_attr( $srcset ) . '"';
+}
+if ( $sizes ) {
+$img_attr .= ' sizes="' . esc_attr( $sizes ) . '"';
+} else {
+$img_attr .= ' sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"';
+}
+echo '<div class="bhg-prize-image"><img src="' . esc_url( $image_url ) . '" alt="' . esc_attr( $prize->title ) . '"' . $img_attr . '></div>';
+}
+echo '<div class="bhg-prize-body">';
+if ( $show_title ) {
+echo '<h5 class="bhg-prize-title">' . esc_html( $prize->title ) . '</h5>';
+}
+if ( $show_category && $category ) {
+$category_label = esc_html( ucwords( str_replace( '_', ' ', $category ) ) );
+$category_link  = '';
+if ( BHG_Prizes::resolve_display_flag( isset( $display['category_links'] ) ? $display['category_links'] : null, ! empty( $prize->category_link_url ) ) ) {
+$category_link = BHG_Prizes::get_category_link( $prize );
+}
+if ( $category_link ) {
+$category_target = BHG_Prizes::resolve_link_target( isset( $display['category_target'] ) ? $display['category_target'] : 'inherit', isset( $prize->category_link_target ) ? $prize->category_link_target : '_self' );
+$rel = '_blank' === $category_target ? ' rel="noopener noreferrer"' : '';
+$category_label = '<a href="' . esc_url( $category_link ) . '" target="' . esc_attr( $category_target ) . '"' . $rel . '>' . $category_label . '</a>';
+}
+echo '<div class="bhg-prize-category">' . $category_label . '</div>';
+}
+if ( $show_description && ! empty( $prize->description ) ) {
+$description = wp_kses_post( wpautop( $prize->description ) );
+echo '<div class="bhg-prize-description">' . $description . '</div>';
+}
+echo '</div>';
+echo '</' . $tag . '>';
+
+return ob_get_clean();
+}
 
 
 										/**
@@ -3158,16 +3358,32 @@ return ob_get_clean();
 								return '';
 						}
 
-						$atts = shortcode_atts(
-								array(
-										'category' => '',
-										'design'   => 'grid',
-										'size'     => 'medium',
-										'active'   => 'yes',
-								),
-								$atts,
-								'bhg_prizes'
-						);
+$atts = shortcode_atts(
+array(
+'category'         => '',
+'design'           => 'grid',
+'size'             => 'medium',
+'active'           => 'yes',
+'visible'          => '',
+'limit'            => '',
+'total'            => '',
+'autoplay'         => '',
+'interval'         => '',
+'hide_heading'     => '',
+'heading'          => '',
+'heading_text'     => '',
+'show_title'       => '',
+'show_description' => '',
+'show_category'    => '',
+'show_image'       => '',
+'category_links'   => '',
+'click_action'     => '',
+'link_target'      => '',
+'category_target'  => '',
+),
+$atts,
+'bhg_prizes'
+);
 
 						$args = array();
 
@@ -3184,32 +3400,70 @@ return ob_get_clean();
 						$layout = $this->normalize_prize_layout( isset( $atts['design'] ) ? $atts['design'] : 'grid' );
 						$size   = $this->normalize_prize_size( isset( $atts['size'] ) ? $atts['size'] : 'medium' );
 
-						$prizes = BHG_Prizes::get_prizes( $args );
+$prizes = BHG_Prizes::get_prizes( $args );
 
-						if ( empty( $prizes ) ) {
-								return '<div class="bhg-prizes-shortcode"><p>' . esc_html( bhg_t( 'no_prizes_yet', 'No prizes found.' ) ) . '</p></div>';
-						}
+if ( empty( $prizes ) ) {
+return '<div class="bhg-prizes-shortcode"><p>' . esc_html( bhg_t( 'no_prizes_yet', 'No prizes found.' ) ) . '</p></div>';
+}
 
-						$prize_count = count( $prizes );
+wp_enqueue_style(
+'bhg-shortcodes',
+( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+array(),
+defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+);
 
-						wp_enqueue_style(
-								'bhg-shortcodes',
-								( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-								array(),
-								defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-						);
+$section_options = array();
+$display_overrides = array();
 
-						if ( 'carousel' === $layout && $prize_count > 1 ) {
-								wp_enqueue_script(
-										'bhg-shortcodes-js',
-										( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/js/bhg-shortcodes.js',
-										array(),
-										defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
-										true
-								);
-						}
+if ( '' !== $atts['visible'] ) {
+$section_options['carousel_visible'] = max( 1, absint( $atts['visible'] ) );
+}
 
-						$content = $this->render_prize_section( $prizes, $layout, $size );
+$limit_attr = '' !== $atts['limit'] ? absint( $atts['limit'] ) : ( '' !== $atts['total'] ? absint( $atts['total'] ) : 0 );
+if ( $limit_attr > 0 ) {
+$section_options['carousel_total'] = $limit_attr;
+$section_options['limit']          = $limit_attr;
+}
+
+if ( '' !== $atts['autoplay'] ) {
+$auto = $this->normalize_yes_no_attr( $atts['autoplay'], false );
+$section_options['carousel_autoplay'] = '1' === $auto;
+}
+
+if ( '' !== $atts['interval'] ) {
+$section_options['carousel_interval'] = max( 1000, absint( $atts['interval'] ) );
+}
+
+if ( '' !== $atts['hide_heading'] ) {
+$hide = $this->normalize_yes_no_attr( $atts['hide_heading'], false );
+$section_options['hide_heading'] = '1' === $hide;
+}
+
+$heading_attr = '' !== $atts['heading'] ? $atts['heading'] : $atts['heading_text'];
+if ( '' !== $heading_attr ) {
+$section_options['heading_text'] = sanitize_text_field( wp_unslash( $heading_attr ) );
+}
+
+foreach ( array( 'show_title', 'show_description', 'show_category', 'show_image', 'category_links' ) as $key ) {
+if ( '' !== $atts[ $key ] ) {
+$display_overrides[ $key ] = $this->normalize_yes_no_attr( $atts[ $key ] );
+}
+}
+
+if ( '' !== $atts['click_action'] ) {
+$display_overrides['click_action'] = $this->normalize_click_action_attr( $atts['click_action'] );
+}
+
+if ( '' !== $atts['link_target'] ) {
+$display_overrides['link_target'] = $this->normalize_link_target_attr( $atts['link_target'] );
+}
+
+if ( '' !== $atts['category_target'] ) {
+$display_overrides['category_target'] = $this->normalize_link_target_attr( $atts['category_target'] );
+}
+
+$content = $this->render_prize_section( $prizes, $layout, $size, $display_overrides, $section_options );
 
 						if ( '' === $content ) {
 								return '';

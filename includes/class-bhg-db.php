@@ -214,19 +214,28 @@ class BHG_DB {
 ) {$charset_collate};";
 
 		// Prizes table.
-		$sql[] = "CREATE TABLE `{$prizes_table}` (
-	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-	title VARCHAR(190) NOT NULL,
-	description TEXT NULL,
-	category VARCHAR(40) NOT NULL DEFAULT 'various',
-	image_small BIGINT UNSIGNED NULL,
-	image_medium BIGINT UNSIGNED NULL,
-	image_large BIGINT UNSIGNED NULL,
-	css_border VARCHAR(100) NULL,
-	css_border_color VARCHAR(40) NULL,
-	css_padding VARCHAR(60) NULL,
-	css_margin VARCHAR(60) NULL,
-	css_background VARCHAR(40) NULL,
+$sql[] = "CREATE TABLE `{$prizes_table}` (
+id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+title VARCHAR(190) NOT NULL,
+description TEXT NULL,
+category VARCHAR(40) NOT NULL DEFAULT 'various',
+link_url VARCHAR(255) NULL,
+link_target VARCHAR(20) NOT NULL DEFAULT '_self',
+click_action VARCHAR(20) NOT NULL DEFAULT 'link',
+category_link_url VARCHAR(255) NULL,
+category_link_target VARCHAR(20) NOT NULL DEFAULT '_self',
+image_small BIGINT UNSIGNED NULL,
+image_medium BIGINT UNSIGNED NULL,
+image_large BIGINT UNSIGNED NULL,
+show_title TINYINT(1) NOT NULL DEFAULT 1,
+show_description TINYINT(1) NOT NULL DEFAULT 1,
+show_category TINYINT(1) NOT NULL DEFAULT 1,
+show_image TINYINT(1) NOT NULL DEFAULT 1,
+css_border VARCHAR(100) NULL,
+css_border_color VARCHAR(40) NULL,
+css_padding VARCHAR(60) NULL,
+css_margin VARCHAR(60) NULL,
+css_background VARCHAR(40) NULL,
 	active TINYINT(1) NOT NULL DEFAULT 1,
 	created_at DATETIME NULL,
 	updated_at DATETIME NULL,
@@ -564,20 +573,29 @@ class BHG_DB {
 			}
 
 			// Prize columns and indexes.
-			$pneed = array(
-				'category'         => "ADD COLUMN category VARCHAR(40) NOT NULL DEFAULT 'various'",
-				'image_small'      => 'ADD COLUMN image_small BIGINT UNSIGNED NULL',
-				'image_medium'     => 'ADD COLUMN image_medium BIGINT UNSIGNED NULL',
-				'image_large'      => 'ADD COLUMN image_large BIGINT UNSIGNED NULL',
-				'css_border'       => 'ADD COLUMN css_border VARCHAR(100) NULL',
-				'css_border_color' => 'ADD COLUMN css_border_color VARCHAR(40) NULL',
-				'css_padding'      => 'ADD COLUMN css_padding VARCHAR(60) NULL',
-				'css_margin'       => 'ADD COLUMN css_margin VARCHAR(60) NULL',
-				'css_background'   => 'ADD COLUMN css_background VARCHAR(40) NULL',
-				'active'           => 'ADD COLUMN active TINYINT(1) NOT NULL DEFAULT 1',
-				'created_at'       => 'ADD COLUMN created_at DATETIME NULL',
-				'updated_at'       => 'ADD COLUMN updated_at DATETIME NULL',
-			);
+$pneed = array(
+'category'              => "ADD COLUMN category VARCHAR(40) NOT NULL DEFAULT 'various'",
+'link_url'              => 'ADD COLUMN link_url VARCHAR(255) NULL',
+'link_target'           => "ADD COLUMN link_target VARCHAR(20) NOT NULL DEFAULT '_self'",
+'click_action'          => "ADD COLUMN click_action VARCHAR(20) NOT NULL DEFAULT 'link'",
+'category_link_url'     => 'ADD COLUMN category_link_url VARCHAR(255) NULL',
+'category_link_target'  => "ADD COLUMN category_link_target VARCHAR(20) NOT NULL DEFAULT '_self'",
+'image_small'           => 'ADD COLUMN image_small BIGINT UNSIGNED NULL',
+'image_medium'          => 'ADD COLUMN image_medium BIGINT UNSIGNED NULL',
+'image_large'           => 'ADD COLUMN image_large BIGINT UNSIGNED NULL',
+'show_title'            => 'ADD COLUMN show_title TINYINT(1) NOT NULL DEFAULT 1',
+'show_description'      => 'ADD COLUMN show_description TINYINT(1) NOT NULL DEFAULT 1',
+'show_category'         => 'ADD COLUMN show_category TINYINT(1) NOT NULL DEFAULT 1',
+'show_image'            => 'ADD COLUMN show_image TINYINT(1) NOT NULL DEFAULT 1',
+'css_border'            => 'ADD COLUMN css_border VARCHAR(100) NULL',
+'css_border_color'      => 'ADD COLUMN css_border_color VARCHAR(40) NULL',
+'css_padding'           => 'ADD COLUMN css_padding VARCHAR(60) NULL',
+'css_margin'            => 'ADD COLUMN css_margin VARCHAR(60) NULL',
+'css_background'        => 'ADD COLUMN css_background VARCHAR(40) NULL',
+'active'                => 'ADD COLUMN active TINYINT(1) NOT NULL DEFAULT 1',
+'created_at'            => 'ADD COLUMN created_at DATETIME NULL',
+'updated_at'            => 'ADD COLUMN updated_at DATETIME NULL',
+);
 
 			foreach ( $pneed as $column => $alter ) {
 				if ( ! $this->column_exists( $prizes_table, $column ) ) {
