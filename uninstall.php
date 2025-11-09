@@ -10,7 +10,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 						$settings    = get_option( 'bhg_plugin_settings', array() );
-						$remove_data = isset( $settings['remove_data_on_uninstall'] ) && (int) $settings['remove_data_on_uninstall'] === 1;
+						$remove_data = isset( $settings['remove_data_on_uninstall'] ) && 1 === (int) $settings['remove_data_on_uninstall'];
 
 if ( ! $remove_data ) {
 		return;
@@ -39,5 +39,5 @@ if ( ! $remove_data ) {
 
 						foreach ( $tables as $table ) {
 								$table_name = esc_sql( $wpdb->prefix . $table );
-								$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // db call ok; no-cache ok.
+								$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name sanitized above. db call ok; no-cache ok.
 						}

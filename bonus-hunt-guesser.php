@@ -716,9 +716,12 @@ function bhg_handle_settings_save() {
 		}
 	}
 
+	$hunt_limit_input       = filter_input( INPUT_POST, 'bhg_hunt_win_limit', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+	$tournament_limit_input = filter_input( INPUT_POST, 'bhg_tournament_win_limit', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+
 	$limit_fields    = array(
-		'hunt_win_limit'       => isset( $_POST['bhg_hunt_win_limit'] ) ? wp_unslash( $_POST['bhg_hunt_win_limit'] ) : array(),
-		'tournament_win_limit' => isset( $_POST['bhg_tournament_win_limit'] ) ? wp_unslash( $_POST['bhg_tournament_win_limit'] ) : array(),
+		'hunt_win_limit'       => is_array( $hunt_limit_input ) ? $hunt_limit_input : array(),
+		'tournament_win_limit' => is_array( $tournament_limit_input ) ? $tournament_limit_input : array(),
 	);
 	$allowed_periods = array( 'none', 'week', 'month', 'quarter', 'year' );
 
@@ -727,8 +730,11 @@ function bhg_handle_settings_save() {
 			continue;
 		}
 
-		$count  = isset( $raw_limit['count'] ) ? (int) $raw_limit['count'] : 0;
-		$period = isset( $raw_limit['period'] ) ? sanitize_key( $raw_limit['period'] ) : 'none';
+		$count_value  = isset( $raw_limit['count'] ) ? wp_unslash( $raw_limit['count'] ) : 0;
+		$period_value = isset( $raw_limit['period'] ) ? wp_unslash( $raw_limit['period'] ) : 'none';
+
+		$count  = absint( $count_value );
+		$period = sanitize_key( $period_value );
 
 		if ( $count < 0 ) {
 			$count = 0;
@@ -744,8 +750,9 @@ function bhg_handle_settings_save() {
 		);
 	}
 
-	$ads_enabled_value       = isset( $_POST['bhg_ads_enabled'] ) ? wp_unslash( $_POST['bhg_ads_enabled'] ) : '';
-	$settings['ads_enabled'] = (string) $ads_enabled_value === '1' ? 1 : 0;
+	$ads_enabled_value       = filter_input( INPUT_POST, 'bhg_ads_enabled', FILTER_SANITIZE_STRING );
+	$ads_enabled_value       = is_string( $ads_enabled_value ) ? $ads_enabled_value : '';
+	$settings['ads_enabled'] = '1' === $ads_enabled_value ? 1 : 0;
 
 	if ( isset( $_POST['bhg_email_from'] ) ) {
 		$email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
@@ -754,8 +761,9 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	if ( isset( $_POST['bhg_post_submit_redirect'] ) ) {
-		$redirect = trim( wp_unslash( $_POST['bhg_post_submit_redirect'] ) );
+	$redirect_input = filter_input( INPUT_POST, 'bhg_post_submit_redirect', FILTER_SANITIZE_URL );
+	if ( null !== $redirect_input ) {
+		$redirect = trim( (string) $redirect_input );
 		if ( '' === $redirect ) {
 			$settings['post_submit_redirect'] = '';
 		} else {
@@ -766,9 +774,10 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	$profile_keys       = array( 'my_bonushunts', 'my_tournaments', 'my_prizes', 'my_rankings' );
-	$submitted_sections = isset( $_POST['bhg_profile_sections'] ) && is_array( $_POST['bhg_profile_sections'] ) ? wp_unslash( $_POST['bhg_profile_sections'] ) : array();
-	$profile_sections   = array();
+	$profile_keys             = array( 'my_bonushunts', 'my_tournaments', 'my_prizes', 'my_rankings' );
+	$submitted_sections_input = filter_input( INPUT_POST, 'bhg_profile_sections', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+	$submitted_sections       = is_array( $submitted_sections_input ) ? $submitted_sections_input : array();
+	$profile_sections         = array();
 
 	foreach ( $profile_keys as $key ) {
 		$profile_sections[ $key ] = isset( $submitted_sections[ $key ] ) ? 1 : 0;
@@ -776,8 +785,9 @@ function bhg_handle_settings_save() {
 
 	$settings['profile_sections'] = $profile_sections;
 
-	$submitted_styles = isset( $_POST['bhg_global_styles'] ) && is_array( $_POST['bhg_global_styles'] ) ? wp_unslash( $_POST['bhg_global_styles'] ) : array();
-	$clean_styles     = array();
+	$submitted_styles_input = filter_input( INPUT_POST, 'bhg_global_styles', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+	$submitted_styles       = is_array( $submitted_styles_input ) ? $submitted_styles_input : array();
+	$clean_styles           = array();
 
 	if ( isset( $submitted_styles['title_block'] ) && is_array( $submitted_styles['title_block'] ) ) {
 		$block = $submitted_styles['title_block'];
@@ -980,7 +990,8 @@ function bhg_handle_settings_save() {
 
 	$settings['global_styles'] = $clean_styles;
 
-	$settings['remove_data_on_uninstall'] = isset( $_POST['bhg_remove_data_on_uninstall'] ) && '1' === wp_unslash( $_POST['bhg_remove_data_on_uninstall'] ) ? 1 : 0;
+	$remove_data_flag = filter_input( INPUT_POST, 'bhg_remove_data_on_uninstall', FILTER_SANITIZE_STRING );
+	$settings['remove_data_on_uninstall'] = '1' === $remove_data_flag ? 1 : 0;
 
 	// Save settings.
 	$existing = get_option( 'bhg_plugin_settings', array() );
@@ -1007,7 +1018,7 @@ function bhg_handle_notifications_save() {
 	}
 
 	$defaults      = function_exists( 'bhg_get_notification_defaults' ) ? bhg_get_notification_defaults() : array();
-	$raw_templates = isset( $_POST['notifications'] ) ? wp_unslash( $_POST['notifications'] ) : array();
+	$raw_templates = filter_input( INPUT_POST, 'notifications', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
 	$raw_templates = is_array( $raw_templates ) ? $raw_templates : array();
 	$sanitized     = array();
 
@@ -1062,7 +1073,7 @@ function bhg_handle_submit_guess() {
 
 	$requested_redirect = '';
 	if ( isset( $_POST['redirect_to'] ) ) {
-		$raw_requested = trim( wp_unslash( $_POST['redirect_to'] ) );
+		$raw_requested = trim( sanitize_text_field( wp_unslash( $_POST['redirect_to'] ) ) );
 		if ( '' !== $raw_requested ) {
 			$maybe_requested = wp_validate_redirect( $raw_requested, '' );
 			if ( $maybe_requested ) {
@@ -1646,20 +1657,20 @@ function bhg_save_extra_user_profile_fields( $user_id ) {
 	$affiliate_status = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
 	update_user_meta( $user_id, 'bhg_is_affiliate', $affiliate_status );
 
-	if ( isset( $_POST['bhg_affiliate_websites'] ) && function_exists( 'bhg_set_user_affiliate_websites' ) ) {
-		$site_ids = array();
-		if ( is_array( $_POST['bhg_affiliate_websites'] ) ) {
-			foreach ( $_POST['bhg_affiliate_websites'] as $site_id ) {
+	$affiliate_input = filter_input( INPUT_POST, 'bhg_affiliate_websites', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+	if ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
+		if ( is_array( $affiliate_input ) ) {
+			$site_ids = array();
+			foreach ( $affiliate_input as $site_id ) {
 				$site_id = absint( $site_id );
 				if ( $site_id > 0 ) {
 					$site_ids[ $site_id ] = $site_id;
 				}
 			}
-		}
 
-		bhg_set_user_affiliate_websites( $user_id, array_values( $site_ids ) );
-	} elseif ( function_exists( 'bhg_set_user_affiliate_websites' ) ) {
-		// No selection submitted – clear stored affiliations to reflect UI state.
-		bhg_set_user_affiliate_websites( $user_id, array() );
+			bhg_set_user_affiliate_websites( $user_id, array_values( $site_ids ) );
+		} else {
+			bhg_set_user_affiliate_websites( $user_id, array() );
+		}
 	}
 }
