@@ -1,6 +1,82 @@
 # Bonus Hunt Guesser
 
-Requires at least: WordPress 6.3.5
+**Version:** 8.0.16  
+**Requires:** WordPress 6.3.5+, PHP 7.4+, MySQL 5.5.5+
+
+## Overview
+
+Bonus Hunt Guesser delivers the complete workflow agreed with the client for
+running bonus hunts, tracking tournaments, and engaging users through
+guessing games. Administrators can configure hunts with multi-winner payouts,
+manage prizes and jackpots, and publish sortable leaderboards. Logged-in users
+submit and revise guesses, review their personal results, and authenticate via
+standard WordPress accounts or the customer-provided Nextend social login
+integration (Google, Twitch, Kick).
+
+### Core capabilities
+
+- Admin dashboard surfacing recent hunts, winner breakdowns, and key metrics.
+- Bonus hunt CRUD with configurable winner counts, prize selection, affiliate
+  targeting, and participant roster management.
+- Tournament lifecycle tooling with sortable tables, edit support, and
+  filters for weekly, monthly, quarterly, yearly, and all-time events.
+- User administration with search, sorting, pagination, and affiliate status
+  toggles that drive the front-end green/red indicators.
+- Prize manager with carousel/grid layouts, CSS controls, and shortcode
+  integrations for marketing blocks.
+- Jackpot module providing admin CRUD, hunt-close accounting, and
+  `[bhg_jackpot_*]` shortcodes.
+- Role-aware menus, login redirector, advertising placements, translation
+  strings editor, and notification templates.
+
+## Installation & Upgrade
+
+1. Upload the plugin folder to `/wp-content/plugins/` and activate it in the
+   WordPress admin.
+2. After deployment (fresh install or upgrade), visit **Bonus Hunt →
+   Database** and run the tools once. This confirms the `dbDelta()` migrations
+   execute on hosts where automatic table updates may be blocked.
+3. Configure social login with the purchased Nextend connector so Google,
+   Twitch, and Kick accounts can authenticate.
+4. Review **Bonus Hunt → Settings** to confirm currency, winner limits, menu
+   assignments, and notification templates.
+
+## Release 8.0.16 highlights
+
+- Dashboard “Latest Hunts” card now lists every winner per hunt, showing
+  guesses and differences alongside starting/final balances.
+- Bonus Hunts admin table exposes final balance, affiliate, configurable
+  winner counts, inline results buttons, and participant rosters with
+  removable guesses.
+- Results view ranks every guess, highlights winners, and supports status and
+  pagination filters for historical hunts.
+- Tournaments admin includes title/description fields, the expanded type
+  selector (weekly/monthly/quarterly/yearly/all time), and functional edit
+  flows.
+- Users admin table gains keyword search, sortable columns, and 30-per-page
+  pagination controls.
+- Advertising list shows edit/remove actions and supports a “None” placement
+  for shortcode-only ads.
+- Jackpot management, prize enhancements, login redirector, translation
+  tooling, and affiliate website management are bundled as agreed add-ons.
+
+## Manual QA checklist (recommended)
+
+- Create, edit, and close a hunt with multiple winners; verify results page
+  ordering, winner highlighting, and notifications when enabled.
+- Toggle the currency option and confirm formatting updates across dashboard,
+  leaderboards, and shortcodes.
+- Exercise tournament creation/editing, assigning hunts, and reviewing the
+  leaderboard filters (overall, monthly, yearly, all-time tabs).
+- Validate prize grids/carousels on the frontend for responsiveness, link
+  behaviour, and affiliate visibility controls.
+- Authenticate with a social provider (via Nextend) and ensure login redirect
+  returns to the original protected page.
+- Smoke-test advertising placements (“None” + shortcode only, role-aware
+  menus, translations editor) to confirm visibility rules.
+
+Documenting evidence (screenshots or logs) of these flows remains part of the
+customer’s acceptance checklist for v8.0.16.
 
 ## Shortcodes
 

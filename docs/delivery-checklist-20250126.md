@@ -80,7 +80,7 @@ Status legend: ✅ Complete · ⚠️ Needs verification · ❌ Missing / action
 - ⚠️ Re-run frontend smoke tests for timeline filters (This Week/Month/Year) across hunts/tournaments/leaderboards. *Files:* `includes/class-bhg-shortcodes.php`.
 
 ## 16) Release & Documentation
-- ⚠️ Update Readme and Info & Help content to reflect jackpot module, prize enhancements once complete, and outstanding QA steps. *Files:* `README.md`, `admin/views/shortcodes.php`, `docs/` releases.
+- ✅ README expanded with v8.0.16 highlights, manual dbDelta guidance, and QA checklist; Info & Help shortcodes catalogue already covers jackpot/prize functionality. *Files:* `README.md`, `admin/views/shortcodes.php`, `CHANGELOG.md`.
 
 ## 17) QA (Acceptance)
 - ⚠️ Perform end-to-end flows: create/close hunts, enforce win limits, toggle guessing, switch currency, verify notifications, and confirm prize grids/carousels. Document evidence (screenshots/logs) before sign-off.
@@ -102,4 +102,3 @@ Status legend: ✅ Complete · ⚠️ Needs verification · ❌ Missing / action
 1. Resolve PHPCS violations in `bonus-hunt-guesser.php`, `admin/views/dashboard.php`, and other flagged templates; re-run `composer phpcs` until clean.【54026f†L1-L210】
 2. Complete prize enhancement backlog (link field, category manager, click behaviors, carousel controls) across `admin/views/prizes.php`, `includes/class-bhg-prizes.php`, `includes/class-bhg-shortcodes.php`, and related JS/CSS.
 3. Execute full QA matrix covering affiliates sync, prize grids/carousels, win limits, notifications, timeline filters, and currency toggle. Capture evidence for client acceptance.
-4. Refresh README/Info & Help documentation once enhancements and QA are complete.
