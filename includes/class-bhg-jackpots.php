@@ -105,11 +105,11 @@ class BHG_Jackpots {
 		if ( ! empty( $args['status'] ) ) {
 			$statuses = (array) $args['status'];
 			$statuses = array_filter(
-				array_map( 'sanitize_key', $statuses ),
-				static function ( $status ) {
-					return '' !== $status;
-				}
-			);
+                array_map( 'sanitize_key', $statuses ),
+                static function ( $status ) {
+                    return '' !== $status;
+                }
+            );
 
 			if ( ! empty( $statuses ) ) {
 				$placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
@@ -378,7 +378,10 @@ class BHG_Jackpots {
 		$affiliate_id     = isset( $context['affiliate_id'] ) ? (int) $context['affiliate_id'] : 0;
 		$affiliate_site   = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
 		$closed_at        = isset( $context['closed_at'] ) ? (string) $context['closed_at'] : '';
-		$closed_timestamp = $closed_at ? mysql2date( 'U', $closed_at, false ) : time();
+
+		// Prefer WP-aware UTC timestamp; fallback to time() as last resort.
+		$now_ts           = function_exists( 'current_time' ) ? (int) current_time( 'timestamp', true ) : time();
+		$closed_timestamp = $closed_at ? mysql2date( 'U', $closed_at, false ) : $now_ts;
 
 		$eligible = array();
 
@@ -412,9 +415,9 @@ class BHG_Jackpots {
 					if ( 'all_time' === $period ) {
 						$applies = true;
 					} elseif ( 'this_year' === $period ) {
-						$applies = gmdate( 'Y', $closed_timestamp ) === gmdate( 'Y', time() );
+						$applies = gmdate( 'Y', $closed_timestamp ) === gmdate( 'Y', $now_ts );
 					} else {
-						$applies = gmdate( 'Ym', $closed_timestamp ) === gmdate( 'Ym', time() );
+						$applies = gmdate( 'Ym', $closed_timestamp ) === gmdate( 'Ym', $now_ts );
 					}
 					break;
 				case 'all':
@@ -434,10 +437,10 @@ class BHG_Jackpots {
 	/**
 	 * Record jackpot hit event.
 	 *
-	 * @param array $jackpot    Jackpot row.
-	 * @param int   $user_id    Winning user ID.
-	 * @param int   $hunt_id    Hunt ID.
-	 * @param int   $guess_id   Guess ID.
+	 * @param array $jackpot       Jackpot row.
+	 * @param int   $user_id       Winning user ID.
+	 * @param int   $hunt_id       Hunt ID.
+	 * @param int   $guess_id      Guess ID.
 	 * @param float $final_balance Final balance.
 	 * @return void
 	 */
