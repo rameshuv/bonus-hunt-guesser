@@ -81,6 +81,14 @@ return array(
 'carousel_interval' => 5000,
 'hide_heading'      => 0,
 'heading_text'      => '',
+'show_title'        => 1,
+'show_description'  => 1,
+'show_category'     => 1,
+'show_image'        => 1,
+'category_links'    => 1,
+'click_action'      => 'inherit',
+'link_target'       => 'inherit',
+'category_target'   => 'inherit',
 );
 }
 
@@ -107,15 +115,25 @@ return wp_parse_args( self::sanitize_display_settings( $settings ), $defaults );
  * @return array
  */
 public static function sanitize_display_settings( $input ) {
-$input = is_array( $input ) ? $input : array();
+$input    = is_array( $input ) ? $input : array();
+$defaults = self::default_display_settings();
 
-$visible  = isset( $input['carousel_visible'] ) ? absint( $input['carousel_visible'] ) : 1;
-$total    = isset( $input['carousel_total'] ) ? absint( $input['carousel_total'] ) : 0;
-$autoplay = ! empty( $input['carousel_autoplay'] ) ? 1 : 0;
-$interval = isset( $input['carousel_interval'] ) ? absint( $input['carousel_interval'] ) : 5000;
+$visible  = isset( $input['carousel_visible'] ) ? absint( $input['carousel_visible'] ) : (int) $defaults['carousel_visible'];
+$total    = isset( $input['carousel_total'] ) ? absint( $input['carousel_total'] ) : (int) $defaults['carousel_total'];
+$autoplay = ! empty( $input['carousel_autoplay'] ) ? 1 : (int) $defaults['carousel_autoplay'];
+$interval = isset( $input['carousel_interval'] ) ? absint( $input['carousel_interval'] ) : (int) $defaults['carousel_interval'];
 $interval = $interval < 1000 ? 1000 : $interval;
-$hide     = ! empty( $input['hide_heading'] ) ? 1 : 0;
-$heading  = isset( $input['heading_text'] ) ? sanitize_text_field( wp_unslash( $input['heading_text'] ) ) : '';
+$hide     = ! empty( $input['hide_heading'] ) ? 1 : (int) $defaults['hide_heading'];
+$heading  = isset( $input['heading_text'] ) ? sanitize_text_field( wp_unslash( $input['heading_text'] ) ) : (string) $defaults['heading_text'];
+
+$show_title       = isset( $input['show_title'] ) ? (int) (bool) $input['show_title'] : (int) $defaults['show_title'];
+$show_description = isset( $input['show_description'] ) ? (int) (bool) $input['show_description'] : (int) $defaults['show_description'];
+$show_category    = isset( $input['show_category'] ) ? (int) (bool) $input['show_category'] : (int) $defaults['show_category'];
+$show_image       = isset( $input['show_image'] ) ? (int) (bool) $input['show_image'] : (int) $defaults['show_image'];
+$category_links   = isset( $input['category_links'] ) ? (int) (bool) $input['category_links'] : (int) $defaults['category_links'];
+$click_action     = isset( $input['click_action'] ) ? self::sanitize_click_default( $input['click_action'] ) : $defaults['click_action'];
+$link_target      = isset( $input['link_target'] ) ? self::sanitize_link_default( $input['link_target'] ) : $defaults['link_target'];
+$category_target  = isset( $input['category_target'] ) ? self::sanitize_link_default( $input['category_target'] ) : $defaults['category_target'];
 
 return array(
 'carousel_visible'  => max( 1, $visible ),
@@ -124,7 +142,47 @@ return array(
 'carousel_interval' => $interval,
 'hide_heading'      => $hide,
 'heading_text'      => $heading,
+'show_title'        => $show_title,
+'show_description'  => $show_description,
+'show_category'     => $show_category,
+'show_image'        => $show_image,
+'category_links'    => $category_links,
+'click_action'      => $click_action,
+'link_target'       => $link_target,
+'category_target'   => $category_target,
 );
+}
+
+/**
+ * Sanitize a click action default allowing inherit.
+ *
+ * @param string $value Raw input value.
+ * @return string
+ */
+protected static function sanitize_click_default( $value ) {
+$value = sanitize_key( (string) $value );
+
+if ( in_array( $value, array( 'inherit', '' ), true ) ) {
+return 'inherit';
+}
+
+return self::sanitize_click_action( $value, 'link' );
+}
+
+/**
+ * Sanitize a link target default allowing inherit.
+ *
+ * @param string $value Raw input value.
+ * @return string
+ */
+protected static function sanitize_link_default( $value ) {
+$value = sanitize_key( (string) $value );
+
+if ( in_array( $value, array( 'inherit', '' ), true ) ) {
+return 'inherit';
+}
+
+return self::sanitize_link_target( $value, '_self' );
 }
 
 /**
@@ -136,6 +194,26 @@ return array(
 public static function update_display_settings( $input ) {
 $sanitized = self::sanitize_display_settings( $input );
 update_option( 'bhg_prize_display_settings', $sanitized );
+}
+
+/**
+ * Retrieve default display toggles and behaviours.
+ *
+ * @return array
+ */
+public static function get_display_defaults() {
+$settings = self::get_display_settings();
+
+return array(
+'show_title'       => isset( $settings['show_title'] ) ? (bool) $settings['show_title'] : true,
+'show_description' => isset( $settings['show_description'] ) ? (bool) $settings['show_description'] : true,
+'show_category'    => isset( $settings['show_category'] ) ? (bool) $settings['show_category'] : true,
+'show_image'       => isset( $settings['show_image'] ) ? (bool) $settings['show_image'] : true,
+'category_links'   => isset( $settings['category_links'] ) ? (bool) $settings['category_links'] : true,
+'click_action'     => isset( $settings['click_action'] ) ? self::sanitize_click_default( $settings['click_action'] ) : 'inherit',
+'link_target'      => isset( $settings['link_target'] ) ? self::sanitize_link_default( $settings['link_target'] ) : 'inherit',
+'category_target'  => isset( $settings['category_target'] ) ? self::sanitize_link_default( $settings['category_target'] ) : 'inherit',
+);
 }
 
 /**
@@ -245,13 +323,18 @@ return $options;
 /**
  * Resolve a tri-state flag.
  *
- * @param bool|null $override    Override value.
- * @param bool       $prize_flag Stored value on prize row.
+ * @param bool|null $override     Override value.
+ * @param bool       $prize_flag  Stored value on prize row.
+ * @param bool|null $default_flag Default value from settings.
  * @return bool
  */
-public static function resolve_display_flag( $override, $prize_flag ) {
+public static function resolve_display_flag( $override, $prize_flag, $default_flag = null ) {
 if ( null !== $override ) {
 return (bool) $override;
+}
+
+if ( null !== $default_flag ) {
+return (bool) $default_flag;
 }
 
 return (bool) $prize_flag;
@@ -262,16 +345,23 @@ return (bool) $prize_flag;
  *
  * @param string $override_action Override keyword.
  * @param string $prize_action    Prize-level action keyword.
+ * @param string $default_action  Default keyword from settings.
  * @return string
  */
-public static function resolve_click_action( $override_action, $prize_action ) {
-$prize_action = self::sanitize_click_action( $prize_action, 'link' );
+public static function resolve_click_action( $override_action, $prize_action, $default_action = 'inherit' ) {
+$override_action = self::sanitize_click_default( $override_action );
+$prize_action    = self::sanitize_click_action( $prize_action, 'link' );
+$default_action  = self::sanitize_click_default( $default_action );
 
-if ( 'inherit' === $override_action ) {
-return $prize_action;
+if ( 'inherit' !== $override_action ) {
+return $override_action;
 }
 
-return self::sanitize_click_action( $override_action, $prize_action );
+if ( 'inherit' !== $default_action ) {
+return $default_action;
+}
+
+return $prize_action;
 }
 
 /**
@@ -279,16 +369,23 @@ return self::sanitize_click_action( $override_action, $prize_action );
  *
  * @param string $override_target Override keyword.
  * @param string $prize_target    Prize-level target.
+ * @param string $default_target  Default keyword from settings.
  * @return string
  */
-public static function resolve_link_target( $override_target, $prize_target ) {
-$prize_target = self::sanitize_link_target( $prize_target, '_self' );
+public static function resolve_link_target( $override_target, $prize_target, $default_target = 'inherit' ) {
+$override_target = self::sanitize_link_default( $override_target );
+$prize_target    = self::sanitize_link_target( $prize_target, '_self' );
+$default_target  = self::sanitize_link_default( $default_target );
 
-if ( 'inherit' === $override_target ) {
-return $prize_target;
+if ( 'inherit' !== $override_target ) {
+return $override_target;
 }
 
-return self::sanitize_link_target( $override_target, $prize_target );
+if ( 'inherit' !== $default_target ) {
+return $default_target;
+}
+
+return $prize_target;
 }
 
 /**

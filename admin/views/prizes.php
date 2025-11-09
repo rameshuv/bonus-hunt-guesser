@@ -26,6 +26,12 @@ $click_action_labels = array(
 'image' => bhg_t( 'prize_click_image', 'Open the prize image in a popup' ),
 'none'  => bhg_t( 'prize_click_none', 'No click action' ),
 );
+$click_action_default_labels = array( 'inherit' => bhg_t( 'prize_click_inherit', 'Use prize setting (default)' ) ) + $click_action_labels;
+$link_target_default_options = array(
+'inherit' => bhg_t( 'prize_target_inherit', 'Use prize setting' ),
+'_self'   => bhg_t( 'target_same_tab', 'Same tab' ),
+'_blank'  => bhg_t( 'target_new_tab', 'New tab' ),
+);
 
 $notices = array(
 	'p_saved'   => array(
@@ -110,6 +116,49 @@ $notices = array(
 <?php echo esc_html( bhg_t( 'prize_hide_heading', 'Hide heading output' ) ); ?>
 </label>
 <p class="description"><?php echo esc_html( bhg_t( 'prize_hide_heading_help', 'Check to remove the heading from rendered prize sections.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<fieldset class="bhg-display-options">
+<legend class="screen-reader-text"><?php echo esc_html( bhg_t( 'prize_display_defaults_heading', 'Default prize display' ) ); ?></legend>
+<input type="hidden" name="show_title" value="0" />
+<label><input type="checkbox" name="show_title" value="1" <?php checked( ! empty( $display_settings['show_title'] ) ); ?> /> <?php echo esc_html( bhg_t( 'prize_show_title', 'Show title' ) ); ?></label>
+<input type="hidden" name="show_description" value="0" />
+<label><input type="checkbox" name="show_description" value="1" <?php checked( ! empty( $display_settings['show_description'] ) ); ?> /> <?php echo esc_html( bhg_t( 'prize_show_description', 'Show description' ) ); ?></label>
+<input type="hidden" name="show_category" value="0" />
+<label><input type="checkbox" name="show_category" value="1" <?php checked( ! empty( $display_settings['show_category'] ) ); ?> /> <?php echo esc_html( bhg_t( 'prize_show_category', 'Show category badge' ) ); ?></label>
+<input type="hidden" name="show_image" value="0" />
+<label><input type="checkbox" name="show_image" value="1" <?php checked( ! empty( $display_settings['show_image'] ) ); ?> /> <?php echo esc_html( bhg_t( 'prize_show_image', 'Show image' ) ); ?></label>
+<input type="hidden" name="category_links" value="0" />
+<label><input type="checkbox" name="category_links" value="1" <?php checked( ! empty( $display_settings['category_links'] ) ); ?> /> <?php echo esc_html( bhg_t( 'prize_default_category_links', 'Link category badges when URL is provided' ) ); ?></label>
+</fieldset>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_display_defaults_help', 'Configure the default visibility for prize card elements.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<label for="bhg_default_click_action"><?php echo esc_html( bhg_t( 'prize_default_click_action', 'Default click action' ) ); ?></label>
+<select id="bhg_default_click_action" name="click_action">
+<?php foreach ( $click_action_default_labels as $value => $label ) : ?>
+<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $display_settings['click_action'], $value ); ?>><?php echo esc_html( $label ); ?></option>
+<?php endforeach; ?>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_default_click_action_help', 'Choose the default click behaviour when an individual prize does not specify one.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<label for="bhg_default_link_target"><?php echo esc_html( bhg_t( 'prize_default_link_target', 'Default link target' ) ); ?></label>
+<select id="bhg_default_link_target" name="link_target">
+<?php foreach ( $link_target_default_options as $value => $label ) : ?>
+<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $display_settings['link_target'], $value ); ?>><?php echo esc_html( $label ); ?></option>
+<?php endforeach; ?>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_default_link_target_help', 'Controls how prize links open when a link action is applied.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<label for="bhg_default_category_target"><?php echo esc_html( bhg_t( 'prize_default_category_target', 'Default category link target' ) ); ?></label>
+<select id="bhg_default_category_target" name="category_target">
+<?php foreach ( $link_target_default_options as $value => $label ) : ?>
+<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $display_settings['category_target'], $value ); ?>><?php echo esc_html( $label ); ?></option>
+<?php endforeach; ?>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_default_category_target_help', 'Controls how linked category badges open.' ) ); ?></p>
 </div>
 </div>
 
