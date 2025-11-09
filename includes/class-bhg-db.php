@@ -58,6 +58,7 @@ class BHG_DB {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$wpdb->query( "ALTER TABLE `{$tres_table}` ADD INDEX points (points)" );
 
+
 global $wpdb;
 		$tours_table = $wpdb->prefix . 'bhg_tournaments';
 
@@ -91,6 +92,7 @@ global $wpdb;
 			$wpdb->query( "ALTER TABLE `{$tres_table}` ADD COLUMN points INT UNSIGNED NOT NULL DEFAULT 0 AFTER wins" );
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 			$wpdb->query( "ALTER TABLE `{$tres_table}` ADD INDEX points (points)" );
+
 		}
 	}
 
@@ -130,6 +132,7 @@ global $wpdb;
 			// Bonus Hunts.
 			$sql[] = "CREATE TABLE `{$hunts_table}` (
 
+
 global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
@@ -159,6 +162,7 @@ global $wpdb;
 
 		// Bonus Hunts.
 		$sql[] = "CREATE TABLE `{$hunts_table}` (
+
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     title VARCHAR(190) NOT NULL,
     starting_balance DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -199,8 +203,10 @@ global $wpdb;
 			// Tournaments.
 			$sql[] = "CREATE TABLE `{$tours_table}` (
 
+
 // Tournaments.
 		$sql[] = "CREATE TABLE `{$tours_table}` (
+
                                                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                                 title VARCHAR(190) NOT NULL,
                                                 description TEXT NULL,
@@ -229,8 +235,10 @@ global $wpdb;
 			// Tournament Results.
 			$sql[] = "CREATE TABLE `{$tres_table}` (
 
+
 // Tournament Results.
 		$sql[] = "CREATE TABLE `{$tres_table}` (
+
                                                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                                 tournament_id BIGINT UNSIGNED NOT NULL,
                                                 user_id BIGINT UNSIGNED NOT NULL,
@@ -278,8 +286,10 @@ global $wpdb;
 			// Hunt Winners.
 			$sql[] = "CREATE TABLE `{$winners_table}` (
 
+
 // Hunt Winners.
 		$sql[] = "CREATE TABLE `{$winners_table}` (
+
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 <|diff_marker|> ADD A1180
                                    hunt_id BIGINT UNSIGNED NOT NULL,
@@ -298,8 +308,10 @@ global $wpdb;
 			// Prizes table.
 			$sql[] = "CREATE TABLE `{$prizes_table}` (
 
+
 // Prizes table.
 		$sql[] = "CREATE TABLE `{$prizes_table}` (
+
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    title VARCHAR(190) NOT NULL,
                                    description TEXT NULL,
@@ -324,8 +336,10 @@ global $wpdb;
 			// Hunt prize map.
 			$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
 
+
 // Hunt prize map.
 		$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
+
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    prize_id BIGINT UNSIGNED NOT NULL,
@@ -345,18 +359,22 @@ global $wpdb;
 
 			$sql[] = "CREATE TABLE `{$jackpots_table}` (
 
+
 // Jackpots.
 		$jackpots_table       = $wpdb->prefix . 'bhg_jackpots';
 		$jackpot_events_table = $wpdb->prefix . 'bhg_jackpot_events';
 
 		$sql[] = "CREATE TABLE `{$jackpots_table}` (
+
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    title VARCHAR(190) NOT NULL,
                                    start_amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
                                    increase_amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
                                    current_amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
                                    link_mode VARCHAR(20) NOT NULL DEFAULT 'all',
+
 <|diff_marker|> ADD A1240
+
 
                                    link_config LONGTEXT NULL,
                                    status VARCHAR(20) NOT NULL DEFAULT 'active',
@@ -378,7 +396,9 @@ global $wpdb;
                                    jackpot_id BIGINT UNSIGNED NOT NULL,
                                    event_type VARCHAR(20) NOT NULL,
                                    amount_before DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+
 <|diff_marker|> ADD A1260
+
 
                                    amount_after DECIMAL(14,2) NOT NULL DEFAULT 0.00,
                                    user_id BIGINT UNSIGNED NULL,
@@ -394,8 +414,10 @@ global $wpdb;
 			// Hunt to tournament mapping.
 			$sql[] = "CREATE TABLE `{$hunt_tours_table}` (
 
+
 // Hunt to tournament mapping.
 		$sql[] = "CREATE TABLE `{$hunt_tours_table}` (
+
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    tournament_id BIGINT UNSIGNED NOT NULL,
@@ -428,6 +450,7 @@ global $wpdb;
 					);
 					foreach ( $need as $c => $alter ) {
 						if ( ! $this->column_exists( $hunts_table, $c ) ) {
+
                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 							$wpdb->query( "ALTER TABLE `{$hunts_table}` {$alter}" );
 						}
@@ -1070,6 +1093,7 @@ global $wpdb;
 			if ( function_exists( 'error_log' ) ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log( '[BHG] Schema ensure error: ' . $e->getMessage() );
+
 			}
 		}
 	}
@@ -1186,8 +1210,10 @@ global $wpdb;
 	private function table_exists( $table ) {
 		global $wpdb;
 
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 <|diff_marker|> ADD A1720
+
 		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 
 		return ! empty( $exists );

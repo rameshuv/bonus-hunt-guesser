@@ -235,7 +235,7 @@ class BHG_Jackpots {
 
 		if ( false === $inserted ) {
 return 0;
- main
+ main main
 		}
 
 		return (int) $wpdb->insert_id;
@@ -376,7 +376,6 @@ return 0;
 			return array();
 		}
 
-// Context inputs.
 		$affiliate_id   = isset( $context['affiliate_id'] ) ? (int) $context['affiliate_id'] : 0;
 		$affiliate_site = isset( $context['affiliate_site_id'] ) ? (int) $context['affiliate_site_id'] : 0;
 		$closed_at      = isset( $context['closed_at'] ) ? (string) $context['closed_at'] : '';
@@ -384,7 +383,7 @@ return 0;
 		// Prefer WP-aware UTC timestamp; fallback to time() as last resort.
 		$now_ts           = function_exists( 'current_time' ) ? (int) current_time( 'timestamp', true ) : time();
 		$closed_timestamp = $closed_at ? mysql2date( 'U', $closed_at, false ) : $now_ts;
- main
+ main main
 
 		$eligible = array();
 
@@ -393,7 +392,7 @@ return 0;
 			$link_config = array();
 			if ( ! empty( $jackpot['link_config'] ) ) {
 $decoded = json_decode( $jackpot['link_config'], true );
- main
+ main main
 				if ( is_array( $decoded ) ) {
 					$link_config = $decoded;
 				}
@@ -406,7 +405,6 @@ $decoded = json_decode( $jackpot['link_config'], true );
 					$hunts   = isset( $link_config['hunts'] ) ? array_map( 'intval', (array) $link_config['hunts'] ) : array();
 					$applies = in_array( $hunt_id, $hunts, true );
 					break;
-
  main
 				case 'affiliate':
 					$ids = isset( $link_config['affiliates'] ) ? array_map( 'intval', (array) $link_config['affiliates'] ) : array();
@@ -416,7 +414,6 @@ $decoded = json_decode( $jackpot['link_config'], true );
 						$applies = true;
 					}
 					break;
-
  main
 				case 'period':
 					$period = isset( $link_config['period'] ) ? sanitize_key( $link_config['period'] ) : 'this_month';
@@ -428,7 +425,7 @@ $applies = gmdate( 'Y', $closed_timestamp ) === gmdate( 'Y', $now_ts );
 						$applies = gmdate( 'Ym', $closed_timestamp ) === gmdate( 'Ym', $now_ts );
 					}
 					break;
- main
+ main main
 				case 'all':
 				default:
 					$applies = true;
@@ -450,7 +447,7 @@ $applies = gmdate( 'Y', $closed_timestamp ) === gmdate( 'Y', $now_ts );
 	 * @param int   $user_id       Winning user ID.
 	 * @param int   $hunt_id       Hunt ID.
 	 * @param int   $guess_id      Guess ID.
- main
+ main main
 	 * @param float $final_balance Final balance.
 	 * @return void
 	 */
@@ -539,7 +536,7 @@ $applies = gmdate( 'Y', $closed_timestamp ) === gmdate( 'Y', $now_ts );
 	 * @param int    $user_id        User ID.
 	 * @param int    $hunt_id        Hunt ID.
 	 * @param array  $meta           Additional meta.
- main
+ main main
 	 * @return void
 	 */
 	protected function log_event( $jackpot_id, $event_type, $amount_before, $amount_after, $user_id = 0, $hunt_id = 0, array $meta = array() ) {
