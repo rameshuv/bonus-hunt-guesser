@@ -25,11 +25,11 @@ $tour_limit_count  = isset( $tournament_limit['count'] ) ? (int) $tournament_lim
 $tour_limit_period = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
 
 $period_options = array(
-        'none'    => bhg_t( 'limit_period_none', 'No limit' ),
-        'week'    => bhg_t( 'limit_period_week', 'Per week' ),
-        'month'   => bhg_t( 'limit_period_month', 'Per month' ),
-        'quarter' => bhg_t( 'limit_period_quarter', 'Per quarter' ),
-        'year'    => bhg_t( 'limit_period_year', 'Per year' ),
+	'none'    => bhg_t( 'limit_period_none', 'No limit' ),
+	'week'    => bhg_t( 'limit_period_week', 'Per week' ),
+	'month'   => bhg_t( 'limit_period_month', 'Per month' ),
+	'quarter' => bhg_t( 'limit_period_quarter', 'Per quarter' ),
+	'year'    => bhg_t( 'limit_period_year', 'Per year' ),
 );
 
 $message    = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : '';
@@ -78,8 +78,8 @@ foreach ( $periods as $key => $label ) :
 <select name="bhg_currency" id="bhg_currency">
 <?php
 $currencies       = array(
-        'eur' => bhg_t( 'eur', 'EUR' ),
-        'usd' => bhg_t( 'usd', 'USD' ),
+	'eur' => bhg_t( 'eur', 'EUR' ),
+	'usd' => bhg_t( 'usd', 'USD' ),
 );
 $current_currency = isset( $settings['currency'] ) ? $settings['currency'] : 'eur';
 foreach ( $currencies as $key => $label ) :
@@ -109,41 +109,41 @@ foreach ( $currencies as $key => $label ) :
 <tr>
 <th scope="row"><?php echo esc_html( bhg_t( 'hunt_win_limit', 'Bonus hunt win limit' ) ); ?></th>
 <td>
-        <fieldset>
-                <label>
-                        <span class="screen-reader-text"><?php echo esc_html( bhg_t( 'hunt_win_limit_count', 'Maximum wins per period' ) ); ?></span>
-                        <input type="number" class="small-text" name="bhg_hunt_win_limit[count]" value="<?php echo esc_attr( max( 0, $hunt_limit_count ) ); ?>" min="0">
-                </label>
-                <label>
-                        <span class="screen-reader-text"><?php echo esc_html( bhg_t( 'hunt_win_limit_period', 'Period window' ) ); ?></span>
-                        <select name="bhg_hunt_win_limit[period]">
-                                <?php foreach ( $period_options as $period_key => $period_label ) : ?>
-                                <option value="<?php echo esc_attr( $period_key ); ?>" <?php selected( $hunt_limit_period, $period_key ); ?>><?php echo esc_html( $period_label ); ?></option>
-                                <?php endforeach; ?>
-                        </select>
-                </label>
-                <p class="description"><?php echo esc_html( bhg_t( 'hunt_win_limit_help', 'Limit how many hunts a user can win within the selected rolling window. Set to zero for no restriction.' ) ); ?></p>
-        </fieldset>
+		<fieldset>
+				<label>
+						<span class="screen-reader-text"><?php echo esc_html( bhg_t( 'hunt_win_limit_count', 'Maximum wins per period' ) ); ?></span>
+						<input type="number" class="small-text" name="bhg_hunt_win_limit[count]" value="<?php echo esc_attr( max( 0, $hunt_limit_count ) ); ?>" min="0">
+				</label>
+				<label>
+						<span class="screen-reader-text"><?php echo esc_html( bhg_t( 'hunt_win_limit_period', 'Period window' ) ); ?></span>
+						<select name="bhg_hunt_win_limit[period]">
+								<?php foreach ( $period_options as $period_key => $period_label ) : ?>
+								<option value="<?php echo esc_attr( $period_key ); ?>" <?php selected( $hunt_limit_period, $period_key ); ?>><?php echo esc_html( $period_label ); ?></option>
+								<?php endforeach; ?>
+						</select>
+				</label>
+				<p class="description"><?php echo esc_html( bhg_t( 'hunt_win_limit_help', 'Limit how many hunts a user can win within the selected rolling window. Set to zero for no restriction.' ) ); ?></p>
+		</fieldset>
 </td>
 </tr>
 <tr>
 <th scope="row"><?php echo esc_html( bhg_t( 'tournament_win_limit', 'Tournament win limit' ) ); ?></th>
 <td>
-        <fieldset>
-                <label>
-                        <span class="screen-reader-text"><?php echo esc_html( bhg_t( 'tournament_win_limit_count', 'Maximum tournament wins per period' ) ); ?></span>
-                        <input type="number" class="small-text" name="bhg_tournament_win_limit[count]" value="<?php echo esc_attr( max( 0, $tour_limit_count ) ); ?>" min="0">
-                </label>
-                <label>
-                        <span class="screen-reader-text"><?php echo esc_html( bhg_t( 'tournament_win_limit_period', 'Tournament limit period' ) ); ?></span>
-                        <select name="bhg_tournament_win_limit[period]">
-                                <?php foreach ( $period_options as $period_key => $period_label ) : ?>
-                                <option value="<?php echo esc_attr( $period_key ); ?>" <?php selected( $tour_limit_period, $period_key ); ?>><?php echo esc_html( $period_label ); ?></option>
-                                <?php endforeach; ?>
-                        </select>
-                </label>
-                <p class="description"><?php echo esc_html( bhg_t( 'tournament_win_limit_help', 'Restrict how often a user can claim tournament wins within the chosen window. Set to zero for no restriction.' ) ); ?></p>
-        </fieldset>
+		<fieldset>
+				<label>
+						<span class="screen-reader-text"><?php echo esc_html( bhg_t( 'tournament_win_limit_count', 'Maximum tournament wins per period' ) ); ?></span>
+						<input type="number" class="small-text" name="bhg_tournament_win_limit[count]" value="<?php echo esc_attr( max( 0, $tour_limit_count ) ); ?>" min="0">
+				</label>
+				<label>
+						<span class="screen-reader-text"><?php echo esc_html( bhg_t( 'tournament_win_limit_period', 'Tournament limit period' ) ); ?></span>
+						<select name="bhg_tournament_win_limit[period]">
+								<?php foreach ( $period_options as $period_key => $period_label ) : ?>
+								<option value="<?php echo esc_attr( $period_key ); ?>" <?php selected( $tour_limit_period, $period_key ); ?>><?php echo esc_html( $period_label ); ?></option>
+								<?php endforeach; ?>
+						</select>
+				</label>
+				<p class="description"><?php echo esc_html( bhg_t( 'tournament_win_limit_help', 'Restrict how often a user can claim tournament wins within the chosen window. Set to zero for no restriction.' ) ); ?></p>
+		</fieldset>
 </td>
 </tr>
 <tr>
@@ -181,142 +181,142 @@ $hunt_limit_period = isset( $hunt_limit['period'] ) ? sanitize_key( $hunt_limit[
 $tour_limit_count  = isset( $tournament_limit['count'] ) ? (int) $tournament_limit['count'] : 0;
 $tour_limit_period = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
 $period_options    = array(
-        'none'    => bhg_t( 'limit_period_none', 'No limit' ),
-        'week'    => bhg_t( 'limit_period_week', 'Per week' ),
-        'month'   => bhg_t( 'limit_period_month', 'Per month' ),
-        'quarter' => bhg_t( 'limit_period_quarter', 'Per quarter' ),
-        'year'    => bhg_t( 'limit_period_year', 'Per year' ),
+	'none'    => bhg_t( 'limit_period_none', 'No limit' ),
+	'week'    => bhg_t( 'limit_period_week', 'Per week' ),
+	'month'   => bhg_t( 'limit_period_month', 'Per month' ),
+	'quarter' => bhg_t( 'limit_period_quarter', 'Per quarter' ),
+	'year'    => bhg_t( 'limit_period_year', 'Per year' ),
 );
 ?>
 <tr>
 <th scope="row"><?php echo esc_html( bhg_t( 'profile_visibility_settings', 'My Profile Blocks' ) ); ?></th>
 <td>
-        <fieldset>
-                <?php
-                $blocks = array(
-                        'my_bonushunts' => bhg_t( 'profile_block_my_bonushunts', 'Show “My Bonus Hunts” block' ),
-                        'my_tournaments' => bhg_t( 'profile_block_my_tournaments', 'Show “My Tournaments” block' ),
-                        'my_prizes' => bhg_t( 'profile_block_my_prizes', 'Show “My Prizes” block' ),
-                        'my_rankings' => bhg_t( 'profile_block_my_rankings', 'Show “My Rankings” block' ),
-                );
-                foreach ( $blocks as $key => $label ) :
-                        $enabled = isset( $profile_sections[ $key ] ) ? (int) $profile_sections[ $key ] : 1;
-                        ?>
-                        <label><input type="checkbox" name="bhg_profile_sections[<?php echo esc_attr( $key ); ?>]" value="1" <?php checked( $enabled, 1 ); ?>> <?php echo esc_html( $label ); ?></label><br />
-                        <?php
-                endforeach;
-                ?>
-        </fieldset>
-        <p class="description"><?php echo esc_html( bhg_t( 'profile_blocks_description', 'Toggle which sections appear on the user profile shortcodes.' ) ); ?></p>
+		<fieldset>
+				<?php
+				$blocks = array(
+					'my_bonushunts'  => bhg_t( 'profile_block_my_bonushunts', 'Show “My Bonus Hunts” block' ),
+					'my_tournaments' => bhg_t( 'profile_block_my_tournaments', 'Show “My Tournaments” block' ),
+					'my_prizes'      => bhg_t( 'profile_block_my_prizes', 'Show “My Prizes” block' ),
+					'my_rankings'    => bhg_t( 'profile_block_my_rankings', 'Show “My Rankings” block' ),
+				);
+				foreach ( $blocks as $key => $label ) :
+						$enabled = isset( $profile_sections[ $key ] ) ? (int) $profile_sections[ $key ] : 1;
+					?>
+						<label><input type="checkbox" name="bhg_profile_sections[<?php echo esc_attr( $key ); ?>]" value="1" <?php checked( $enabled, 1 ); ?>> <?php echo esc_html( $label ); ?></label><br />
+						<?php
+				endforeach;
+				?>
+		</fieldset>
+		<p class="description"><?php echo esc_html( bhg_t( 'profile_blocks_description', 'Toggle which sections appear on the user profile shortcodes.' ) ); ?></p>
 </td>
 </tr>
 <tr>
 <th scope="row"><?php echo esc_html( bhg_t( 'global_style_title_block', 'Title block styles' ) ); ?></th>
 <td>
-        <fieldset>
-                <label><?php echo esc_html( bhg_t( 'style_background_color', 'Background color' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[title_block][background]" value="<?php echo isset( $title_styles['background'] ) ? esc_attr( $title_styles['background'] ) : ''; ?>" placeholder="#ffffff" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_border_radius', 'Border radius' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[title_block][radius]" value="<?php echo isset( $title_styles['radius'] ) ? esc_attr( $title_styles['radius'] ) : ''; ?>" placeholder="12px" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[title_block][padding]" value="<?php echo isset( $title_styles['padding'] ) ? esc_attr( $title_styles['padding'] ) : ''; ?>" placeholder="16px" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[title_block][margin]" value="<?php echo isset( $title_styles['margin'] ) ? esc_attr( $title_styles['margin'] ) : ''; ?>" placeholder="12px 0" />
-                </label>
-        </fieldset>
+		<fieldset>
+				<label><?php echo esc_html( bhg_t( 'style_background_color', 'Background color' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[title_block][background]" value="<?php echo isset( $title_styles['background'] ) ? esc_attr( $title_styles['background'] ) : ''; ?>" placeholder="#ffffff" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_border_radius', 'Border radius' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[title_block][radius]" value="<?php echo isset( $title_styles['radius'] ) ? esc_attr( $title_styles['radius'] ) : ''; ?>" placeholder="12px" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[title_block][padding]" value="<?php echo isset( $title_styles['padding'] ) ? esc_attr( $title_styles['padding'] ) : ''; ?>" placeholder="16px" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[title_block][margin]" value="<?php echo isset( $title_styles['margin'] ) ? esc_attr( $title_styles['margin'] ) : ''; ?>" placeholder="12px 0" />
+				</label>
+		</fieldset>
 </td>
 </tr>
 <tr>
 <th scope="row"><?php echo esc_html( bhg_t( 'global_style_heading_two', 'Heading (H2) styles' ) ); ?></th>
 <td>
-        <fieldset>
-                <label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][size]" value="<?php echo isset( $h2_styles['size'] ) ? esc_attr( $h2_styles['size'] ) : ''; ?>" placeholder="1.5rem" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][weight]" value="<?php echo isset( $h2_styles['weight'] ) ? esc_attr( $h2_styles['weight'] ) : ''; ?>" placeholder="600" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][color]" value="<?php echo isset( $h2_styles['color'] ) ? esc_attr( $h2_styles['color'] ) : ''; ?>" placeholder="#0f172a" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][padding]" value="<?php echo isset( $h2_styles['padding'] ) ? esc_attr( $h2_styles['padding'] ) : ''; ?>" placeholder="0 0 8px" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_2][margin]" value="<?php echo isset( $h2_styles['margin'] ) ? esc_attr( $h2_styles['margin'] ) : ''; ?>" placeholder="16px 0" />
-                </label>
-        </fieldset>
+		<fieldset>
+				<label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_2][size]" value="<?php echo isset( $h2_styles['size'] ) ? esc_attr( $h2_styles['size'] ) : ''; ?>" placeholder="1.5rem" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_2][weight]" value="<?php echo isset( $h2_styles['weight'] ) ? esc_attr( $h2_styles['weight'] ) : ''; ?>" placeholder="600" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_2][color]" value="<?php echo isset( $h2_styles['color'] ) ? esc_attr( $h2_styles['color'] ) : ''; ?>" placeholder="#0f172a" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_2][padding]" value="<?php echo isset( $h2_styles['padding'] ) ? esc_attr( $h2_styles['padding'] ) : ''; ?>" placeholder="0 0 8px" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_2][margin]" value="<?php echo isset( $h2_styles['margin'] ) ? esc_attr( $h2_styles['margin'] ) : ''; ?>" placeholder="16px 0" />
+				</label>
+		</fieldset>
 </td>
 </tr>
 <tr>
 <th scope="row"><?php echo esc_html( bhg_t( 'global_style_heading_three', 'Heading (H3) styles' ) ); ?></th>
 <td>
-        <fieldset>
-                <label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][size]" value="<?php echo isset( $h3_styles['size'] ) ? esc_attr( $h3_styles['size'] ) : ''; ?>" placeholder="1.25rem" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][weight]" value="<?php echo isset( $h3_styles['weight'] ) ? esc_attr( $h3_styles['weight'] ) : ''; ?>" placeholder="500" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][color]" value="<?php echo isset( $h3_styles['color'] ) ? esc_attr( $h3_styles['color'] ) : ''; ?>" placeholder="#1e293b" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][padding]" value="<?php echo isset( $h3_styles['padding'] ) ? esc_attr( $h3_styles['padding'] ) : ''; ?>" placeholder="0" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[heading_3][margin]" value="<?php echo isset( $h3_styles['margin'] ) ? esc_attr( $h3_styles['margin'] ) : ''; ?>" placeholder="12px 0" />
-                </label>
-        </fieldset>
+		<fieldset>
+				<label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_3][size]" value="<?php echo isset( $h3_styles['size'] ) ? esc_attr( $h3_styles['size'] ) : ''; ?>" placeholder="1.25rem" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_3][weight]" value="<?php echo isset( $h3_styles['weight'] ) ? esc_attr( $h3_styles['weight'] ) : ''; ?>" placeholder="500" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_3][color]" value="<?php echo isset( $h3_styles['color'] ) ? esc_attr( $h3_styles['color'] ) : ''; ?>" placeholder="#1e293b" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_3][padding]" value="<?php echo isset( $h3_styles['padding'] ) ? esc_attr( $h3_styles['padding'] ) : ''; ?>" placeholder="0" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[heading_3][margin]" value="<?php echo isset( $h3_styles['margin'] ) ? esc_attr( $h3_styles['margin'] ) : ''; ?>" placeholder="12px 0" />
+				</label>
+		</fieldset>
 </td>
 </tr>
 <tr>
 <th scope="row"><?php echo esc_html( bhg_t( 'global_style_description', 'Description text styles' ) ); ?></th>
 <td>
-        <fieldset>
-                <label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[description][size]" value="<?php echo isset( $desc_styles['size'] ) ? esc_attr( $desc_styles['size'] ) : ''; ?>" placeholder="1rem" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[description][weight]" value="<?php echo isset( $desc_styles['weight'] ) ? esc_attr( $desc_styles['weight'] ) : ''; ?>" placeholder="400" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[description][color]" value="<?php echo isset( $desc_styles['color'] ) ? esc_attr( $desc_styles['color'] ) : ''; ?>" placeholder="#475569" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[description][padding]" value="<?php echo isset( $desc_styles['padding'] ) ? esc_attr( $desc_styles['padding'] ) : ''; ?>" placeholder="0" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[description][margin]" value="<?php echo isset( $desc_styles['margin'] ) ? esc_attr( $desc_styles['margin'] ) : ''; ?>" placeholder="0 0 12px" />
-                </label>
-        </fieldset>
+		<fieldset>
+				<label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[description][size]" value="<?php echo isset( $desc_styles['size'] ) ? esc_attr( $desc_styles['size'] ) : ''; ?>" placeholder="1rem" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_font_weight', 'Font weight' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[description][weight]" value="<?php echo isset( $desc_styles['weight'] ) ? esc_attr( $desc_styles['weight'] ) : ''; ?>" placeholder="400" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_text_color', 'Text color' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[description][color]" value="<?php echo isset( $desc_styles['color'] ) ? esc_attr( $desc_styles['color'] ) : ''; ?>" placeholder="#475569" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[description][padding]" value="<?php echo isset( $desc_styles['padding'] ) ? esc_attr( $desc_styles['padding'] ) : ''; ?>" placeholder="0" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[description][margin]" value="<?php echo isset( $desc_styles['margin'] ) ? esc_attr( $desc_styles['margin'] ) : ''; ?>" placeholder="0 0 12px" />
+				</label>
+		</fieldset>
 </td>
 </tr>
 <tr>
 <th scope="row"><?php echo esc_html( bhg_t( 'global_style_body', 'Body text styles (p, span)' ) ); ?></th>
 <td>
-        <fieldset>
-                <label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[body_text][size]" value="<?php echo isset( $body_styles['size'] ) ? esc_attr( $body_styles['size'] ) : ''; ?>" placeholder="1rem" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[body_text][padding]" value="<?php echo isset( $body_styles['padding'] ) ? esc_attr( $body_styles['padding'] ) : ''; ?>" placeholder="0" />
-                </label><br />
-                <label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
-                        <input type="text" class="regular-text" name="bhg_global_styles[body_text][margin]" value="<?php echo isset( $body_styles['margin'] ) ? esc_attr( $body_styles['margin'] ) : ''; ?>" placeholder="0 0 8px" />
-                </label>
-        </fieldset>
+		<fieldset>
+				<label><?php echo esc_html( bhg_t( 'style_font_size', 'Font size' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[body_text][size]" value="<?php echo isset( $body_styles['size'] ) ? esc_attr( $body_styles['size'] ) : ''; ?>" placeholder="1rem" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_padding', 'Padding' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[body_text][padding]" value="<?php echo isset( $body_styles['padding'] ) ? esc_attr( $body_styles['padding'] ) : ''; ?>" placeholder="0" />
+				</label><br />
+				<label><?php echo esc_html( bhg_t( 'style_margin', 'Margin' ) ); ?><br />
+						<input type="text" class="regular-text" name="bhg_global_styles[body_text][margin]" value="<?php echo isset( $body_styles['margin'] ) ? esc_attr( $body_styles['margin'] ) : ''; ?>" placeholder="0 0 8px" />
+				</label>
+		</fieldset>
 </td>
 </tr>
 <tr>
 <th scope="row"><label for="bhg_remove_data_on_uninstall"><?php echo esc_html( bhg_t( 'remove_data_on_uninstall', 'Remove plugin data on uninstall' ) ); ?></label></th>
 <td>
-        <input type="hidden" name="bhg_remove_data_on_uninstall" value="0" />
-        <input type="checkbox" id="bhg_remove_data_on_uninstall" name="bhg_remove_data_on_uninstall" value="1" <?php checked( ! empty( $settings['remove_data_on_uninstall'] ) ); ?> />
-        <p class="description"><?php echo esc_html( bhg_t( 'remove_data_on_uninstall_help', 'Enable this option to delete plugin tables and settings when uninstalling. Leave unchecked to retain data.' ) ); ?></p>
+		<input type="hidden" name="bhg_remove_data_on_uninstall" value="0" />
+		<input type="checkbox" id="bhg_remove_data_on_uninstall" name="bhg_remove_data_on_uninstall" value="1" <?php checked( ! empty( $settings['remove_data_on_uninstall'] ) ); ?> />
+		<p class="description"><?php echo esc_html( bhg_t( 'remove_data_on_uninstall_help', 'Enable this option to delete plugin tables and settings when uninstalling. Leave unchecked to retain data.' ) ); ?></p>
 </td>
 </tr>
 </tbody>
