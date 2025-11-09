@@ -48,7 +48,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				// Addons.
 				add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
 				add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
-								add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
+add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
 								add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
 								add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
 								add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
@@ -62,6 +62,20 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 								// Legacy/aliases.
 								add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
+                                add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
+                                add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
+                                add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
+                                add_shortcode( 'my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
+                                add_shortcode( 'my_prizes', array( $this, 'my_prizes_shortcode' ) );
+                                add_shortcode( 'my_rankings', array( $this, 'my_rankings_shortcode' ) );
+                                add_shortcode( 'bhg_jackpot_current', array( $this, 'jackpot_current_shortcode' ) );
+                                add_shortcode( 'bhg_jackpot_latest', array( $this, 'jackpot_latest_shortcode' ) );
+                                add_shortcode( 'bhg_jackpot_ticker', array( $this, 'jackpot_ticker_shortcode' ) );
+                                add_shortcode( 'bhg_jackpot_winners', array( $this, 'jackpot_winners_shortcode' ) );
+
+                                // Legacy/aliases.
+                                add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
 				add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
 				add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
 		}
@@ -3666,33 +3680,8 @@ return ob_get_clean();
 				 * @param array $atts Shortcode attributes.
 				 * @return string
 				 */
-				public function jackpot_current_shortcode( $atts ) {
-						if ( ! class_exists( 'BHG_Jackpots' ) ) {
-								return '';
-						}
+				public 
 
-						$atts = shortcode_atts(
-								array(
-										'id' => 0,
-								),
-								$atts,
-								'bhg_jackpot_current'
-						);
-
-						$jackpot_id = absint( $atts['id'] );
-
-						if ( $jackpot_id <= 0 ) {
-								return '';
-						}
-
-						$amount = BHG_Jackpots::instance()->get_formatted_amount( $jackpot_id );
-
-						if ( '' === $amount ) {
-								return '';
-						}
-
-						return '<span class="bhg-jackpot-amount" data-jackpot-id="' . esc_attr( $jackpot_id ) . '">' . esc_html( $amount ) . '</span>';
-				}
 
 				/**
 				 * Render a list of the latest jackpot hits.
@@ -3700,84 +3689,8 @@ return ob_get_clean();
 				 * @param array $atts Shortcode attributes.
 				 * @return string
 				 */
-				public function jackpot_latest_shortcode( $atts ) {
-						if ( ! class_exists( 'BHG_Jackpots' ) ) {
-								return '';
-						}
+				public 
 
-						$atts = shortcode_atts(
-								array(
-										'limit'     => 5,
-										'affiliate' => 0,
-										'year'      => 0,
-										'empty'     => '',
-								),
-								$atts,
-								'bhg_jackpot_latest'
-						);
-
-						$limit = max( 1, absint( $atts['limit'] ) );
-						$args  = array( 'limit' => $limit );
-
-						if ( ! empty( $atts['affiliate'] ) ) {
-								$args['affiliate'] = absint( $atts['affiliate'] );
-						}
-
-						if ( ! empty( $atts['year'] ) ) {
-								$args['year'] = absint( $atts['year'] );
-						}
-
-						$rows = BHG_Jackpots::instance()->get_latest_hits( $args );
-
-						if ( empty( $rows ) ) {
-								return $atts['empty'] ? '<div class="bhg-jackpot-latest-empty">' . esc_html( $atts['empty'] ) . '</div>' : '';
-						}
-
-						$format_amount = static function ( $amount ) {
-								if ( function_exists( 'bhg_format_money' ) ) {
-										return bhg_format_money( $amount );
-								}
-
-								return number_format_i18n( (float) $amount, 2 );
-						};
-
-						ob_start();
-						echo '<div class="bhg-jackpot-latest"><ul class="bhg-jackpot-latest-list">';
-						foreach ( $rows as $row ) {
-								$winner     = '';
-								$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-								$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-								$title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-								$created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
-								$hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
-
-								if ( $user_id ) {
-										$user = get_userdata( $user_id );
-										if ( $user ) {
-												$winner = $user->display_name;
-										}
-								}
-
-								echo '<li class="bhg-jackpot-latest-item">';
-								if ( $title ) {
-										echo '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span> ';
-								}
-								echo '<span class="bhg-jackpot-winning-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
-								if ( $winner ) {
-										echo ' <span class="bhg-jackpot-winner">' . esc_html( $winner ) . '</span>';
-								}
-								if ( $hunt_title ) {
-										echo ' <span class="bhg-jackpot-hunt">' . esc_html( $hunt_title ) . '</span>';
-								}
-								if ( $created_at ) {
-										echo ' <time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>';
-								}
-								echo '</li>';
-						}
-						echo '</ul></div>';
-
-						return ob_get_clean();
-				}
 
 				/**
 				 * Render a ticker of jackpots or winners.
@@ -3785,65 +3698,8 @@ return ob_get_clean();
 				 * @param array $atts Shortcode attributes.
 				 * @return string
 				 */
-				public function jackpot_ticker_shortcode( $atts ) {
-						if ( ! class_exists( 'BHG_Jackpots' ) ) {
-								return '';
-						}
+				public 
 
-						$atts = shortcode_atts(
-								array(
-										'mode' => 'amount',
-								),
-								$atts,
-								'bhg_jackpot_ticker'
-						);
-
-						$mode    = sanitize_key( $atts['mode'] );
-						$jackets = BHG_Jackpots::instance()->get_ticker_items( $mode );
-
-						if ( empty( $jackets ) ) {
-								return '';
-						}
-
-						$format_amount = static function ( $amount ) {
-								if ( function_exists( 'bhg_format_money' ) ) {
-										return bhg_format_money( $amount );
-								}
-
-								return number_format_i18n( (float) $amount, 2 );
-						};
-
-						ob_start();
-						echo '<div class="bhg-jackpot-ticker bhg-jackpot-ticker--' . esc_attr( $mode ) . '"><ul>';
-						if ( 'winners' === $mode ) {
-								foreach ( $jackets as $row ) {
-										$user_label = '';
-										$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-										if ( $user_id ) {
-												$user = get_userdata( $user_id );
-												if ( $user ) {
-														$user_label = $user->display_name;
-												}
-										}
-										$amount = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-										$title  = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-										echo '<li><span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span> <span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
-										if ( $user_label ) {
-												echo ' <span class="bhg-ticker-winner">' . esc_html( $user_label ) . '</span>';
-										}
-										echo '</li>';
-								}
-						} else {
-								foreach ( $jackets as $row ) {
-										$title  = isset( $row['title'] ) ? $row['title'] : '';
-										$amount = isset( $row['current_amount'] ) ? (float) $row['current_amount'] : 0.0;
-										echo '<li><span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span> <span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span></li>';
-								}
-						}
-						echo '</ul></div>';
-
-						return ob_get_clean();
-				}
 
 				/**
 				 * Render a winners list/table for jackpots.
@@ -3851,117 +3707,8 @@ return ob_get_clean();
 				 * @param array $atts Shortcode attributes.
 				 * @return string
 				 */
-				public function jackpot_winners_shortcode( $atts ) {
-						if ( ! class_exists( 'BHG_Jackpots' ) ) {
-								return '';
-						}
+				public 
 
-						$atts = shortcode_atts(
-								array(
-										'layout'    => 'table',
-										'limit'     => 10,
-										'affiliate' => 0,
-										'year'      => 0,
-										'empty'     => '',
-								),
-								$atts,
-								'bhg_jackpot_winners'
-						);
-
-						$args = array( 'limit' => max( 1, absint( $atts['limit'] ) ) );
-
-						if ( ! empty( $atts['affiliate'] ) ) {
-								$args['affiliate'] = absint( $atts['affiliate'] );
-						}
-
-						if ( ! empty( $atts['year'] ) ) {
-								$args['year'] = absint( $atts['year'] );
-						}
-
-						$rows = BHG_Jackpots::instance()->get_winner_rows( $args );
-
-						if ( empty( $rows ) ) {
-								return $atts['empty'] ? '<div class="bhg-jackpot-winners-empty">' . esc_html( $atts['empty'] ) . '</div>' : '';
-						}
-
-						$layout         = sanitize_key( $atts['layout'] );
-						$format_amount  = static function ( $amount ) {
-								if ( function_exists( 'bhg_format_money' ) ) {
-										return bhg_format_money( $amount );
-								}
-
-								return number_format_i18n( (float) $amount, 2 );
-						};
-
-						if ( 'list' === $layout ) {
-								ob_start();
-								echo '<ul class="bhg-jackpot-winners">';
-								foreach ( $rows as $row ) {
-										$title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-										$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-										$created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
-										$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-										$hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
-										$user_name  = '';
-										if ( $user_id ) {
-												$user = get_userdata( $user_id );
-												if ( $user ) {
-														$user_name = $user->display_name;
-												}
-										}
-										echo '<li class="bhg-jackpot-winner">';
-										if ( $title ) {
-												echo '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span> ';
-										}
-										echo '<span class="bhg-jackpot-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
-										if ( $user_name ) {
-												echo ' <span class="bhg-jackpot-winner-name">' . esc_html( $user_name ) . '</span>';
-										}
-										if ( $hunt_title ) {
-												echo ' <span class="bhg-jackpot-hunt">' . esc_html( $hunt_title ) . '</span>';
-										}
-										if ( $created_at ) {
-												echo ' <time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>';
-										}
-										echo '</li>';
-								}
-								echo '</ul>';
-								return ob_get_clean();
-						}
-
-						ob_start();
-						echo '<table class="bhg-jackpot-winners-table"><thead><tr>';
-						echo '<th>' . esc_html( bhg_t( 'label_title', 'Title' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'label_amount', 'Amount' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'label_winner', 'Winner' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'label_date', 'Date' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '</th>';
-						echo '</tr></thead><tbody>';
-						foreach ( $rows as $row ) {
-								$title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-								$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-								$created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
-								$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-								$hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
-								$user_name  = '';
-								if ( $user_id ) {
-										$user = get_userdata( $user_id );
-										if ( $user ) {
-												$user_name = $user->display_name;
-										}
-								}
-								echo '<tr>';
-								echo '<td>' . esc_html( $title ) . '</td>';
-								echo '<td>' . esc_html( $format_amount( $amount ) ) . '</td>';
-								echo '<td>' . esc_html( $user_name ) . '</td>';
-								echo '<td>' . esc_html( $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '' ) . '</td>';
-								echo '<td>' . esc_html( $hunt_title ) . '</td>';
-								echo '</tr>';
-						}
-						echo '</tbody></table>';
-
-						return ob_get_clean();
-				}
 
 										/**
 										 * Simple wins leaderboard with tabs.
@@ -3969,6 +3716,315 @@ return ob_get_clean();
 										 * @param array $atts Shortcode attributes.
 										 * @return string HTML output.
 										 */
+/**
+                 * Render the current jackpot amount.
+                 *
+                 * @param array $atts Shortcode attributes.
+                 * @return string
+                 */
+                public function jackpot_current_shortcode( $atts ) {
+                        if ( ! class_exists( 'BHG_Jackpots' ) ) {
+                                return '';
+                        }
+
+                        $atts = shortcode_atts(
+                                array(
+                                        'id' => 0,
+                                ),
+                                $atts,
+                                'bhg_jackpot_current'
+                        );
+
+                        $jackpot_id = absint( $atts['id'] );
+
+                        if ( $jackpot_id <= 0 ) {
+                                return '';
+                        }
+
+                        $amount = BHG_Jackpots::instance()->get_formatted_amount( $jackpot_id );
+
+                        if ( '' === $amount ) {
+                                return '';
+                        }
+
+                        return '<span class="bhg-jackpot-amount" data-jackpot-id="' . esc_attr( $jackpot_id ) . '">' . esc_html( $amount ) . '</span>';
+                }
+
+                /**
+                 * Render a list of the latest jackpot hits.
+                 *
+                 * @param array $atts Shortcode attributes.
+                 * @return string
+                 */
+                public function jackpot_latest_shortcode( $atts ) {
+                        if ( ! class_exists( 'BHG_Jackpots' ) ) {
+                                return '';
+                        }
+
+                        $atts = shortcode_atts(
+                                array(
+                                        'limit'     => 5,
+                                        'affiliate' => 0,
+                                        'year'      => 0,
+                                        'empty'     => '',
+                                ),
+                                $atts,
+                                'bhg_jackpot_latest'
+                        );
+
+                        $limit = max( 1, absint( $atts['limit'] ) );
+                        $args  = array( 'limit' => $limit );
+
+                        if ( ! empty( $atts['affiliate'] ) ) {
+                                $args['affiliate'] = absint( $atts['affiliate'] );
+                        }
+
+                        if ( ! empty( $atts['year'] ) ) {
+                                $args['year'] = absint( $atts['year'] );
+                        }
+
+                        $rows = BHG_Jackpots::instance()->get_latest_hits( $args );
+
+                        if ( empty( $rows ) ) {
+                                return $atts['empty'] ? '<div class="bhg-jackpot-latest-empty">' . esc_html( $atts['empty'] ) . '</div>' : '';
+                        }
+
+                        $format_amount = static function ( $amount ) {
+                                if ( function_exists( 'bhg_format_money' ) ) {
+                                        return bhg_format_money( $amount );
+                                }
+
+                                return number_format_i18n( (float) $amount, 2 );
+                        };
+
+                        ob_start();
+                        echo '<div class="bhg-jackpot-latest"><ul class="bhg-jackpot-latest-list">';
+                        foreach ( $rows as $row ) {
+                                $winner     = '';
+                                $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+                                $amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+                                $title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
+                                $created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
+                                $hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
+
+                                if ( $user_id ) {
+                                        $user = get_userdata( $user_id );
+                                        if ( $user ) {
+                                                $winner = $user->display_name;
+                                        }
+                                }
+
+                                echo '<li class="bhg-jackpot-latest-item">';
+                                if ( $title ) {
+                                        echo '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span> ';
+                                }
+                                echo '<span class="bhg-jackpot-winning-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
+                                if ( $winner ) {
+                                        echo ' <span class="bhg-jackpot-winner">' . esc_html( $winner ) . '</span>';
+                                }
+                                if ( $hunt_title ) {
+                                        echo ' <span class="bhg-jackpot-hunt">' . esc_html( $hunt_title ) . '</span>';
+                                }
+                                if ( $created_at ) {
+                                        echo ' <time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>';
+                                }
+                                echo '</li>';
+                        }
+                        echo '</ul></div>';
+
+                        return ob_get_clean();
+                }
+
+                /**
+                 * Render a ticker of jackpots or winners.
+                 *
+                 * @param array $atts Shortcode attributes.
+                 * @return string
+                 */
+                public function jackpot_ticker_shortcode( $atts ) {
+                        if ( ! class_exists( 'BHG_Jackpots' ) ) {
+                                return '';
+                        }
+
+                        $atts = shortcode_atts(
+                                array(
+                                        'mode' => 'amount',
+                                ),
+                                $atts,
+                                'bhg_jackpot_ticker'
+                        );
+
+                        $mode    = sanitize_key( $atts['mode'] );
+                        $jackets = BHG_Jackpots::instance()->get_ticker_items( $mode );
+
+                        if ( empty( $jackets ) ) {
+                                return '';
+                        }
+
+                        $format_amount = static function ( $amount ) {
+                                if ( function_exists( 'bhg_format_money' ) ) {
+                                        return bhg_format_money( $amount );
+                                }
+
+                                return number_format_i18n( (float) $amount, 2 );
+                        };
+
+                        ob_start();
+                        echo '<div class="bhg-jackpot-ticker bhg-jackpot-ticker--' . esc_attr( $mode ) . '"><ul>';
+                        if ( 'winners' === $mode ) {
+                                foreach ( $jackets as $row ) {
+                                        $user_label = '';
+                                        $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+                                        if ( $user_id ) {
+                                                $user = get_userdata( $user_id );
+                                                if ( $user ) {
+                                                        $user_label = $user->display_name;
+                                                }
+                                        }
+                                        $amount = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+                                        $title  = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
+                                        echo '<li><span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span> <span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
+                                        if ( $user_label ) {
+                                                echo ' <span class="bhg-ticker-winner">' . esc_html( $user_label ) . '</span>';
+                                        }
+                                        echo '</li>';
+                                }
+                        } else {
+                                foreach ( $jackets as $row ) {
+                                        $title  = isset( $row['title'] ) ? $row['title'] : '';
+                                        $amount = isset( $row['current_amount'] ) ? (float) $row['current_amount'] : 0.0;
+                                        echo '<li><span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span> <span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span></li>';
+                                }
+                        }
+                        echo '</ul></div>';
+
+                        return ob_get_clean();
+                }
+
+                /**
+                 * Render a winners list/table for jackpots.
+                 *
+                 * @param array $atts Shortcode attributes.
+                 * @return string
+                 */
+                public function jackpot_winners_shortcode( $atts ) {
+                        if ( ! class_exists( 'BHG_Jackpots' ) ) {
+                                return '';
+                        }
+
+                        $atts = shortcode_atts(
+                                array(
+                                        'layout'    => 'table',
+                                        'limit'     => 10,
+                                        'affiliate' => 0,
+                                        'year'      => 0,
+                                        'empty'     => '',
+                                ),
+                                $atts,
+                                'bhg_jackpot_winners'
+                        );
+
+                        $args = array( 'limit' => max( 1, absint( $atts['limit'] ) ) );
+
+                        if ( ! empty( $atts['affiliate'] ) ) {
+                                $args['affiliate'] = absint( $atts['affiliate'] );
+                        }
+
+                        if ( ! empty( $atts['year'] ) ) {
+                                $args['year'] = absint( $atts['year'] );
+                        }
+
+                        $rows = BHG_Jackpots::instance()->get_winner_rows( $args );
+
+                        if ( empty( $rows ) ) {
+                                return $atts['empty'] ? '<div class="bhg-jackpot-winners-empty">' . esc_html( $atts['empty'] ) . '</div>' : '';
+                        }
+
+                        $layout         = sanitize_key( $atts['layout'] );
+                        $format_amount  = static function ( $amount ) {
+                                if ( function_exists( 'bhg_format_money' ) ) {
+                                        return bhg_format_money( $amount );
+                                }
+
+                                return number_format_i18n( (float) $amount, 2 );
+                        };
+
+                        if ( 'list' === $layout ) {
+                                ob_start();
+                                echo '<ul class="bhg-jackpot-winners">';
+                                foreach ( $rows as $row ) {
+                                        $title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
+                                        $amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+                                        $created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
+                                        $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+                                        $hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
+                                        $user_name  = '';
+                                        if ( $user_id ) {
+                                                $user = get_userdata( $user_id );
+                                                if ( $user ) {
+                                                        $user_name = $user->display_name;
+                                                }
+                                        }
+                                        echo '<li class="bhg-jackpot-winner">';
+                                        if ( $title ) {
+                                                echo '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span> ';
+                                        }
+                                        echo '<span class="bhg-jackpot-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
+                                        if ( $user_name ) {
+                                                echo ' <span class="bhg-jackpot-winner-name">' . esc_html( $user_name ) . '</span>';
+                                        }
+                                        if ( $hunt_title ) {
+                                                echo ' <span class="bhg-jackpot-hunt">' . esc_html( $hunt_title ) . '</span>';
+                                        }
+                                        if ( $created_at ) {
+                                                echo ' <time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>';
+                                        }
+                                        echo '</li>';
+                                }
+                                echo '</ul>';
+                                return ob_get_clean();
+                        }
+
+                        ob_start();
+                        echo '<table class="bhg-jackpot-winners-table"><thead><tr>';
+                        echo '<th>' . esc_html( bhg_t( 'label_title', 'Title' ) ) . '</th>';
+                        echo '<th>' . esc_html( bhg_t( 'label_amount', 'Amount' ) ) . '</th>';
+                        echo '<th>' . esc_html( bhg_t( 'label_winner', 'Winner' ) ) . '</th>';
+                        echo '<th>' . esc_html( bhg_t( 'label_date', 'Date' ) ) . '</th>';
+                        echo '<th>' . esc_html( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '</th>';
+                        echo '</tr></thead><tbody>';
+                        foreach ( $rows as $row ) {
+                                $title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
+                                $amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+                                $created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
+                                $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+                                $hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
+                                $user_name  = '';
+                                if ( $user_id ) {
+                                        $user = get_userdata( $user_id );
+                                        if ( $user ) {
+                                                $user_name = $user->display_name;
+                                        }
+                                }
+                                echo '<tr>';
+                                echo '<td>' . esc_html( $title ) . '</td>';
+                                echo '<td>' . esc_html( $format_amount( $amount ) ) . '</td>';
+                                echo '<td>' . esc_html( $user_name ) . '</td>';
+                                echo '<td>' . esc_html( $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '' ) . '</td>';
+                                echo '<td>' . esc_html( $hunt_title ) . '</td>';
+                                echo '</tr>';
+                        }
+                        echo '</tbody></table>';
+
+                        return ob_get_clean();
+                }
+
+                                        /**
+                                         * Simple wins leaderboard with tabs.
+                                         *
+                                         * @param array $atts Shortcode attributes.
+                                         * @return string HTML output.
+                                         */
 		public function best_guessers_shortcode( $atts ) {
 			global $wpdb;
 
@@ -4004,7 +4060,7 @@ return ob_get_clean();
 			);
 
 			$results = array();
-			
+
 
 			foreach ( $periods as $key => $info ) {
 				$where_clauses = array();

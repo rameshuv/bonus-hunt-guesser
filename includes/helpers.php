@@ -20,9 +20,9 @@ function bhg_log( $message ) {
 		return;
 	}
 	if ( is_array( $message ) || is_object( $message ) ) {
-			$message = wp_json_encode( $message );
+		$message = wp_json_encode( $message );
 	}
-		error_log( '[BHG] ' . $message );
+	error_log( '[BHG] ' . $message );
 }
 
 /**
@@ -96,9 +96,9 @@ add_filter(
 	function ( $redirect_to, $requested_redirect_to, $user ) {
 		$r = isset( $_REQUEST['bhg_redirect'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['bhg_redirect'] ) ) : '';
 		if ( ! empty( $r ) ) {
-				$safe      = esc_url_raw( $r );
-				$home_host = wp_parse_url( home_url(), PHP_URL_HOST );
-				$r_host    = wp_parse_url( $safe, PHP_URL_HOST );
+			$safe      = esc_url_raw( $r );
+			$home_host = wp_parse_url( home_url(), PHP_URL_HOST );
+			$r_host    = wp_parse_url( $safe, PHP_URL_HOST );
 			if ( ! $r_host || $r_host === $home_host ) {
 				return $safe;
 			}
@@ -119,42 +119,42 @@ function bhg_is_frontend() {
 }
 
 if ( ! function_exists( 'bhg_t' ) ) {
-		/**
-		 * Retrieve a translation value from the database.
-		 *
-		 * @param string $slug    Translation slug.
-		 * @param string $default_text Default text if not found.
-		 * @param string $locale  Locale to use. Defaults to current locale.
-		 * @return string
-		 */
+	/**
+	 * Retrieve a translation value from the database.
+	 *
+	 * @param string $slug    Translation slug.
+	 * @param string $default_text Default text if not found.
+	 * @param string $locale  Locale to use. Defaults to current locale.
+	 * @return string
+	 */
 	function bhg_t( $slug, $default_text = '', $locale = '' ) {
-			global $wpdb;
+		global $wpdb;
 
-						$slug      = (string) $slug;
-						$locale    = $locale ? (string) $locale : get_locale();
-						$cache_key = 'bhg_t_' . $slug . '_' . $locale;
-						$cached    = wp_cache_get( $cache_key, 'bhg_translations' );
+		$slug      = (string) $slug;
+		$locale    = $locale ? (string) $locale : get_locale();
+		$cache_key = 'bhg_t_' . $slug . '_' . $locale;
+		$cached    = wp_cache_get( $cache_key, 'bhg_translations' );
 
 		if ( false !== $cached ) {
-				return (string) $cached;
+			return (string) $cached;
 		}
 
-						$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
-						$sql   = $wpdb->prepare(
-							"SELECT text, default_text FROM {$table} WHERE slug = %s AND locale = %s",
-							$slug,
-							$locale
-						);
-						$row   = $wpdb->get_row( $sql );
+		$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
+		$sql   = $wpdb->prepare(
+			"SELECT text, default_text FROM {$table} WHERE slug = %s AND locale = %s",
+			$slug,
+			$locale
+		);
+		$row   = $wpdb->get_row( $sql );
 
 		if ( $row ) {
-						$value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
-						wp_cache_set( $cache_key, $value, 'bhg_translations' );
-						return $value;
+			$value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
+			wp_cache_set( $cache_key, $value, 'bhg_translations' );
+			return $value;
 		}
 
-						wp_cache_set( $cache_key, (string) $default_text, 'bhg_translations' );
-						return (string) $default_text;
+		wp_cache_set( $cache_key, (string) $default_text, 'bhg_translations' );
+		return (string) $default_text;
 	}
 }
 
@@ -944,64 +944,64 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 }
 
 if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
-		/**
-		 * Seed default translations, inserting any missing keys.
-		 *
-		 * @return void
-		 */
+	/**
+	 * Seed default translations, inserting any missing keys.
+	 *
+	 * @return void
+	 */
 	function bhg_seed_default_translations() {
-			global $wpdb;
+		global $wpdb;
 
-						$table  = esc_sql( $wpdb->prefix . 'bhg_translations' );
-						$locale = get_locale();
+		$table  = esc_sql( $wpdb->prefix . 'bhg_translations' );
+		$locale = get_locale();
 
 		foreach ( bhg_get_default_translations() as $slug => $def_text ) {
 			$slug = trim( (string) $slug );
 			if ( '' === $slug ) {
-					continue; // Skip invalid keys.
+				continue; // Skip invalid keys.
 			}
 
-						$sql    = $wpdb->prepare(
-							"SELECT COUNT(*) FROM {$table} WHERE slug = %s AND locale = %s",
-							$slug,
-							$locale
-						);
-						$exists = $wpdb->get_var( $sql );
+			$sql    = $wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE slug = %s AND locale = %s",
+				$slug,
+				$locale
+			);
+			$exists = $wpdb->get_var( $sql );
 			if ( $exists ) {
 				continue;
 			}
 
-						$wpdb->insert(
-							$table,
-							array(
-								'slug'         => $slug,
-								'default_text' => (string) $def_text,
-								'text'         => '',
-								'locale'       => $locale,
-							),
-							array( '%s', '%s', '%s', '%s' )
-						);
+			$wpdb->insert(
+				$table,
+				array(
+					'slug'         => $slug,
+					'default_text' => (string) $def_text,
+					'text'         => '',
+					'locale'       => $locale,
+				),
+				array( '%s', '%s', '%s', '%s' )
+			);
 		}
 
-				bhg_clear_translation_cache();
+		bhg_clear_translation_cache();
 	}
 }
 
 if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-				/**
-				 * Ensure default translations exist.
-				 *
-				 * Inserts any missing translation keys so they appear in the admin.
-				 *
-				 * @return void
-				 */
+	/**
+	 * Ensure default translations exist.
+	 *
+	 * Inserts any missing translation keys so they appear in the admin.
+	 *
+	 * @return void
+	 */
 	function bhg_seed_default_translations_if_empty() {
-			global $wpdb;
+		global $wpdb;
 
-			$table = $wpdb->prefix . 'bhg_translations';
+		$table = $wpdb->prefix . 'bhg_translations';
 
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
-				bhg_seed_default_translations();
+			bhg_seed_default_translations();
 		}
 	}
 }
@@ -1014,15 +1014,15 @@ if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
  * @return string
  */
 function bhg_currency_symbol() {
-				$option   = get_option( 'bhg_currency', 'EUR' );
-				$currency = is_string( $option ) ? strtoupper( $option ) : 'EUR';
-				$map      = array(
-					'USD' => '$',
-					'EUR' => '€',
-				);
-				$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
+	$option   = get_option( 'bhg_currency', 'EUR' );
+	$currency = is_string( $option ) ? strtoupper( $option ) : 'EUR';
+	$map      = array(
+		'USD' => '$',
+		'EUR' => '€',
+	);
+	$symbol   = isset( $map[ $currency ] ) ? $map[ $currency ] : '€';
 
-				return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
+	return apply_filters( 'bhg_currency_symbol', $symbol, $currency );
 }
 
 /**
@@ -1032,65 +1032,65 @@ function bhg_currency_symbol() {
  * @return string
  */
 function bhg_format_money( $amount ) {
-				return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
+	return sprintf( '%s%s', bhg_currency_symbol(), number_format_i18n( (float) $amount, 2 ) );
 }
 
 if ( ! function_exists( 'bhg_format_currency' ) ) {
-		/**
-		 * Backwards-compatible wrapper for legacy helper name.
-		 *
-		 * @param float $amount Amount to format.
-		 * @return string
-		 */
+	/**
+	 * Backwards-compatible wrapper for legacy helper name.
+	 *
+	 * @param float $amount Amount to format.
+	 * @return string
+	 */
 	function bhg_format_currency( $amount ) {
-			return bhg_format_money( $amount );
+		return bhg_format_money( $amount );
 	}
 }
 
 if ( ! function_exists( 'bhg_get_win_limit_config' ) ) {
-		/**
-		 * Retrieve the win limit configuration for hunts or tournaments.
-		 *
-		 * @param string $context Either 'hunt' or 'tournament'.
-		 * @return array{count:int,period:string}
-		 */
+	/**
+	 * Retrieve the win limit configuration for hunts or tournaments.
+	 *
+	 * @param string $context Either 'hunt' or 'tournament'.
+	 * @return array{count:int,period:string}
+	 */
 	function bhg_get_win_limit_config( $context ) {
-			$context  = ( 'tournament' === $context ) ? 'tournament' : 'hunt';
-			$settings = get_option( 'bhg_plugin_settings', array() );
+		$context  = ( 'tournament' === $context ) ? 'tournament' : 'hunt';
+		$settings = get_option( 'bhg_plugin_settings', array() );
 
 		if ( 'tournament' === $context ) {
-				$key = 'tournament_win_limit';
+			$key = 'tournament_win_limit';
 		} else {
-				$key = 'hunt_win_limit';
+			$key = 'hunt_win_limit';
 		}
 
-			$config = isset( $settings[ $key ] ) && is_array( $settings[ $key ] ) ? $settings[ $key ] : array();
+		$config = isset( $settings[ $key ] ) && is_array( $settings[ $key ] ) ? $settings[ $key ] : array();
 
-			$count = isset( $config['count'] ) ? (int) $config['count'] : 0;
+		$count = isset( $config['count'] ) ? (int) $config['count'] : 0;
 		if ( $count < 0 ) {
-				$count = 0;
+			$count = 0;
 		}
 
-			$period          = isset( $config['period'] ) ? sanitize_key( $config['period'] ) : 'none';
-			$allowed_periods = array( 'none', 'week', 'month', 'quarter', 'year' );
+		$period          = isset( $config['period'] ) ? sanitize_key( $config['period'] ) : 'none';
+		$allowed_periods = array( 'none', 'week', 'month', 'quarter', 'year' );
 		if ( ! in_array( $period, $allowed_periods, true ) ) {
-				$period = 'none';
+			$period = 'none';
 		}
 
-			return array(
-				'count'  => $count,
-				'period' => $period,
-			);
+		return array(
+			'count'  => $count,
+			'period' => $period,
+		);
 	}
 }
 
 if ( ! function_exists( 'bhg_get_period_interval_seconds' ) ) {
-		/**
-		 * Convert a period keyword into seconds.
-		 *
-		 * @param string $period Period keyword.
-		 * @return int Number of seconds or 0 when period is disabled.
-		 */
+	/**
+	 * Convert a period keyword into seconds.
+	 *
+	 * @param string $period Period keyword.
+	 * @return int Number of seconds or 0 when period is disabled.
+	 */
 	function bhg_get_period_interval_seconds( $period ) {
 		switch ( $period ) {
 			case 'week':
@@ -1108,214 +1108,214 @@ if ( ! function_exists( 'bhg_get_period_interval_seconds' ) ) {
 }
 
 if ( ! function_exists( 'bhg_get_period_label' ) ) {
-		/**
-		 * Retrieve a human-readable label for a rolling period key.
-		 *
-		 * @param string $period Period keyword.
-		 * @return string
-		 */
+	/**
+	 * Retrieve a human-readable label for a rolling period key.
+	 *
+	 * @param string $period Period keyword.
+	 * @return string
+	 */
 	function bhg_get_period_label( $period ) {
-			$period = sanitize_key( $period );
-			$map    = array(
-				'week'    => bhg_t( 'period_week', 'week' ),
-				'month'   => bhg_t( 'period_month', 'month' ),
-				'quarter' => bhg_t( 'period_quarter', 'quarter' ),
-				'year'    => bhg_t( 'period_year', 'year' ),
-			);
+		$period = sanitize_key( $period );
+		$map    = array(
+			'week'    => bhg_t( 'period_week', 'week' ),
+			'month'   => bhg_t( 'period_month', 'month' ),
+			'quarter' => bhg_t( 'period_quarter', 'quarter' ),
+			'year'    => bhg_t( 'period_year', 'year' ),
+		);
 
-			return isset( $map[ $period ] ) ? $map[ $period ] : bhg_t( 'period_default', 'period' );
+		return isset( $map[ $period ] ) ? $map[ $period ] : bhg_t( 'period_default', 'period' );
 	}
 }
 
 if ( ! function_exists( 'bhg_build_win_limit_notice' ) ) {
-		/**
-		 * Build the display notice when win limits skip entrants.
-		 *
-		 * @param string $context       Either 'hunt' or 'tournament'.
-		 * @param int    $limit_count   Maximum wins allowed in window.
-		 * @param string $limit_period  Period keyword.
-		 * @param int    $skipped_count Number of entrants skipped.
-		 * @return string
-		 */
+	/**
+	 * Build the display notice when win limits skip entrants.
+	 *
+	 * @param string $context       Either 'hunt' or 'tournament'.
+	 * @param int    $limit_count   Maximum wins allowed in window.
+	 * @param string $limit_period  Period keyword.
+	 * @param int    $skipped_count Number of entrants skipped.
+	 * @return string
+	 */
 	function bhg_build_win_limit_notice( $context, $limit_count, $limit_period, $skipped_count ) {
-			$limit_count   = (int) $limit_count;
-			$skipped_count = (int) $skipped_count;
-			$limit_period  = sanitize_key( $limit_period );
-			$context       = ( 'tournament' === $context ) ? 'tournament' : 'hunt';
+		$limit_count   = (int) $limit_count;
+		$skipped_count = (int) $skipped_count;
+		$limit_period  = sanitize_key( $limit_period );
+		$context       = ( 'tournament' === $context ) ? 'tournament' : 'hunt';
 
 		if ( $limit_count <= 0 || 'none' === $limit_period || $skipped_count <= 0 ) {
-				return '';
+			return '';
 		}
 
-			$count_value   = number_format_i18n( $limit_count );
-			$skipped_value = number_format_i18n( $skipped_count );
+		$count_value   = number_format_i18n( $limit_count );
+		$skipped_value = number_format_i18n( $skipped_count );
 
-			$count_label = ( 1 === $limit_count )
-					? sprintf( bhg_t( 'phrase_win_limit_count_single', '%s win' ), $count_value )
-					: sprintf( bhg_t( 'phrase_win_limit_count_plural', '%s wins' ), $count_value );
+		$count_label = ( 1 === $limit_count )
+			? sprintf( bhg_t( 'phrase_win_limit_count_single', '%s win' ), $count_value )
+			: sprintf( bhg_t( 'phrase_win_limit_count_plural', '%s wins' ), $count_value );
 
-			$skipped_label = ( 1 === $skipped_count )
-					? sprintf( bhg_t( 'phrase_win_limit_skipped_single', '%s entry' ), $skipped_value )
-					: sprintf( bhg_t( 'phrase_win_limit_skipped_plural', '%s entries' ), $skipped_value );
+		$skipped_label = ( 1 === $skipped_count )
+			? sprintf( bhg_t( 'phrase_win_limit_skipped_single', '%s entry' ), $skipped_value )
+			: sprintf( bhg_t( 'phrase_win_limit_skipped_plural', '%s entries' ), $skipped_value );
 
-			$period_label = bhg_get_period_label( $limit_period );
+		$period_label = bhg_get_period_label( $limit_period );
 
-			$message_key = ( 'tournament' === $context )
-					? 'notice_tournament_win_limit_skip'
-					: 'notice_hunt_win_limit_skip';
+		$message_key = ( 'tournament' === $context )
+			? 'notice_tournament_win_limit_skip'
+			: 'notice_hunt_win_limit_skip';
 
-			return sprintf(
-				bhg_t(
-					$message_key,
-					'Some entrants were skipped due to the win limit (%1$s per %2$s). %3$s were recorded and the next eligible players were promoted automatically.'
-				),
-				$count_label,
-				$period_label,
-				$skipped_label
-			);
+		return sprintf(
+			bhg_t(
+				$message_key,
+				'Some entrants were skipped due to the win limit (%1$s per %2$s). %3$s were recorded and the next eligible players were promoted automatically.'
+			),
+			$count_label,
+			$period_label,
+			$skipped_label
+		);
 	}
 }
 
 if ( ! function_exists( 'bhg_get_hunt_results_url' ) ) {
-		/**
-		 * Build the preferred URL for viewing hunt results.
-		 *
-		 * @param int $hunt_id Hunt identifier.
-		 * @return string
-		 */
+	/**
+	 * Build the preferred URL for viewing hunt results.
+	 *
+	 * @param int $hunt_id Hunt identifier.
+	 * @return string
+	 */
 	function bhg_get_hunt_results_url( $hunt_id ) {
-			$hunt_id = (int) $hunt_id;
+		$hunt_id = (int) $hunt_id;
 
 		if ( $hunt_id <= 0 ) {
-				return '';
+			return '';
 		}
 
-			$front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'user-guesses' ) : '';
+		$front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'user-guesses' ) : '';
 		if ( '' !== $front_url ) {
-				return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
+			return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
 		}
 
 		if ( function_exists( 'current_user_can' ) && current_user_can( 'manage_options' ) ) {
-				return add_query_arg(
-					array(
-						'page'    => 'bhg-bonus-hunts-results',
-						'hunt_id' => $hunt_id,
-						'id'      => $hunt_id,
-					),
-					admin_url( 'admin.php' )
-				);
+			return add_query_arg(
+				array(
+					'page'    => 'bhg-bonus-hunts-results',
+					'hunt_id' => $hunt_id,
+					'id'      => $hunt_id,
+				),
+				admin_url( 'admin.php' )
+			);
 		}
 
-			return '';
+		return '';
 	}
 }
 
 if ( ! function_exists( 'bhg_get_guess_submission_url' ) ) {
-		/**
-		 * Build the preferred URL for submitting or editing a guess.
-		 *
-		 * @param int $hunt_id Hunt identifier.
-		 * @return string
-		 */
+	/**
+	 * Build the preferred URL for submitting or editing a guess.
+	 *
+	 * @param int $hunt_id Hunt identifier.
+	 * @return string
+	 */
 	function bhg_get_guess_submission_url( $hunt_id ) {
-			$hunt_id = (int) $hunt_id;
+		$hunt_id = (int) $hunt_id;
 
 		if ( $hunt_id <= 0 ) {
-				return '';
+			return '';
 		}
 
-			$front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'active-bonus-hunt' ) : '';
+		$front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'active-bonus-hunt' ) : '';
 		if ( '' === $front_url ) {
-				return '';
+			return '';
 		}
 
-			return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
+		return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
 	}
 }
 
 if ( ! function_exists( 'bhg_get_period_window_start' ) ) {
-		/**
-		 * Calculate the window start timestamp for a given period keyword.
-		 *
-		 * @param string   $period    Period keyword.
-		 * @param int|null $reference Reference timestamp. Defaults to current time.
-		 * @return string Empty string if the period is disabled, otherwise MySQL datetime.
-		 */
+	/**
+	 * Calculate the window start timestamp for a given period keyword.
+	 *
+	 * @param string   $period    Period keyword.
+	 * @param int|null $reference Reference timestamp. Defaults to current time.
+	 * @return string Empty string if the period is disabled, otherwise MySQL datetime.
+	 */
 	function bhg_get_period_window_start( $period, $reference = null ) {
-			$seconds = bhg_get_period_interval_seconds( $period );
+		$seconds = bhg_get_period_interval_seconds( $period );
 
 		if ( $seconds <= 0 ) {
-				return '';
+			return '';
 		}
 
 		if ( null === $reference ) {
-				$reference = current_time( 'timestamp' );
+			$reference = current_time( 'timestamp' );
 		}
 
-			$start = max( 0, (int) $reference - (int) $seconds );
+		$start = max( 0, (int) $reference - (int) $seconds );
 
-			return wp_date( 'Y-m-d H:i:s', $start );
+		return wp_date( 'Y-m-d H:i:s', $start );
 	}
 }
 
 if ( ! function_exists( 'bhg_get_default_points_map' ) ) {
-		/**
-		 * Retrieve the default tournament points distribution.
-		 *
-		 * @return array<int,int>
-		 */
+	/**
+	 * Retrieve the default tournament points distribution.
+	 *
+	 * @return array<int,int>
+	 */
 	function bhg_get_default_points_map() {
-			return array(
-				1 => 25,
-				2 => 15,
-				3 => 10,
-				4 => 5,
-				5 => 4,
-				6 => 3,
-				7 => 2,
-				8 => 1,
-			);
+		return array(
+			1 => 25,
+			2 => 15,
+			3 => 10,
+			4 => 5,
+			5 => 4,
+			6 => 3,
+			7 => 2,
+			8 => 1,
+		);
 	}
 }
 
 if ( ! function_exists( 'bhg_sanitize_points_map' ) ) {
-		/**
-		 * Sanitize a raw points map array ensuring numeric keys and non-negative integer values.
-		 *
-		 * @param array $raw Raw map keyed by placement.
-		 * @return array<int,int>
-		 */
+	/**
+	 * Sanitize a raw points map array ensuring numeric keys and non-negative integer values.
+	 *
+	 * @param array $raw Raw map keyed by placement.
+	 * @return array<int,int>
+	 */
 	function bhg_sanitize_points_map( $raw ) {
-			$sanitized = array();
+		$sanitized = array();
 
 		if ( is_array( $raw ) ) {
 			foreach ( $raw as $placement => $points ) {
 				if ( is_array( $points ) && isset( $points['value'] ) ) {
-						$points = $points['value'];
+					$points = $points['value'];
 				}
 
 				$placement = absint( $placement );
 				$points    = (int) $points;
 
 				if ( $placement <= 0 ) {
-							continue;
+					continue;
 				}
 
 				if ( $points < 0 ) {
-						$points = 0;
+					$points = 0;
 				}
 
-					$sanitized[ $placement ] = $points;
+				$sanitized[ $placement ] = $points;
 			}
 		}
 
 		if ( empty( $sanitized ) ) {
-				$sanitized = bhg_get_default_points_map();
+			$sanitized = bhg_get_default_points_map();
 		}
 
-			ksort( $sanitized, SORT_NUMERIC );
+		ksort( $sanitized, SORT_NUMERIC );
 
-			return $sanitized;
+		return $sanitized;
 	}
 }
 
@@ -1347,19 +1347,19 @@ function bhg_validate_guess( $guess ) {
  * @return string Display name with optional affiliate indicator, sanitized for safe HTML output.
  */
 function bhg_get_user_display_name( $user_id ) {
-		$user = get_userdata( (int) $user_id );
+	$user = get_userdata( (int) $user_id );
 	if ( ! $user ) {
-			return wp_kses_post( bhg_t( 'unknown_user', 'Unknown User' ) );
+		return wp_kses_post( bhg_t( 'unknown_user', 'Unknown User' ) );
 	}
 
-		$display_name = $user->display_name ? $user->display_name : $user->user_login;
-		$is_affiliate = bhg_is_user_affiliate( (int) $user_id );
+	$display_name = $user->display_name ? $user->display_name : $user->user_login;
+	$is_affiliate = bhg_is_user_affiliate( (int) $user_id );
 
 	if ( $is_affiliate ) {
-			$display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
+		$display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
 	}
 
-		return wp_kses_post( $display_name );
+	return wp_kses_post( $display_name );
 }
 
 if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
@@ -1376,107 +1376,107 @@ if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
 }
 
 if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {
-		/**
-		 * Get affiliate website IDs for a user.
-		 *
-		 * @param int $user_id User ID.
-		 * @return array
-		 */
+	/**
+	 * Get affiliate website IDs for a user.
+	 *
+	 * @param int $user_id User ID.
+	 * @return array
+	 */
 	function bhg_get_user_affiliate_websites( $user_id ) {
-			$ids = get_user_meta( (int) $user_id, 'bhg_affiliate_websites', true );
+		$ids = get_user_meta( (int) $user_id, 'bhg_affiliate_websites', true );
 		if ( is_array( $ids ) ) {
-				return array_map( 'absint', $ids );
+			return array_map( 'absint', $ids );
 		}
 		if ( is_string( $ids ) && '' !== $ids ) {
-				return array_map( 'absint', array_filter( array_map( 'trim', explode( ',', $ids ) ) ) );
+			return array_map( 'absint', array_filter( array_map( 'trim', explode( ',', $ids ) ) ) );
 		}
-			return array();
+		return array();
 	}
 }
 
 if ( ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
-				/**
-				 * Store affiliate website IDs for a user.
-				 *
-				 * @param int   $user_id  User ID.
-				 * @param array $site_ids Site IDs.
-				 * @return void
-				 */
+	/**
+	 * Store affiliate website IDs for a user.
+	 *
+	 * @param int   $user_id  User ID.
+	 * @param array $site_ids Site IDs.
+	 * @return void
+	 */
 	function bhg_set_user_affiliate_websites( $user_id, $site_ids ) {
-					$clean = array();
+		$clean = array();
 		if ( is_array( $site_ids ) ) {
 			foreach ( $site_ids as $sid ) {
 				$sid = absint( $sid );
 				if ( $sid ) {
-								$clean[] = $sid;
+					$clean[] = $sid;
 				}
 			}
 		}
-					update_user_meta( (int) $user_id, 'bhg_affiliate_websites', $clean );
+		update_user_meta( (int) $user_id, 'bhg_affiliate_websites', $clean );
 	}
 }
 
 if ( ! function_exists( 'bhg_remove_affiliate_site_from_users' ) ) {
-				/**
-				 * Remove a deleted affiliate website from all user profiles.
-				 *
-				 * @param int $site_id Affiliate site identifier.
-				 * @return void
-				 */
+	/**
+	 * Remove a deleted affiliate website from all user profiles.
+	 *
+	 * @param int $site_id Affiliate site identifier.
+	 * @return void
+	 */
 	function bhg_remove_affiliate_site_from_users( $site_id ) {
-			global $wpdb;
+		global $wpdb;
 
-			$site_id = absint( $site_id );
+		$site_id = absint( $site_id );
 
 		if ( $site_id <= 0 ) {
-				return;
+			return;
 		}
 
 		if ( ! isset( $wpdb->usermeta ) ) {
-				$wpdb->usermeta = $wpdb->prefix . 'usermeta';
+			$wpdb->usermeta = $wpdb->prefix . 'usermeta';
 		}
 
-			$table    = esc_sql( $wpdb->usermeta );
-			$meta_key = 'bhg_affiliate_websites';
+		$table    = esc_sql( $wpdb->usermeta );
+		$meta_key = 'bhg_affiliate_websites';
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT user_id, meta_value FROM {$table} WHERE meta_key = %s",
-					$meta_key
-				),
-				ARRAY_A
-			);
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT user_id, meta_value FROM {$table} WHERE meta_key = %s",
+				$meta_key
+			),
+			ARRAY_A
+		);
 
 		if ( empty( $rows ) ) {
 			return;
 		}
 
 		foreach ( $rows as $row ) {
-				$user_id = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+			$user_id = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
 			if ( $user_id <= 0 ) {
 				continue;
 			}
 
-				$stored = maybe_unserialize( $row['meta_value'] );
+			$stored = maybe_unserialize( $row['meta_value'] );
 			if ( empty( $stored ) || ! is_array( $stored ) ) {
-					continue;
+				continue;
 			}
 
-				$filtered = array_values(
-					array_filter(
-						array_map( 'absint', $stored ),
-						static function ( $value ) use ( $site_id ) {
-										return (int) $value !== $site_id;
-						}
-					)
-				);
+			$filtered = array_values(
+				array_filter(
+					array_map( 'absint', $stored ),
+					static function ( $value ) use ( $site_id ) {
+						return (int) $value !== $site_id;
+					}
+				)
+			);
 
 			if ( count( $filtered ) === count( $stored ) ) {
 				continue;
 			}
 
-				bhg_set_user_affiliate_websites( $user_id, $filtered );
+			bhg_set_user_affiliate_websites( $user_id, $filtered );
 		}
 	}
 }
@@ -1490,19 +1490,19 @@ if ( ! function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
 	 * @return bool
 	 */
 	function bhg_is_user_affiliate_for_site( $user_id, $site_id ) {
-			$user_id = (int) $user_id;
+		$user_id = (int) $user_id;
 
 		if ( ! $site_id ) {
-				return bhg_is_user_affiliate( $user_id );
+			return bhg_is_user_affiliate( $user_id );
 		}
 
-							$sites = bhg_get_user_affiliate_websites( $user_id );
+		$sites = bhg_get_user_affiliate_websites( $user_id );
 
 		if ( empty( $sites ) ) {
-				return bhg_is_user_affiliate( $user_id );
+			return bhg_is_user_affiliate( $user_id );
 		}
 
-							return in_array( absint( $site_id ), array_map( 'absint', (array) $sites ), true );
+		return in_array( absint( $site_id ), array_map( 'absint', (array) $sites ), true );
 	}
 }
 
@@ -1515,27 +1515,27 @@ if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
 	 * @return string
 	 */
 	function bhg_render_affiliate_dot( $user_id, $hunt_affiliate_site_id = 0 ) {
-		$is_aff                       = bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_affiliate_site_id );
-				$cls                  = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
-				$label                = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
-								$html = '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
-								return wp_kses_post( $html );
+		$is_aff = bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_affiliate_site_id );
+		$cls    = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
+		$label  = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
+		$html   = '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
+		return wp_kses_post( $html );
 	}
 }
 
 if ( ! function_exists( 'bhg_cleanup_translation_duplicates' ) ) {
-		/**
-		 * Remove duplicate translation rows keeping the lowest ID.
-		 *
-		 * @return void
-		 */
+	/**
+	 * Remove duplicate translation rows keeping the lowest ID.
+	 *
+	 * @return void
+	 */
 	function bhg_cleanup_translation_duplicates() {
-			global $wpdb;
+		global $wpdb;
 
-						$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
+		$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
 
-				$sql = "DELETE t1 FROM {$table} t1 INNER JOIN {$table} t2 ON t1.slug = t2.slug AND t1.locale = t2.locale AND t1.id > t2.id";
-				$wpdb->query( $sql );
+		$sql = "DELETE t1 FROM {$table} t1 INNER JOIN {$table} t2 ON t1.slug = t2.slug AND t1.locale = t2.locale AND t1.id > t2.id";
+		$wpdb->query( $sql );
 	}
 }
 
@@ -1733,13 +1733,13 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 				continue;
 			}
 			if ( false !== strpos( $tbl, 'bhg_translations' ) || false !== strpos( $tbl, 'bhg_affiliate_websites' ) ) {
-					continue; // keep; upsert below.
+				continue; // keep; upsert below.
 			}
 			$wpdb->query( "DELETE FROM {$tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery
 		}
 
 		// Seed affiliate websites (idempotent upsert by slug).
-				$aff_tbl = esc_sql( "{$p}bhg_affiliate_websites" );
+		$aff_tbl = esc_sql( "{$p}bhg_affiliate_websites" );
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $aff_tbl ) ) === $aff_tbl ) {
 			$affs = array(
 				array(
@@ -1754,74 +1754,74 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 				),
 			);
 			foreach ( $affs as $a ) {
-										$id = $wpdb->get_var(
-											$wpdb->prepare( "SELECT id FROM {$aff_tbl} WHERE slug=%s", $a['slug'] )
-										);
+				$id = $wpdb->get_var(
+					$wpdb->prepare( "SELECT id FROM {$aff_tbl} WHERE slug=%s", $a['slug'] )
+				);
 				if ( $id ) {
 					$wpdb->update( $aff_tbl, $a, array( 'id' => (int) $id ), array( '%s', '%s', '%s' ), array( '%d' ) );
 				} else {
-								$wpdb->insert( $aff_tbl, $a, array( '%s', '%s', '%s' ) );
+					$wpdb->insert( $aff_tbl, $a, array( '%s', '%s', '%s' ) );
 				}
 			}
 		}
 
 		// Seed hunts.
-								$hunts_tbl = esc_sql( "{$p}bhg_bonus_hunts" );
+		$hunts_tbl = esc_sql( "{$p}bhg_bonus_hunts" );
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $hunts_tbl ) ) === $hunts_tbl ) {
-				$now         = current_time( 'mysql', 1 );
-				$users_table = esc_sql( $wpdb->users );
-				$winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
-				$guesses_tbl = esc_sql( "{$p}bhg_guesses" );
-				$users       = $wpdb->get_col( "SELECT ID FROM {$users_table} ORDER BY ID ASC LIMIT 5" );
+			$now         = current_time( 'mysql', 1 );
+			$users_table = esc_sql( $wpdb->users );
+			$winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
+			$guesses_tbl = esc_sql( "{$p}bhg_guesses" );
+			$users       = $wpdb->get_col( "SELECT ID FROM {$users_table} ORDER BY ID ASC LIMIT 5" );
 			if ( empty( $users ) ) {
-						$users = array( 1 );
+				$users = array( 1 );
 			}
-				$open_winners_limit   = 3;
-				$closed_winners_limit = 3;
+			$open_winners_limit   = 3;
+			$closed_winners_limit = 3;
 
-				// Open hunt.
-				$wpdb->insert(
-					$hunts_tbl,
-					array(
-						'title'             => __( 'Bonus Hunt – Demo Open', 'bonus-hunt-guesser' ),
-						'starting_balance'  => 2000.00,
-						'num_bonuses'       => 10,
-						'prizes'            => __( 'Gift card + swag', 'bonus-hunt-guesser' ),
-						'status'            => 'open',
-						'winners_count'     => $open_winners_limit,
-						'affiliate_site_id' => (int) $wpdb->get_var(
-							'SELECT id FROM ' . esc_sql( "{$p}bhg_affiliate_websites" ) . ' ORDER BY id ASC LIMIT 1'
-						),
-						'created_at'        => $now,
-						'updated_at'        => $now,
+			// Open hunt.
+			$wpdb->insert(
+				$hunts_tbl,
+				array(
+					'title'             => __( 'Bonus Hunt – Demo Open', 'bonus-hunt-guesser' ),
+					'starting_balance'  => 2000.00,
+					'num_bonuses'       => 10,
+					'prizes'            => __( 'Gift card + swag', 'bonus-hunt-guesser' ),
+					'status'            => 'open',
+					'winners_count'     => $open_winners_limit,
+					'affiliate_site_id' => (int) $wpdb->get_var(
+						'SELECT id FROM ' . esc_sql( "{$p}bhg_affiliate_websites" ) . ' ORDER BY id ASC LIMIT 1'
 					),
-					array( '%s', '%f', '%d', '%s', '%s', '%d', '%d', '%s', '%s' )
-				);
-				$open_id = (int) $wpdb->insert_id;
+					'created_at'        => $now,
+					'updated_at'        => $now,
+				),
+				array( '%s', '%f', '%d', '%s', '%s', '%d', '%d', '%s', '%s' )
+			);
+			$open_id = (int) $wpdb->insert_id;
 
-				// Closed hunt.
-				$final_balance = 1875.50;
-				$closed_at     = gmdate( 'Y-m-d H:i:s', time() - 86400 );
-				$wpdb->insert(
-					$hunts_tbl,
-					array(
-						'title'            => __( 'Bonus Hunt – Demo Closed', 'bonus-hunt-guesser' ),
-						'starting_balance' => 1500.00,
-						'num_bonuses'      => 8,
-						'prizes'           => __( 'T-shirt', 'bonus-hunt-guesser' ),
-						'status'           => 'closed',
-						'final_balance'    => $final_balance,
-						'winners_count'    => $closed_winners_limit,
-						'closed_at'        => $closed_at,
-						'created_at'       => $now,
-						'updated_at'       => $now,
-					),
-					array( '%s', '%f', '%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s' )
-				);
-				$closed_id = (int) $wpdb->insert_id;
+			// Closed hunt.
+			$final_balance = 1875.50;
+			$closed_at     = gmdate( 'Y-m-d H:i:s', time() - 86400 );
+			$wpdb->insert(
+				$hunts_tbl,
+				array(
+					'title'            => __( 'Bonus Hunt – Demo Closed', 'bonus-hunt-guesser' ),
+					'starting_balance' => 1500.00,
+					'num_bonuses'      => 8,
+					'prizes'           => __( 'T-shirt', 'bonus-hunt-guesser' ),
+					'status'           => 'closed',
+					'final_balance'    => $final_balance,
+					'winners_count'    => $closed_winners_limit,
+					'closed_at'        => $closed_at,
+					'created_at'       => $now,
+					'updated_at'       => $now,
+				),
+				array( '%s', '%f', '%d', '%s', '%s', '%f', '%d', '%s', '%s', '%s' )
+			);
+			$closed_id = (int) $wpdb->insert_id;
 
-				// Seed guesses for open hunt.
-				$val = 2100.00;
+			// Seed guesses for open hunt.
+			$val = 2100.00;
 			foreach ( $users as $uid ) {
 				$wpdb->insert(
 					$guesses_tbl,
@@ -1837,75 +1837,75 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 				$val += 23.45;
 			}
 
-				// Seed guesses for closed hunt.
-				$closed_guesses    = array( 1863.40, 1889.20, 1876.10, 1854.75, 1895.60 );
-				$last_closed_guess = $closed_guesses[ array_key_last( $closed_guesses ) ];
-				$idx               = 0;
+			// Seed guesses for closed hunt.
+			$closed_guesses    = array( 1863.40, 1889.20, 1876.10, 1854.75, 1895.60 );
+			$last_closed_guess = $closed_guesses[ array_key_last( $closed_guesses ) ];
+			$idx               = 0;
 			foreach ( $users as $uid ) {
-						$guess_value = isset( $closed_guesses[ $idx ] ) ? $closed_guesses[ $idx ] : $last_closed_guess;
-						$wpdb->insert(
-							$guesses_tbl,
-							array(
-								'hunt_id'    => $closed_id,
-								'user_id'    => (int) $uid,
-								'guess'      => (float) $guess_value,
-								'created_at' => $now,
-								'updated_at' => $now,
-							),
-							array( '%d', '%d', '%f', '%s', '%s' )
-						);
-						++$idx;
+				$guess_value = isset( $closed_guesses[ $idx ] ) ? $closed_guesses[ $idx ] : $last_closed_guess;
+				$wpdb->insert(
+					$guesses_tbl,
+					array(
+						'hunt_id'    => $closed_id,
+						'user_id'    => (int) $uid,
+						'guess'      => (float) $guess_value,
+						'created_at' => $now,
+						'updated_at' => $now,
+					),
+					array( '%d', '%d', '%f', '%s', '%s' )
+				);
+				++$idx;
 			}
 
-				// Populate winners for closed hunt.
+			// Populate winners for closed hunt.
 			if ( $closed_id > 0 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $winners_tbl ) ) === $winners_tbl ) {
-							$limit       = max( 1, min( $closed_winners_limit, count( $users ) ) );
-							$winners_sql = $wpdb->prepare(
-								"SELECT user_id, guess, (%f - guess) AS diff FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC LIMIT %d",
-								$final_balance,
-								$closed_id,
-								$final_balance,
-								$limit
-							);
-							$winner_rows = $wpdb->get_results( $winners_sql );
+				$limit       = max( 1, min( $closed_winners_limit, count( $users ) ) );
+				$winners_sql = $wpdb->prepare(
+					"SELECT user_id, guess, (%f - guess) AS diff FROM {$guesses_tbl} WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC LIMIT %d",
+					$final_balance,
+					$closed_id,
+					$final_balance,
+					$limit
+				);
+				$winner_rows = $wpdb->get_results( $winners_sql );
 
-							$position = 1;
+				$position = 1;
 				foreach ( (array) $winner_rows as $winner ) {
 					$user_id = isset( $winner->user_id ) ? (int) $winner->user_id : 0;
 					if ( $user_id <= 0 ) {
-									continue;
+						continue;
 					}
 
-							$wpdb->insert(
-								$winners_tbl,
-								array(
-									'hunt_id'    => $closed_id,
-									'user_id'    => $user_id,
-									'position'   => $position,
-									'guess'      => isset( $winner->guess ) ? (float) $winner->guess : 0.0,
-									'diff'       => isset( $winner->diff ) ? (float) $winner->diff : 0.0,
-									'created_at' => $now,
-								),
-								array( '%d', '%d', '%d', '%f', '%f', '%s' )
-							);
+					$wpdb->insert(
+						$winners_tbl,
+						array(
+							'hunt_id'    => $closed_id,
+							'user_id'    => $user_id,
+							'position'   => $position,
+							'guess'      => isset( $winner->guess ) ? (float) $winner->guess : 0.0,
+							'diff'       => isset( $winner->diff ) ? (float) $winner->diff : 0.0,
+							'created_at' => $now,
+						),
+						array( '%d', '%d', '%d', '%f', '%f', '%s' )
+					);
 					++$position;
 				}
 			}
 		}
 
-				// Tournaments + results based on closed hunts.
-				$t_tbl = esc_sql( "{$p}bhg_tournaments" );
-				$r_tbl = esc_sql( "{$p}bhg_tournament_results" );
+		// Tournaments + results based on closed hunts.
+		$t_tbl = esc_sql( "{$p}bhg_tournaments" );
+		$r_tbl = esc_sql( "{$p}bhg_tournament_results" );
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $t_tbl ) ) === $t_tbl ) {
-				// Wipe results only.
+			// Wipe results only.
 			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
-						$wpdb->delete( $r_tbl, '1=1' );
+				$wpdb->query( "DELETE FROM {$r_tbl}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery
 			}
 
-																$winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
-																$closed      = $wpdb->get_results(
-																	"SELECT h.closed_at, w.user_id FROM {$hunts_tbl} h INNER JOIN {$winners_tbl} w ON w.hunt_id = h.id WHERE h.status='closed'"
-																);
+			$winners_tbl = esc_sql( "{$p}bhg_hunt_winners" );
+			$closed      = $wpdb->get_results(
+				"SELECT h.closed_at, w.user_id FROM {$hunts_tbl} h INNER JOIN {$winners_tbl} w ON w.hunt_id = h.id WHERE h.status='closed'"
+			);
 			foreach ( $closed as $row ) {
 				$ts        = $row->closed_at ? strtotime( $row->closed_at ) : time();
 				$iso_year  = gmdate( 'o', $ts );
@@ -1915,9 +1915,9 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 				$year_key  = gmdate( 'Y', $ts );
 
 				$ensure = function ( $type, $period ) use ( $wpdb, $t_tbl ) {
-						$now   = current_time( 'mysql', 1 );
-						$start = $now;
-						$end   = $now;
+					$now   = current_time( 'mysql', 1 );
+					$start = $now;
+					$end   = $now;
 
 					if ( 'weekly' === $type ) {
 						$start = gmdate( 'Y-m-d', strtotime( $period . '-1' ) );
@@ -1930,37 +1930,37 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 						$end   = $period . '-12-31';
 					}
 
-																				$sql = $wpdb->prepare(
-																					"SELECT id FROM {$t_tbl} WHERE start_date=%s AND end_date=%s",
-																					$start,
-																					$end
-																				);
-																				$id  = $wpdb->get_var( $sql );
+					$sql = $wpdb->prepare(
+						"SELECT id FROM {$t_tbl} WHERE start_date=%s AND end_date=%s",
+						$start,
+						$end
+					);
+					$id  = $wpdb->get_var( $sql );
 					if ( $id ) {
 						return (int) $id;
 					}
-						$title = ucfirst( $type ) . ' ' . $period;
-												$wpdb->insert(
-													$t_tbl,
-													array(
-														'title'             => $title,
-														'type'              => $type,
-														'participants_mode' => 'winners',
-														'hunt_link_mode'    => 'auto',
-														'start_date'        => $start,
-														'end_date'          => $end,
-														'status'            => 'active',
-														'created_at'        => $now,
-														'updated_at'        => $now,
-													),
-													array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
-												);
-						return (int) $wpdb->insert_id;
+					$title = ucfirst( $type ) . ' ' . $period;
+					$wpdb->insert(
+						$t_tbl,
+						array(
+							'title'             => $title,
+							'type'              => $type,
+							'participants_mode' => 'winners',
+							'hunt_link_mode'    => 'auto',
+							'start_date'        => $start,
+							'end_date'          => $end,
+							'status'            => 'active',
+							'created_at'        => $now,
+							'updated_at'        => $now,
+						),
+						array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+					);
+					return (int) $wpdb->insert_id;
 				};
 
-									$uid = isset( $row->user_id ) ? (int) $row->user_id : 0;
+				$uid = isset( $row->user_id ) ? (int) $row->user_id : 0;
 				if ( $uid <= 0 ) {
-							continue;
+					continue;
 				}
 				foreach ( array(
 					$ensure( 'weekly', $week_key ),
@@ -1968,63 +1968,63 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 					$ensure( 'yearly', $year_key ),
 				) as $tid ) {
 					if ( $tid && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_tbl ) ) === $r_tbl ) {
-									$insert_sql = $wpdb->prepare(
-										"INSERT INTO {$r_tbl} (tournament_id, user_id, wins) VALUES (%d, %d, 1) ON DUPLICATE KEY UPDATE wins = wins + 1",
-										$tid,
-										$uid
-									);
-									$wpdb->query( $insert_sql );
+						$insert_sql = $wpdb->prepare(
+							"INSERT INTO {$r_tbl} (tournament_id, user_id, wins) VALUES (%d, %d, 1) ON DUPLICATE KEY UPDATE wins = wins + 1",
+							$tid,
+							$uid
+						);
+						$wpdb->query( $insert_sql );
 					}
 				}
 			}
 		}
-	}
 
-				global $wpdb;
-				$p = $wpdb->prefix;
+		global $wpdb;
+		$p = $wpdb->prefix;
 
-				// Seed ads.
-								$ads_tbl = esc_sql( "{$p}bhg_ads" );
-	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $ads_tbl ) ) === $ads_tbl ) {
-		// Remove any duplicate ads, keeping the lowest ID for identical content/placement pairs.
+		// Seed ads.
+		$ads_tbl = esc_sql( "{$p}bhg_ads" );
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $ads_tbl ) ) === $ads_tbl ) {
+			// Remove any duplicate ads, keeping the lowest ID for identical content/placement pairs.
 			$wpdb->query(
 				"DELETE a1 FROM {$ads_tbl} a1 INNER JOIN {$ads_tbl} a2 ON a1.id > a2.id AND a1.content = a2.content AND a1.placement = a2.placement"
 			);
-		// Only seed default ad if table is empty.
+			// Only seed default ad if table is empty.
 			$existing = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$ads_tbl}" );
-		if ( 0 === $existing ) {
-			$now = current_time( 'mysql', 1 );
-			$wpdb->insert(
-				$ads_tbl,
-				array(
-					'title'        => '',
-					'content'      => '<strong>Play responsibly.</strong> <a href="' . esc_url( home_url( '/promo' ) ) . '">See promo</a>',
-					'link_url'     => '',
-					'placement'    => 'footer',
-					'visible_to'   => 'all',
-					'target_pages' => '',
-					'active'       => 1,
-					'created_at'   => $now,
-					'updated_at'   => $now,
-				),
-				array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
-			);
+			if ( 0 === $existing ) {
+				$now = current_time( 'mysql', 1 );
+				$wpdb->insert(
+					$ads_tbl,
+					array(
+						'title'        => '',
+						'content'      => '<strong>Play responsibly.</strong> <a href="' . esc_url( home_url( '/promo' ) ) . '">See promo</a>',
+						'link_url'     => '',
+						'placement'    => 'footer',
+						'visible_to'   => 'all',
+						'target_pages' => '',
+						'active'       => 1,
+						'created_at'   => $now,
+						'updated_at'   => $now,
+					),
+					array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
+				);
+			}
 		}
-	}
 
-	global $wpdb;
-	$p      = $wpdb->prefix;
-	$tr_tbl = "{$p}bhg_translations";
+		global $wpdb;
+		$p      = $wpdb->prefix;
+		$tr_tbl = "{$p}bhg_translations";
 
-	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tr_tbl ) ) === $tr_tbl ) {
 			bhg_seed_default_translations_if_empty();
-	}
+		}
 
-	return;
+		return;
+	}
 }
 
 // Ensure default translations are seeded on load so newly added keys appear
 // in the Translations page without requiring manual intervention.
 if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-		bhg_seed_default_translations_if_empty();
+	bhg_seed_default_translations_if_empty();
 }
