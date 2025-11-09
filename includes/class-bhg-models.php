@@ -413,8 +413,8 @@ class BHG_Models {
 			}
 		}
 
-		if ( empty( $normalized ) ) {
-			return;
+		if ( empty( $tournament_ids ) ) {
+				return;
 		}
 
 		$hunts_tbl    = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );

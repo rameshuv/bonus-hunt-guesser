@@ -3,13 +3,12 @@
  * Plugin Name: Bonus Hunt Guesser
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality.
  * Version: 8.0.16
- * Requires at least: 6.3.5
+ * Requires at least: 6.3.0
  * Requires PHP: 7.4
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser
  * Domain Path: /languages
  * License: GPLv2 or later
- * Requires MySQL: 5.5.5
  *
  * @package Bonus_Hunt_Guesser
  */

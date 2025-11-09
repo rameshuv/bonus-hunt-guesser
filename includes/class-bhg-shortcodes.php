@@ -48,7 +48,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 				// Addons.
 				add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
 				add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
+
 add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
+ main
 								add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
 								add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
 								add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
@@ -62,6 +64,7 @@ add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
 
 								// Legacy/aliases.
 								add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+
 add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
                                 add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
                                 add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
@@ -76,6 +79,7 @@ add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
 
                                 // Legacy/aliases.
                                 add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+ main
 				add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
 				add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
 		}
@@ -3680,6 +3684,7 @@ return ob_get_clean();
 				 * @param array $atts Shortcode attributes.
 				 * @return string
 				 */
+
 				public 
 
 
@@ -4025,6 +4030,7 @@ return ob_get_clean();
                                          * @param array $atts Shortcode attributes.
                                          * @return string HTML output.
                                          */
+ main
 		public function best_guessers_shortcode( $atts ) {
 			global $wpdb;
 
