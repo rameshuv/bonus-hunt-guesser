@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-		exit;
+	exit;
 }
 
 /**
@@ -20,6 +20,8 @@ class BHG_DB {
 	 * @return void
 	 */
 	public static function migrate() {
+<|diff_marker|> PATCH A
+<|diff_marker|> COM_DIFF_IDX_0
 		$db = new self();
 		$db->create_tables();
 
@@ -60,6 +62,7 @@ class BHG_DB {
 
 	/**
 	 * Create or update required database tables.
+<|diff_marker|> ADD A1040
 	 *
 	 * @return void
 	 */
@@ -100,6 +103,7 @@ class BHG_DB {
     affiliate_site_id BIGINT UNSIGNED NULL,
     affiliate_id BIGINT UNSIGNED NULL,
     tournament_id BIGINT UNSIGNED NULL,
+<|diff_marker|> ADD A1080
     winners_count INT UNSIGNED NOT NULL DEFAULT 3,
     guessing_enabled TINYINT(1) NOT NULL DEFAULT 1,
     final_balance DECIMAL(12,2) NULL,
@@ -120,6 +124,7 @@ class BHG_DB {
                         hunt_id BIGINT UNSIGNED NOT NULL,
                         user_id BIGINT UNSIGNED NOT NULL,
                         guess DECIMAL(12,2) NOT NULL,
+<|diff_marker|> ADD A1100
                         created_at DATETIME NULL,
                         updated_at DATETIME NULL,
                         PRIMARY KEY  (id),
@@ -140,6 +145,7 @@ class BHG_DB {
                                                 prizes TEXT NULL,
                                                 affiliate_site_id BIGINT UNSIGNED NULL,
                                                 affiliate_website VARCHAR(255) NULL,
+<|diff_marker|> ADD A1120
                                                 affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1,
                                                 start_date DATE NULL,
                                                 end_date DATE NULL,
@@ -160,6 +166,7 @@ class BHG_DB {
                                                 user_id BIGINT UNSIGNED NOT NULL,
                                                 wins INT UNSIGNED NOT NULL DEFAULT 0,
                                                 points INT UNSIGNED NOT NULL DEFAULT 0,
+<|diff_marker|> ADD A1140
                                                 last_win_date DATETIME NULL,
                                                 PRIMARY KEY  (id),
                                                 KEY tournament_id (tournament_id),
@@ -180,6 +187,7 @@ class BHG_DB {
 			created_at DATETIME NULL,
 			updated_at DATETIME NULL,
 			PRIMARY KEY  (id),
+<|diff_marker|> ADD A1160
 			KEY placement (placement),
 			KEY visible_to (visible_to)
 		) {$charset_collate};";
@@ -200,6 +208,7 @@ class BHG_DB {
 			// Hunt Winners.
 			$sql[] = "CREATE TABLE `{$winners_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+<|diff_marker|> ADD A1180
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    user_id BIGINT UNSIGNED NOT NULL,
                                    position INT UNSIGNED NOT NULL,
@@ -220,6 +229,7 @@ class BHG_DB {
                                    description TEXT NULL,
                                    category VARCHAR(40) NOT NULL DEFAULT 'various',
                                    image_small BIGINT UNSIGNED NULL,
+<|diff_marker|> ADD A1200
                                    image_medium BIGINT UNSIGNED NULL,
                                    image_large BIGINT UNSIGNED NULL,
                                    css_border VARCHAR(100) NULL,
@@ -240,6 +250,7 @@ class BHG_DB {
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    prize_id BIGINT UNSIGNED NOT NULL,
+<|diff_marker|> ADD A1220
                                    prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
@@ -300,6 +311,7 @@ class BHG_DB {
                                    PRIMARY KEY  (id),
                                    UNIQUE KEY tournament_hunt (tournament_id, hunt_id),
                                    KEY tournament_id (tournament_id),
+<|diff_marker|> ADD A1280
                                    KEY hunt_id (hunt_id)
                    ) {$charset_collate};";
 
@@ -632,18 +644,19 @@ class BHG_DB {
 		}
 	}
 
-		/**
-		 * Create or update the translations table.
-		 *
-		 * @return void
-		 */
+	/**
+	 * Create or update the translations table.
+	 *
+	 * @return void
+	 */
 	private function create_table_translations() {
-			global $wpdb;
+		global $wpdb;
 
-						$table           = $wpdb->prefix . 'bhg_translations';
-						$charset_collate = $wpdb->get_charset_collate();
+<|diff_marker|> ADD A1620
+		$table           = $wpdb->prefix . 'bhg_translations';
+		$charset_collate = $wpdb->get_charset_collate();
 
-						$sql = "CREATE TABLE `{$table}` (
+		$sql = "CREATE TABLE `{$table}` (
 					   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 					   slug VARCHAR(191) NOT NULL,
 					   default_text LONGTEXT NOT NULL,
@@ -655,31 +668,33 @@ class BHG_DB {
 					   UNIQUE KEY slug_locale (slug, locale)
 			   ) {$charset_collate};";
 
-			dbDelta( $sql );
+		dbDelta( $sql );
 	}
 
-		/**
-		 * Retrieve all affiliate websites.
-		 *
-		 * @return array List of affiliate website objects.
-		 */
+	/**
+	 * Retrieve all affiliate websites.
+<|diff_marker|> ADD A1640
+	 *
+	 * @return array List of affiliate website objects.
+	 */
 	public function get_affiliate_websites() {
-						global $wpdb;
+		global $wpdb;
 
-						$table = $wpdb->prefix . 'bhg_affiliate_websites';
+		$table = $wpdb->prefix . 'bhg_affiliate_websites';
 
-                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-												return $wpdb->get_results( "SELECT id, name, slug, url, status FROM `{$table}` ORDER BY name ASC" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		return $wpdb->get_results( "SELECT id, name, slug, url, status FROM `{$table}` ORDER BY name ASC" );
 	}
 
-		/**
-		 * Check if a column exists, falling back when information_schema is not accessible.
-		 *
-		 * @param string $table  Table name.
-		 * @param string $column Column to check.
-		 * @return bool
-		 */
+	/**
+	 * Check if a column exists, falling back when information_schema is not accessible.
+	 *
+	 * @param string $table  Table name.
+	 * @param string $column Column to check.
+	 * @return bool
+	 */
 	private function column_exists( $table, $column ) {
+<|diff_marker|> ADD A1660
 		global $wpdb;
 
 		$wpdb->last_error = '';
@@ -689,17 +704,18 @@ class BHG_DB {
 			$table,
 			$column
 		);
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-				$exists = $wpdb->get_var( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$exists = $wpdb->get_var( $sql );
 
 		if ( $wpdb->last_error ) {
 			$wpdb->last_error = '';
-                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-						$exists = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM `{$table}` LIKE %s", $column ) );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$exists = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM `{$table}` LIKE %s", $column ) );
 		}
 
 		return ! empty( $exists );
 	}
+<|diff_marker|> ADD A1680
 
 	/**
 	 * Check if an index exists, falling back when information_schema is not accessible.
@@ -718,13 +734,14 @@ class BHG_DB {
 			$table,
 			$index
 		);
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-				$exists = $wpdb->get_var( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$exists = $wpdb->get_var( $sql );
+<|diff_marker|> ADD A1700
 
 		if ( $wpdb->last_error ) {
 			$wpdb->last_error = '';
-                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-						$exists = $wpdb->get_var( $wpdb->prepare( "SHOW INDEX FROM `{$table}` WHERE Key_name=%s", $index ) );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$exists = $wpdb->get_var( $wpdb->prepare( "SHOW INDEX FROM `{$table}` WHERE Key_name=%s", $index ) );
 		}
 
 		return ! empty( $exists );

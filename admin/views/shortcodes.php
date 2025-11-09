@@ -241,10 +241,10 @@ $shortcodes = array(
 						$notes = isset( $shortcode['notes'] ) ? $shortcode['notes'] : '';
 						if ( ! empty( $shortcode['aliases'] ) ) {
 							$alias_list = array_map( 'esc_html', (array) $shortcode['aliases'] );
-							$alias_text = sprintf( /* translators: %s: comma separated list of aliases. */ bhg_t( 'shortcode_aliases_fmt', 'Aliases: %s' ), implode( ', ', $alias_list ) );
+							/* translators: %s: comma separated list of aliases. */
+							$alias_text = sprintf( bhg_t( 'shortcode_aliases_fmt', 'Aliases: %s' ), implode( ', ', $alias_list ) );
 							$notes      = $notes ? $alias_text . ' — ' . $notes : $alias_text;
 						}
-
 						echo $notes ? esc_html( $notes ) : '&mdash;';
 						?>
 					</td>

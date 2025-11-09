@@ -8,6 +8,8 @@
  * routing were removed to avoid duplication and ensure a single canonical
  * implementation.
  *
+ * Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+
+ *
  * @package BonusHuntGuesser
  */
 

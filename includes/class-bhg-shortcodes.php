@@ -4004,7 +4004,7 @@ return ob_get_clean();
 			);
 
 			$results = array();
-			
+
 
 			foreach ( $periods as $key => $info ) {
 				$where_clauses = array();

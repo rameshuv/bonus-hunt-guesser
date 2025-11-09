@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -16,13 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return void
  */
 function bhg_log( $message ) {
-	if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
-		return;
-	}
-	if ( is_array( $message ) || is_object( $message ) ) {
-			$message = wp_json_encode( $message );
-	}
-		error_log( '[BHG] ' . $message );
+    if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+        return;
+    }
+    if ( is_array( $message ) || is_object( $message ) ) {
+        $message = wp_json_encode( $message );
+    }
+    error_log( '[BHG] ' . $message );
 }
 
 /**
@@ -31,8 +31,8 @@ function bhg_log( $message ) {
  * @return int
  */
 function bhg_current_user_id() {
-	$uid = get_current_user_id();
-	return $uid ? (int) $uid : 0;
+    $uid = get_current_user_id();
+    return $uid ? (int) $uid : 0;
 }
 
 /**
@@ -42,11 +42,11 @@ function bhg_current_user_id() {
  * @return string
  */
 function bhg_slugify( $text ) {
-	$text = sanitize_title( $text );
-	if ( '' === $text ) {
-		$text = uniqid( 'bhg' );
-	}
-	return $text;
+    $text = sanitize_title( $text );
+    if ( '' === $text ) {
+        $text = uniqid( 'bhg' );
+    }
+    return $text;
 }
 
 /**
@@ -55,58 +55,58 @@ function bhg_slugify( $text ) {
  * @return string
  */
 function bhg_admin_cap() {
-	return apply_filters( 'bhg_admin_capability', 'manage_options' );
+    return apply_filters( 'bhg_admin_capability', 'manage_options' );
 }
 
 if ( ! function_exists( 'bhg_get_login_url' ) ) {
-	/**
-	 * Build a login URL that preserves redirect targets for BHG flows.
-	 *
-	 * Adds both the core `redirect_to` parameter and a plugin specific
-	 * `bhg_redirect` fallback so social login providers can honour the
-	 * requested destination as well.
-	 *
-	 * @param string $redirect_to Requested redirect destination.
-	 * @return string Filterable login URL.
-	 */
-	function bhg_get_login_url( $redirect_to = '' ) {
-		$default     = home_url( '/' );
-		$redirect_to = $redirect_to ? wp_validate_redirect( $redirect_to, $default ) : $default;
-		$login_url   = wp_login_url( $redirect_to );
+    /**
+     * Build a login URL that preserves redirect targets for BHG flows.
+     *
+     * Adds both the core `redirect_to` parameter and a plugin specific
+     * `bhg_redirect` fallback so social login providers can honour the
+     * requested destination as well.
+     *
+     * @param string $redirect_to Requested redirect destination.
+     * @return string Filterable login URL.
+     */
+    function bhg_get_login_url( $redirect_to = '' ) {
+        $default     = home_url( '/' );
+        $redirect_to = $redirect_to ? wp_validate_redirect( $redirect_to, $default ) : $default;
+        $login_url   = wp_login_url( $redirect_to );
 
-		if ( $redirect_to ) {
-			$login_url = add_query_arg( 'bhg_redirect', $redirect_to, $login_url );
-		}
+        if ( $redirect_to ) {
+            $login_url = add_query_arg( 'bhg_redirect', $redirect_to, $login_url );
+        }
 
-		/**
-		 * Filter the generated login URL used across the plugin.
-		 *
-		 * @param string $login_url   Login URL.
-		 * @param string $redirect_to Destination URL after login.
-		 */
-		$login_url = apply_filters( 'bhg_login_url', $login_url, $redirect_to );
+        /**
+         * Filter the generated login URL used across the plugin.
+         *
+         * @param string $login_url   Login URL.
+         * @param string $redirect_to Destination URL after login.
+         */
+        $login_url = apply_filters( 'bhg_login_url', $login_url, $redirect_to );
 
-		return esc_url_raw( $login_url );
-	}
+        return esc_url_raw( $login_url );
+    }
 }
 
 // Smart login redirect back to referring page.
 add_filter(
-	'login_redirect',
-	function ( $redirect_to, $requested_redirect_to, $user ) {
-		$r = isset( $_REQUEST['bhg_redirect'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['bhg_redirect'] ) ) : '';
-		if ( ! empty( $r ) ) {
-				$safe      = esc_url_raw( $r );
-				$home_host = wp_parse_url( home_url(), PHP_URL_HOST );
-				$r_host    = wp_parse_url( $safe, PHP_URL_HOST );
-			if ( ! $r_host || $r_host === $home_host ) {
-				return $safe;
-			}
-		}
-		return $redirect_to;
-	},
-	10,
-	3
+    'login_redirect',
+    function ( $redirect_to, $requested_redirect_to, $user ) {
+        $r = isset( $_REQUEST['bhg_redirect'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['bhg_redirect'] ) ) : '';
+        if ( ! empty( $r ) ) {
+            $safe      = esc_url_raw( $r );
+            $home_host = wp_parse_url( home_url(), PHP_URL_HOST );
+            $r_host    = wp_parse_url( $safe, PHP_URL_HOST );
+            if ( ! $r_host || $r_host === $home_host ) {
+                return $safe;
+            }
+        }
+        return $redirect_to;
+    },
+    10,
+    3
 );
 
 /**
@@ -115,93 +115,93 @@ add_filter(
  * @return bool
  */
 function bhg_is_frontend() {
-	return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
+    return ! is_admin() && ! wp_doing_ajax() && ! wp_doing_cron();
 }
 
 if ( ! function_exists( 'bhg_t' ) ) {
-		/**
-		 * Retrieve a translation value from the database.
-		 *
-		 * @param string $slug    Translation slug.
-		 * @param string $default_text Default text if not found.
-		 * @param string $locale  Locale to use. Defaults to current locale.
-		 * @return string
-		 */
-	function bhg_t( $slug, $default_text = '', $locale = '' ) {
-			global $wpdb;
+    /**
+     * Retrieve a translation value from the database.
+     *
+     * @param string $slug    Translation slug.
+     * @param string $default_text Default text if not found.
+     * @param string $locale  Locale to use. Defaults to current locale.
+     * @return string
+     */
+    function bhg_t( $slug, $default_text = '', $locale = '' ) {
+        global $wpdb;
 
-						$slug      = (string) $slug;
-						$locale    = $locale ? (string) $locale : get_locale();
-						$cache_key = 'bhg_t_' . $slug . '_' . $locale;
-						$cached    = wp_cache_get( $cache_key, 'bhg_translations' );
+        $slug      = (string) $slug;
+        $locale    = $locale ? (string) $locale : get_locale();
+        $cache_key = 'bhg_t_' . $slug . '_' . $locale;
+        $cached    = wp_cache_get( $cache_key, 'bhg_translations' );
 
-		if ( false !== $cached ) {
-				return (string) $cached;
-		}
+        if ( false !== $cached ) {
+            return (string) $cached;
+        }
 
-						$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
-						$sql   = $wpdb->prepare(
-							"SELECT text, default_text FROM {$table} WHERE slug = %s AND locale = %s",
-							$slug,
-							$locale
-						);
-						$row   = $wpdb->get_row( $sql );
+        $table = esc_sql( $wpdb->prefix . 'bhg_translations' );
+        $sql   = $wpdb->prepare(
+            "SELECT text, default_text FROM {$table} WHERE slug = %s AND locale = %s",
+            $slug,
+            $locale
+        );
+        $row   = $wpdb->get_row( $sql );
 
-		if ( $row ) {
-						$value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
-						wp_cache_set( $cache_key, $value, 'bhg_translations' );
-						return $value;
-		}
+        if ( $row ) {
+            $value = '' !== $row->text ? (string) $row->text : (string) $row->default_text;
+            wp_cache_set( $cache_key, $value, 'bhg_translations' );
+            return $value;
+        }
 
-						wp_cache_set( $cache_key, (string) $default_text, 'bhg_translations' );
-						return (string) $default_text;
-	}
+        wp_cache_set( $cache_key, (string) $default_text, 'bhg_translations' );
+        return (string) $default_text;
+    }
 }
 
 if ( ! function_exists( 'bhg_clear_translation_cache' ) ) {
-	/**
-	 * Flush all cached translations.
-	 *
-	 * Group-based cache flushing is preferred because it targets only
-	 * this plugin's cache group, avoiding side effects on unrelated
-	 * cached data. Some object cache implementations lack support for
-	 * flushing by group, so we fall back to deleting known translation
-	 * keys individually.
-	 *
-	 * @return void
-	 */
-	function bhg_clear_translation_cache() {
-		if ( function_exists( 'wp_cache_flush_group' ) ) {
-			wp_cache_flush_group( 'bhg_translations' );
-		} else {
-			global $wpdb;
+    /**
+     * Flush all cached translations.
+     *
+     * Group-based cache flushing is preferred because it targets only
+     * this plugin's cache group, avoiding side effects on unrelated
+     * cached data. Some object cache implementations lack support for
+     * flushing by group, so we fall back to deleting known translation
+     * keys individually.
+     *
+     * @return void
+     */
+    function bhg_clear_translation_cache() {
+        if ( function_exists( 'wp_cache_flush_group' ) ) {
+            wp_cache_flush_group( 'bhg_translations' );
+        } else {
+            global $wpdb;
 
-			$cache_keys = array();
-			$locales    = array_unique( array_merge( array( get_locale() ), get_available_languages() ) );
-			$slugs      = array_keys( bhg_get_default_translations() );
+            $cache_keys = array();
+            $locales    = array_unique( array_merge( array( get_locale() ), get_available_languages() ) );
+            $slugs      = array_keys( bhg_get_default_translations() );
 
-			foreach ( $locales as $locale ) {
-				foreach ( $slugs as $slug ) {
-					$cache_keys[] = 'bhg_t_' . $slug . '_' . $locale;
-				}
-			}
+            foreach ( $locales as $locale ) {
+                foreach ( $slugs as $slug ) {
+                    $cache_keys[] = 'bhg_t_' . $slug . '_' . $locale;
+                }
+            }
 
-			$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
-			$rows  = $wpdb->get_results( "SELECT slug, locale FROM {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $table = esc_sql( $wpdb->prefix . 'bhg_translations' );
+            $rows  = $wpdb->get_results( "SELECT slug, locale FROM {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-			if ( $rows ) {
-				foreach ( $rows as $row ) {
-					$cache_keys[] = 'bhg_t_' . $row->slug . '_' . $row->locale;
-				}
-			}
+            if ( $rows ) {
+                foreach ( $rows as $row ) {
+                    $cache_keys[] = 'bhg_t_' . $row->slug . '_' . $row->locale;
+                }
+            }
 
-			$cache_keys = array_unique( $cache_keys );
+            $cache_keys = array_unique( $cache_keys );
 
-			foreach ( $cache_keys as $key ) {
-				wp_cache_delete( $key, 'bhg_translations' );
-			}
-		}
-	}
+            foreach ( $cache_keys as $key ) {
+                wp_cache_delete( $key, 'bhg_translations' );
+            }
+        }
+    }
 }
 
 if ( ! function_exists( 'bhg_get_default_translations' ) ) {
@@ -944,66 +944,66 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 }
 
 if ( ! function_exists( 'bhg_seed_default_translations' ) ) {
-		/**
-		 * Seed default translations, inserting any missing keys.
-		 *
-		 * @return void
-		 */
-	function bhg_seed_default_translations() {
-			global $wpdb;
+    /**
+     * Seed default translations, inserting any missing keys.
+     *
+     * @return void
+     */
+    function bhg_seed_default_translations() {
+        global $wpdb;
 
-						$table  = esc_sql( $wpdb->prefix . 'bhg_translations' );
-						$locale = get_locale();
+        $table  = esc_sql( $wpdb->prefix . 'bhg_translations' );
+        $locale = get_locale();
 
-		foreach ( bhg_get_default_translations() as $slug => $def_text ) {
-			$slug = trim( (string) $slug );
-			if ( '' === $slug ) {
-					continue; // Skip invalid keys.
-			}
+        foreach ( bhg_get_default_translations() as $slug => $def_text ) {
+            $slug = trim( (string) $slug );
+            if ( '' === $slug ) {
+                continue; // Skip invalid keys.
+            }
 
-						$sql    = $wpdb->prepare(
-							"SELECT COUNT(*) FROM {$table} WHERE slug = %s AND locale = %s",
-							$slug,
-							$locale
-						);
-						$exists = $wpdb->get_var( $sql );
-			if ( $exists ) {
-				continue;
-			}
+            $sql    = $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$table} WHERE slug = %s AND locale = %s",
+                $slug,
+                $locale
+            );
+            $exists = $wpdb->get_var( $sql );
+            if ( $exists ) {
+                continue;
+            }
 
-						$wpdb->insert(
-							$table,
-							array(
-								'slug'         => $slug,
-								'default_text' => (string) $def_text,
-								'text'         => '',
-								'locale'       => $locale,
-							),
-							array( '%s', '%s', '%s', '%s' )
-						);
-		}
+            $wpdb->insert(
+                $table,
+                array(
+                    'slug'         => $slug,
+                    'default_text' => (string) $def_text,
+                    'text'         => '',
+                    'locale'       => $locale,
+                ),
+                array( '%s', '%s', '%s', '%s' )
+            );
+        }
 
-				bhg_clear_translation_cache();
-	}
+        bhg_clear_translation_cache();
+    }
 }
 
 if ( ! function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-				/**
-				 * Ensure default translations exist.
-				 *
-				 * Inserts any missing translation keys so they appear in the admin.
-				 *
-				 * @return void
-				 */
-	function bhg_seed_default_translations_if_empty() {
-			global $wpdb;
+    /**
+     * Ensure default translations exist.
+     *
+     * Inserts any missing translation keys so they appear in the admin.
+     *
+     * @return void
+     */
+    function bhg_seed_default_translations_if_empty() {
+        global $wpdb;
 
-			$table = $wpdb->prefix . 'bhg_translations';
+        $table = $wpdb->prefix . 'bhg_translations';
 
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
-				bhg_seed_default_translations();
-		}
-	}
+        if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
+            bhg_seed_default_translations();
+        }
+    }
 }
 
 /**
@@ -1326,16 +1326,16 @@ if ( ! function_exists( 'bhg_sanitize_points_map' ) ) {
  * @return bool True if the guess is within the allowed range.
  */
 function bhg_validate_guess( $guess ) {
-	$settings  = get_option( 'bhg_plugin_settings', array() );
-	$min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
-	$max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
+    $settings  = get_option( 'bhg_plugin_settings', array() );
+    $min_guess = isset( $settings['min_guess_amount'] ) ? (float) $settings['min_guess_amount'] : 0;
+    $max_guess = isset( $settings['max_guess_amount'] ) ? (float) $settings['max_guess_amount'] : 100000;
 
-	if ( ! is_numeric( $guess ) ) {
-		return false;
-	}
+    if ( ! is_numeric( $guess ) ) {
+        return false;
+    }
 
-	$guess = (float) $guess;
-	return ( $guess >= $min_guess && $guess <= $max_guess );
+    $guess = (float) $guess;
+    return ( $guess >= $min_guess && $guess <= $max_guess );
 }
 
 /**
@@ -1347,51 +1347,51 @@ function bhg_validate_guess( $guess ) {
  * @return string Display name with optional affiliate indicator, sanitized for safe HTML output.
  */
 function bhg_get_user_display_name( $user_id ) {
-		$user = get_userdata( (int) $user_id );
-	if ( ! $user ) {
-			return wp_kses_post( bhg_t( 'unknown_user', 'Unknown User' ) );
-	}
+    $user = get_userdata( (int) $user_id );
+    if ( ! $user ) {
+        return wp_kses_post( bhg_t( 'unknown_user', 'Unknown User' ) );
+    }
 
-		$display_name = $user->display_name ? $user->display_name : $user->user_login;
-		$is_affiliate = bhg_is_user_affiliate( (int) $user_id );
+    $display_name = $user->display_name ? $user->display_name : $user->user_login;
+    $is_affiliate = bhg_is_user_affiliate( (int) $user_id );
 
-	if ( $is_affiliate ) {
-			$display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
-	}
+    if ( $is_affiliate ) {
+        $display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
+    }
 
-		return wp_kses_post( $display_name );
+    return wp_kses_post( $display_name );
 }
 
 if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
-	/**
-	 * Check if a user is an affiliate.
-	 *
-	 * @param int $user_id User ID.
-	 * @return bool
-	 */
-	function bhg_is_user_affiliate( $user_id ) {
-		$val = get_user_meta( (int) $user_id, 'bhg_is_affiliate', true );
-		return ( '1' === $val || 1 === $val || true === $val || 'yes' === $val );
-	}
+    /**
+     * Check if a user is an affiliate.
+     *
+     * @param int $user_id User ID.
+     * @return bool
+     */
+    function bhg_is_user_affiliate( $user_id ) {
+        $val = get_user_meta( (int) $user_id, 'bhg_is_affiliate', true );
+        return ( '1' === $val || 1 === $val || true === $val || 'yes' === $val );
+    }
 }
 
 if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {
-		/**
-		 * Get affiliate website IDs for a user.
-		 *
-		 * @param int $user_id User ID.
-		 * @return array
-		 */
-	function bhg_get_user_affiliate_websites( $user_id ) {
-			$ids = get_user_meta( (int) $user_id, 'bhg_affiliate_websites', true );
-		if ( is_array( $ids ) ) {
-				return array_map( 'absint', $ids );
-		}
-		if ( is_string( $ids ) && '' !== $ids ) {
-				return array_map( 'absint', array_filter( array_map( 'trim', explode( ',', $ids ) ) ) );
-		}
-			return array();
-	}
+    /**
+     * Get affiliate website IDs for a user.
+     *
+     * @param int $user_id User ID.
+     * @return array
+     */
+    function bhg_get_user_affiliate_websites( $user_id ) {
+        $ids = get_user_meta( (int) $user_id, 'bhg_affiliate_websites', true );
+        if ( is_array( $ids ) ) {
+            return array_map( 'absint', $ids );
+        }
+        if ( is_string( $ids ) && '' !== $ids ) {
+            return array_map( 'absint', array_filter( array_map( 'trim', explode( ',', $ids ) ) ) );
+        }
+        return array();
+    }
 }
 
 if ( ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
@@ -1507,36 +1507,36 @@ if ( ! function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
 }
 
 if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
-	/**
-	 * Render affiliate status dot.
-	 *
-	 * @param int $user_id                User ID.
-	 * @param int $hunt_affiliate_site_id Hunt affiliate site ID.
-	 * @return string
-	 */
-	function bhg_render_affiliate_dot( $user_id, $hunt_affiliate_site_id = 0 ) {
-		$is_aff                       = bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_affiliate_site_id );
-				$cls                  = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
-				$label                = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
-								$html = '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
-								return wp_kses_post( $html );
-	}
+    /**
+     * Render affiliate status dot.
+     *
+     * @param int $user_id                User ID.
+     * @param int $hunt_affiliate_site_id Hunt affiliate site ID.
+     * @return string
+     */
+    function bhg_render_affiliate_dot( $user_id, $hunt_affiliate_site_id = 0 ) {
+        $is_aff = bhg_is_user_affiliate_for_site( (int) $user_id, (int) $hunt_affiliate_site_id );
+        $cls    = $is_aff ? 'bhg-aff-green' : 'bhg-aff-red';
+        $label  = $is_aff ? bhg_t( 'label_affiliate', 'Affiliate' ) : bhg_t( 'label_non_affiliate', 'Non-affiliate' );
+        $html   = '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
+        return wp_kses_post( $html );
+    }
 }
 
 if ( ! function_exists( 'bhg_cleanup_translation_duplicates' ) ) {
-		/**
-		 * Remove duplicate translation rows keeping the lowest ID.
-		 *
-		 * @return void
-		 */
-	function bhg_cleanup_translation_duplicates() {
-			global $wpdb;
+    /**
+     * Remove duplicate translation rows keeping the lowest ID.
+     *
+     * @return void
+     */
+    function bhg_cleanup_translation_duplicates() {
+        global $wpdb;
 
-						$table = esc_sql( $wpdb->prefix . 'bhg_translations' );
+        $table = esc_sql( $wpdb->prefix . 'bhg_translations' );
 
-				$sql = "DELETE t1 FROM {$table} t1 INNER JOIN {$table} t2 ON t1.slug = t2.slug AND t1.locale = t2.locale AND t1.id > t2.id";
-				$wpdb->query( $sql );
-	}
+        $sql = "DELETE t1 FROM {$table} t1 INNER JOIN {$table} t2 ON t1.slug = t2.slug AND t1.locale = t2.locale AND t1.id > t2.id";
+        $wpdb->query( $sql );
+    }
 }
 
 /**
@@ -2026,5 +2026,5 @@ if ( ! function_exists( 'bhg_reset_demo_and_seed' ) ) {
 // Ensure default translations are seeded on load so newly added keys appear
 // in the Translations page without requiring manual intervention.
 if ( function_exists( 'bhg_seed_default_translations_if_empty' ) ) {
-		bhg_seed_default_translations_if_empty();
+    bhg_seed_default_translations_if_empty();
 }
