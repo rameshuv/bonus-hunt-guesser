@@ -445,6 +445,7 @@ $context       = array(
 'carousel_visible'  => $carousel_visible,
 'carousel_autoplay' => $carousel_autoplay,
 'carousel_interval' => $carousel_interval,
+'display_defaults'  => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_display_defaults() : array(),
 );
 
 if ( $view ) {
@@ -784,9 +785,14 @@ if ( ! class_exists( 'BHG_Prizes' ) ) {
 return '';
 }
 
-$display = is_array( $display ) ? $display : array();
-$context = is_array( $context ) ? $context : array();
-$layout  = isset( $context['layout'] ) ? $context['layout'] : 'grid';
+$display  = is_array( $display ) ? $display : array();
+$context  = is_array( $context ) ? $context : array();
+$layout   = isset( $context['layout'] ) ? $context['layout'] : 'grid';
+$defaults = array();
+
+if ( isset( $context['display_defaults'] ) && is_array( $context['display_defaults'] ) ) {
+$defaults = $context['display_defaults'];
+}
 
 $style_attr = BHG_Prizes::build_style_attr( $prize );
 $image_url  = BHG_Prizes::get_image_url( $prize, $size );
@@ -800,14 +806,31 @@ $wp_size = 'thumbnail';
 $wp_size = 'large';
 }
 
-$show_title       = BHG_Prizes::resolve_display_flag( isset( $display['show_title'] ) ? $display['show_title'] : null, isset( $prize->show_title ) ? $prize->show_title : 1 );
-$show_description = BHG_Prizes::resolve_display_flag( isset( $display['show_description'] ) ? $display['show_description'] : null, isset( $prize->show_description ) ? $prize->show_description : 1 );
-$show_category    = BHG_Prizes::resolve_display_flag( isset( $display['show_category'] ) ? $display['show_category'] : null, isset( $prize->show_category ) ? $prize->show_category : 1 );
-$show_image       = BHG_Prizes::resolve_display_flag( isset( $display['show_image'] ) ? $display['show_image'] : null, isset( $prize->show_image ) ? $prize->show_image : 1 );
+$show_title       = BHG_Prizes::resolve_display_flag(
+isset( $display['show_title'] ) ? $display['show_title'] : null,
+isset( $prize->show_title ) ? $prize->show_title : 1,
+array_key_exists( 'show_title', $defaults ) ? $defaults['show_title'] : null
+);
+$show_description = BHG_Prizes::resolve_display_flag(
+isset( $display['show_description'] ) ? $display['show_description'] : null,
+isset( $prize->show_description ) ? $prize->show_description : 1,
+array_key_exists( 'show_description', $defaults ) ? $defaults['show_description'] : null
+);
+$show_category    = BHG_Prizes::resolve_display_flag(
+isset( $display['show_category'] ) ? $display['show_category'] : null,
+isset( $prize->show_category ) ? $prize->show_category : 1,
+array_key_exists( 'show_category', $defaults ) ? $defaults['show_category'] : null
+);
+$show_image       = BHG_Prizes::resolve_display_flag(
+isset( $display['show_image'] ) ? $display['show_image'] : null,
+isset( $prize->show_image ) ? $prize->show_image : 1,
+array_key_exists( 'show_image', $defaults ) ? $defaults['show_image'] : null
+);
 
 $action_override = isset( $display['click_action'] ) ? $display['click_action'] : 'inherit';
 $prize_action    = isset( $prize->click_action ) ? $prize->click_action : 'link';
-$click_action    = BHG_Prizes::resolve_click_action( $action_override, $prize_action );
+$default_click   = isset( $defaults['click_action'] ) ? $defaults['click_action'] : 'inherit';
+$click_action    = BHG_Prizes::resolve_click_action( $action_override, $prize_action, $default_click );
 
 $link_href = '';
 $target    = '_self';
@@ -817,13 +840,18 @@ $link_href = BHG_Prizes::get_prize_link( $prize );
 if ( '' === $link_href ) {
 $click_action = 'none';
 } else {
-if ( 'new' === $click_action ) {
-$target   = '_blank';
-$rel_attr = ' rel="noopener noreferrer"';
-} else {
-$target   = BHG_Prizes::resolve_link_target( isset( $display['link_target'] ) ? $display['link_target'] : 'inherit', isset( $prize->link_target ) ? $prize->link_target : '_self' );
-$rel_attr = '_blank' === $target ? ' rel="noopener noreferrer"' : '';
-}
+        if ( 'new' === $click_action ) {
+            $target   = '_blank';
+            $rel_attr = ' rel="noopener noreferrer"';
+        } else {
+            $default_link_target = isset( $defaults['link_target'] ) ? $defaults['link_target'] : 'inherit';
+            $target              = BHG_Prizes::resolve_link_target(
+                isset( $display['link_target'] ) ? $display['link_target'] : 'inherit',
+                isset( $prize->link_target ) ? $prize->link_target : '_self',
+                $default_link_target
+            );
+            $rel_attr = '_blank' === $target ? ' rel="noopener noreferrer"' : '';
+        }
 }
 } elseif ( 'image' === $click_action ) {
 $link_href = BHG_Prizes::get_full_image_url( $prize );
@@ -897,11 +925,19 @@ echo '<h5 class="bhg-prize-title">' . esc_html( $prize->title ) . '</h5>';
 if ( $show_category && $category ) {
 $category_label = esc_html( ucwords( str_replace( '_', ' ', $category ) ) );
 $category_link  = '';
-if ( BHG_Prizes::resolve_display_flag( isset( $display['category_links'] ) ? $display['category_links'] : null, ! empty( $prize->category_link_url ) ) ) {
+if ( BHG_Prizes::resolve_display_flag(
+isset( $display['category_links'] ) ? $display['category_links'] : null,
+! empty( $prize->category_link_url ),
+array_key_exists( 'category_links', $defaults ) ? $defaults['category_links'] : null
+) ) {
 $category_link = BHG_Prizes::get_category_link( $prize );
 }
 if ( $category_link ) {
-$category_target = BHG_Prizes::resolve_link_target( isset( $display['category_target'] ) ? $display['category_target'] : 'inherit', isset( $prize->category_link_target ) ? $prize->category_link_target : '_self' );
+$category_target = BHG_Prizes::resolve_link_target(
+isset( $display['category_target'] ) ? $display['category_target'] : 'inherit',
+isset( $prize->category_link_target ) ? $prize->category_link_target : '_self',
+isset( $defaults['category_target'] ) ? $defaults['category_target'] : 'inherit'
+);
 $rel = '_blank' === $category_target ? ' rel="noopener noreferrer"' : '';
 $category_label = '<a href="' . esc_url( $category_link ) . '" target="' . esc_attr( $category_target ) . '"' . $rel . '>' . $category_label . '</a>';
 }

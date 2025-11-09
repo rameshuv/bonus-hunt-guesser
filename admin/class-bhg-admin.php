@@ -900,6 +900,14 @@ $settings = array(
 'carousel_interval' => isset( $_POST['carousel_interval'] ) ? absint( wp_unslash( $_POST['carousel_interval'] ) ) : 5000,
 'hide_heading'      => isset( $_POST['hide_heading'] ) ? 1 : 0,
 'heading_text'      => isset( $_POST['heading_text'] ) ? sanitize_text_field( wp_unslash( $_POST['heading_text'] ) ) : '',
+'show_title'        => isset( $_POST['show_title'] ) ? absint( wp_unslash( $_POST['show_title'] ) ) : 0,
+'show_description'  => isset( $_POST['show_description'] ) ? absint( wp_unslash( $_POST['show_description'] ) ) : 0,
+'show_category'     => isset( $_POST['show_category'] ) ? absint( wp_unslash( $_POST['show_category'] ) ) : 0,
+'show_image'        => isset( $_POST['show_image'] ) ? absint( wp_unslash( $_POST['show_image'] ) ) : 0,
+'category_links'    => isset( $_POST['category_links'] ) ? absint( wp_unslash( $_POST['category_links'] ) ) : 0,
+'click_action'      => isset( $_POST['click_action'] ) ? sanitize_text_field( wp_unslash( $_POST['click_action'] ) ) : 'inherit',
+'link_target'       => isset( $_POST['link_target'] ) ? sanitize_text_field( wp_unslash( $_POST['link_target'] ) ) : 'inherit',
+'category_target'   => isset( $_POST['category_target'] ) ? sanitize_text_field( wp_unslash( $_POST['category_target'] ) ) : 'inherit',
 );
 
 BHG_Prizes::update_display_settings( $settings );
