@@ -33,6 +33,9 @@ class BHG_Admin {
                 add_action( 'admin_post_bhg_delete_ad', array( $this, 'handle_delete_ad' ) );
                 add_action( 'admin_post_bhg_save_prize', array( $this, 'handle_save_prize' ) );
                 add_action( 'admin_post_bhg_delete_prize', array( $this, 'handle_delete_prize' ) );
+                add_action( 'admin_post_bhg_save_jackpot', array( $this, 'handle_save_jackpot' ) );
+                add_action( 'admin_post_bhg_delete_jackpot', array( $this, 'handle_delete_jackpot' ) );
+                add_action( 'admin_post_bhg_reset_jackpot', array( $this, 'handle_reset_jackpot' ) );
 								add_action( 'admin_post_bhg_tournament_save', array( $this, 'handle_save_tournament' ) );
 								add_action( 'admin_post_bhg_tournament_delete', array( $this, 'handle_delete_tournament' ) );
 				add_action( 'admin_post_bhg_tournament_close', array( $this, 'handle_close_tournament' ) );
@@ -61,6 +64,7 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'menu_dashboard', 'Dashboard' ), bhg_t( 'menu_dashboard', 'Dashboard' ), $cap, $slug, array( $this, 'dashboard' ) );
                 add_submenu_page( $slug, bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), $cap, 'bhg-bonus-hunts', array( $this, 'bonus_hunts' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_prizes', 'Prizes' ), bhg_t( 'menu_prizes', 'Prizes' ), $cap, 'bhg-prizes', array( $this, 'prizes' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_jackpots', 'Jackpots' ), bhg_t( 'menu_jackpots', 'Jackpots' ), $cap, 'bhg-jackpots', array( $this, 'jackpots' ) );
                 add_submenu_page( $slug, bhg_t( 'button_results', 'Results' ), bhg_t( 'button_results', 'Results' ), $cap, 'bhg-bonus-hunts-results', array( $this, 'bonus_hunts_results' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_tournaments', 'Tournaments' ), bhg_t( 'menu_tournaments', 'Tournaments' ), $cap, 'bhg-tournaments', array( $this, 'tournaments' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
@@ -188,6 +192,13 @@ class BHG_Admin {
          */
         public function prizes() {
                 require BHG_PLUGIN_DIR . 'admin/views/prizes.php';
+        }
+
+        /**
+         * Render the jackpots page.
+         */
+        public function jackpots() {
+                require BHG_PLUGIN_DIR . 'admin/views/jackpots.php';
         }
 
         /**
@@ -866,6 +877,122 @@ $wpdb->delete( esc_sql( $wpdb->prefix . 'bhg_hunt_tournaments' ), array( 'hunt_i
                 }
 
                 wp_safe_redirect( add_query_arg( 'bhg_msg', 'p_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-prizes' ) ) );
+                exit;
+        }
+
+        /**
+         * Create or update a jackpot entry.
+         */
+        public function handle_save_jackpot() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
+
+                if ( ! check_admin_referer( 'bhg_save_jackpot', 'bhg_save_jackpot_nonce' ) ) {
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', BHG_Utils::admin_url( 'admin.php?page=bhg-jackpots' ) ) );
+                        exit;
+                }
+
+                $redirect   = BHG_Utils::admin_url( 'admin.php?page=bhg-jackpots' );
+                $jackpot_id = isset( $_POST['jackpot_id'] ) ? absint( wp_unslash( $_POST['jackpot_id'] ) ) : 0;
+                $title      = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+                $link_mode  = isset( $_POST['link_mode'] ) ? sanitize_key( wp_unslash( $_POST['link_mode'] ) ) : 'all';
+                $status     = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : 'active';
+
+                $start_amount    = isset( $_POST['start_amount'] ) ? wp_unslash( $_POST['start_amount'] ) : '';
+                $increase_amount = isset( $_POST['increase_amount'] ) ? wp_unslash( $_POST['increase_amount'] ) : '';
+
+                if ( function_exists( 'bhg_parse_amount' ) ) {
+                        $start_amount    = bhg_parse_amount( $start_amount );
+                        $increase_amount = bhg_parse_amount( $increase_amount );
+                } else {
+                        $start_amount    = (float) $start_amount;
+                        $increase_amount = (float) $increase_amount;
+                }
+
+                $linked_hunts = isset( $_POST['linked_hunts'] ) ? wp_unslash( $_POST['linked_hunts'] ) : array();
+                $linked_hunts = is_array( $linked_hunts ) ? array_map( 'absint', $linked_hunts ) : array();
+
+                $linked_affiliates = isset( $_POST['linked_affiliates'] ) ? wp_unslash( $_POST['linked_affiliates'] ) : array();
+                $linked_affiliates = is_array( $linked_affiliates ) ? array_map( 'absint', $linked_affiliates ) : array();
+
+                $linked_period = isset( $_POST['linked_period'] ) ? sanitize_key( wp_unslash( $_POST['linked_period'] ) ) : '';
+
+                $data = array(
+                        'id'                => $jackpot_id,
+                        'title'             => $title,
+                        'start_amount'      => $start_amount,
+                        'increase_amount'   => $increase_amount,
+                        'link_mode'         => $link_mode,
+                        'status'            => $status,
+                        'linked_hunts'      => $linked_hunts,
+                        'linked_affiliates' => $linked_affiliates,
+                        'linked_period'     => $linked_period,
+                );
+
+                $saved = BHG_Jackpots::instance()->save_jackpot( $data );
+
+                if ( ! $saved ) {
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'jackpot_error', $redirect ) );
+                        exit;
+                }
+
+                $args = array( 'bhg_msg' => $jackpot_id ? 'jackpot_updated' : 'jackpot_created' );
+
+                if ( ! $jackpot_id && $saved ) {
+                        $args['action']     = 'edit';
+                        $args['jackpot_id'] = (int) $saved;
+                } elseif ( $jackpot_id ) {
+                        $args['jackpot_id'] = (int) $jackpot_id;
+                }
+
+                wp_safe_redirect( add_query_arg( $args, $redirect ) );
+                exit;
+        }
+
+        /**
+         * Delete a jackpot entry.
+         */
+        public function handle_delete_jackpot() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
+
+                if ( ! check_admin_referer( 'bhg_delete_jackpot', 'bhg_delete_jackpot_nonce' ) ) {
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', BHG_Utils::admin_url( 'admin.php?page=bhg-jackpots' ) ) );
+                        exit;
+                }
+
+                $jackpot_id = isset( $_POST['jackpot_id'] ) ? absint( wp_unslash( $_POST['jackpot_id'] ) ) : 0;
+
+                if ( $jackpot_id ) {
+                        BHG_Jackpots::instance()->delete_jackpot( $jackpot_id );
+                }
+
+                wp_safe_redirect( add_query_arg( 'bhg_msg', 'jackpot_deleted', BHG_Utils::admin_url( 'admin.php?page=bhg-jackpots' ) ) );
+                exit;
+        }
+
+        /**
+         * Reset a jackpot to its starting amount.
+         */
+        public function handle_reset_jackpot() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
+
+                if ( ! check_admin_referer( 'bhg_reset_jackpot', 'bhg_reset_jackpot_nonce' ) ) {
+                        wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', BHG_Utils::admin_url( 'admin.php?page=bhg-jackpots' ) ) );
+                        exit;
+                }
+
+                $jackpot_id = isset( $_POST['jackpot_id'] ) ? absint( wp_unslash( $_POST['jackpot_id'] ) ) : 0;
+
+                if ( $jackpot_id ) {
+                        BHG_Jackpots::instance()->reset_jackpot( $jackpot_id );
+                }
+
+                wp_safe_redirect( add_query_arg( array( 'bhg_msg' => 'jackpot_reset', 'jackpot_id' => $jackpot_id ), BHG_Utils::admin_url( 'admin.php?page=bhg-jackpots' ) ) );
                 exit;
         }
 

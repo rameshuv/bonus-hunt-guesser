@@ -8,6 +8,11 @@
 
 # Changelog
 
+## 8.0.16 — 2025-01-24
+- Added the Jackpot management module with admin CRUD, hunt-close integration, and the `[bhg_jackpot_current]`, `[bhg_jackpot_latest]`, `[bhg_jackpot_ticker]`, and `[bhg_jackpot_winners]` shortcodes.
+- Introduced jackpot database tables with idempotent `dbDelta()` migrations covering jackpots and jackpot event logs.
+- Extended the admin “Info & Help” shortcodes catalog and translation strings to document the jackpot feature set.
+
 ## 8.0.14 — 2025-10-27
 - Added `[my_bonushunts]`, `[my_tournaments]`, `[my_prizes]`, and `[my_rankings]` shortcodes that honour the new My Profile visibility toggles and reuse the global typography settings.
 - Implemented the configurable tournament points system with ranking scope controls and ensured recalculations persist both points and wins for admin/front-end displays.

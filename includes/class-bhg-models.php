@@ -51,7 +51,7 @@ $tours_tbl   = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 // Determine number of winners and tournament association for this hunt.
 $hunt_row = $wpdb->get_row(
 $wpdb->prepare(
-' SELECT winners_count, tournament_id FROM ' . $hunts_tbl . ' WHERE id = %d ',
+' SELECT winners_count, tournament_id, affiliate_id, affiliate_site_id FROM ' . $hunts_tbl . ' WHERE id = %d ',
 $hunt_id
 )
 );
@@ -215,7 +215,7 @@ $has_all_mode = in_array( 'all', $tournament_modes, true );
                         $limit_window_start = bhg_get_period_window_start( $limit_period );
                 }
 
-                $query        = 'SELECT user_id, guess, (%f - guess) AS diff FROM ' . $guesses_tbl . ' WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC';
+                $query        = 'SELECT id, user_id, guess, (%f - guess) AS diff, created_at FROM ' . $guesses_tbl . ' WHERE hunt_id = %d ORDER BY ABS(%f - guess) ASC, id ASC';
                 $params       = array( (float) $final_balance, (int) $hunt_id, (float) $final_balance );
                 $needs_full   = $has_all_mode || $limit_active;
                 if ( ! $needs_full ) {
@@ -347,6 +347,16 @@ if ( empty( $rows ) ) {
 
                 if ( $should_recalculate && ! empty( $tournament_ids ) ) {
                         self::recalculate_tournament_results( $tournament_ids );
+                }
+
+                if ( class_exists( 'BHG_Jackpots' ) ) {
+                        $jackpot_context = array(
+                                'affiliate_id'      => ( $hunt_row && isset( $hunt_row->affiliate_id ) ) ? (int) $hunt_row->affiliate_id : 0,
+                                'affiliate_site_id' => ( $hunt_row && isset( $hunt_row->affiliate_site_id ) ) ? (int) $hunt_row->affiliate_site_id : 0,
+                                'closed_at'         => $now,
+                        );
+
+                        BHG_Jackpots::instance()->handle_hunt_closure( $hunt_id, $final_balance, (array) $rows, $jackpot_context );
                 }
 
                 $official_winners  = array_map( 'intval', $official_winners );
