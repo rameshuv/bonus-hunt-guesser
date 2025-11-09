@@ -76,7 +76,6 @@ $amount_formatter = function ( $amount ) {
 	if ( function_exists( 'bhg_format_money' ) ) {
 		return bhg_format_money( $amount );
 	}
-
 	return number_format_i18n( (float) $amount, 2 );
 };
 ?>

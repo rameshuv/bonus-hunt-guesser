@@ -20,6 +20,8 @@ class BHG_DB {
 	 * @return void
 	 */
 	public static function migrate() {
+<|diff_marker|> PATCH A
+<|diff_marker|> COM_DIFF_IDX_0
 		$db = new self();
 		$db->create_tables();
 
@@ -40,6 +42,7 @@ class BHG_DB {
 
 		if ( ! $db->column_exists( $tours_table, 'points_map' ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+<|diff_marker|> ADD A1020
 			$wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN points_map LONGTEXT NULL AFTER hunt_link_mode" );
 		}
 
@@ -60,6 +63,7 @@ class BHG_DB {
 
 	/**
 	 * Create or update required database tables.
+<|diff_marker|> ADD A1040
 	 *
 	 * @return void
 	 */
@@ -80,6 +84,7 @@ class BHG_DB {
 		$winners_table      = $wpdb->prefix . 'bhg_hunt_winners';
 		$hunt_tours_table   = $wpdb->prefix . 'bhg_tournaments_hunts';
 		$legacy_hunt_tours  = $wpdb->prefix . 'bhg_hunt_tournaments';
+<|diff_marker|> ADD A1060
 		$prizes_table       = $wpdb->prefix . 'bhg_prizes';
 		$hunt_prizes_table  = $wpdb->prefix . 'bhg_hunt_prizes';
 
@@ -100,6 +105,7 @@ class BHG_DB {
     affiliate_site_id BIGINT UNSIGNED NULL,
     affiliate_id BIGINT UNSIGNED NULL,
     tournament_id BIGINT UNSIGNED NULL,
+<|diff_marker|> ADD A1080
     winners_count INT UNSIGNED NOT NULL DEFAULT 3,
     guessing_enabled TINYINT(1) NOT NULL DEFAULT 1,
     final_balance DECIMAL(12,2) NULL,
@@ -120,6 +126,7 @@ class BHG_DB {
                         hunt_id BIGINT UNSIGNED NOT NULL,
                         user_id BIGINT UNSIGNED NOT NULL,
                         guess DECIMAL(12,2) NOT NULL,
+<|diff_marker|> ADD A1100
                         created_at DATETIME NULL,
                         updated_at DATETIME NULL,
                         PRIMARY KEY  (id),
@@ -140,6 +147,7 @@ class BHG_DB {
                                                 prizes TEXT NULL,
                                                 affiliate_site_id BIGINT UNSIGNED NULL,
                                                 affiliate_website VARCHAR(255) NULL,
+<|diff_marker|> ADD A1120
                                                 affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1,
                                                 start_date DATE NULL,
                                                 end_date DATE NULL,
@@ -160,6 +168,7 @@ class BHG_DB {
                                                 user_id BIGINT UNSIGNED NOT NULL,
                                                 wins INT UNSIGNED NOT NULL DEFAULT 0,
                                                 points INT UNSIGNED NOT NULL DEFAULT 0,
+<|diff_marker|> ADD A1140
                                                 last_win_date DATETIME NULL,
                                                 PRIMARY KEY  (id),
                                                 KEY tournament_id (tournament_id),
@@ -180,6 +189,7 @@ class BHG_DB {
 			created_at DATETIME NULL,
 			updated_at DATETIME NULL,
 			PRIMARY KEY  (id),
+<|diff_marker|> ADD A1160
 			KEY placement (placement),
 			KEY visible_to (visible_to)
 		) {$charset_collate};";
@@ -200,6 +210,7 @@ class BHG_DB {
 		// Hunt Winners.
 		$sql[] = "CREATE TABLE `{$winners_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+<|diff_marker|> ADD A1180
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    user_id BIGINT UNSIGNED NOT NULL,
                                    position INT UNSIGNED NOT NULL,
@@ -220,6 +231,7 @@ class BHG_DB {
                                    description TEXT NULL,
                                    category VARCHAR(40) NOT NULL DEFAULT 'various',
                                    image_small BIGINT UNSIGNED NULL,
+<|diff_marker|> ADD A1200
                                    image_medium BIGINT UNSIGNED NULL,
                                    image_large BIGINT UNSIGNED NULL,
                                    css_border VARCHAR(100) NULL,
@@ -240,6 +252,7 @@ class BHG_DB {
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                                    hunt_id BIGINT UNSIGNED NOT NULL,
                                    prize_id BIGINT UNSIGNED NOT NULL,
+<|diff_marker|> ADD A1220
                                    prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
                                    created_at DATETIME NULL,
                                    PRIMARY KEY  (id),
@@ -260,6 +273,7 @@ class BHG_DB {
                                    increase_amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
                                    current_amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
                                    link_mode VARCHAR(20) NOT NULL DEFAULT 'all',
+<|diff_marker|> ADD A1240
                                    link_config LONGTEXT NULL,
                                    status VARCHAR(20) NOT NULL DEFAULT 'active',
                                    hit_user_id BIGINT UNSIGNED NULL,
@@ -280,6 +294,7 @@ class BHG_DB {
                                    jackpot_id BIGINT UNSIGNED NOT NULL,
                                    event_type VARCHAR(20) NOT NULL,
                                    amount_before DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+<|diff_marker|> ADD A1260
                                    amount_after DECIMAL(14,2) NOT NULL DEFAULT 0.00,
                                    user_id BIGINT UNSIGNED NULL,
                                    hunt_id BIGINT UNSIGNED NULL,
@@ -300,6 +315,7 @@ class BHG_DB {
                                    PRIMARY KEY  (id),
                                    UNIQUE KEY tournament_hunt (tournament_id, hunt_id),
                                    KEY tournament_id (tournament_id),
+<|diff_marker|> ADD A1280
                                    KEY hunt_id (hunt_id)
                    ) {$charset_collate};";
 
@@ -320,6 +336,7 @@ class BHG_DB {
 				'tournament_id'     => 'ADD COLUMN tournament_id BIGINT UNSIGNED NULL',
 				'guessing_enabled'  => 'ADD COLUMN guessing_enabled TINYINT(1) NOT NULL DEFAULT 1',
 				'final_balance'     => 'ADD COLUMN final_balance DECIMAL(12,2) NULL',
+<|diff_marker|> ADD A1300
 				'status'            => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'open\'',
 			);
 			foreach ( $need as $c => $alter ) {
@@ -340,6 +357,7 @@ class BHG_DB {
 
 			if ( ! $this->index_exists( $hunts_table, 'tournament_id' ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+<|diff_marker|> ADD A1320
 				$wpdb->query( "ALTER TABLE `{$hunts_table}` ADD KEY tournament_id (tournament_id)" );
 			}
 
@@ -350,7 +368,7 @@ class BHG_DB {
 			);
 			foreach ( $gneed as $c => $alter ) {
 				if ( ! $this->column_exists( $guesses_table, $c ) ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 					$wpdb->query( "ALTER TABLE `{$guesses_table}` {$alter}" );
 				}
 			}
@@ -360,6 +378,7 @@ class BHG_DB {
 				'title'                 => 'ADD COLUMN title VARCHAR(190) NOT NULL',
 				'description'           => 'ADD COLUMN description TEXT NULL',
 				'type'                  => 'ADD COLUMN type VARCHAR(20) NOT NULL DEFAULT \'monthly\'',
+<|diff_marker|> ADD A1340
 				'participants_mode'     => 'ADD COLUMN participants_mode VARCHAR(20) NOT NULL DEFAULT \'winners\'',
 				'hunt_link_mode'        => "ADD COLUMN hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual'",
 				'prizes'                => 'ADD COLUMN prizes TEXT NULL',
@@ -380,6 +399,7 @@ class BHG_DB {
 			if ( ! $this->index_exists( $tours_table, 'type' ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$wpdb->query( "ALTER TABLE `{$tours_table}` ADD KEY type (type)" );
+<|diff_marker|> ADD A1360
 			}
 
 			if ( ! $this->index_exists( $tours_table, 'title' ) ) {
@@ -400,6 +420,7 @@ class BHG_DB {
 			foreach ( $hpneed as $c => $alter ) {
 				if ( ! $this->column_exists( $hunt_prizes_table, $c ) ) {
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+<|diff_marker|> ADD A1380
 					$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` {$alter}" );
 
 					if ( 'prize_type' === $c ) {
@@ -420,6 +441,7 @@ class BHG_DB {
 			if ( ! $this->index_exists( $hunt_prizes_table, 'prize_type' ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD KEY prize_type (prize_type)" );
+<|diff_marker|> ADD A1400
 			}
 
 			// Tournament results columns.
@@ -440,6 +462,7 @@ class BHG_DB {
 				$wpdb->query( "ALTER TABLE `{$tres_table}` ADD KEY tournament_id (tournament_id)" );
 			}
 			if ( ! $this->index_exists( $tres_table, 'user_id' ) ) {
+<|diff_marker|> ADD A1420
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$wpdb->query( "ALTER TABLE `{$tres_table}` ADD KEY user_id (user_id)" );
 			}
@@ -460,6 +483,7 @@ class BHG_DB {
 				if ( ! $this->column_exists( $ads_table, $c ) ) {
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 					$wpdb->query( "ALTER TABLE `{$ads_table}` {$alter}" );
+<|diff_marker|> ADD A1440
 				}
 			}
 
@@ -480,6 +504,7 @@ class BHG_DB {
 			}
 			// Ensure composite unique index on (slug, locale).
 			// Drop legacy single-column indexes if present first.
+<|diff_marker|> ADD A1460
 			if ( $this->index_exists( $trans_table, 'slug' ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$wpdb->query( "ALTER TABLE `{$trans_table}` DROP INDEX slug" );
@@ -500,6 +525,7 @@ class BHG_DB {
 			// Affiliate websites columns / unique index.
 			$afw_need = array(
 				'name'       => 'ADD COLUMN name VARCHAR(190) NOT NULL',
+<|diff_marker|> ADD A1480
 				'slug'       => 'ADD COLUMN slug VARCHAR(190) NOT NULL',
 				'url'        => 'ADD COLUMN url VARCHAR(255) NULL',
 				'status'     => 'ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT \'active\'',
@@ -520,6 +546,7 @@ class BHG_DB {
 			// Hunt winners columns / indexes.
 			$hwneed = array(
 				'hunt_id'    => 'ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL',
+<|diff_marker|> ADD A1500
 				'user_id'    => 'ADD COLUMN user_id BIGINT UNSIGNED NOT NULL',
 				'position'   => 'ADD COLUMN position INT UNSIGNED NOT NULL',
 				'guess'      => 'ADD COLUMN guess DECIMAL(12,2) NOT NULL',
@@ -540,6 +567,7 @@ class BHG_DB {
 
 			// Prize columns and indexes.
 			$pneed = array(
+<|diff_marker|> ADD A1520
 				'category'         => "ADD COLUMN category VARCHAR(40) NOT NULL DEFAULT 'various'",
 				'image_small'      => 'ADD COLUMN image_small BIGINT UNSIGNED NULL',
 				'image_medium'     => 'ADD COLUMN image_medium BIGINT UNSIGNED NULL',
@@ -560,6 +588,7 @@ class BHG_DB {
 				}
 			}
 			if ( ! $this->index_exists( $prizes_table, 'category' ) ) {
+<|diff_marker|> ADD A1540
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$wpdb->query( "ALTER TABLE `{$prizes_table}` ADD KEY category (category)" );
 			}
@@ -580,6 +609,7 @@ class BHG_DB {
 			// Ensure hunt/tournament relation table structure.
 			if ( $this->table_exists( $hunt_tours_table ) ) {
 				$htneed = array(
+<|diff_marker|> ADD A1560
 					'hunt_id'       => 'ADD COLUMN hunt_id BIGINT UNSIGNED NOT NULL',
 					'tournament_id' => 'ADD COLUMN tournament_id BIGINT UNSIGNED NOT NULL',
 					'created_at'    => 'ADD COLUMN created_at DATETIME NULL',
@@ -600,6 +630,7 @@ class BHG_DB {
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 					$wpdb->query( "ALTER TABLE `{$hunt_tours_table}` ADD UNIQUE KEY tournament_hunt (tournament_id, hunt_id)" );
 				}
+<|diff_marker|> ADD A1580
 
 				if ( ! $this->index_exists( $hunt_tours_table, 'tournament_id' ) ) {
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -620,6 +651,7 @@ class BHG_DB {
 						$now
 					);
 
+<|diff_marker|> ADD A1600
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 					$wpdb->query( $insert_q );
 				}
@@ -640,6 +672,7 @@ class BHG_DB {
 	private function create_table_translations() {
 		global $wpdb;
 
+<|diff_marker|> ADD A1620
 		$table           = $wpdb->prefix . 'bhg_translations';
 		$charset_collate = $wpdb->get_charset_collate();
 
@@ -660,6 +693,7 @@ class BHG_DB {
 
 	/**
 	 * Retrieve all affiliate websites.
+<|diff_marker|> ADD A1640
 	 *
 	 * @return array List of affiliate website objects.
 	 */
@@ -680,6 +714,7 @@ class BHG_DB {
 	 * @return bool
 	 */
 	private function column_exists( $table, $column ) {
+<|diff_marker|> ADD A1660
 		global $wpdb;
 
 		$wpdb->last_error = '';
@@ -700,6 +735,7 @@ class BHG_DB {
 
 		return ! empty( $exists );
 	}
+<|diff_marker|> ADD A1680
 
 	/**
 	 * Check if an index exists, falling back when information_schema is not accessible.
@@ -720,6 +756,7 @@ class BHG_DB {
 		);
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		$exists = $wpdb->get_var( $sql );
+<|diff_marker|> ADD A1700
 
 		if ( $wpdb->last_error ) {
 			$wpdb->last_error = '';
@@ -740,6 +777,7 @@ class BHG_DB {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+<|diff_marker|> ADD A1720
 		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 
 		return ! empty( $exists );

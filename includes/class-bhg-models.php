@@ -302,11 +302,11 @@ class BHG_Models {
 			$record_entry = $eligible;
 
 			if ( ! $record_entry && $limit_active && ! $eligible_by_limit ) {
-				$record_entry = true;
+				$record_entry = true; // record as ineligible.
 			}
 
 			if ( ! $record_entry && $has_all_mode ) {
-				$record_entry = true;
+				$record_entry = true; // record everyone when mode 'all'.
 			}
 
 			if ( $record_entry ) {
@@ -505,35 +505,34 @@ class BHG_Models {
 
 			$results_map = array();
 
-			if ( ! empty( $rows ) ) {
-				usort(
-					$rows,
-					static function ( $a, $b ) {
-						$event_a = isset( $a->event_date ) ? (string) $a->event_date : '';
-						$event_b = isset( $b->event_date ) ? (string) $b->event_date : '';
+			// Deterministic ordering: event date asc, position asc, row id asc.
+			usort(
+				$rows,
+				static function ( $a, $b ) {
+					$event_a = isset( $a->event_date ) ? (string) $a->event_date : '';
+					$event_b = isset( $b->event_date ) ? (string) $b->event_date : '';
 
-						if ( $event_a !== $event_b ) {
-							return strcmp( $event_a, $event_b );
-						}
-
-						$pos_a = isset( $a->position ) ? (int) $a->position : 0;
-						$pos_b = isset( $b->position ) ? (int) $b->position : 0;
-
-						if ( $pos_a !== $pos_b ) {
-							return ( $pos_a < $pos_b ) ? -1 : 1;
-						}
-
-						$id_a = isset( $a->hw_id ) ? (int) $a->hw_id : 0;
-						$id_b = isset( $b->hw_id ) ? (int) $b->hw_id : 0;
-
-						if ( $id_a === $id_b ) {
-							return 0;
-						}
-
-						return ( $id_a < $id_b ) ? -1 : 1;
+					if ( $event_a !== $event_b ) {
+						return strcmp( $event_a, $event_b );
 					}
-				);
-			}
+
+					$pos_a = isset( $a->position ) ? (int) $a->position : 0;
+					$pos_b = isset( $b->position ) ? (int) $b->position : 0;
+
+					if ( $pos_a !== $pos_b ) {
+						return ( $pos_a < $pos_b ) ? -1 : 1;
+					}
+
+					$id_a = isset( $a->hw_id ) ? (int) $a->hw_id : 0;
+					$id_b = isset( $b->hw_id ) ? (int) $b->hw_id : 0;
+
+					if ( $id_a === $id_b ) {
+						return 0;
+					}
+
+					return ( $id_a < $id_b ) ? -1 : 1;
+				}
+			);
 
 			$user_event_windows = array();
 
