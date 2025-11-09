@@ -7,6 +7,15 @@
         var descriptionField = $('#bhg_prize_description');
         var categoryField = $('#bhg_prize_category');
         var activeField = $('#bhg_prize_active');
+        var linkField = $('#bhg_prize_link_url');
+        var clickActionField = $('#bhg_prize_click_action');
+        var linkTargetField = $('#bhg_prize_link_target');
+        var categoryLinkField = $('#bhg_prize_category_link');
+        var categoryTargetField = $('#bhg_prize_category_target');
+        var showTitleField = $('#bhg_prize_show_title');
+        var showDescriptionField = $('#bhg_prize_show_description');
+        var showCategoryField = $('#bhg_prize_show_category');
+        var showImageField = $('#bhg_prize_show_image');
         var submitButton = $('#bhg-prize-submit');
         var spinner = $('#bhg-prize-spinner');
         var errorNotice = $('#bhg-prize-error');
@@ -95,11 +104,25 @@
                 }
 
                 idField.val('0');
+                resetSelect(clickActionField);
+                resetSelect(linkTargetField);
+                resetSelect(categoryTargetField);
                 clearError();
                 updateSubmitLabel('add');
                 updateHeading('add');
                 resetMediaPreviews();
                 state.mode = 'add';
+        }
+
+        function resetSelect(select) {
+                if (!select || !select.length) {
+                        return;
+                }
+
+                var defaults = select.data('default');
+                if (typeof defaults !== 'undefined') {
+                        select.val(defaults);
+                }
         }
 
         function openModal(mode) {
@@ -164,6 +187,15 @@
                 categoryField.val(data.category || 'various');
                 activeField.prop('checked', !!data.active);
                 idField.val(data.id || '0');
+                linkField.val(data.link_url || '');
+                clickActionField.val(data.click_action || clickActionField.data('default') || 'link');
+                linkTargetField.val(data.link_target || linkTargetField.data('default') || '_self');
+                categoryLinkField.val(data.category_link_url || '');
+                categoryTargetField.val(data.category_link_target || categoryTargetField.data('default') || '_self');
+                showTitleField.prop('checked', data.show_title ? true : false);
+                showDescriptionField.prop('checked', data.show_description ? true : false);
+                showCategoryField.prop('checked', data.show_category ? true : false);
+                showImageField.prop('checked', data.show_image ? true : false);
 
                 populateCss(data.css);
                 populateImages(data.images);

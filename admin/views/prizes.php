@@ -13,12 +13,19 @@ if ( ! class_exists( 'BHG_Prizes' ) ) {
 		return;
 }
 
-$prizes       = BHG_Prizes::get_prizes();
-$message_code = isset( $_GET['bhg_msg'] ) ? sanitize_key( wp_unslash( $_GET['bhg_msg'] ) ) : '';
-$css_defaults = BHG_Prizes::default_css_settings();
-$categories   = BHG_Prizes::get_categories();
-$capability   = apply_filters( 'bhg_manage_prizes_capability', 'manage_options' );
-$can_manage   = current_user_can( $capability );
+$prizes           = BHG_Prizes::get_prizes();
+$message_code     = isset( $_GET['bhg_msg'] ) ? sanitize_key( wp_unslash( $_GET['bhg_msg'] ) ) : '';
+$css_defaults     = BHG_Prizes::default_css_settings();
+$categories       = BHG_Prizes::get_categories();
+$display_settings = BHG_Prizes::get_display_settings();
+$capability       = apply_filters( 'bhg_manage_prizes_capability', 'manage_options' );
+$can_manage       = current_user_can( $capability );
+$click_action_labels = array(
+'link'  => bhg_t( 'prize_click_link_same', 'Open prize link in the same tab' ),
+'new'   => bhg_t( 'prize_click_link_new', 'Open prize link in a new tab' ),
+'image' => bhg_t( 'prize_click_image', 'Open the prize image in a popup' ),
+'none'  => bhg_t( 'prize_click_none', 'No click action' ),
+);
 
 $notices = array(
 	'p_saved'   => array(
@@ -33,14 +40,18 @@ $notices = array(
 		'class' => 'notice-success',
 		'text'  => bhg_t( 'prize_deleted', 'Prize deleted successfully.' ),
 	),
-	'p_error'   => array(
-		'class' => 'notice-error',
-		'text'  => bhg_t( 'prize_error', 'There was a problem saving the prize.' ),
-	),
-	'nonce'     => array(
-		'class' => 'notice-error',
-		'text'  => bhg_t( 'nonce_error', 'Security check failed. Please try again.' ),
-	),
+'p_error'   => array(
+'class' => 'notice-error',
+'text'  => bhg_t( 'prize_error', 'There was a problem saving the prize.' ),
+),
+'nonce'     => array(
+'class' => 'notice-error',
+'text'  => bhg_t( 'nonce_error', 'Security check failed. Please try again.' ),
+),
+'display_saved' => array(
+'class' => 'notice-success',
+'text'  => bhg_t( 'prize_display_saved', 'Display settings saved successfully.' ),
+),
 );
 
 ?>
@@ -51,13 +62,65 @@ $notices = array(
 		<?php endif; ?>
 		<hr class="wp-header-end" />
 
-		<?php if ( $message_code && isset( $notices[ $message_code ] ) ) : ?>
-				<div class="notice <?php echo esc_attr( $notices[ $message_code ]['class'] ); ?> is-dismissible">
-						<p><?php echo esc_html( $notices[ $message_code ]['text'] ); ?></p>
-				</div>
-		<?php endif; ?>
+<?php if ( $message_code && isset( $notices[ $message_code ] ) ) : ?>
+<div class="notice <?php echo esc_attr( $notices[ $message_code ]['class'] ); ?> is-dismissible">
+<p><?php echo esc_html( $notices[ $message_code ]['text'] ); ?></p>
+</div>
+<?php endif; ?>
 
-		<table class="wp-list-table widefat fixed striped bhg-prize-table">
+<?php if ( $can_manage ) : ?>
+<div class="bhg-prize-settings-panel">
+<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bhg-prize-settings-form">
+<?php wp_nonce_field( 'bhg_prize_settings', 'bhg_prize_settings_nonce' ); ?>
+<input type="hidden" name="action" value="bhg_save_prize_settings" />
+
+<h2><?php echo esc_html( bhg_t( 'prize_display_settings', 'Display Settings' ) ); ?></h2>
+
+<div class="bhg-prize-settings-grid">
+<div class="bhg-field">
+<label for="bhg_carousel_visible"><?php echo esc_html( bhg_t( 'prize_visible_count', 'Carousel visible count' ) ); ?></label>
+<input type="number" min="1" step="1" id="bhg_carousel_visible" name="carousel_visible" value="<?php echo esc_attr( $display_settings['carousel_visible'] ); ?>" />
+<p class="description"><?php echo esc_html( bhg_t( 'prize_visible_help', 'Number of prize cards visible at once on larger screens.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<label for="bhg_carousel_total"><?php echo esc_html( bhg_t( 'prize_total_limit', 'Maximum prizes displayed' ) ); ?></label>
+<input type="number" min="0" step="1" id="bhg_carousel_total" name="carousel_total" value="<?php echo esc_attr( $display_settings['carousel_total'] ); ?>" />
+<p class="description"><?php echo esc_html( bhg_t( 'prize_total_help', 'Set to 0 to display all matching prizes.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<label for="bhg_carousel_interval"><?php echo esc_html( bhg_t( 'prize_autoplay_interval', 'Autoplay interval (ms)' ) ); ?></label>
+<input type="number" min="1000" step="500" id="bhg_carousel_interval" name="carousel_interval" value="<?php echo esc_attr( $display_settings['carousel_interval'] ); ?>" />
+<p class="description"><?php echo esc_html( bhg_t( 'prize_interval_help', 'Time between automatic carousel transitions.' ) ); ?></p>
+</div>
+<div class="bhg-field bhg-field--checkbox">
+<label>
+<input type="checkbox" name="carousel_autoplay" value="1" <?php checked( ! empty( $display_settings['carousel_autoplay'] ) ); ?> />
+<?php echo esc_html( bhg_t( 'prize_enable_autoplay', 'Enable carousel autoplay' ) ); ?>
+</label>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_autoplay_help', 'Automatically cycle through prizes when the carousel is visible.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<label for="bhg_prize_heading_text"><?php echo esc_html( bhg_t( 'prize_heading_text', 'Custom heading text' ) ); ?></label>
+<input type="text" id="bhg_prize_heading_text" name="heading_text" value="<?php echo esc_attr( $display_settings['heading_text'] ); ?>" />
+<p class="description"><?php echo esc_html( bhg_t( 'prize_heading_help', 'Leave empty to use the default “Prizes” heading.' ) ); ?></p>
+</div>
+<div class="bhg-field bhg-field--checkbox">
+<label>
+<input type="checkbox" name="hide_heading" value="1" <?php checked( ! empty( $display_settings['hide_heading'] ) ); ?> />
+<?php echo esc_html( bhg_t( 'prize_hide_heading', 'Hide heading output' ) ); ?>
+</label>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_hide_heading_help', 'Check to remove the heading from rendered prize sections.' ) ); ?></p>
+</div>
+</div>
+
+<p class="submit">
+<button type="submit" class="button button-primary"><?php echo esc_html( bhg_t( 'save_settings', 'Save Settings' ) ); ?></button>
+</p>
+</form>
+</div>
+<?php endif; ?>
+
+<table class="wp-list-table widefat fixed striped bhg-prize-table">
 				<thead>
 						<tr>
 								<th scope="col" class="manage-column column-primary"><?php echo esc_html( bhg_t( 'sc_title', 'Title' ) ); ?></th>
@@ -146,16 +209,58 @@ $notices = array(
 																<?php endforeach; ?>
 														</select>
 												</td>
-										</tr>
-										<tr>
-												<th scope="row"><?php echo esc_html( bhg_t( 'images', 'Images' ) ); ?></th>
-												<td>
+</tr>
+                                                                                <tr>
+                                                                                                <th scope="row"><label for="bhg_prize_link_url"><?php echo esc_html( bhg_t( 'prize_link_url', 'Prize link URL' ) ); ?></label></th>
+                                                                                                <td>
+                                                                                                                <input type="url" id="bhg_prize_link_url" name="link_url" value="" class="regular-text" placeholder="https://" />
+                                                                                                                <p class="description"><?php echo esc_html( bhg_t( 'prize_link_help', 'Optional link to open when the prize card is clicked.' ) ); ?></p>
+                                                                                                                <label for="bhg_prize_click_action" class="bhg-inline-label"><?php echo esc_html( bhg_t( 'prize_click_action', 'Click action' ) ); ?></label>
+                                                                                                                <select id="bhg_prize_click_action" name="click_action" data-default="link">
+                                                                                                                               <?php foreach ( $click_action_labels as $value => $label ) : ?>
+                                                                                                                               <option value="<?php echo esc_attr( $value ); ?>"><?php echo esc_html( $label ); ?></option>
+                                                                                                                               <?php endforeach; ?>
+                                                                                                                </select>
+                                                                                                                <label for="bhg_prize_link_target" class="bhg-inline-label"><?php echo esc_html( bhg_t( 'prize_link_target', 'Link target' ) ); ?></label>
+                                                                                                                <select id="bhg_prize_link_target" name="link_target" data-default="_self">
+                                                                                                                               <option value="_self"><?php echo esc_html( bhg_t( 'target_same_tab', 'Same tab' ) ); ?></option>
+                                                                                                                               <option value="_blank"><?php echo esc_html( bhg_t( 'target_new_tab', 'New tab' ) ); ?></option>
+                                                                                                                </select>
+                                                                                                </td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                                <th scope="row"><label for="bhg_prize_category_link"><?php echo esc_html( bhg_t( 'prize_category_link', 'Category link URL' ) ); ?></label></th>
+                                                                                                <td>
+                                                                                                                <input type="url" id="bhg_prize_category_link" name="category_link_url" value="" class="regular-text" placeholder="https://" />
+                                                                                                                <p class="description"><?php echo esc_html( bhg_t( 'prize_category_link_help', 'Optional link to wrap around the category badge.' ) ); ?></p>
+                                                                                                                <label for="bhg_prize_category_target" class="bhg-inline-label"><?php echo esc_html( bhg_t( 'prize_category_target', 'Category link target' ) ); ?></label>
+                                                                                                                <select id="bhg_prize_category_target" name="category_link_target" data-default="_self">
+                                                                                                                               <option value="_self"><?php echo esc_html( bhg_t( 'target_same_tab', 'Same tab' ) ); ?></option>
+                                                                                                                               <option value="_blank"><?php echo esc_html( bhg_t( 'target_new_tab', 'New tab' ) ); ?></option>
+                                                                                                                </select>
+                                                                                                </td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                                <th scope="row"><?php echo esc_html( bhg_t( 'prize_display_options', 'Display options' ) ); ?></th>
+                                                                                                <td>
+                                                                                                                <fieldset class="bhg-display-options">
+                                                                                                                               <legend class="screen-reader-text"><?php echo esc_html( bhg_t( 'prize_display_options', 'Display options' ) ); ?></legend>
+                                                                                                                               <label><input type="checkbox" id="bhg_prize_show_title" name="show_title" value="1" checked /> <?php echo esc_html( bhg_t( 'prize_show_title', 'Show title' ) ); ?></label>
+                                                                                                                               <label><input type="checkbox" id="bhg_prize_show_description" name="show_description" value="1" checked /> <?php echo esc_html( bhg_t( 'prize_show_description', 'Show description' ) ); ?></label>
+                                                                                                                               <label><input type="checkbox" id="bhg_prize_show_category" name="show_category" value="1" checked /> <?php echo esc_html( bhg_t( 'prize_show_category', 'Show category badge' ) ); ?></label>
+                                                                                                                               <label><input type="checkbox" id="bhg_prize_show_image" name="show_image" value="1" checked /> <?php echo esc_html( bhg_t( 'prize_show_image', 'Show image' ) ); ?></label>
+                                                                                                                </fieldset>
+                                                                                                </td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                                <th scope="row"><?php echo esc_html( bhg_t( 'images', 'Images' ) ); ?></th>
+                                                                                                <td>
 														<?php
-														$image_fields = array(
-															'small'  => bhg_t( 'image_small', 'Small' ),
-															'medium' => bhg_t( 'image_medium', 'Medium' ),
-															'big'    => bhg_t( 'image_large', 'Big' ),
-														);
+$image_fields = array(
+'small'  => bhg_t( 'image_small_label', 'Small (300×200)' ),
+'medium' => bhg_t( 'image_medium_label', 'Medium (600×400)' ),
+'big'    => bhg_t( 'image_large_label', 'Large (900×600)' ),
+);
 														foreach ( $image_fields as $size => $label ) :
 																$field_id = 'bhg_image_' . $size;
 															?>

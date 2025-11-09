@@ -315,6 +315,59 @@ body.modal-open {
     overflow: hidden;
 }
 
+.bhg-prize-settings-panel {
+    background: #ffffff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    margin-top: 24px;
+    padding: 20px 24px;
+}
+
+.bhg-prize-settings-panel h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.bhg-prize-settings-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-bottom: 20px;
+}
+
+.bhg-prize-settings-grid .bhg-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.bhg-prize-settings-grid .bhg-field input[type="number"],
+.bhg-prize-settings-grid .bhg-field input[type="text"],
+.bhg-prize-settings-grid .bhg-field input[type="url"] {
+    width: 100%;
+}
+
+.bhg-field--checkbox label {
+    align-items: center;
+    display: flex;
+    font-weight: 500;
+    gap: 8px;
+}
+
+.bhg-inline-label {
+    display: inline-block;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.bhg-prize-modal fieldset label {
+    align-items: center;
+    display: inline-flex;
+    font-weight: 500;
+    gap: 6px;
+    margin-right: 12px;
+}
+
 /* Translations page */
 .bhg-translations-search {
 margin-bottom: 1em;
