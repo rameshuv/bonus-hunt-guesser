@@ -249,6 +249,48 @@ $sql[] = "CREATE TABLE `{$prizes_table}` (
                                    KEY prize_type (prize_type)
                    ) {$charset_collate};";
 
+                // Jackpots.
+                $jackpots_table       = $wpdb->prefix . 'bhg_jackpots';
+                $jackpot_events_table = $wpdb->prefix . 'bhg_jackpot_events';
+
+                $sql[] = "CREATE TABLE `{$jackpots_table}` (
+                                   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                   title VARCHAR(190) NOT NULL,
+                                   start_amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+                                   increase_amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+                                   current_amount DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+                                   link_mode VARCHAR(20) NOT NULL DEFAULT 'all',
+                                   link_config LONGTEXT NULL,
+                                   status VARCHAR(20) NOT NULL DEFAULT 'active',
+                                   hit_user_id BIGINT UNSIGNED NULL,
+                                   hit_hunt_id BIGINT UNSIGNED NULL,
+                                   hit_guess_id BIGINT UNSIGNED NULL,
+                                   hit_at DATETIME NULL,
+                                   created_at DATETIME NULL,
+                                   updated_at DATETIME NULL,
+                                   PRIMARY KEY  (id),
+                                   KEY status (status),
+                                   KEY link_mode (link_mode),
+                                   KEY hit_hunt_id (hit_hunt_id),
+                                   KEY hit_user_id (hit_user_id)
+                   ) {$charset_collate};";
+
+                $sql[] = "CREATE TABLE `{$jackpot_events_table}` (
+                                   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                                   jackpot_id BIGINT UNSIGNED NOT NULL,
+                                   event_type VARCHAR(20) NOT NULL,
+                                   amount_before DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+                                   amount_after DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+                                   user_id BIGINT UNSIGNED NULL,
+                                   hunt_id BIGINT UNSIGNED NULL,
+                                   meta LONGTEXT NULL,
+                                   created_at DATETIME NULL,
+                                   PRIMARY KEY  (id),
+                                   KEY jackpot_id (jackpot_id),
+                                   KEY event_type (event_type),
+                                   KEY created_at (created_at)
+                   ) {$charset_collate};";
+
                 // Hunt to tournament mapping.
                 $sql[] = "CREATE TABLE `{$hunt_tours_table}` (
                                    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
