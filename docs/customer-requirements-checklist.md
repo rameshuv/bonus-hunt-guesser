@@ -1,85 +1,120 @@
-# Customer Requirements Checklist — Bonus Hunt Guesser v8.0.16
+# Bonus Hunt Guesser – Customer Requirements Checklist
 
-Status legend: ✅ Complete · ⚠️ Not verified · ❌ Missing / incomplete · ➖ Not applicable
+This checklist consolidates all customer requirements provided for the Bonus Hunt Guesser plugin. Each item includes a checkbox to track implementation status.
 
-> Reference: For the detailed compliance matrix, consult `docs/final-checklist-20240917.md`.
+## Runtime Compatibility
+- [ ] PHP 7.4 compatibility
+- [ ] WordPress 6.3.5 compatibility
+- [ ] MySQL 5.5.5+ compatibility
 
-## 0) Plugin Header & Bootstrapping
-- ✅ Plugin header exposes the requested metadata (name, version 8.0.16, PHP 7.4, WP 6.3.5+, MySQL 5.5.5+, text domain, license). 【F:bonus-hunt-guesser.php†L1-L16】
-- ✅ Text domain loads during `plugins_loaded`. 【F:bonus-hunt-guesser.php†L386-L404】
-- ❌ PHPCS compliance not confirmed (sniffs not executed in this review).
+## General Frontend
+- [ ] Change clickable links in table headers to white on all frontend outputs
+- [ ] `bg-hunts`: Add "Details" column next to "Status"
+  - [ ] Closed hunts show "Show Results" link to hunt result page
+  - [ ] Open hunts show "Guess Now" link to hunt guess page
 
-## 1) Admin Dashboard (Latest Hunts)
-- ✅ “Latest Hunts” card renders the latest three hunts with Bonushunt, All Winners (bold usernames with guess/difference), Start Balance, Final Balance (– if open), and Closed At columns. 【F:admin/views/dashboard.php†L44-L197】
+## Prizes Module
+- [ ] Big image (1200x800 PNG) uploads correctly in backend
+- [ ] Display image sizes in backend add/edit form: Small (300x200), Medium (600x400), Big (1200x800)
+- [ ] Allow adding product/prize link in backend; make frontend image clickable when link is set
+- [ ] Add "Category" management with custom link for prizes
+- [ ] Category menu option to show/hide link in frontend
+- [ ] Backend option for big image interaction: popup, direct link, or new window
+- [ ] Carousel mode option to set number of images visible simultaneously
+- [ ] Carousel/Grid mode option to set total images loaded
+- [ ] Carousel mode auto animation toggle
+- [ ] Carousel/Grid mode toggles to hide/show title, category, description
+- [ ] Responsive sizing: display big image when showing 1 prize, medium for 2–3, small for 4–5
+- [ ] Remove "Prizes" heading above grid/carousel
+- [ ] Support separate prize sets for regular vs. premium users per bonus hunt
 
-## 2) Bonus Hunts (List · Edit · Results)
-- ✅ List view includes Final Balance (em dash when open), Affiliate, configurable Winners count, and actions for Edit/Close/Results plus Delete and Guessing toggle. 【F:admin/views/bonus-hunts.php†L226-L320】
-- ✅ Edit view restricts tournaments to active entries, exposes winners count, participant removal table with profile links, and affiliate selection. 【F:admin/views/bonus-hunts-edit.php†L92-L229】
-- ⚠️ Results page implements selectors and timeframe filters, but requires verification to confirm default selection and empty-state copy. 【F:admin/views/bonus-hunts-results.php†L86-L320】
-- ⚠️ Empty state string should be confirmed as “There are no winners yet.” 【F:admin/views/bonus-hunts-results.php†L249-L269】
-- ✅ Winners highlighted (row class `bhg-results-row--winner`) and include Price column. 【F:admin/views/bonus-hunts-results.php†L198-L238】
-- ✅ Database migrations add `guessing_enabled` and `affiliate_id`. 【F:includes/class-bhg-db.php†L96-L114】【F:includes/class-bhg-db.php†L269-L296】
+## Jackpot Feature
+- [ ] Jackpot admin page lists latest 10 jackpots with title, start date, start amount, current amount, and status
+- [ ] Admin menu entry for jackpots exists
+- [ ] Jackpot add/edit includes title and start amount
+- [ ] Assign jackpots to: all hunts, specific hunts, hunts by affiliate, hunts within date range (month, year, all time)
+- [ ] Configure rollover amount to add when jackpot is not hit; currency pulled from general settings
+- [ ] Support multiple jackpots with CRUD operations
+- [ ] Shortcode to display current jackpot amount (filterable by jackpot ID)
+- [ ] Shortcode to display latest jackpot hit with toggle for date, amount, winner, and filters by affiliate/date
+- [ ] Shortcode ticker for jackpot amount or latest winners with auto-scrolling text
+- [ ] Shortcode to list latest jackpot winners with view mode (list/table) and column toggles (date, name, title, amount, affiliate)
 
-## 3) Tournaments (List · Edit)
-- ✅ List screen implements search, sorting, pagination, and actions (Edit, Close, Results, Delete). 【F:admin/views/tournaments.php†L144-L296】
-- ✅ Edit form exposes Title, Description, and Participants Mode options. 【F:admin/views/tournaments.php†L300-L380】
-- ⚠️ Type selector now offers requested options but still surfaces legacy values in some contexts; requires UX confirmation. 【F:admin/views/tournaments.php†L312-L375】
-- ✅ Database migration adds `participants_mode`. 【F:includes/class-bhg-db.php†L130-L139】【F:includes/class-bhg-db.php†L317-L324】
+## Core Bonus Hunt & Guessing System
+- [ ] Admin can create bonus hunts with title, starting balance, number of bonuses, prizes
+- [ ] Frontend displays active hunt details and leaderboard of guesses
+- [ ] Logged-in users can submit guesses between €0 and €100,000
+- [ ] Leaderboard shows position, username, and guess
 
-## 4) Users (Admin)
-- ✅ Custom `WP_List_Table` supports search, sortable columns, affiliate toggles, and 30-per-page pagination with navigation rendered above/below the table. 【F:admin/views/users.php†L21-L41】【F:admin/class-bhg-users-table.php†L27-L256】
+## User Profiles & Guessing Enhancements
+- [ ] Admin can manage user profiles with real name, username, email, affiliate status
+- [ ] Social login integration (Google, Twitch, Kick) via Nextend plugin
+- [ ] Users can alter guess while hunt is open
+- [ ] Leaderboard shows affiliate indicator (green for affiliates, red for non-affiliates)
+- [ ] Guess table supports sorting (position, username, balance) and pagination
 
-## 5) Affiliates (Sync)
-- ⚠️ Requires end-to-end testing to confirm affiliate CRUD updates propagate to user profiles; static review not conclusive.
+## Tournament & Leaderboard System
+- [ ] Support time-based tournaments (weekly, monthly, yearly)
+- [ ] Leaderboard columns sortable by position, username, wins
+- [ ] Rankings filterable by week, month, year
+- [ ] Display current tournament results and historical data
 
-## 6) Prizes (Admin · Frontend · Shortcode)
-- ⚠️ Admin CRUD and shortcode rendering present in codebase, but carousel/grid behavior and image sizing need runtime verification beyond static review.
+## Frontend Leaderboard Enhancements
+- [ ] Tabs for best guessers: Overall, Monthly, Yearly, All-Time
+- [ ] Tabs for viewing leaderboard history across previous hunts
 
-## 7) Shortcodes (Catalog & Pages)
-- ⚠️ Shortcode catalogue and required pages exist in code, yet comprehensive option coverage and page creation were not validated in this pass.
+## User Experience Improvements
+- [ ] Smart post-login redirect to originally requested page
+- [ ] Three menu configurations (Admin/Moderators, Logged-in Users, Guests) using WP menu system
+- [ ] Menu styling aligns with site borders/tabs design
+- [ ] Translation management tab to edit all plugin text fields
 
-## 8) Notifications
-- ⚠️ Email notification settings (including BCC) appear in code but were not exercised in this review.
+## Affiliate Adjustment/Upgrade
+- [ ] Admin can manage multiple affiliate websites (CRUD)
+- [ ] Bonus Hunt creation allows selecting affiliate site
+- [ ] User profiles show affiliate site assignments (multiple)
+- [ ] Frontend reflects affiliate status per hunt and influences display/ad targeting
 
-## 9) Ranking & Points
-- ⚠️ Ranking service logic and automated tests not executed during this verification cycle.
+## Final Enhancements and Polish
+- [ ] Automatic winner calculation based on proximity to final balance
+- [ ] Email notifications for results and wins
+- [ ] Performance optimizations and bug fixes
+- [ ] Styled input borders in Bonus Hunt admin
+- [ ] Advertising module: admin can add text with optional links, choose placement, control visibility by login/affiliate status
 
-## 10) Global CSS / Color Panel
-- ⚠️ Global style builder is referenced but not validated across components in this pass.
+## Backend Updates Requested (Robinbos – Sep 04)
+### `bhg` Dashboard
+- [ ] Rename sub-menu item from "Bonus Hunt" to "Dashboard"
+- [ ] Recent winners list displays multiple winners per hunt (up to 25)
+- [ ] Rename "Recent Winners" to "Latest Hunts"
+- [ ] Latest Hunts table includes title, winners (with guess & difference), start balance, final balance, closed date
 
-## 11) Currency System
-- ✅ Currency helpers provide EUR/USD toggle and formatting; dashboard uses them for money values. 【F:bonus-hunt-guesser.php†L1029-L1046】【F:admin/views/dashboard.php†L120-L184】
+### `bhg-bonus-hunts`
+- [ ] "Results" action button for finished hunts showing ranked guesses with winner highlighting
+- [ ] Configurable number of winners per hunt
+- [ ] Hunt edit view lists all guesses with ability to remove entries; usernames clickable for profile edit
+- [ ] Admin list table shows final balance column ("-" for open hunts)
 
-## 12) Database & Migrations
-- ✅ Migrations ensure `guessing_enabled`, `participants_mode`, `affiliate_id`, and hunt↔tournament mapping support via `BHG_DB`. 【F:includes/class-bhg-db.php†L80-L205】【F:includes/class-bhg-db.php†L269-L332】
-- ⚠️ Idempotence and live upgrade behavior still require database testing.
+### `bhg-tournaments`
+- [ ] Title field in admin
+- [ ] Description field in admin
+- [ ] Type field includes quarterly and all-time options
+- [ ] Remove redundant period field
+- [ ] Editing tournaments functions correctly
 
-## 13) Security & i18n
-- ⚠️ Spot checks show sanitization and escaping, but full audit outstanding.
+### `bhg-users`
+- [ ] Search functionality for users/email
+- [ ] Sort options for table
+- [ ] Pagination (30 per page)
 
-## 14) Backward Compatibility
-- ⚠️ Legacy data handling and safe defaults were not regression-tested in this review.
+### `bhg-ads`
+- [ ] Actions column with edit/remove buttons
+- [ ] Placement dropdown includes "None" option for shortcode-only ads
 
-## 15) Global UX Guarantees
-- ⚠️ Sorting/search/pagination confirmed for major admin tables, yet shortcode timeline filters and affiliate indicators need frontend verification.
+### `bhg-translations` & `bhg-tools`
+- [ ] Populate pages with relevant data per attachments (currently empty)
 
-## 16) Release & Docs
-- ⚠️ Changelog, readme, and “Info & Help” updates still need manual confirmation.
+## Additional Notes
+- [ ] All features adhere to WordPress coding standards
+- [ ] All requirements implemented without extra enhancements beyond customer specifications
 
-## 17) QA (Acceptance)
-- ⚠️ Winner-limit add-on partially implemented (settings, enforcement hooks, notices) but needs integration testing to confirm rolling windows and messaging. 【F:includes/class-bhg-models.php†L24-L249】【F:includes/helpers.php†L240-L347】
-- ⚠️ Other acceptance tests (currency switch, guessing toggle behavior, prizes FE grid/carousel, notifications) not executed.
-
-## Add-On: Winner Limits per User
-- ⚠️ Settings page and logging utilities exist for win limits, yet rolling-window accuracy and admin feedback still need end-to-end validation. 【F:includes/helpers.php†L240-L347】【F:includes/class-bhg-models.php†L24-L249】
-
-## Add-On: Jackpot Feature (New Module)
-- ❌ No jackpot schema, admin UI, hunt-close logic, or front-end shortcodes exist. Repository searches for “jackpot” only surface QA notes, confirming the module is outstanding. 【7a8486†L1-L10】
-
----
-
-### Follow-up Actions
-1. Add hunt/tournament selectors, timeframe filters, and the specified empty-state copy to the results screen to satisfy section 2.
-2. Remove or repurpose the legacy tournament `type` selector per section 3.
-3. Deliver the full jackpot module (schema, admin CRUD, hunt-close integration, shortcodes) per the add-on contract.
-4. Run PHPCS and execute functional/end-to-end tests for sections still flagged ⚠️.
