@@ -1500,7 +1500,11 @@ return ob_get_clean();
 					 * @return string HTML output.
 					 */
 		public function leaderboard_shortcode( $atts ) {
-				$a = shortcode_atts(
+               if ( ! is_array( $atts ) ) {
+                               $atts = array();
+               }
+
+               $a = shortcode_atts(
 					array(
 						'hunt_id'  => 0,
 						'orderby'  => 'guess', // guess|user|position.
@@ -1720,7 +1724,11 @@ return ob_get_clean();
 					 */
 				  // phpcs:disable
 				  public function user_guesses_shortcode( $atts ) {
-		$a = shortcode_atts(
+               if ( ! is_array( $atts ) ) {
+                               $atts = array();
+               }
+
+               $a = shortcode_atts(
 		  array(
 				  'id'       => 0,
 				  'aff'      => '',
