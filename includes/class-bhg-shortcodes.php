@@ -3861,14 +3861,19 @@ if ( ! empty( $row['is_winner'] ) ) {
 $classes[] = 'bhg-profile-row--winner';
 }
 
-echo '<tr class="' . esc_attr( implode( ' ', array_map( 'sanitize_html_class', $classes ) ) ) . '">';
-echo '<td>' . esc_html( $row['title'] ) . '</td>';
-echo '<td>' . esc_html( $guess_display ) . '</td>';
-echo '<td>' . ( null === $final_display ? '&mdash;' : esc_html( $final_display ) ) . '</td>';
-echo '<td>' . ( null === $diff_display ? '&mdash;' : esc_html( $diff_display ) ) . '</td>';
-echo '<td>' . ( $row['position'] > 0 ? (int) $row['position'] : '&mdash;' ) . '</td>';
-echo '<td>' . ( $closed_at ? esc_html( $closed_at ) : '&mdash;' ) . '</td>';
-echo '</tr>';
+            $final_cell   = null === $final_display ? '&mdash;' : esc_html( $final_display );
+            $diff_cell    = null === $diff_display ? '&mdash;' : esc_html( $diff_display );
+            $position_cell = $row['position'] > 0 ? esc_html( (string) (int) $row['position'] ) : '&mdash;';
+            $closed_cell  = $closed_at ? esc_html( $closed_at ) : '&mdash;';
+
+            echo '<tr class="' . esc_attr( implode( ' ', array_map( 'sanitize_html_class', $classes ) ) ) . '">';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( $guess_display ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_final_balance', 'Final Balance' ) ) . '">' . $final_cell . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . $diff_cell . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . $position_cell . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_closed_at', 'Closed At' ) ) . '">' . $closed_cell . '</td>';
+            echo '</tr>';
 }
 
 echo '</tbody></table>';
@@ -3916,16 +3921,19 @@ echo '<th>' . esc_html( bhg_t( 'label_rank', 'Rank' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</th>';
 echo '</tr></thead><tbody>';
 
-foreach ( $tournaments as $row ) {
-$last_win = $row['last_win_date'] ? mysql2date( get_option( 'date_format' ), $row['last_win_date'] ) : '';
-echo '<tr>';
-echo '<td>' . esc_html( $row['title'] ) . '</td>';
-echo '<td>' . esc_html( (int) $row['points'] ) . '</td>';
-echo '<td>' . esc_html( (int) $row['wins'] ) . '</td>';
-echo '<td>' . ( null === $row['rank'] ? '&mdash;' : esc_html( (string) (int) $row['rank'] ) ) . '</td>';
-echo '<td>' . ( $last_win ? esc_html( $last_win ) : '&mdash;' ) . '</td>';
-echo '</tr>';
-}
+        foreach ( $tournaments as $row ) {
+            $last_win     = $row['last_win_date'] ? mysql2date( get_option( 'date_format' ), $row['last_win_date'] ) : '';
+            $rank_cell    = null === $row['rank'] ? '&mdash;' : esc_html( (string) (int) $row['rank'] );
+            $last_win_cell = $last_win ? esc_html( $last_win ) : '&mdash;';
+
+            echo '<tr>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_tournament', 'Tournament' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . esc_html( (int) $row['points'] ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Wins' ) ) . '">' . esc_html( (int) $row['wins'] ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_cell . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_last_win', 'Last win' ) ) . '">' . $last_win_cell . '</td>';
+            echo '</tr>';
+        }
 
 echo '</tbody></table>';
 }
@@ -3972,20 +3980,24 @@ echo '<th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_closed_at', 'Closed At' ) ) . '</th>';
 echo '</tr></thead><tbody>';
 
-foreach ( $prizes as $row ) {
-$closed_at = $row['closed_at'] ? mysql2date( get_option( 'date_format' ), $row['closed_at'] ) : '';
-echo '<tr>';
-echo '<td>' . esc_html( $row['title'] ) . '</td>';
+        foreach ( $prizes as $row ) {
+            $closed_at      = $row['closed_at'] ? mysql2date( get_option( 'date_format' ), $row['closed_at'] ) : '';
             $category_label = BHG_Prizes::get_category_label( isset( $row['category'] ) ? $row['category'] : '' );
             if ( '' === $category_label && isset( $row['category'] ) ) {
-                    $category_label = ucwords( str_replace( '_', ' ', $row['category'] ) );
+                $category_label = ucwords( str_replace( '_', ' ', $row['category'] ) );
             }
-            echo '<td>' . esc_html( $category_label ) . '</td>';
-echo '<td>' . esc_html( $row['hunt_title'] ) . '</td>';
-echo '<td>' . ( $row['position'] > 0 ? esc_html( (string) (int) $row['position'] ) : '&mdash;' ) . '</td>';
-echo '<td>' . ( $closed_at ? esc_html( $closed_at ) : '&mdash;' ) . '</td>';
-echo '</tr>';
-}
+
+            $position_cell = $row['position'] > 0 ? esc_html( (string) (int) $row['position'] ) : '&mdash;';
+            $closed_cell   = $closed_at ? esc_html( $closed_at ) : '&mdash;';
+
+            echo '<tr>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_prize', 'Prize' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_category', 'Category' ) ) . '">' . esc_html( $category_label ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '">' . esc_html( $row['hunt_title'] ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . $position_cell . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_closed_at', 'Closed At' ) ) . '">' . $closed_cell . '</td>';
+            echo '</tr>';
+        }
 
 echo '</tbody></table>';
 }
@@ -4061,17 +4073,19 @@ echo '<th>' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_closed_at', 'Closed At' ) ) . '</th>';
 echo '</tr></thead><tbody>';
 
-foreach ( $wins as $row ) {
-$diff_display  = null === $row['difference'] ? null : call_user_func( $currency_callback, $row['difference'] );
-$closed_at     = $row['closed_at'] ? mysql2date( get_option( 'date_format' ), $row['closed_at'] ) : '';
+            foreach ( $wins as $row ) {
+                $diff_display  = null === $row['difference'] ? null : call_user_func( $currency_callback, $row['difference'] );
+                $closed_at     = $row['closed_at'] ? mysql2date( get_option( 'date_format' ), $row['closed_at'] ) : '';
+                $diff_cell     = null === $diff_display ? '&mdash;' : esc_html( $diff_display );
+                $closed_cell   = $closed_at ? esc_html( $closed_at ) : '&mdash;';
 
-echo '<tr>';
-echo '<td>' . esc_html( $row['title'] ) . '</td>';
-echo '<td>' . esc_html( (string) (int) $row['position'] ) . '</td>';
-echo '<td>' . ( null === $diff_display ? '&mdash;' : esc_html( $diff_display ) ) . '</td>';
-echo '<td>' . ( $closed_at ? esc_html( $closed_at ) : '&mdash;' ) . '</td>';
-echo '</tr>';
-}
+                echo '<tr>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . esc_html( (string) (int) $row['position'] ) . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_difference', 'Difference' ) ) . '">' . $diff_cell . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_closed_at', 'Closed At' ) ) . '">' . $closed_cell . '</td>';
+                echo '</tr>';
+            }
 
 echo '</tbody></table>';
 }
@@ -4086,17 +4100,19 @@ echo '<th>' . esc_html( bhg_t( 'label_rank', 'Rank' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</th>';
 echo '</tr></thead><tbody>';
 
-foreach ( $tournaments as $row ) {
-$last_win = $row['last_win_date'] ? mysql2date( get_option( 'date_format' ), $row['last_win_date'] ) : '';
+            foreach ( $tournaments as $row ) {
+                $last_win     = $row['last_win_date'] ? mysql2date( get_option( 'date_format' ), $row['last_win_date'] ) : '';
+                $rank_cell    = null === $row['rank'] ? '&mdash;' : esc_html( (string) (int) $row['rank'] );
+                $last_win_cell = $last_win ? esc_html( $last_win ) : '&mdash;';
 
-echo '<tr>';
-echo '<td>' . esc_html( $row['title'] ) . '</td>';
-echo '<td>' . esc_html( (string) (int) $row['points'] ) . '</td>';
-echo '<td>' . esc_html( (string) (int) $row['wins'] ) . '</td>';
-echo '<td>' . ( null === $row['rank'] ? '&mdash;' : esc_html( (string) (int) $row['rank'] ) ) . '</td>';
-echo '<td>' . ( $last_win ? esc_html( $last_win ) : '&mdash;' ) . '</td>';
-echo '</tr>';
-}
+                echo '<tr>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_tournament', 'Tournament' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . esc_html( (string) (int) $row['points'] ) . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Wins' ) ) . '">' . esc_html( (string) (int) $row['wins'] ) . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_cell . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_last_win', 'Last win' ) ) . '">' . $last_win_cell . '</td>';
+                echo '</tr>';
+            }
 
 echo '</tbody></table>';
 }
@@ -4471,13 +4487,13 @@ return ob_get_clean();
 												$user_name = $user->display_name;
 										}
 								}
-								echo '<tr>';
-								echo '<td>' . esc_html( $title ) . '</td>';
-								echo '<td>' . esc_html( $format_amount( $amount ) ) . '</td>';
-								echo '<td>' . esc_html( $user_name ) . '</td>';
-								echo '<td>' . esc_html( $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '' ) . '</td>';
-								echo '<td>' . esc_html( $hunt_title ) . '</td>';
-								echo '</tr>';
+            echo '<tr>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_title', 'Title' ) ) . '">' . esc_html( $title ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_amount', 'Amount' ) ) . '">' . esc_html( $format_amount( $amount ) ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_winner', 'Winner' ) ) . '">' . esc_html( $user_name ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_date', 'Date' ) ) . '">' . esc_html( $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '' ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '">' . esc_html( $hunt_title ) . '</td>';
+            echo '</tr>';
 						}
 						echo '</tbody></table>';
 

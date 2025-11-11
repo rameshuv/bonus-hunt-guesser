@@ -481,7 +481,10 @@
 .bhg-leaderboard,
 .bhg-tournaments,
 .bhg-user-guesses,
-.bhg-hunts {
+.bhg-hunts,
+.bhg-profile-table,
+.bhg-jackpot-winners-table,
+.bhg-user-profile-table {
     width: 100%;
     border-collapse: collapse;
 }
@@ -509,7 +512,9 @@
 .bhg-leaderboard th,
 .bhg-tournaments th,
 .bhg-user-guesses th,
-.bhg-hunts th {
+.bhg-hunts th,
+.bhg-profile-table th,
+.bhg-jackpot-winners-table th {
     text-align: left;
     border: 1px solid var(--bhg-accent-color);
     border-bottom: 2px solid var(--bhg-accent-color);
@@ -525,7 +530,11 @@
 .bhg-user-guesses th a,
 .bhg-user-guesses th a:visited,
 .bhg-hunts th a,
-.bhg-hunts th a:visited {
+.bhg-hunts th a:visited,
+.bhg-profile-table th a,
+.bhg-profile-table th a:visited,
+.bhg-jackpot-winners-table th a,
+.bhg-jackpot-winners-table th a:visited {
     color: #fff !important;
     text-decoration: none;
 }
@@ -533,7 +542,9 @@
 .bhg-leaderboard th.sortable > a,
 .bhg-tournaments th.sortable > a,
 .bhg-user-guesses th.sortable > a,
-.bhg-hunts th.sortable > a {
+.bhg-hunts th.sortable > a,
+.bhg-profile-table th.sortable > a,
+.bhg-jackpot-winners-table th.sortable > a {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -546,7 +557,11 @@
 .bhg-user-guesses th a:focus,
 .bhg-user-guesses th a:hover,
 .bhg-hunts th a:focus,
-.bhg-hunts th a:hover {
+.bhg-hunts th a:hover,
+.bhg-profile-table th a:focus,
+.bhg-profile-table th a:hover,
+.bhg-jackpot-winners-table th a:focus,
+.bhg-jackpot-winners-table th a:hover {
     color: #fff !important;
     text-decoration: underline;
 }
@@ -562,17 +577,23 @@
 .bhg-tournaments th.asc .bhg-sort-icon,
 .bhg-user-guesses th.asc .bhg-sort-icon,
 .bhg-hunts th.asc .bhg-sort-icon,
+.bhg-profile-table th.asc .bhg-sort-icon,
+.bhg-jackpot-winners-table th.asc .bhg-sort-icon,
 .bhg-leaderboard th.desc .bhg-sort-icon,
 .bhg-tournaments th.desc .bhg-sort-icon,
 .bhg-user-guesses th.desc .bhg-sort-icon,
-.bhg-hunts th.desc .bhg-sort-icon {
+.bhg-hunts th.desc .bhg-sort-icon,
+.bhg-profile-table th.desc .bhg-sort-icon,
+.bhg-jackpot-winners-table th.desc .bhg-sort-icon {
     opacity: 1;
 }
 
 .bhg-leaderboard td,
 .bhg-tournaments td,
 .bhg-user-guesses td,
-.bhg-hunts td {
+.bhg-hunts td,
+.bhg-profile-table td,
+.bhg-jackpot-winners-table td {
     padding: 6px;
     border-bottom: 1px solid #f1f5f9;
 }
@@ -593,14 +614,18 @@
 .bhg-leaderboard tr:nth-child(even),
 .bhg-tournaments tr:nth-child(even),
 .bhg-user-guesses tr:nth-child(even),
-.bhg-hunts tr:nth-child(even) {
+.bhg-hunts tr:nth-child(even),
+.bhg-profile-table tr:nth-child(even),
+.bhg-jackpot-winners-table tr:nth-child(even) {
     background-color: #f9fafb;
 }
 
 .bhg-leaderboard tr:hover,
 .bhg-tournaments tr:hover,
 .bhg-user-guesses tr:hover,
-.bhg-hunts tr:hover {
+.bhg-hunts tr:hover,
+.bhg-profile-table tr:hover,
+.bhg-jackpot-winners-table tr:hover {
     background-color: #eef2ff;
 }
 
@@ -629,14 +654,28 @@
     .bhg-hunts tbody,
     .bhg-hunts th,
     .bhg-hunts td,
-    .bhg-hunts tr {
+    .bhg-hunts tr,
+    .bhg-profile-table,
+    .bhg-profile-table thead,
+    .bhg-profile-table tbody,
+    .bhg-profile-table th,
+    .bhg-profile-table td,
+    .bhg-profile-table tr,
+    .bhg-jackpot-winners-table,
+    .bhg-jackpot-winners-table thead,
+    .bhg-jackpot-winners-table tbody,
+    .bhg-jackpot-winners-table th,
+    .bhg-jackpot-winners-table td,
+    .bhg-jackpot-winners-table tr {
         display: block;
     }
 
     .bhg-leaderboard thead tr,
     .bhg-tournaments thead tr,
     .bhg-user-guesses thead tr,
-    .bhg-hunts thead tr {
+    .bhg-hunts thead tr,
+    .bhg-profile-table thead tr,
+    .bhg-jackpot-winners-table thead tr {
         position: absolute;
         top: -9999px;
         left: -9999px;
@@ -645,7 +684,9 @@
     .bhg-leaderboard tr,
     .bhg-tournaments tr,
     .bhg-user-guesses tr,
-    .bhg-hunts tr {
+    .bhg-hunts tr,
+    .bhg-profile-table tr,
+    .bhg-jackpot-winners-table tr {
         border: 1px solid #e5e7eb;
         margin-bottom: 6px;
         border-radius: 6px;
@@ -655,23 +696,24 @@
     .bhg-leaderboard td,
     .bhg-tournaments td,
     .bhg-user-guesses td,
-    .bhg-hunts td {
+    .bhg-hunts td,
+    .bhg-profile-table td,
+    .bhg-jackpot-winners-table td {
         border: none;
         border-bottom: 1px solid #e5e7eb;
         position: relative;
-        padding-left: 50%;
-        white-space: pre-wrap;
+        padding: 12px 12px 12px 12px;
+        white-space: normal;
     }
 
     .bhg-leaderboard td::before,
     .bhg-tournaments td::before,
     .bhg-user-guesses td::before,
-    .bhg-hunts td::before {
-        position: absolute;
-        top: 6px;
-        left: 10px;
-        width: calc(50% - 20px);
-        white-space: nowrap;
+    .bhg-hunts td::before,
+    .bhg-profile-table td::before,
+    .bhg-jackpot-winners-table td::before {
+        display: block;
+        margin-bottom: 4px;
         font-weight: 600;
         color: var(--bhg-accent-color);
         content: attr(data-label);
@@ -680,8 +722,52 @@
     .bhg-leaderboard td:last-child,
     .bhg-tournaments td:last-child,
     .bhg-user-guesses td:last-child,
-    .bhg-hunts td:last-child {
+    .bhg-hunts td:last-child,
+    .bhg-profile-table td:last-child,
+    .bhg-jackpot-winners-table td:last-child {
         border-bottom: 0;
+    }
+}
+
+.bhg-user-profile-table th,
+.bhg-user-profile-table td {
+    padding: 6px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.bhg-user-profile-table th {
+    width: 40%;
+    background-color: #f9fafb;
+    font-weight: 600;
+}
+
+@media screen and (max-width: 782px) {
+    .bhg-user-profile-table,
+    .bhg-user-profile-table tbody,
+    .bhg-user-profile-table tr,
+    .bhg-user-profile-table th,
+    .bhg-user-profile-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .bhg-user-profile-table tr {
+        margin-bottom: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .bhg-user-profile-table th {
+        background-color: var(--bhg-accent-color);
+        color: #fff;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 6px 6px 0 0;
+    }
+
+    .bhg-user-profile-table td {
+        border: none;
+        padding: 10px;
     }
 }
 
