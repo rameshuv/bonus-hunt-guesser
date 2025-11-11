@@ -140,7 +140,7 @@ $notices = array(
 <div class="bhg-field">
 <label for="bhg_prize_heading_text"><?php echo esc_html( bhg_t( 'prize_heading_text', 'Custom heading text' ) ); ?></label>
 <input type="text" id="bhg_prize_heading_text" name="heading_text" value="<?php echo esc_attr( $display_settings['heading_text'] ); ?>" />
-<p class="description"><?php echo esc_html( bhg_t( 'prize_heading_help', 'Leave empty to use the default “Prizes” heading.' ) ); ?></p>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_heading_help', 'Leave empty to hide the heading.' ) ); ?></p>
 </div>
 <div class="bhg-field bhg-field--checkbox">
 <label>
