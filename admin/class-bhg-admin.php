@@ -350,9 +350,10 @@ class BHG_Admin {
 
 				$starting = (float) $starting_parsed;
 		}
-		$num_bonuses                  = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
-		$prizes                       = isset( $_POST['prizes'] ) ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
-				$affiliate_site       = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+                $num_bonuses                  = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
+                $has_prizes_field            = array_key_exists( 'prizes', $_POST );
+                $prizes                       = $has_prizes_field ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
+                                $affiliate_site       = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 				$tournament_ids_input = isset( $_POST['tournament_ids'] ) ? (array) wp_unslash( $_POST['tournament_ids'] ) : array();
 				$tournament_ids       = bhg_sanitize_tournament_ids( $tournament_ids_input );
 				$extract_prize_ids    = static function ( $field ) {
@@ -411,18 +412,22 @@ class BHG_Admin {
 					$status = 'open';
 				}
 
-				$data = array(
-					'title'             => $title,
-					'starting_balance'  => $starting,
-					'num_bonuses'       => $num_bonuses,
-					'prizes'            => $prizes,
-					'affiliate_site_id' => $affiliate_site,
-					'tournament_id'     => $primary_tournament_id,
-					'winners_count'     => $winners_count,
-					'guessing_enabled'  => $guessing_enabled,
-				);
+                                $data = array(
+                                        'title'             => $title,
+                                        'starting_balance'  => $starting,
+                                        'num_bonuses'       => $num_bonuses,
+                                        'affiliate_site_id' => $affiliate_site,
+                                        'tournament_id'     => $primary_tournament_id,
+                                        'winners_count'     => $winners_count,
+                                        'guessing_enabled'  => $guessing_enabled,
+                                );
 
-				$format = array( '%s', '%f', '%d', '%s', '%d', '%d', '%d', '%d' );
+                                $format = array( '%s', '%f', '%d', '%d', '%d', '%d', '%d' );
+
+                                if ( $has_prizes_field || ! $id ) {
+                                        $data['prizes'] = $has_prizes_field ? $prizes : '';
+                                        $format[]       = '%s';
+                                }
 
 				if ( null !== $final_balance ) {
 								$data['final_balance'] = $final_balance;

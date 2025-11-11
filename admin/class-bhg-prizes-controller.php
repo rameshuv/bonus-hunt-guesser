@@ -89,6 +89,13 @@ if ( ! class_exists( 'BHG_Prizes_Controller' ) ) {
                         $id       = isset( $_POST['prize_id'] ) ? absint( wp_unslash( $_POST['prize_id'] ) ) : 0;
                         $category = isset( $_POST['category'] ) ? sanitize_key( wp_unslash( $_POST['category'] ) ) : 'various';
 
+                        $image_large = 0;
+                        if ( isset( $_POST['image_large'] ) ) {
+                                $image_large = absint( wp_unslash( $_POST['image_large'] ) );
+                        } elseif ( isset( $_POST['image_big'] ) ) {
+                                $image_large = absint( wp_unslash( $_POST['image_big'] ) );
+                        }
+
                         $data = array(
                                 'title'                => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
                                 'description'          => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
@@ -100,7 +107,7 @@ if ( ! class_exists( 'BHG_Prizes_Controller' ) ) {
                                 'category_link_target' => isset( $_POST['category_link_target'] ) ? BHG_Prizes::sanitize_link_target( wp_unslash( $_POST['category_link_target'] ), '_self' ) : '_self',
                                 'image_small'          => isset( $_POST['image_small'] ) ? absint( wp_unslash( $_POST['image_small'] ) ) : 0,
                                 'image_medium'         => isset( $_POST['image_medium'] ) ? absint( wp_unslash( $_POST['image_medium'] ) ) : 0,
-                                'image_large'          => isset( $_POST['image_large'] ) ? absint( wp_unslash( $_POST['image_large'] ) ) : 0,
+                                'image_large'          => $image_large,
                                 'show_title'           => isset( $_POST['show_title'] ) ? 1 : 0,
                                 'show_description'     => isset( $_POST['show_description'] ) ? 1 : 0,
                                 'show_category'        => isset( $_POST['show_category'] ) ? 1 : 0,
