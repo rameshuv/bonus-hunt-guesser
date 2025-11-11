@@ -1654,15 +1654,27 @@ return ob_get_clean();
 											   echo '</form>';
 											   echo '<table class="bhg-leaderboard">';
 											   echo '<thead><tr>';
-					   foreach ( $fields as $field ) {
-								if ( 'position' === $field ) {
-										echo '<th class="sortable" data-column="position"><a href="' . esc_url( $toggle( 'position' ) ) . '">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</a></th>';
-								} elseif ( 'user' === $field ) {
-										echo '<th class="sortable" data-column="user"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</a></th>';
-								} elseif ( 'guess' === $field ) {
-										echo '<th class="sortable" data-column="guess"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
-								}
-					   }
+                                           foreach ( $fields as $field ) {
+                                                                if ( 'position' === $field ) {
+                                                                                $classes = array( 'sortable' );
+                                                                                if ( 'position' === $orderby_key ) {
+                                                                                                $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
+                                                                                }
+                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="position"><a href="' . esc_url( $toggle( 'position' ) ) . '">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</a></th>';
+                                                                } elseif ( 'user' === $field ) {
+                                                                                $classes = array( 'sortable' );
+                                                                                if ( 'user' === $orderby_key ) {
+                                                                                                $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
+                                                                                }
+                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="user"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</a></th>';
+                                                                } elseif ( 'guess' === $field ) {
+                                                                                $classes = array( 'sortable' );
+                                                                                if ( 'guess' === $orderby_key ) {
+                                                                                                $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
+                                                                                }
+                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="guess"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
+                                                                }
+                                           }
 						echo '</tr></thead><tbody>';
 
 												$pos       = $offset + 1;

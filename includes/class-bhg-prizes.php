@@ -1305,12 +1305,17 @@ class BHG_Prizes {
 	public static function save_prize( $data, $id = 0 ) {
 			global $wpdb;
 
-			$table = $wpdb->prefix . 'bhg_prizes';
+                        $table = $wpdb->prefix . 'bhg_prizes';
 
-						$defaults = array(
-							'title'                => '',
-							'description'          => '',
-							'category'             => 'various',
+                        if ( isset( $data['image_big'] ) && ! isset( $data['image_large'] ) ) {
+                                $data['image_large'] = $data['image_big'];
+                                unset( $data['image_big'] );
+                        }
+
+                                                $defaults = array(
+                                                        'title'                => '',
+                                                        'description'          => '',
+                                                        'category'             => 'various',
 							'link_url'             => '',
 							'link_target'          => '_self',
 							'click_action'         => 'link',
