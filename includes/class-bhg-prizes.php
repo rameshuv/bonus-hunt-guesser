@@ -1103,12 +1103,15 @@ $wp_size = 'medium';
 if ( 'small' === $size ) {
 $wp_size = 'thumbnail';
 } elseif ( 'big' === $size ) {
-$wp_size = 'large';
+$wp_size = 'bhg_prize_big';
 } else {
 $wp_size = $size;
 }
 
 $url = wp_get_attachment_image_url( $id, $wp_size );
+if ( ! $url && 'bhg_prize_big' === $wp_size ) {
+$url = wp_get_attachment_image_url( $id, 'large' );
+}
 if ( ! $url ) {
 $url = wp_get_attachment_url( $id );
 }
