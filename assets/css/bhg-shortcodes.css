@@ -702,8 +702,8 @@
         border: none;
         border-bottom: 1px solid #e5e7eb;
         position: relative;
-        padding-left: 50%;
-        white-space: pre-wrap;
+        padding: 12px 12px 12px 12px;
+        white-space: normal;
     }
 
     .bhg-leaderboard td::before,
@@ -712,11 +712,8 @@
     .bhg-hunts td::before,
     .bhg-profile-table td::before,
     .bhg-jackpot-winners-table td::before {
-        position: absolute;
-        top: 6px;
-        left: 10px;
-        width: calc(50% - 20px);
-        white-space: nowrap;
+        display: block;
+        margin-bottom: 4px;
         font-weight: 600;
         color: var(--bhg-accent-color);
         content: attr(data-label);
