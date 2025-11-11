@@ -923,24 +923,31 @@ if ( $show_title ) {
 echo '<h5 class="bhg-prize-title">' . esc_html( $prize->title ) . '</h5>';
 }
 if ( $show_category && $category ) {
-$category_label = esc_html( ucwords( str_replace( '_', ' ', $category ) ) );
-$category_link  = '';
-if ( BHG_Prizes::resolve_display_flag(
-isset( $display['category_links'] ) ? $display['category_links'] : null,
-! empty( $prize->category_link_url ),
-array_key_exists( 'category_links', $defaults ) ? $defaults['category_links'] : null
-) ) {
-$category_link = BHG_Prizes::get_category_link( $prize );
+$label_text = BHG_Prizes::get_category_label( $category );
+
+if ( '' === $label_text ) {
+$label_text = ucwords( str_replace( array( '_', '-' ), ' ', $category ) );
 }
-if ( $category_link ) {
+
+$category_label     = esc_html( $label_text );
+$category_link_data = BHG_Prizes::get_category_link_data( $prize );
+
+$link_allowed = BHG_Prizes::resolve_display_flag(
+isset( $display['category_links'] ) ? $display['category_links'] : null,
+$category_link_data['enabled'],
+array_key_exists( 'category_links', $defaults ) ? $defaults['category_links'] : null
+);
+
+if ( $link_allowed && $category_link_data['enabled'] && $category_link_data['url'] ) {
 $category_target = BHG_Prizes::resolve_link_target(
 isset( $display['category_target'] ) ? $display['category_target'] : 'inherit',
-isset( $prize->category_link_target ) ? $prize->category_link_target : '_self',
+$category_link_data['target'],
 isset( $defaults['category_target'] ) ? $defaults['category_target'] : 'inherit'
 );
 $rel = '_blank' === $category_target ? ' rel="noopener noreferrer"' : '';
-$category_label = '<a href="' . esc_url( $category_link ) . '" target="' . esc_attr( $category_target ) . '"' . $rel . '>' . $category_label . '</a>';
+$category_label = '<a href="' . esc_url( $category_link_data['url'] ) . '" target="' . esc_attr( $category_target ) . '"' . $rel . '>' . $category_label . '</a>';
 }
+
 echo '<div class="bhg-prize-category">' . $category_label . '</div>';
 }
 if ( $show_description && ! empty( $prize->description ) ) {
@@ -3424,9 +3431,9 @@ $atts,
 						$args = array();
 
 						$category = isset( $atts['category'] ) ? sanitize_key( $atts['category'] ) : '';
-						if ( $category && in_array( $category, BHG_Prizes::get_categories(), true ) ) {
-								$args['category'] = $category;
-						}
+                                                if ( $category && BHG_Prizes::category_exists( $category ) ) {
+                                                                $args['category'] = $category;
+                                                }
 
 						$active = isset( $atts['active'] ) ? strtolower( (string) $atts['active'] ) : 'yes';
 						if ( in_array( $active, array( 'yes', 'no', '1', '0' ), true ) ) {
@@ -3749,7 +3756,11 @@ foreach ( $prizes as $row ) {
 $closed_at = $row['closed_at'] ? mysql2date( get_option( 'date_format' ), $row['closed_at'] ) : '';
 echo '<tr>';
 echo '<td>' . esc_html( $row['title'] ) . '</td>';
-echo '<td>' . esc_html( ucwords( str_replace( '_', ' ', $row['category'] ) ) ) . '</td>';
+            $category_label = BHG_Prizes::get_category_label( isset( $row['category'] ) ? $row['category'] : '' );
+            if ( '' === $category_label && isset( $row['category'] ) ) {
+                    $category_label = ucwords( str_replace( '_', ' ', $row['category'] ) );
+            }
+            echo '<td>' . esc_html( $category_label ) . '</td>';
 echo '<td>' . esc_html( $row['hunt_title'] ) . '</td>';
 echo '<td>' . ( $row['position'] > 0 ? esc_html( (string) (int) $row['position'] ) : '&mdash;' ) . '</td>';
 echo '<td>' . ( $closed_at ? esc_html( $closed_at ) : '&mdash;' ) . '</td>';
