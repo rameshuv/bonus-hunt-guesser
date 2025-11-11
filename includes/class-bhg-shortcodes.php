@@ -1632,14 +1632,46 @@ return ob_get_clean();
 																	   return add_query_arg( $args, $base_url );
 															   };
 
-						wp_enqueue_style(
-							'bhg-shortcodes',
-							( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-							array(),
-							defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-						);
+                wp_enqueue_style(
+                                'bhg-shortcodes',
+                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                array(),
+                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                );
 
-											   ob_start();
+                $header_class = static function ( $key ) use ( $orderby_key, $direction_key ) {
+                                $classes = array( 'sortable' );
+                                if ( $orderby_key === $key ) {
+                                                $classes[] = ( 'desc' === strtolower( (string) $direction_key ) ) ? 'desc' : 'asc';
+                                }
+
+                                return implode( ' ', $classes );
+                };
+
+                $sort_icon_markup = static function ( $field, $label_text ) use ( $orderby_key, $direction_key ) {
+                                $state       = '';
+                                $direction   = strtolower( (string) $direction_key );
+                                if ( $orderby_key === $field ) {
+                                                $state = ( 'desc' === $direction ) ? 'desc' : 'asc';
+                                }
+
+                                $icon        = '↕';
+                                $sr_template = bhg_t( 'sort_state_none', 'Sortable column — %s' );
+
+                                if ( 'asc' === $state ) {
+                                                $icon        = '↑';
+                                                $sr_template = bhg_t( 'sort_state_ascending', 'Sorted ascending — %s' );
+                                } elseif ( 'desc' === $state ) {
+                                                $icon        = '↓';
+                                                $sr_template = bhg_t( 'sort_state_descending', 'Sorted descending — %s' );
+                                }
+
+                                $sr_text = sprintf( $sr_template, $label_text );
+
+                                return '<span class="bhg-sort-icon" aria-hidden="true">' . esc_html( $icon ) . '</span><span class="screen-reader-text">' . esc_html( $sr_text ) . '</span>';
+                };
+
+                ob_start();
 											   echo '<div class="bhg-leaderboard-wrapper">';
 											   echo '<form method="get" class="bhg-search-form">';
 											   foreach ( $_GET as $raw_key => $v ) {
@@ -1660,19 +1692,22 @@ return ob_get_clean();
                                                                                 if ( 'position' === $orderby_key ) {
                                                                                                 $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
                                                                                 }
-                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="position"><a href="' . esc_url( $toggle( 'position' ) ) . '">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</a></th>';
+                                                                                $label = bhg_t( 'sc_position', 'Position' );
+                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="position"><a href="' . esc_url( $toggle( 'position' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'position', $label ) . '</a></th>';
                                                                 } elseif ( 'user' === $field ) {
                                                                                 $classes = array( 'sortable' );
                                                                                 if ( 'user' === $orderby_key ) {
                                                                                                 $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
                                                                                 }
-                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="user"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</a></th>';
+                                                                                $label = bhg_t( 'sc_user', 'User' );
+                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="user"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'user', $label ) . '</a></th>';
                                                                 } elseif ( 'guess' === $field ) {
                                                                                 $classes = array( 'sortable' );
                                                                                 if ( 'guess' === $orderby_key ) {
                                                                                                 $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
                                                                                 }
-                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="guess"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
+                                                                                $label = bhg_t( 'sc_guess', 'Guess' );
+                                                                                echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="guess"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'guess', $label ) . '</a></th>';
                                                                 }
                                            }
 						echo '</tr></thead><tbody>';
@@ -2012,15 +2047,24 @@ return ob_get_clean();
 
 		$show_aff = $need_users;
 
-		wp_enqueue_style(
-				'bhg-shortcodes',
-				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				array(),
-				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-		);
+                                                wp_enqueue_style(
+                                                        'bhg-shortcodes',
+                                                        ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                                        array(),
+                                                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                                                );
 
-		ob_start();
-		  echo '<form method="get" class="bhg-search-form">';
+                                                $header_class = static function ( $key ) use ( $orderby_key, $direction_key ) {
+                                                        $classes = array( 'sortable' );
+                                                        if ( $orderby_key === $key ) {
+                                                                $classes[] = ( 'desc' === strtolower( (string) $direction_key ) ) ? 'desc' : 'asc';
+                                                        }
+
+                                                        return implode( ' ', $classes );
+                                                };
+
+                                                ob_start();
+                                                echo '<form method="get" class="bhg-search-form">';
 		  foreach ( $_GET as $raw_key => $v ) {
 				  $key = sanitize_key( wp_unslash( $raw_key ) );
 				  if ( in_array( $key, array( 'bhg_search', 'bhg_timeline' ), true ) ) {
@@ -2063,17 +2107,17 @@ return ob_get_clean();
 		  echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
 		  echo '</form>';
 
-		echo '<table class="bhg-user-guesses"><thead><tr>';
-		echo '<th><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
-		if ( $need_users ) {
-				echo '<th>' . esc_html( bhg_t( 'label_user', 'User' ) ) . '</th>';
-		}
-		echo '<th><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
-		if ( $need_site ) {
-				echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
-		}
-		echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</a></th>';
-		echo '<th><a href="' . esc_url( $toggle( 'difference' ) ) . '">' . esc_html( bhg_t( 'sc_difference', 'Difference' ) ) . '</a></th>';
+                echo '<table class="bhg-user-guesses"><thead><tr>';
+                echo '<th class="' . esc_attr( $header_class( 'hunt' ) ) . '"><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
+                if ( $need_users ) {
+                                echo '<th>' . esc_html( bhg_t( 'label_user', 'User' ) ) . '</th>';
+                }
+                echo '<th class="' . esc_attr( $header_class( 'guess' ) ) . '"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
+                if ( $need_site ) {
+                                echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
+                }
+                echo '<th class="' . esc_attr( $header_class( 'final' ) ) . '"><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</a></th>';
+                echo '<th class="' . esc_attr( $header_class( 'difference' ) ) . '"><a href="' . esc_url( $toggle( 'difference' ) ) . '">' . esc_html( bhg_t( 'sc_difference', 'Difference' ) ) . '</a></th>';
 		echo '</tr></thead><tbody>';
 
 						foreach ( $rows as $row ) {
@@ -2297,15 +2341,47 @@ return ob_get_clean();
 
 						$show_site = $need_site_field;
 
-						wp_enqueue_style(
-								'bhg-shortcodes',
-								( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-								array(),
-								defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-						);
+                                                wp_enqueue_style(
+                                                                'bhg-shortcodes',
+                                                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                                                array(),
+                                                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                                                );
 
-						ob_start();
-						echo '<form method="get" class="bhg-search-form">';
+                                                $header_class = static function ( $key ) use ( $orderby_key, $direction_key ) {
+                                                                $classes = array( 'sortable' );
+                                                                if ( $orderby_key === $key ) {
+                                                                                $classes[] = ( 'desc' === strtolower( (string) $direction_key ) ) ? 'desc' : 'asc';
+                                                                }
+
+                                                                return implode( ' ', $classes );
+                                                };
+
+                                                $sort_icon_markup = static function ( $field, $label_text ) use ( $orderby_key, $direction_key ) {
+                                                                $state       = '';
+                                                                $direction   = strtolower( (string) $direction_key );
+                                                                if ( $orderby_key === $field ) {
+                                                                                $state = ( 'desc' === $direction ) ? 'desc' : 'asc';
+                                                                }
+
+                                                                $icon        = '↕';
+                                                                $sr_template = bhg_t( 'sort_state_none', 'Sortable column — %s' );
+
+                                                                if ( 'asc' === $state ) {
+                                                                                $icon        = '↑';
+                                                                                $sr_template = bhg_t( 'sort_state_ascending', 'Sorted ascending — %s' );
+                                                                } elseif ( 'desc' === $state ) {
+                                                                                $icon        = '↓';
+                                                                                $sr_template = bhg_t( 'sort_state_descending', 'Sorted descending — %s' );
+                                                                }
+
+                                                                $sr_text = sprintf( $sr_template, $label_text );
+
+                                                                return '<span class="bhg-sort-icon" aria-hidden="true">' . esc_html( $icon ) . '</span><span class="screen-reader-text">' . esc_html( $sr_text ) . '</span>';
+                                                };
+
+                                                ob_start();
+                                                echo '<form method="get" class="bhg-search-form">';
 						foreach ( $_GET as $raw_key => $v ) {
 								$key = sanitize_key( wp_unslash( $raw_key ) );
 								if ( 'bhg_search' === $key ) {
@@ -2321,12 +2397,18 @@ return ob_get_clean();
 
 						echo '</form>';
 
-						echo '<table class="bhg-hunts"><thead><tr>';
-						echo '<th><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a></th>';
-						echo '<th><a href="' . esc_url( $toggle( 'start' ) ) . '">' . esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ) . '</a></th>';
-						echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ) . '</a></th>';
-						echo '<th><a href="' . esc_url( $toggle( 'winners' ) ) . '">' . esc_html( bhg_t( 'sc_winners', 'Winners' ) ) . '</a></th>';
-						echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
+                                                echo '<table class="bhg-hunts"><thead><tr>';
+                                                $title_label   = bhg_t( 'sc_title', 'Title' );
+                                                $start_label   = bhg_t( 'sc_start_balance', 'Start Balance' );
+                                                $final_label   = bhg_t( 'sc_final_balance', 'Final Balance' );
+                                                $winners_label = bhg_t( 'sc_winners', 'Winners' );
+                                                $status_label  = bhg_t( 'sc_status', 'Status' );
+
+                                                echo '<th class="' . esc_attr( $header_class( 'title' ) ) . '"><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( $title_label ) . $sort_icon_markup( 'title', $title_label ) . '</a></th>';
+                                                echo '<th class="' . esc_attr( $header_class( 'start' ) ) . '"><a href="' . esc_url( $toggle( 'start' ) ) . '">' . esc_html( $start_label ) . $sort_icon_markup( 'start', $start_label ) . '</a></th>';
+                                                echo '<th class="' . esc_attr( $header_class( 'final' ) ) . '"><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( $final_label ) . $sort_icon_markup( 'final', $final_label ) . '</a></th>';
+                                                echo '<th class="' . esc_attr( $header_class( 'winners' ) ) . '"><a href="' . esc_url( $toggle( 'winners' ) ) . '">' . esc_html( $winners_label ) . $sort_icon_markup( 'winners', $winners_label ) . '</a></th>';
+                                                echo '<th class="' . esc_attr( $header_class( 'status' ) ) . '"><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( $status_label ) . $sort_icon_markup( 'status', $status_label ) . '</a></th>';
 						echo '<th>' . esc_html( bhg_t( 'label_details', 'Details' ) ) . '</th>';
 						if ( $show_site ) {
 								echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
@@ -2877,14 +2959,37 @@ return ob_get_clean();
 								return add_query_arg( $args, $base_url );
 						};
 
-						wp_enqueue_style(
-								'bhg-shortcodes',
-								( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-								array(),
-								defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-						);
+                                                wp_enqueue_style(
+                                                                'bhg-shortcodes',
+                                                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                                                array(),
+                                                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                                                );
 
-						ob_start();
+                                                $sort_icon_markup = static function ( $field, $label_text ) use ( $orderby_key, $direction_key ) {
+                                                                $state       = '';
+                                                                $direction   = strtolower( (string) $direction_key );
+                                                                if ( $orderby_key === $field ) {
+                                                                                $state = ( 'desc' === $direction ) ? 'desc' : 'asc';
+                                                                }
+
+                                                                $icon        = '↕';
+                                                                $sr_template = bhg_t( 'sort_state_none', 'Sortable column — %s' );
+
+                                                                if ( 'asc' === $state ) {
+                                                                                $icon        = '↑';
+                                                                                $sr_template = bhg_t( 'sort_state_ascending', 'Sorted ascending — %s' );
+                                                                } elseif ( 'desc' === $state ) {
+                                                                                $icon        = '↓';
+                                                                                $sr_template = bhg_t( 'sort_state_descending', 'Sorted descending — %s' );
+                                                                }
+
+                                                                $sr_text = sprintf( $sr_template, $label_text );
+
+                                                                return '<span class="bhg-sort-icon" aria-hidden="true">' . esc_html( $icon ) . '</span><span class="screen-reader-text">' . esc_html( $sr_text ) . '</span>';
+                                                };
+
+                                                ob_start();
 						echo '<form method="get" class="bhg-search-form">';
 						foreach ( $_GET as $raw_key => $v ) {
 								$key = sanitize_key( wp_unslash( $raw_key ) );
@@ -2963,22 +3068,26 @@ return ob_get_clean();
 
 						echo '</form>';
 
-						echo '<table class="bhg-leaderboard">';
-						echo '<thead><tr>';
-						foreach ( $fields_arr as $field ) {
-								if ( 'pos' === $field ) {
-										echo '<th>' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
-								} elseif ( 'user' === $field ) {
-										echo '<th><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</a></th>';
-								} elseif ( 'wins' === $field ) {
-										echo '<th><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( bhg_t( 'label_times_won', 'Times Won' ) ) . '</a></th>';
-								} elseif ( 'avg_hunt' === $field ) {
-										echo '<th><a href="' . esc_url( $toggle( 'avg_hunt' ) ) . '">' . esc_html( bhg_t( 'sc_avg_rank', 'Avg Hunt Pos' ) ) . '</a></th>';
-								} elseif ( 'avg_tournament' === $field ) {
-										echo '<th><a href="' . esc_url( $toggle( 'avg_tournament' ) ) . '">' . esc_html( bhg_t( 'sc_avg_tournament_pos', 'Avg Tournament Pos' ) ) . '</a></th>';
-								} elseif ( 'aff' === $field ) {
-										echo '<th>' . esc_html( bhg_t( 'label_affiliate', 'Affiliate' ) ) . '</th>';
-								} elseif ( 'site' === $field ) {
+                                                echo '<table class="bhg-leaderboard">';
+                                                echo '<thead><tr>';
+                                                foreach ( $fields_arr as $field ) {
+                                                                if ( 'pos' === $field ) {
+                                                                                echo '<th>' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
+                                                                } elseif ( 'user' === $field ) {
+                                                                                $label = bhg_t( 'sc_user', 'User' );
+                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'user', $label ) . '</a></th>';
+                                                                } elseif ( 'wins' === $field ) {
+                                                                                $label = bhg_t( 'label_times_won', 'Times Won' );
+                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'wins', $label ) . '</a></th>';
+                                                                } elseif ( 'avg_hunt' === $field ) {
+                                                                                $label = bhg_t( 'sc_avg_rank', 'Avg Hunt Pos' );
+                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'avg_hunt' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'avg_hunt', $label ) . '</a></th>';
+                                                                } elseif ( 'avg_tournament' === $field ) {
+                                                                                $label = bhg_t( 'sc_avg_tournament_pos', 'Avg Tournament Pos' );
+                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'avg_tournament' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'avg_tournament', $label ) . '</a></th>';
+                                                                } elseif ( 'aff' === $field ) {
+                                                                                echo '<th>' . esc_html( bhg_t( 'label_affiliate', 'Affiliate' ) ) . '</th>';
+                                                                } elseif ( 'site' === $field ) {
 										echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
 								} elseif ( 'hunt' === $field ) {
 										echo '<th>' . esc_html( bhg_t( 'label_hunt', 'Hunt' ) ) . '</th>';
@@ -3133,20 +3242,20 @@ return ob_get_clean();
 								$rows = $wpdb->get_results( $query );
 
 								$base   = remove_query_arg( array( 'orderby', 'order' ) );
-								$toggle = function ( $key ) use ( $orderby, $order, $base ) {
-										$next = ( $orderby === $key && strtolower( $order ) === 'asc' ) ? 'desc' : 'asc';
-										return esc_url(
-												add_query_arg(
-														array(
-																'orderby' => $key,
-																'order'   => $next,
-														),
-														$base
-												)
-										);
-								};
+                                                                $toggle = function ( $key ) use ( $orderby, $order, $base ) {
+                                                                                $next = ( $orderby === $key && strtolower( $order ) === 'asc' ) ? 'desc' : 'asc';
+                                                                                return esc_url(
+                                                                                                add_query_arg(
+                                                                                                                array(
+                                                                                                                               'orderby' => $key,
+                                                                                                                               'order'   => $next,
+                                                                                                                ),
+                                                                                                                $base
+                                                                                                )
+                                                                                );
+                                                                };
 
-								ob_start();
+                                                                ob_start();
 								echo '<div class="bhg-tournament-details">';
 								echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
 								$heading = $tournament->title ? $tournament->title : bhg_t( 'label_tournament', 'Tournament' );
@@ -3193,12 +3302,37 @@ return ob_get_clean();
 										return ob_get_clean();
 								}
 
-								echo '<table class="bhg-leaderboard bhg-leaderboard--tournament">';
-								echo '<thead><tr>';
-								echo '<th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th>';
-								echo '<th><a href="' . esc_url( $toggle( 'username' ) ) . '">' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</a></th>';
-								echo '<th><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</a></th>';
-								echo '<th><a href="' . esc_url( $toggle( 'last_win_at' ) ) . '">' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</a></th>';
+                                                                $sort_icon_markup = static function ( $field, $label_text ) use ( $orderby, $order ) {
+                                                                                $state = '';
+                                                                                if ( $orderby === $field ) {
+                                                                                                $state = ( 'DESC' === strtoupper( (string) $order ) ) ? 'desc' : 'asc';
+                                                                                }
+
+                                                                                $icon        = '↕';
+                                                                                $sr_template = bhg_t( 'sort_state_none', 'Sortable column — %s' );
+
+                                                                                if ( 'asc' === $state ) {
+                                                                                                $icon        = '↑';
+                                                                                                $sr_template = bhg_t( 'sort_state_ascending', 'Sorted ascending — %s' );
+                                                                                } elseif ( 'desc' === $state ) {
+                                                                                                $icon        = '↓';
+                                                                                                $sr_template = bhg_t( 'sort_state_descending', 'Sorted descending — %s' );
+                                                                                }
+
+                                                                                $sr_text = sprintf( $sr_template, $label_text );
+
+                                                                                return '<span class="bhg-sort-icon" aria-hidden="true">' . esc_html( $icon ) . '</span><span class="screen-reader-text">' . esc_html( $sr_text ) . '</span>';
+                                                                };
+
+                                                                echo '<table class="bhg-leaderboard bhg-leaderboard--tournament">';
+                                                                echo '<thead><tr>';
+                                                                echo '<th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th>';
+                                                                $username_label = bhg_t( 'label_username', 'Username' );
+                                                                $wins_label     = bhg_t( 'sc_wins', 'Wins' );
+                                                                $last_win_label = bhg_t( 'label_last_win', 'Last win' );
+                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'username' ) ) . '">' . esc_html( $username_label ) . $sort_icon_markup( 'username', $username_label ) . '</a></th>';
+                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( $wins_label ) . $sort_icon_markup( 'wins', $wins_label ) . '</a></th>';
+                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'last_win_at' ) ) . '">' . esc_html( $last_win_label ) . $sort_icon_markup( 'last_win_at', $last_win_label ) . '</a></th>';
 								echo '</tr></thead><tbody>';
 
 								$pos = 1;
@@ -3328,8 +3462,8 @@ return ob_get_clean();
 							   $base_url = remove_query_arg( 'bhg_search', $base_url );
 					   }
 
-					   ob_start();
-					   echo '<form method="get" class="bhg-tournament-filters">';
+                                           ob_start();
+                                           echo '<form method="get" class="bhg-tournament-filters">';
 											   // Keep other query args.
 					   foreach ( $_GET as $raw_key => $v ) {
 							   $key = sanitize_key( wp_unslash( $raw_key ) );
@@ -3393,12 +3527,47 @@ return ob_get_clean();
 							   return add_query_arg( $args, $base_url );
 					   };
 
-			echo '<table class="bhg-tournaments">';
-			echo '<thead><tr>';
-			echo '<th><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</a></th>';
-			echo '<th><a href="' . esc_url( $toggle( 'start_date' ) ) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a></th>';
-			echo '<th><a href="' . esc_url( $toggle( 'end_date' ) ) . '">' . esc_html( bhg_t( 'sc_end', 'End' ) ) . '</a></th>';
-			echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
+                        $header_class = static function ( $key ) use ( $orderby_param, $order_param ) {
+                                        $classes = array( 'sortable' );
+                                        if ( $orderby_param === $key ) {
+                                                        $classes[] = ( 'DESC' === strtoupper( (string) $order_param ) ) ? 'desc' : 'asc';
+                                        }
+
+                                        return implode( ' ', $classes );
+                        };
+
+                        $sort_icon_markup = static function ( $field, $label_text ) use ( $orderby_param, $order_param ) {
+                                        $state = '';
+                                        if ( $orderby_param === $field ) {
+                                                        $state = ( 'DESC' === strtoupper( (string) $order_param ) ) ? 'desc' : 'asc';
+                                        }
+
+                                        $icon        = '↕';
+                                        $sr_template = bhg_t( 'sort_state_none', 'Sortable column — %s' );
+
+                                        if ( 'asc' === $state ) {
+                                                        $icon        = '↑';
+                                                        $sr_template = bhg_t( 'sort_state_ascending', 'Sorted ascending — %s' );
+                                        } elseif ( 'desc' === $state ) {
+                                                        $icon        = '↓';
+                                                        $sr_template = bhg_t( 'sort_state_descending', 'Sorted descending — %s' );
+                                        }
+
+                                        $sr_text = sprintf( $sr_template, $label_text );
+
+                                        return '<span class="bhg-sort-icon" aria-hidden="true">' . esc_html( $icon ) . '</span><span class="screen-reader-text">' . esc_html( $sr_text ) . '</span>';
+                        };
+
+                        echo '<table class="bhg-tournaments">';
+                        echo '<thead><tr>';
+                        $name_label   = bhg_t( 'label_name', 'Name' );
+                        $start_label  = bhg_t( 'sc_start', 'Start' );
+                        $end_label    = bhg_t( 'sc_end', 'End' );
+                        $status_label = bhg_t( 'sc_status', 'Status' );
+                        echo '<th class="' . esc_attr( $header_class( 'title' ) ) . '"><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( $name_label ) . $sort_icon_markup( 'title', $name_label ) . '</a></th>';
+                        echo '<th class="' . esc_attr( $header_class( 'start_date' ) ) . '"><a href="' . esc_url( $toggle( 'start_date' ) ) . '">' . esc_html( $start_label ) . $sort_icon_markup( 'start_date', $start_label ) . '</a></th>';
+                        echo '<th class="' . esc_attr( $header_class( 'end_date' ) ) . '"><a href="' . esc_url( $toggle( 'end_date' ) ) . '">' . esc_html( $end_label ) . $sort_icon_markup( 'end_date', $end_label ) . '</a></th>';
+                        echo '<th class="' . esc_attr( $header_class( 'status' ) ) . '"><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( $status_label ) . $sort_icon_markup( 'status', $status_label ) . '</a></th>';
 			echo '<th>' . esc_html( bhg_t( 'label_details', 'Details' ) ) . '</th>';
 			echo '</tr></thead><tbody>';
 

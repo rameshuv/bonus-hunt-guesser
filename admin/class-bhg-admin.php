@@ -351,8 +351,6 @@ class BHG_Admin {
 				$starting = (float) $starting_parsed;
 		}
                 $num_bonuses                  = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
-                $has_prizes_field            = array_key_exists( 'prizes', $_POST );
-                $prizes                       = $has_prizes_field ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
                                 $affiliate_site       = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 				$tournament_ids_input = isset( $_POST['tournament_ids'] ) ? (array) wp_unslash( $_POST['tournament_ids'] ) : array();
 				$tournament_ids       = bhg_sanitize_tournament_ids( $tournament_ids_input );
@@ -424,12 +422,7 @@ class BHG_Admin {
 
                                 $format = array( '%s', '%f', '%d', '%d', '%d', '%d', '%d' );
 
-                                if ( $has_prizes_field || ! $id ) {
-                                        $data['prizes'] = $has_prizes_field ? $prizes : '';
-                                        $format[]       = '%s';
-                                }
-
-				if ( null !== $final_balance ) {
+                                if ( null !== $final_balance ) {
 								$data['final_balance'] = $final_balance;
 								// Use a float format to match the stored value.
 								$format[] = '%f';
@@ -824,11 +817,12 @@ class BHG_Admin {
 			$title       = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
 			$description = isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '';
 			$category    = isset( $_POST['category'] ) ? sanitize_key( wp_unslash( $_POST['category'] ) ) : 'various';
-			$images      = array(
-				'image_small'  => isset( $_POST['image_small'] ) ? absint( wp_unslash( $_POST['image_small'] ) ) : 0,
-				'image_medium' => isset( $_POST['image_medium'] ) ? absint( wp_unslash( $_POST['image_medium'] ) ) : 0,
-				'image_large'  => isset( $_POST['image_large'] ) ? absint( wp_unslash( $_POST['image_large'] ) ) : 0,
-			);
+                        $images      = array(
+                                'image_small'  => isset( $_POST['image_small'] ) ? absint( wp_unslash( $_POST['image_small'] ) ) : 0,
+                                'image_medium' => isset( $_POST['image_medium'] ) ? absint( wp_unslash( $_POST['image_medium'] ) ) : 0,
+                                'image_large'  => isset( $_POST['image_large'] ) ? absint( wp_unslash( $_POST['image_large'] ) ) : 0,
+                                'image_big'    => isset( $_POST['image_big'] ) ? absint( wp_unslash( $_POST['image_big'] ) ) : 0,
+                        );
 
 			$css_settings = array(
 				'border'       => isset( $_POST['css_border'] ) ? wp_unslash( $_POST['css_border'] ) : '',
@@ -844,23 +838,23 @@ class BHG_Admin {
 			$category_link_url    = isset( $_POST['category_link_url'] ) ? esc_url_raw( wp_unslash( $_POST['category_link_url'] ) ) : '';
 			$category_link_target = isset( $_POST['category_link_target'] ) ? BHG_Prizes::sanitize_link_target( wp_unslash( $_POST['category_link_target'] ), '_self' ) : '_self';
 
-			$data = array(
-				'title'                => $title,
-				'description'          => $description,
-				'category'             => $category,
-				'link_url'             => $link_url,
-				'link_target'          => $link_target,
-				'click_action'         => $click_action,
-				'category_link_url'    => $category_link_url,
-				'category_link_target' => $category_link_target,
-				'image_small'          => $images['image_small'],
-				'image_medium'         => $images['image_medium'],
-				'image_large'          => $images['image_large'],
-				'show_title'           => isset( $_POST['show_title'] ) ? 1 : 0,
-				'show_description'     => isset( $_POST['show_description'] ) ? 1 : 0,
-				'show_category'        => isset( $_POST['show_category'] ) ? 1 : 0,
-				'show_image'           => isset( $_POST['show_image'] ) ? 1 : 0,
-				'css_settings'         => $css_settings,
+                        $data = array(
+                                'title'                => $title,
+                                'description'          => $description,
+                                'category'             => $category,
+                                'link_url'             => $link_url,
+                                'link_target'          => $link_target,
+                                'click_action'         => $click_action,
+                                'category_link_url'    => $category_link_url,
+                                'category_link_target' => $category_link_target,
+                                'image_small'          => $images['image_small'],
+                                'image_medium'         => $images['image_medium'],
+                                'image_large'          => $images['image_large'] ? $images['image_large'] : $images['image_big'],
+                                'show_title'           => isset( $_POST['show_title'] ) ? 1 : 0,
+                                'show_description'     => isset( $_POST['show_description'] ) ? 1 : 0,
+                                'show_category'        => isset( $_POST['show_category'] ) ? 1 : 0,
+                                'show_image'           => isset( $_POST['show_image'] ) ? 1 : 0,
+                                'css_settings'         => $css_settings,
 				'active'               => isset( $_POST['active'] ) ? 1 : 0,
 			);
 
