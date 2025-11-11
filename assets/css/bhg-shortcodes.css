@@ -530,6 +530,15 @@
     text-decoration: none;
 }
 
+.bhg-leaderboard th.sortable > a,
+.bhg-tournaments th.sortable > a,
+.bhg-user-guesses th.sortable > a,
+.bhg-hunts th.sortable > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
 .bhg-leaderboard th a:focus,
 .bhg-leaderboard th a:hover,
 .bhg-tournaments th a:focus,
@@ -542,39 +551,21 @@
     text-decoration: underline;
 }
 
-.bhg-leaderboard th a[href*="bhg_orderby"],
-.bhg-tournaments th a[href*="bhg_orderby"],
-.bhg-user-guesses th a[href*="bhg_orderby"],
-.bhg-hunts th a[href*="bhg_orderby"] {
+.bhg-sort-icon {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    position: relative;
-    cursor: pointer;
-}
-
-.bhg-leaderboard th a[href*="bhg_orderby"]::after,
-.bhg-tournaments th a[href*="bhg_orderby"]::after,
-.bhg-user-guesses th a[href*="bhg_orderby"]::after,
-.bhg-hunts th a[href*="bhg_orderby"]::after {
-    content: "\2195";
     font-size: 0.85em;
     opacity: 0.75;
 }
 
-.bhg-leaderboard th.asc a[href*="bhg_orderby"]::after,
-.bhg-tournaments th.asc a[href*="bhg_orderby"]::after,
-.bhg-user-guesses th.asc a[href*="bhg_orderby"]::after,
-.bhg-hunts th.asc a[href*="bhg_orderby"]::after {
-    content: "\2191";
-    opacity: 1;
-}
-
-.bhg-leaderboard th.desc a[href*="bhg_orderby"]::after,
-.bhg-tournaments th.desc a[href*="bhg_orderby"]::after,
-.bhg-user-guesses th.desc a[href*="bhg_orderby"]::after,
-.bhg-hunts th.desc a[href*="bhg_orderby"]::after {
-    content: "\2193";
+.bhg-leaderboard th.asc .bhg-sort-icon,
+.bhg-tournaments th.asc .bhg-sort-icon,
+.bhg-user-guesses th.asc .bhg-sort-icon,
+.bhg-hunts th.asc .bhg-sort-icon,
+.bhg-leaderboard th.desc .bhg-sort-icon,
+.bhg-tournaments th.desc .bhg-sort-icon,
+.bhg-user-guesses th.desc .bhg-sort-icon,
+.bhg-hunts th.desc .bhg-sort-icon {
     opacity: 1;
 }
 

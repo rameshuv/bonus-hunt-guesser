@@ -1307,8 +1307,11 @@ class BHG_Prizes {
 
                         $table = $wpdb->prefix . 'bhg_prizes';
 
-                        if ( isset( $data['image_big'] ) && ! isset( $data['image_large'] ) ) {
-                                $data['image_large'] = $data['image_big'];
+                        if ( isset( $data['image_big'] ) ) {
+                                $big_id = absint( $data['image_big'] );
+                                if ( empty( $data['image_large'] ) && $big_id > 0 ) {
+                                        $data['image_large'] = $big_id;
+                                }
                                 unset( $data['image_big'] );
                         }
 

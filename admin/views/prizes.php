@@ -387,9 +387,9 @@ $notices = array(
 				<button type="button" class="bhg-prize-modal__close" data-action="close" aria-label="<?php echo esc_attr( bhg_t( 'close_modal', 'Close modal' ) ); ?>">&times;</button>
 				<h2 id="bhg-prize-modal-title"><?php echo esc_html( bhg_t( 'add_new_prize', 'Add New Prize' ) ); ?></h2>
 				<div class="notice notice-error hidden" id="bhg-prize-error"><p></p></div>
-				<form id="bhg-prize-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-						<?php wp_nonce_field( 'bhg_prize_save', 'bhg_prize_nonce' ); ?>
-						<input type="hidden" name="action" value="bhg_prize_save" />
+                                <form id="bhg-prize-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                                            <?php wp_nonce_field( 'bhg_prize_save', 'bhg_prize_nonce' ); ?>
+                                            <input type="hidden" name="action" value="bhg_prize_save" />
 						<input type="hidden" name="prize_id" id="bhg_prize_id" value="0" />
 
 						<table class="form-table" role="presentation">
