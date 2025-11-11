@@ -526,10 +526,7 @@
 .bhg-user-guesses th a:visited,
 .bhg-hunts th a,
 .bhg-hunts th a:visited {
-.bhg-tournaments th a,
-.bhg-user-guesses th a,
-.bhg-hunts th a {
-    color: #fff;
+    color: #fff !important;
     text-decoration: none;
 }
 
@@ -541,8 +538,57 @@
 .bhg-user-guesses th a:hover,
 .bhg-hunts th a:focus,
 .bhg-hunts th a:hover {
-    color: #fff;
+    color: #fff !important;
     text-decoration: underline;
+}
+
+.bhg-leaderboard th.sortable,
+.bhg-tournaments th.sortable,
+.bhg-user-guesses th.sortable,
+.bhg-hunts th.sortable {
+    position: relative;
+    padding-right: 2rem;
+    cursor: pointer;
+}
+
+.bhg-leaderboard th.sortable > a,
+.bhg-tournaments th.sortable > a,
+.bhg-user-guesses th.sortable > a,
+.bhg-hunts th.sortable > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.bhg-leaderboard th.sortable::after,
+.bhg-tournaments th.sortable::after,
+.bhg-user-guesses th.sortable::after,
+.bhg-hunts th.sortable::after {
+    content: "\2195";
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 0.85em;
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.bhg-leaderboard th.sortable.asc::after,
+.bhg-tournaments th.sortable.asc::after,
+.bhg-user-guesses th.sortable.asc::after,
+.bhg-hunts th.sortable.asc::after {
+    content: "\2191";
+    opacity: 1;
+}
+
+.bhg-leaderboard th.sortable.desc::after,
+.bhg-tournaments th.sortable.desc::after,
+.bhg-user-guesses th.sortable.desc::after,
+.bhg-hunts th.sortable.desc::after {
+    content: "\2193";
+    opacity: 1;
 }
 
 .bhg-leaderboard td,
