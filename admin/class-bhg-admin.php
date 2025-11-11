@@ -31,7 +31,8 @@ class BHG_Admin {
 		add_action( 'admin_post_bhg_toggle_guessing', array( $this, 'handle_toggle_guessing' ) );
 		add_action( 'admin_post_bhg_save_ad', array( $this, 'handle_save_ad' ) );
 		add_action( 'admin_post_bhg_delete_ad', array( $this, 'handle_delete_ad' ) );
-		add_action( 'admin_post_bhg_save_prize', array( $this, 'handle_save_prize' ) );
+                add_action( 'admin_post_bhg_save_prize', array( $this, 'handle_save_prize' ) );
+                add_action( 'admin_post_bhg_prize_save', array( $this, 'handle_save_prize' ) );
 		add_action( 'admin_post_bhg_save_prize_settings', array( $this, 'handle_save_prize_settings' ) );
 		add_action( 'admin_post_bhg_prize_delete', array( $this, 'handle_delete_prize' ) );
 		add_action( 'admin_post_bhg_save_prize_category', array( $this, 'handle_save_prize_category' ) );
@@ -350,9 +351,10 @@ class BHG_Admin {
 
 				$starting = (float) $starting_parsed;
 		}
-		$num_bonuses                  = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
-		$prizes                       = isset( $_POST['prizes'] ) ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
-				$affiliate_site       = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
+                $num_bonuses                  = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
+                $has_prizes_field            = array_key_exists( 'prizes', $_POST );
+                $prizes                       = $has_prizes_field ? wp_kses_post( wp_unslash( $_POST['prizes'] ) ) : '';
+                                $affiliate_site       = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 				$tournament_ids_input = isset( $_POST['tournament_ids'] ) ? (array) wp_unslash( $_POST['tournament_ids'] ) : array();
 				$tournament_ids       = bhg_sanitize_tournament_ids( $tournament_ids_input );
 				$extract_prize_ids    = static function ( $field ) {
@@ -411,18 +413,22 @@ class BHG_Admin {
 					$status = 'open';
 				}
 
-				$data = array(
-					'title'             => $title,
-					'starting_balance'  => $starting,
-					'num_bonuses'       => $num_bonuses,
-					'prizes'            => $prizes,
-					'affiliate_site_id' => $affiliate_site,
-					'tournament_id'     => $primary_tournament_id,
-					'winners_count'     => $winners_count,
-					'guessing_enabled'  => $guessing_enabled,
-				);
+                                $data = array(
+                                        'title'             => $title,
+                                        'starting_balance'  => $starting,
+                                        'num_bonuses'       => $num_bonuses,
+                                        'affiliate_site_id' => $affiliate_site,
+                                        'tournament_id'     => $primary_tournament_id,
+                                        'winners_count'     => $winners_count,
+                                        'guessing_enabled'  => $guessing_enabled,
+                                );
 
-				$format = array( '%s', '%f', '%d', '%s', '%d', '%d', '%d', '%d' );
+                                $format = array( '%s', '%f', '%d', '%d', '%d', '%d', '%d' );
+
+                                if ( $has_prizes_field || ! $id ) {
+                                        $data['prizes'] = $has_prizes_field ? $prizes : '';
+                                        $format[]       = '%s';
+                                }
 
 				if ( null !== $final_balance ) {
 								$data['final_balance'] = $final_balance;
@@ -808,9 +814,21 @@ class BHG_Admin {
 				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
 		}
 
-		if ( ! check_admin_referer( 'bhg_save_prize', 'bhg_save_prize_nonce' ) ) {
-				wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', BHG_Utils::admin_url( 'admin.php?page=bhg-prizes' ) ) );
-				exit;
+		$nonce_valid = false;
+
+		if ( isset( $_POST['bhg_save_prize_nonce'] ) ) {
+			$nonce_value = sanitize_text_field( wp_unslash( $_POST['bhg_save_prize_nonce'] ) );
+			$nonce_valid = wp_verify_nonce( $nonce_value, 'bhg_save_prize' );
+		}
+
+		if ( ! $nonce_valid && isset( $_POST['bhg_prize_nonce'] ) ) {
+			$nonce_value = sanitize_text_field( wp_unslash( $_POST['bhg_prize_nonce'] ) );
+			$nonce_valid = wp_verify_nonce( $nonce_value, 'bhg_prize_save' );
+		}
+
+		if ( ! $nonce_valid ) {
+			wp_safe_redirect( add_query_arg( 'bhg_msg', 'nonce', BHG_Utils::admin_url( 'admin.php?page=bhg-prizes' ) ) );
+			exit;
 		}
 
 			$redirect = BHG_Utils::admin_url( 'admin.php?page=bhg-prizes' );
@@ -819,10 +837,17 @@ class BHG_Admin {
 			$title       = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
 			$description = isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '';
 			$category    = isset( $_POST['category'] ) ? sanitize_key( wp_unslash( $_POST['category'] ) ) : 'various';
-			$images      = array(
+			$image_large = 0;
+			if ( isset( $_POST['image_large'] ) ) {
+				$image_large = absint( wp_unslash( $_POST['image_large'] ) );
+			} elseif ( isset( $_POST['image_big'] ) ) {
+				$image_large = absint( wp_unslash( $_POST['image_big'] ) );
+			}
+
+			$images = array(
 				'image_small'  => isset( $_POST['image_small'] ) ? absint( wp_unslash( $_POST['image_small'] ) ) : 0,
 				'image_medium' => isset( $_POST['image_medium'] ) ? absint( wp_unslash( $_POST['image_medium'] ) ) : 0,
-				'image_large'  => isset( $_POST['image_large'] ) ? absint( wp_unslash( $_POST['image_large'] ) ) : 0,
+				'image_large'  => $image_large,
 			);
 
 			$css_settings = array(
