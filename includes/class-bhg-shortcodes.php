@@ -1632,14 +1632,23 @@ return ob_get_clean();
 																	   return add_query_arg( $args, $base_url );
 															   };
 
-						wp_enqueue_style(
-							'bhg-shortcodes',
-							( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-							array(),
-							defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-						);
+                wp_enqueue_style(
+                                'bhg-shortcodes',
+                                ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                array(),
+                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                );
 
-											   ob_start();
+                $header_class = static function ( $key ) use ( $orderby_key, $direction_key ) {
+                                $classes = array( 'sortable' );
+                                if ( $orderby_key === $key ) {
+                                                $classes[] = ( 'desc' === strtolower( (string) $direction_key ) ) ? 'desc' : 'asc';
+                                }
+
+                                return implode( ' ', $classes );
+                };
+
+                ob_start();
 											   echo '<div class="bhg-leaderboard-wrapper">';
 											   echo '<form method="get" class="bhg-search-form">';
 											   foreach ( $_GET as $raw_key => $v ) {
@@ -2012,15 +2021,24 @@ return ob_get_clean();
 
 		$show_aff = $need_users;
 
-		wp_enqueue_style(
-				'bhg-shortcodes',
-				( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
-				array(),
-				defined( 'BHG_VERSION' ) ? BHG_VERSION : null
-		);
+                                                wp_enqueue_style(
+                                                        'bhg-shortcodes',
+                                                        ( defined( 'BHG_PLUGIN_URL' ) ? BHG_PLUGIN_URL : plugins_url( '/', __FILE__ ) ) . 'assets/css/bhg-shortcodes.css',
+                                                        array(),
+                                                        defined( 'BHG_VERSION' ) ? BHG_VERSION : null
+                                                );
 
-		ob_start();
-		  echo '<form method="get" class="bhg-search-form">';
+                                                $header_class = static function ( $key ) use ( $orderby_key, $direction_key ) {
+                                                        $classes = array( 'sortable' );
+                                                        if ( $orderby_key === $key ) {
+                                                                $classes[] = ( 'desc' === strtolower( (string) $direction_key ) ) ? 'desc' : 'asc';
+                                                        }
+
+                                                        return implode( ' ', $classes );
+                                                };
+
+                                                ob_start();
+                                                echo '<form method="get" class="bhg-search-form">';
 		  foreach ( $_GET as $raw_key => $v ) {
 				  $key = sanitize_key( wp_unslash( $raw_key ) );
 				  if ( in_array( $key, array( 'bhg_search', 'bhg_timeline' ), true ) ) {
@@ -2063,17 +2081,17 @@ return ob_get_clean();
 		  echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
 		  echo '</form>';
 
-		echo '<table class="bhg-user-guesses"><thead><tr>';
-		echo '<th><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
-		if ( $need_users ) {
-				echo '<th>' . esc_html( bhg_t( 'label_user', 'User' ) ) . '</th>';
-		}
-		echo '<th><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
-		if ( $need_site ) {
-				echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
-		}
-		echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</a></th>';
-		echo '<th><a href="' . esc_url( $toggle( 'difference' ) ) . '">' . esc_html( bhg_t( 'sc_difference', 'Difference' ) ) . '</a></th>';
+                echo '<table class="bhg-user-guesses"><thead><tr>';
+                echo '<th class="' . esc_attr( $header_class( 'hunt' ) ) . '"><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
+                if ( $need_users ) {
+                                echo '<th>' . esc_html( bhg_t( 'label_user', 'User' ) ) . '</th>';
+                }
+                echo '<th class="' . esc_attr( $header_class( 'guess' ) ) . '"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
+                if ( $need_site ) {
+                                echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
+                }
+                echo '<th class="' . esc_attr( $header_class( 'final' ) ) . '"><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . '</a></th>';
+                echo '<th class="' . esc_attr( $header_class( 'difference' ) ) . '"><a href="' . esc_url( $toggle( 'difference' ) ) . '">' . esc_html( bhg_t( 'sc_difference', 'Difference' ) ) . '</a></th>';
 		echo '</tr></thead><tbody>';
 
 						foreach ( $rows as $row ) {
@@ -2321,12 +2339,12 @@ return ob_get_clean();
 
 						echo '</form>';
 
-						echo '<table class="bhg-hunts"><thead><tr>';
-						echo '<th><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a></th>';
-						echo '<th><a href="' . esc_url( $toggle( 'start' ) ) . '">' . esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ) . '</a></th>';
-						echo '<th><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ) . '</a></th>';
-						echo '<th><a href="' . esc_url( $toggle( 'winners' ) ) . '">' . esc_html( bhg_t( 'sc_winners', 'Winners' ) ) . '</a></th>';
-						echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
+                                                echo '<table class="bhg-hunts"><thead><tr>';
+                                                echo '<th class="' . esc_attr( $header_class( 'title' ) ) . '"><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'sc_title', 'Title' ) ) . '</a></th>';
+                                                echo '<th class="' . esc_attr( $header_class( 'start' ) ) . '"><a href="' . esc_url( $toggle( 'start' ) ) . '">' . esc_html( bhg_t( 'sc_start_balance', 'Start Balance' ) ) . '</a></th>';
+                                                echo '<th class="' . esc_attr( $header_class( 'final' ) ) . '"><a href="' . esc_url( $toggle( 'final' ) ) . '">' . esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ) . '</a></th>';
+                                                echo '<th class="' . esc_attr( $header_class( 'winners' ) ) . '"><a href="' . esc_url( $toggle( 'winners' ) ) . '">' . esc_html( bhg_t( 'sc_winners', 'Winners' ) ) . '</a></th>';
+                                                echo '<th class="' . esc_attr( $header_class( 'status' ) ) . '"><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
 						echo '<th>' . esc_html( bhg_t( 'label_details', 'Details' ) ) . '</th>';
 						if ( $show_site ) {
 								echo '<th>' . esc_html( bhg_t( 'label_site', 'Site' ) ) . '</th>';
@@ -3328,8 +3346,8 @@ return ob_get_clean();
 							   $base_url = remove_query_arg( 'bhg_search', $base_url );
 					   }
 
-					   ob_start();
-					   echo '<form method="get" class="bhg-tournament-filters">';
+                                           ob_start();
+                                           echo '<form method="get" class="bhg-tournament-filters">';
 											   // Keep other query args.
 					   foreach ( $_GET as $raw_key => $v ) {
 							   $key = sanitize_key( wp_unslash( $raw_key ) );
@@ -3393,12 +3411,21 @@ return ob_get_clean();
 							   return add_query_arg( $args, $base_url );
 					   };
 
-			echo '<table class="bhg-tournaments">';
-			echo '<thead><tr>';
-			echo '<th><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</a></th>';
-			echo '<th><a href="' . esc_url( $toggle( 'start_date' ) ) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a></th>';
-			echo '<th><a href="' . esc_url( $toggle( 'end_date' ) ) . '">' . esc_html( bhg_t( 'sc_end', 'End' ) ) . '</a></th>';
-			echo '<th><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
+                        $header_class = static function ( $key ) use ( $orderby_param, $order_param ) {
+                                        $classes = array( 'sortable' );
+                                        if ( $orderby_param === $key ) {
+                                                        $classes[] = ( 'DESC' === strtoupper( (string) $order_param ) ) ? 'desc' : 'asc';
+                                        }
+
+                                        return implode( ' ', $classes );
+                        };
+
+                        echo '<table class="bhg-tournaments">';
+                        echo '<thead><tr>';
+                        echo '<th class="' . esc_attr( $header_class( 'title' ) ) . '"><a href="' . esc_url( $toggle( 'title' ) ) . '">' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</a></th>';
+                        echo '<th class="' . esc_attr( $header_class( 'start_date' ) ) . '"><a href="' . esc_url( $toggle( 'start_date' ) ) . '">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</a></th>';
+                        echo '<th class="' . esc_attr( $header_class( 'end_date' ) ) . '"><a href="' . esc_url( $toggle( 'end_date' ) ) . '">' . esc_html( bhg_t( 'sc_end', 'End' ) ) . '</a></th>';
+                        echo '<th class="' . esc_attr( $header_class( 'status' ) ) . '"><a href="' . esc_url( $toggle( 'status' ) ) . '">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</a></th>';
 			echo '<th>' . esc_html( bhg_t( 'label_details', 'Details' ) ) . '</th>';
 			echo '</tr></thead><tbody>';
 
