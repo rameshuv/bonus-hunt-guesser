@@ -83,12 +83,6 @@ if ( isset( $_GET['message'] ) ) { // phpcs:ignore WordPress.Security.NonceVerif
 </label></th>
 <td><input type="number" name="num_bonuses" id="num_bonuses" min="1" value="10" required /></td>
 </tr>
-<tr>
-<th scope="row"><label for="prizes">
-<?php echo esc_html( bhg_t( 'label_prizes_description', 'Prizes Description' ) ); ?>
-</label></th>
-<td><textarea name="prizes" id="prizes" rows="5" class="large-text"></textarea></td>
-</tr>
 				<tr>
 					<th scope="row"><label for="status">
 					<?php

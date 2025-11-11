@@ -226,7 +226,7 @@ spl_autoload_register(
 			'BHG_Admin'                  => 'admin/class-bhg-admin.php',
 			'BHG_Demo'                   => 'admin/class-bhg-demo.php',
 			'BHG_Bonus_Hunts_Controller' => 'admin/class-bhg-bonus-hunts-controller.php',
-                        'BHG_Prizes_Controller'      => 'admin/class-bhg-bonus-hunts-controller.php',
+      'BHG_Prizes_Controller'      => 'admin/class-bhg-prizes-controller.php',
 			'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
 			'BHG_Logger'                 => 'includes/class-bhg-logger.php',
 			'BHG_Utils'                  => 'includes/class-bhg-utils.php',

@@ -526,7 +526,7 @@
 .bhg-user-guesses th a:visited,
 .bhg-hunts th a,
 .bhg-hunts th a:visited {
-    color: #fff;
+    color: #fff !important;
     text-decoration: none;
 }
 
@@ -538,7 +538,7 @@
 .bhg-user-guesses th a:hover,
 .bhg-hunts th a:focus,
 .bhg-hunts th a:hover {
-    color: #fff;
+    color: #fff !important;
     text-decoration: underline;
 }
 
