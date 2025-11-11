@@ -138,8 +138,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 						$title                         = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
 						$starting_balance              = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
 						$num_bonuses                   = absint( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
-									$prizes            = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
-									$status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
+                                $status            = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
 									$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
 									$result = $db->create_bonus_hunt(
@@ -147,7 +146,6 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 											'title'       => $title,
 											'starting_balance' => $starting_balance,
 											'num_bonuses' => $num_bonuses,
-											'prizes'      => $prizes,
 											'status'      => $status,
 											'affiliate_site_id' => $affiliate_site_id,
 											'created_by'  => get_current_user_id(),
@@ -163,8 +161,7 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 						$title            = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
 						$starting_balance = floatval( wp_unslash( $_POST['starting_balance'] ?? 0 ) );
 					$num_bonuses          = absint( wp_unslash( $_POST['num_bonuses'] ?? 0 ) );
-					$prizes               = sanitize_textarea_field( wp_unslash( $_POST['prizes'] ?? '' ) );
-					$status               = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
+                                        $status               = sanitize_text_field( wp_unslash( $_POST['status'] ?? '' ) );
 					$final_balance        = isset( $_POST['final_balance'] ) ? floatval( wp_unslash( $_POST['final_balance'] ) ) : null;
 					$affiliate_site_id    = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 
@@ -174,7 +171,6 @@ if ( ! class_exists( 'BHG_Bonus_Hunts_Controller' ) ) {
 							'title'             => $title,
 							'starting_balance'  => $starting_balance,
 							'num_bonuses'       => $num_bonuses,
-							'prizes'            => $prizes,
 							'status'            => $status,
 							'final_balance'     => $final_balance,
 							'affiliate_site_id' => $affiliate_site_id,
