@@ -328,6 +328,36 @@ body.modal-open {
     margin-bottom: 16px;
 }
 
+.bhg-prize-categories-panel {
+    background: #ffffff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    margin-top: 24px;
+    padding: 20px 24px;
+}
+
+.bhg-prize-categories-panel h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.bhg-prize-categories-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.bhg-category-form,
+.bhg-category-list {
+    flex: 1 1 320px;
+    min-width: 280px;
+}
+
+.bhg-category-list .inline-block {
+    display: inline-block;
+    margin-left: 6px;
+}
+
 .bhg-prize-settings-grid {
     display: grid;
     gap: 16px;
