@@ -115,26 +115,38 @@ if ( ! function_exists( 'bhg_sanitize_tournament_id' ) ) {
 }
 
 if ( ! function_exists( 'bhg_sanitize_tournament_ids' ) ) {
-	/**
-	 * Sanitize a list of tournament IDs.
-	 *
-	 * @param mixed $ids Raw IDs or array of IDs.
-	 * @return int[] Sanitized, unique IDs.
-	 */
-	function bhg_sanitize_tournament_ids( $ids ) {
-		$ids        = is_array( $ids ) ? $ids : array( $ids );
-		$normalized = array();
+        /**
+         * Sanitize a list of tournament IDs.
+         *
+         * @param mixed $ids Raw IDs or array of IDs.
+         * @return int[] Sanitized, unique IDs.
+         */
+        function bhg_sanitize_tournament_ids( $ids ) {
+                $ids        = is_array( $ids ) ? $ids : array( $ids );
+                $normalized = array();
 
-		foreach ( $ids as $id ) {
-			$id = bhg_sanitize_tournament_id( $id );
-			if ( $id > 0 ) {
-				$normalized[ $id ] = $id;
-			}
-		}
+                foreach ( $ids as $id ) {
+                        $id = bhg_sanitize_tournament_id( $id );
+                        if ( $id > 0 ) {
+                                $normalized[ $id ] = $id;
+                        }
+                }
 
-		return array_values( $normalized );
-	}
+                return array_values( $normalized );
+        }
 }
+
+if ( ! function_exists( 'bhg_register_prize_image_size' ) ) {
+        /**
+         * Register custom image sizes used by the plugin.
+         *
+         * @return void
+         */
+        function bhg_register_prize_image_size() {
+                add_image_size( 'bhg_prize_big', 1200, 800, true );
+        }
+}
+add_action( 'after_setup_theme', 'bhg_register_prize_image_size' );
 
 // Ensure canonical DB class is loaded.
 require_once __DIR__ . '/includes/class-bhg-db.php';

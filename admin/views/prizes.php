@@ -308,7 +308,7 @@ $notices = array(
 $image_fields = array(
 'small'  => bhg_t( 'image_small_label', 'Small (300×200)' ),
 'medium' => bhg_t( 'image_medium_label', 'Medium (600×400)' ),
-'big'    => bhg_t( 'image_large_label', 'Large (900×600)' ),
+        'big'    => bhg_t( 'image_large_label', 'Big (1200×800)' ),
 );
 														foreach ( $image_fields as $size => $label ) :
 																$field_id = 'bhg_image_' . $size;
