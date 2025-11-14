@@ -2830,19 +2830,20 @@ return ob_get_clean();
 								}
 						}
 
-						// Optional timeline filter.
-			$prep_where = array( 'closed' );
-			$where      = array(
-				'hw.eligible = 1',
-				'h.status = %s',
-			);
-                        $range           = $this->get_timeline_range( $timeline_filter );
-                        $win_date_column = 'COALESCE(h.closed_at, hw.created_at, h.created_at)';
-                        if ( $range ) {
-                                        $where[]      = $win_date_column . ' BETWEEN %s AND %s';
-                                        $prep_where[] = $range['start'];
-                                        $prep_where[] = $range['end'];
-                        }
+                                                // Optional timeline filter.
+                                                $prep_where        = array( 'closed' );
+                                                $where             = array(
+                                                                'hw.eligible = 1',
+                                                                'h.status = %s',
+                                                );
+                                                $win_date_expr     = 'CASE WHEN h.closed_at IS NOT NULL THEN h.closed_at WHEN hw.created_at IS NOT NULL THEN hw.created_at ELSE h.created_at END';
+                                                $win_date_expr_sub = 'CASE WHEN h2.closed_at IS NOT NULL THEN h2.closed_at WHEN hw2.created_at IS NOT NULL THEN hw2.created_at ELSE h2.created_at END';
+                                                $range             = $this->get_timeline_range( $timeline_filter );
+                                                if ( $range ) {
+                                                                $where[]      = $win_date_expr . ' BETWEEN %s AND %s';
+                                                                $prep_where[] = $range['start'];
+                                                                $prep_where[] = $range['end'];
+                                                }
 
 						if ( '' !== $search ) {
 								$where[]      = 'u.user_login LIKE %s';
@@ -2962,9 +2963,9 @@ return ob_get_clean();
 								$tour_join = '';
 						}
 
-			$sub_filters   = array(
-				$wpdb->prepare( 'h2.status = %s', 'closed' ),
-			);
+                                                $sub_filters   = array(
+                                                                $wpdb->prepare( 'h2.status = %s', 'closed' ),
+                                                );
 			if ( $tournament_id > 0 ) {
 				$sub_filters[] = $wpdb->prepare( '(ht2.tournament_id = %d OR (ht2.hunt_id IS NULL AND h2.tournament_id = %d))', $tournament_id, $tournament_id );
 			}
@@ -2974,9 +2975,9 @@ return ob_get_clean();
 						if ( $website_id > 0 ) {
 								$sub_filters[] = $wpdb->prepare( 'h2.affiliate_site_id = %d', $website_id );
 						}
-                        if ( $range ) {
-                                        $sub_filters[] = $wpdb->prepare( 'COALESCE(h2.closed_at, hw2.created_at, h2.created_at) BETWEEN %s AND %s', $range['start'], $range['end'] );
-                        }
+                                                if ( $range ) {
+                                                                $sub_filters[] = $wpdb->prepare( $win_date_expr_sub . ' BETWEEN %s AND %s', $range['start'], $range['end'] );
+                                                }
                                                 $sub_where_parts = array(
                                                                 'hw2.user_id = wins.user_id',
                                                                 'hw2.eligible = 1',
@@ -2986,21 +2987,21 @@ return ob_get_clean();
 						}
 						$sub_where_sql = ' WHERE ' . implode( ' AND ', $sub_where_parts );
 
-						if ( $need_site_details ) {
-                                        $site_subquery_template = "(SELECT %s FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$w} w2 ON w2.id = h2.affiliate_site_id{$sub_where_sql} ORDER BY COALESCE(h2.closed_at, hw2.created_at, h2.created_at) DESC, hw2.id DESC LIMIT 1)";
+                                                if ( $need_site_details ) {
+                                                                $site_subquery_template = "(SELECT %s FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$w} w2 ON w2.id = h2.affiliate_site_id{$sub_where_sql} ORDER BY {$win_date_expr_sub} DESC, hw2.id DESC LIMIT 1)";
 								$select_parts[]         = sprintf( $site_subquery_template, 'h2.affiliate_site_id' ) . ' AS site_id';
 								if ( $need_site ) {
 										$select_parts[] = sprintf( $site_subquery_template, 'w2.name' ) . ' AS site_name';
 								}
 						}
 
-						if ( $need_hunt_name ) {
-                                        $select_parts[] = "(SELECT h2.title FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id{$sub_where_sql} ORDER BY COALESCE(h2.closed_at, hw2.created_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS hunt_title";
+                                                if ( $need_hunt_name ) {
+                                                                $select_parts[] = "(SELECT h2.title FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id{$sub_where_sql} ORDER BY {$win_date_expr_sub} DESC, hw2.id DESC LIMIT 1) AS hunt_title";
 						}
 
-						if ( $need_tournament_name ) {
-								$tournament_where_sql = $sub_where_sql . ' AND (ht2.tournament_id IS NOT NULL OR h2.tournament_id IS NOT NULL)';
-                                        $select_parts[]       = "(SELECT COALESCE(t2.title, t2_legacy.title) FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$t} t2 ON t2.id = ht2.tournament_id LEFT JOIN {$t} t2_legacy ON t2_legacy.id = h2.tournament_id{$tournament_where_sql} ORDER BY COALESCE(h2.closed_at, hw2.created_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS tournament_title";
+                                                if ( $need_tournament_name ) {
+                                                                $tournament_where_sql = $sub_where_sql . ' AND (ht2.tournament_id IS NOT NULL OR h2.tournament_id IS NOT NULL)';
+                                                                $select_parts[]       = "(SELECT COALESCE(t2.title, t2_legacy.title) FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$t} t2 ON t2.id = ht2.tournament_id LEFT JOIN {$t} t2_legacy ON t2_legacy.id = h2.tournament_id{$tournament_where_sql} ORDER BY {$win_date_expr_sub} DESC, hw2.id DESC LIMIT 1) AS tournament_title";
 						}
 
                                                 $select_sql = 'SELECT ' . implode( ', ', $select_parts ) . ' FROM (' . $prepared_sub_sql . ') wins INNER JOIN ' . $u . ' u ON u.ID = wins.user_id';
