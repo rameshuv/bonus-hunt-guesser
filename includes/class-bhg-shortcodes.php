@@ -259,6 +259,89 @@ return '1';
 }
 
 /**
+ * Normalizes the `filters` attribute for the leaderboard shortcode.
+ *
+ * Accepts comma-, space-, or newline-delimited values and supports
+ * minor variations such as "affiliate-site" or "affiliate status".
+ * Returns `null` when the shortcode attribute is omitted so the
+ * caller can fall back to default filters.
+ *
+ * @param mixed $filters_input Raw filters attribute value.
+ * @return array|null Normalized filter keys (timeline, tournament,
+ *                    site, affiliate) or `null` if the defaults should
+ *                    be used.
+ */
+private function normalize_leaderboard_filters( $filters_input ) {
+if ( null === $filters_input ) {
+return null;
+}
+
+if ( is_array( $filters_input ) ) {
+$filters_attr = implode( ',', $filters_input );
+} else {
+$filters_attr = (string) $filters_input;
+}
+
+$filters_attr = trim( $filters_attr );
+if ( '' === $filters_attr ) {
+return array();
+}
+
+$filters_attr = strtolower( $filters_attr );
+$filters_attr = str_replace(
+array(
+'affiliate status',
+'affiliate statuses',
+'affiliate site',
+'affiliate sites',
+),
+array(
+'affiliate_status',
+'affiliate_statuses',
+'affiliate_site',
+'affiliate_sites',
+),
+$filters_attr
+);
+$filters_attr = str_replace( '-', '_', $filters_attr );
+
+$raw_tokens = wp_parse_list( $filters_attr );
+if ( empty( $raw_tokens ) ) {
+return array();
+}
+
+$token_map = array(
+'timeline'           => 'timeline',
+'timelines'          => 'timeline',
+'tournament'         => 'tournament',
+'tournaments'        => 'tournament',
+'affiliate_site'     => 'site',
+'affiliate_sites'    => 'site',
+'site'               => 'site',
+'sites'              => 'site',
+'affiliate_status'   => 'affiliate',
+'affiliate_statuses' => 'affiliate',
+'affiliate'          => 'affiliate',
+);
+
+$normalized = array();
+foreach ( $raw_tokens as $token ) {
+$token = trim( (string) $token );
+if ( '' === $token ) {
+continue;
+}
+
+if ( isset( $token_map[ $token ] ) ) {
+$normalized[] = $token_map[ $token ];
+}
+}
+
+return array_values( array_unique( $normalized ) );
+}
+
+
+
+/**
  * Normalize a click action shortcode attribute.
  *
  * @param mixed $value Raw attribute value.
@@ -2514,40 +2597,12 @@ return ob_get_clean();
                                                $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament', 'aff' );
                                }
 
-                               $default_filters = array( 'timeline', 'tournament', 'site', 'affiliate' );
-                               $enabled_filters = $default_filters;
-                               $filters_input   = array_key_exists( 'filters', $atts ) ? $atts['filters'] : null;
-                               if ( null !== $filters_input ) {
-                                               $filters_attr = trim( (string) $filters_input );
-                                               if ( '' === $filters_attr ) {
-                                                               $enabled_filters = array();
-                                               } else {
-                                                               $token_map = array(
-                                                                                               'timeline'         => 'timeline',
-                                                                                               'timelines'        => 'timeline',
-                                                                                               'tournament'       => 'tournament',
-                                                                                               'tournaments'      => 'tournament',
-                                                                                               'affiliate_site'   => 'site',
-                                                                                               'affiliate_sites'  => 'site',
-                                                                                               'site'             => 'site',
-                                                                                               'sites'            => 'site',
-                                                                                               'affiliate_status' => 'affiliate',
-                                                                                               'affiliate'        => 'affiliate',
-                                                               );
-                                                               $custom_filters = array();
-                                                               $filters_clean  = str_replace( '-', '_', strtolower( $filters_attr ) );
-                                                               $raw_tokens     = wp_parse_list( $filters_clean );
-                                                               foreach ( $raw_tokens as $raw_token ) {
-                                                                               $token = trim( (string) $raw_token );
-                                                                               if ( '' === $token ) {
-                                                                                               continue;
-                                                                               }
-                                                                               if ( isset( $token_map[ $token ] ) ) {
-                                                                                               $custom_filters[] = $token_map[ $token ];
-                                                                               }
-                                                               }
-                                                               $enabled_filters = array_values( array_unique( $custom_filters ) );
-                                               }
+                               $default_filters    = array( 'timeline', 'tournament', 'site', 'affiliate' );
+                               $enabled_filters    = $default_filters;
+                               $filters_input      = array_key_exists( 'filters', $atts ) ? $atts['filters'] : null;
+                               $normalized_filters = $this->normalize_leaderboard_filters( $filters_input );
+                               if ( null !== $normalized_filters ) {
+                                               $enabled_filters = $normalized_filters;
                                }
 
 						global $wpdb;
