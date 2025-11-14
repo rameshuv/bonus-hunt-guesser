@@ -2478,10 +2478,10 @@ return ob_get_clean();
 					 * @return string HTML output.
 					 */
 				public function leaderboards_shortcode( $atts ) {
-					   $a = shortcode_atts(
-							   array(
-									   'fields'     => 'pos,user,wins,avg_hunt,avg_tournament',
-										'ranking'    => 1,
+                                               $a = shortcode_atts(
+                                                               array(
+                                                                               'fields'     => 'pos,user,wins,avg_hunt,avg_tournament',
+                                                                               'ranking'    => 0,
 										'timeline'   => '',
 										'orderby'    => 'wins',
 										'order'      => 'DESC',
@@ -2550,8 +2550,8 @@ return ob_get_clean();
 
 						$timeline_filter = ( 'all_time' === $timeline ) ? '' : $timeline;
 
-						$limit  = min( 10, max( 1, (int) $a['ranking'] ) );
-						$offset = 0;
+                                               $ranking_limit = max( 0, (int) $a['ranking'] );
+                                               $offset        = 0;
 
 						$orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
 						$order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
@@ -2831,14 +2831,21 @@ return ob_get_clean();
 								$total = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$prep_where ) );
 						}
 
-						if ( $total <= 0 ) {
-								return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
-						}
+                                               if ( $total <= 0 ) {
+                                                               return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+                                               }
 
-						$select_parts = array(
-								'hw.user_id',
-								'u.user_login',
-								'COUNT(*) AS total_wins',
+                                               if ( $ranking_limit > 0 ) {
+                                                               $limit = min( $ranking_limit, $total );
+                                               } else {
+                                                               $limit = $total;
+                                               }
+                                               $limit = max( 1, $limit );
+
+                                               $select_parts = array(
+                                                               'hw.user_id',
+                                                               'u.user_login',
+                                                               'COUNT(*) AS total_wins',
 						);
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
@@ -3097,15 +3104,28 @@ return ob_get_clean();
 						}
 						echo '</tr></thead><tbody>';
 
-						$pos = $offset + 1;
-						foreach ( $rows as $row ) {
-								if ( $need_aff ) {
-										$site_id = isset( $row->site_id ) ? (int) $row->site_id : 0;
-										$aff     = bhg_render_affiliate_dot( (int) $row->user_id, $site_id );
-								}
-										/* translators: %d: user ID. */
-										$user_label = $row->user_login ? $row->user_login : sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-										echo '<tr>';
+                                               $pos      = $offset + 1;
+                                               $charset  = get_bloginfo( 'charset' );
+                                               $charset  = $charset ? $charset : 'UTF-8';
+                                               foreach ( $rows as $row ) {
+                                                               if ( $need_aff ) {
+                                                                               $site_id = isset( $row->site_id ) ? (int) $row->site_id : 0;
+                                                                               $aff     = bhg_render_affiliate_dot( (int) $row->user_id, $site_id );
+                                                               }
+                                                                               /* translators: %d: user ID. */
+                                                                               if ( ! empty( $row->user_login ) ) {
+                                                                                               $user_label = (string) $row->user_login;
+                                                                                               if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
+                                                                                                               $first_char = mb_substr( $user_label, 0, 1, $charset );
+                                                                                                               $rest       = mb_substr( $user_label, 1, null, $charset );
+                                                                                                               $user_label = mb_strtoupper( $first_char, $charset ) . $rest;
+                                                                                               } else {
+                                                                                                               $user_label = ucfirst( $user_label );
+                                                                                               }
+                                                                               } else {
+                                                                                               $user_label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+                                                                               }
+                                                                               echo '<tr>';
 				foreach ( $fields_arr as $field ) {
 					if ( 'pos' === $field ) {
 						echo '<td>' . (int) $pos . '</td>';
@@ -3114,9 +3134,9 @@ return ob_get_clean();
 										} elseif ( 'wins' === $field ) {
 												echo '<td>' . (int) $row->total_wins . '</td>';
 										} elseif ( 'avg_hunt' === $field ) {
-												echo '<td>' . ( isset( $row->avg_hunt_pos ) ? esc_html( number_format_i18n( (float) $row->avg_hunt_pos, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                                                                                echo '<td>' . ( isset( $row->avg_hunt_pos ) ? esc_html( number_format_i18n( (float) $row->avg_hunt_pos, 0 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 										} elseif ( 'avg_tournament' === $field ) {
-												echo '<td>' . ( isset( $row->avg_tournament_pos ) ? esc_html( number_format_i18n( (float) $row->avg_tournament_pos, 2 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                                                                                echo '<td>' . ( isset( $row->avg_tournament_pos ) ? esc_html( number_format_i18n( (float) $row->avg_tournament_pos, 0 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 										} elseif ( 'aff' === $field ) {
 														echo '<td>' . wp_kses_post( $aff ) . '</td>';
 										} elseif ( 'site' === $field ) {
