@@ -2885,28 +2885,28 @@ return ob_get_clean();
 						}
 			$aff_yes_list = implode( ',', $aff_yes_sql );
 
-						$joins = array(
-								"INNER JOIN {$h} h ON h.id = hw.hunt_id",
-								"INNER JOIN {$u} u ON u.ID = hw.user_id",
-						);
+                                               $joins = array(
+                                                               "INNER JOIN {$h} h ON h.id = hw.hunt_id",
+                                                               "INNER JOIN {$u} u ON u.ID = hw.user_id",
+                                               );
 
-						if ( $tournament_id > 0 ) {
-								$joins[]     = "LEFT JOIN {$ht} ht ON ht.hunt_id = h.id";
-								$where[]      = '(ht.tournament_id = %d OR (ht.hunt_id IS NULL AND h.tournament_id = %d))';
-								$prep_where[] = $tournament_id;
-								$prep_where[] = $tournament_id;
-						}
+                                               if ( $tournament_id > 0 ) {
+                                                                $joins[]     = "LEFT JOIN {$ht} ht ON ht.hunt_id = h.id";
+                                                                $where[]      = '(ht.tournament_id = %d OR (ht.hunt_id IS NULL AND h.tournament_id = %d))';
+                                                                $prep_where[] = $tournament_id;
+                                                                $prep_where[] = $tournament_id;
+                                               }
 
-						if ( 'yes' === $aff_filter || 'true' === $aff_filter || '1' === $aff_filter ) {
-								$joins[]   = "INNER JOIN {$um} um_aff ON um_aff.user_id = u.ID AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
-								$where[] = "CAST(um_aff.meta_value AS CHAR) IN ({$aff_yes_list})";
-						} elseif ( 'no' === $aff_filter || 'false' === $aff_filter || '0' === $aff_filter ) {
-								$joins[]   = "LEFT JOIN {$um} um_aff ON um_aff.user_id = u.ID AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
-								$where[]   = "(um_aff.user_id IS NULL OR CAST(um_aff.meta_value AS CHAR) = '' OR CAST(um_aff.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
-						}
+                                               if ( 'yes' === $aff_filter || 'true' === $aff_filter || '1' === $aff_filter ) {
+                                                                $joins[]   = "INNER JOIN {$um} um_aff ON um_aff.user_id = u.ID AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+                                                                $where[] = "CAST(um_aff.meta_value AS CHAR) IN ({$aff_yes_list})";
+                                               } elseif ( 'no' === $aff_filter || 'false' === $aff_filter || '0' === $aff_filter ) {
+                                                                $joins[]   = "LEFT JOIN {$um} um_aff ON um_aff.user_id = u.ID AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+                                                                $where[]   = "(um_aff.user_id IS NULL OR CAST(um_aff.meta_value AS CHAR) = '' OR CAST(um_aff.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
+                                               }
 
-                                               $where_sql      = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
-                                               $base_joins_sql = ' ' . implode( ' ', $joins ) . ' ';
+                                               $joins_sql = implode( ' ', $joins );
+                                               $where_sql = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
 
                                                $sub_select_parts = array(
                                                                'hw.user_id',
@@ -2918,11 +2918,10 @@ return ob_get_clean();
                                                                $sub_select_parts[] = 'AVG(hw.position) AS avg_hunt_pos';
                                                }
 
-                                               $sub_sql = 'SELECT ' . implode( ', ', $sub_select_parts ) . " FROM {$hw} hw{$base_joins_sql}{$where_sql} GROUP BY hw.user_id";
+                                               $sub_sql = 'SELECT ' . implode( ', ', $sub_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id";
 
-                                               if ( empty( $prep_where ) ) {
-                                                               $prepared_sub_sql = $sub_sql;
-                                               } else {
+                                               $prepared_sub_sql = $sub_sql;
+                                               if ( ! empty( $prep_where ) ) {
                                                                $prepared_sub_sql = $wpdb->prepare( $sub_sql, ...$prep_where );
                                                }
 
