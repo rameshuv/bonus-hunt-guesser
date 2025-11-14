@@ -341,6 +341,65 @@ private function normalize_prize_layout( $layout ) {
 
 
 
+if ( in_array( $keyword, array( 'none', 'no', 'false', '0' ), true ) ) {
+return array();
+}
+
+$filters_attr = $keyword;
+$filters_attr = str_replace(
+array(
+'affiliate status',
+'affiliate statuses',
+'affiliate site',
+'affiliate sites',
+),
+array(
+'affiliate_status',
+'affiliate_statuses',
+'affiliate_site',
+'affiliate_sites',
+),
+$filters_attr
+);
+$filters_attr = str_replace( '-', '_', $filters_attr );
+
+$raw_tokens = wp_parse_list( $filters_attr );
+if ( empty( $raw_tokens ) ) {
+return array();
+}
+
+$token_map = array(
+'timeline'           => 'timeline',
+'timelines'          => 'timeline',
+'tournament'         => 'tournament',
+'tournaments'        => 'tournament',
+'affiliate_site'     => 'site',
+'affiliate_sites'    => 'site',
+'site'               => 'site',
+'sites'              => 'site',
+'affiliate_status'   => 'affiliate',
+'affiliate_statuses' => 'affiliate',
+'affiliate'          => 'affiliate',
+'affiliates'         => 'affiliate',
+);
+
+$normalized = array();
+foreach ( $raw_tokens as $token ) {
+$token = trim( (string) $token );
+if ( '' === $token ) {
+continue;
+}
+
+if ( isset( $token_map[ $token ] ) ) {
+$normalized[] = $token_map[ $token ];
+}
+}
+
+return array_values( array_unique( $normalized ) );
+}
+
+
+
 /**
  * Normalize a click action shortcode attribute.
  *
