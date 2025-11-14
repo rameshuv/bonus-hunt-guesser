@@ -322,6 +322,7 @@ $token_map = array(
 'affiliate_status'   => 'affiliate',
 'affiliate_statuses' => 'affiliate',
 'affiliate'          => 'affiliate',
+'affiliates'         => 'affiliate',
 );
 
 $normalized = array();
