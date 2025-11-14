@@ -9,62 +9,63 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-				exit;
-			}
+		exit;
+}
 
 if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
+	/**
+	 * Handles shortcode registration and rendering.
+	 */
+	class BHG_Shortcodes {
+
 		/**
-		 * Handles shortcode registration and rendering.
+		 * Flag to prevent enqueueing prize assets multiple times per request.
+		 *
+		 * @var bool
 		 */
-		class BHG_Shortcodes {
+		private $prize_assets_enqueued = false;
 
-				/**
-				 * Flag to prevent enqueueing prize assets multiple times per request.
-				 *
-				 * @var bool
-				 */
-				private $prize_assets_enqueued = false;
+		/**
+		 * Cached profile visibility settings.
+		 *
+		 * @var array|null
+		 */
+		private $profile_visibility_settings = null;
 
-				/**
-				 * Cached profile visibility settings.
-				 *
-				 * @var array|null
-				 */
-				private $profile_visibility_settings = null;
+		/**
+		 * Registers all shortcodes.
+		 */
+		public function __construct() {
+			// Core shortcodes.
+			add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
+			add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
+			add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+			add_shortcode( 'bhg_tournaments', array( $this, 'tournaments_shortcode' ) );
+			add_shortcode( 'bhg_winner_notifications', array( $this, 'winner_notifications_shortcode' ) );
+			add_shortcode( 'bhg_user_profile', array( $this, 'user_profile_shortcode' ) );
 
-						/**
-						 * Registers all shortcodes.
-						 */
-				public function __construct() {
-				// Core shortcodes.
-				add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
-				add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
-				add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
-				add_shortcode( 'bhg_tournaments', array( $this, 'tournaments_shortcode' ) );
-				add_shortcode( 'bhg_winner_notifications', array( $this, 'winner_notifications_shortcode' ) );
-				add_shortcode( 'bhg_user_profile', array( $this, 'user_profile_shortcode' ) );
+			// Addons.
+			add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
+			add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
+			add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
+			add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
+			add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
+			add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
+			add_shortcode( 'my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
+			add_shortcode( 'my_prizes', array( $this, 'my_prizes_shortcode' ) );
+			add_shortcode( 'my_rankings', array( $this, 'my_rankings_shortcode' ) );
+			add_shortcode( 'bhg_jackpot_current', array( $this, 'jackpot_current_shortcode' ) );
+			add_shortcode( 'bhg_jackpot_latest', array( $this, 'jackpot_latest_shortcode' ) );
+			add_shortcode( 'bhg_jackpot_ticker', array( $this, 'jackpot_ticker_shortcode' ) );
+			add_shortcode( 'bhg_jackpot_winners', array( $this, 'jackpot_winners_shortcode' ) );
 
-				// Addons.
-				add_shortcode( 'bhg_best_guessers', array( $this, 'best_guessers_shortcode' ) );
-				add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
-								add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
-								add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
-								add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
-								add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
-								add_shortcode( 'my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
-								add_shortcode( 'my_prizes', array( $this, 'my_prizes_shortcode' ) );
-								add_shortcode( 'my_rankings', array( $this, 'my_rankings_shortcode' ) );
-								add_shortcode( 'bhg_jackpot_current', array( $this, 'jackpot_current_shortcode' ) );
-								add_shortcode( 'bhg_jackpot_latest', array( $this, 'jackpot_latest_shortcode' ) );
-								add_shortcode( 'bhg_jackpot_ticker', array( $this, 'jackpot_ticker_shortcode' ) );
-								add_shortcode( 'bhg_jackpot_winners', array( $this, 'jackpot_winners_shortcode' ) );
-
-								// Legacy/aliases.
-								add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
-				add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
-				add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
+			// Legacy/aliases.
+			add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
+			add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
+			add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
 		}
+
 		/**
 		 * Validates a database table name against known tables.
 		 *
@@ -2517,29 +2518,34 @@ return ob_get_clean();
                                                $enabled_filters   = $default_filters;
                                                $filters_attr      = isset( $a['filters'] ) ? (string) $a['filters'] : '';
                                                $filters_supplied  = array_key_exists( 'filters', $atts );
-				if ( $filters_supplied ) {
-					if ( '' === $filters_attr ) {
-						$enabled_filters = array();
-					} else {
-						$tokens          = array_filter( array_map( 'trim', explode( ',', strtolower( $filters_attr ) ) ) );
-						$token_map       = array(
-							'timeline'          => 'timeline',
-							'tournament'        => 'tournament',
-							'affiliate_site'    => 'site',
-							'site'              => 'site',
-							'affiliate_status'  => 'affiliate',
-							'affiliate'         => 'affiliate',
-						);
-						$custom_filters  = array();
+			if ( $filters_supplied ) {
+				if ( '' === $filters_attr ) {
+					$enabled_filters = array();
+				} else {
+					$tokens    = preg_split( '/[\s,]+/', strtolower( $filters_attr ) );
+					$token_map = array(
+						'timeline'         => 'timeline',
+						'tournament'       => 'tournament',
+						'affiliate_site'   => 'site',
+						'site'             => 'site',
+						'affiliate_status' => 'affiliate',
+						'affiliate'        => 'affiliate',
+					);
+					$custom_filters = array();
+					if ( $tokens ) {
 						foreach ( $tokens as $token ) {
-							$normalized_token = str_replace( array( ' ', '-' ), '_', $token );
+							$normalized_token = str_replace( '-', '_', trim( $token ) );
+							if ( '' === $normalized_token ) {
+								continue;
+							}
 							if ( isset( $token_map[ $normalized_token ] ) ) {
 								$custom_filters[] = $token_map[ $normalized_token ];
 							}
 						}
-						$enabled_filters = array_values( array_unique( $custom_filters ) );
 					}
+					$enabled_filters = array_values( array_unique( $custom_filters ) );
 				}
+			}
 
 						global $wpdb;
 
