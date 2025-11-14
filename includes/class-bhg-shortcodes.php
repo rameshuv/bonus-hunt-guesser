@@ -341,6 +341,8 @@ private function normalize_prize_layout( $layout ) {
 
 
 
+
+
 /**
  * Normalize a click action shortcode attribute.
  *
