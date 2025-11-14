@@ -2912,7 +2912,7 @@ return ob_get_clean();
 
                                                $sub_select_parts = array(
                                                                'hw.user_id',
-                                                               'COUNT(DISTINCT hw.hunt_id) AS total_wins',
+                                                               'COUNT(*) AS total_wins',
                                                );
 
                                                if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
