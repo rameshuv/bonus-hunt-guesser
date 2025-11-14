@@ -2514,38 +2514,40 @@ return ob_get_clean();
                                                $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament', 'aff' );
                                }
 
-                                               $default_filters   = array( 'timeline', 'tournament', 'site', 'affiliate' );
-                                               $enabled_filters   = $default_filters;
-                                               $filters_attr      = isset( $a['filters'] ) ? (string) $a['filters'] : '';
-                                               $filters_supplied  = array_key_exists( 'filters', $atts );
-			if ( $filters_supplied ) {
-				if ( '' === $filters_attr ) {
-					$enabled_filters = array();
-				} else {
-					$tokens    = preg_split( '/[\s,]+/', strtolower( $filters_attr ) );
-					$token_map = array(
-						'timeline'         => 'timeline',
-						'tournament'       => 'tournament',
-						'affiliate_site'   => 'site',
-						'site'             => 'site',
-						'affiliate_status' => 'affiliate',
-						'affiliate'        => 'affiliate',
-					);
-					$custom_filters = array();
-					if ( $tokens ) {
-						foreach ( $tokens as $token ) {
-							$normalized_token = str_replace( '-', '_', trim( $token ) );
-							if ( '' === $normalized_token ) {
-								continue;
-							}
-							if ( isset( $token_map[ $normalized_token ] ) ) {
-								$custom_filters[] = $token_map[ $normalized_token ];
-							}
-						}
-					}
-					$enabled_filters = array_values( array_unique( $custom_filters ) );
-				}
-			}
+                                               $default_filters  = array( 'timeline', 'tournament', 'site', 'affiliate' );
+                                               $enabled_filters  = $default_filters;
+                                               $filters_supplied = array_key_exists( 'filters', $atts );
+                                               if ( $filters_supplied ) {
+                                                               $filters_attr = isset( $a['filters'] ) ? trim( (string) $a['filters'] ) : '';
+                                                               if ( '' === $filters_attr ) {
+                                                                               $enabled_filters = array();
+                                                               } else {
+                                                                               $token_map = array(
+                                                                                               'timeline'         => 'timeline',
+                                                                                               'timelines'        => 'timeline',
+                                                                                               'tournament'       => 'tournament',
+                                                                                               'tournaments'      => 'tournament',
+                                                                                               'affiliate_site'   => 'site',
+                                                                                               'affiliate_sites'  => 'site',
+                                                                                               'site'             => 'site',
+                                                                                               'sites'            => 'site',
+                                                                                               'affiliate_status' => 'affiliate',
+                                                                                               'affiliate'        => 'affiliate',
+                                                                               );
+                                                                               $custom_filters = array();
+                                                                               $raw_tokens     = wp_parse_list( str_replace( '-', '_', strtolower( $filters_attr ) ) );
+                                                                               foreach ( $raw_tokens as $raw_token ) {
+                                                                                               $token = trim( (string) $raw_token );
+                                                                                               if ( '' === $token ) {
+                                                                                                               continue;
+                                                                                               }
+                                                                                               if ( isset( $token_map[ $token ] ) ) {
+                                                                                                               $custom_filters[] = $token_map[ $token ];
+                                                                                               }
+                                                                               }
+                                                                               $enabled_filters = array_values( array_unique( $custom_filters ) );
+                                                               }
+                                               }
 
 						global $wpdb;
 
