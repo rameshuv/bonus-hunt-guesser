@@ -2831,8 +2831,11 @@ return ob_get_clean();
 						}
 
 						// Optional timeline filter.
-						$prep_where = array();
-						$where      = array( 'hw.eligible = 1' );
+			$prep_where = array( 'closed' );
+			$where      = array(
+				'hw.eligible = 1',
+				'h.status = %s',
+			);
 						$range      = $this->get_timeline_range( $timeline_filter );
 						if ( $range ) {
 								$where[]      = 'COALESCE(hw.created_at, h.closed_at, h.created_at) BETWEEN %s AND %s';
@@ -2959,10 +2962,12 @@ return ob_get_clean();
 								$tour_join = '';
 						}
 
-						$sub_filters = array();
-						if ( $tournament_id > 0 ) {
-								$sub_filters[] = $wpdb->prepare( '(ht2.tournament_id = %d OR (ht2.hunt_id IS NULL AND h2.tournament_id = %d))', $tournament_id, $tournament_id );
-						}
+			$sub_filters   = array(
+				$wpdb->prepare( 'h2.status = %s', 'closed' ),
+			);
+			if ( $tournament_id > 0 ) {
+				$sub_filters[] = $wpdb->prepare( '(ht2.tournament_id = %d OR (ht2.hunt_id IS NULL AND h2.tournament_id = %d))', $tournament_id, $tournament_id );
+			}
 						if ( $hunt_id > 0 ) {
 								$sub_filters[] = $wpdb->prepare( 'hw2.hunt_id = %d', $hunt_id );
 						}
