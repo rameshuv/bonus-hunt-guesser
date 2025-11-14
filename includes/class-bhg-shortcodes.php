@@ -2708,77 +2708,13 @@ return ob_get_clean();
                                                                }
 						}
 
-						if ( $hunts_table ) {
-								$hunts_where  = array();
-								$hunts_params = array();
-								$joins        = '';
-
-								$hunt_limits = array();
-								if ( '' !== $shortcode_hunt && '0' !== (string) $shortcode_hunt ) {
-										$hunt_limits[] = absint( $shortcode_hunt );
+						if ( $hunts_table && $hunt_id > 0 ) {
+								$hunt_sql      = $wpdb->prepare( "SELECT id, title FROM {$hunts_table} WHERE id = %d", $hunt_id ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- ID prepared above.
+								$selected_hunt = $wpdb->get_row( $hunt_sql );
+								if ( $selected_hunt ) {
+										$selected_hunt_row = $selected_hunt;
 								}
-								if ( ! empty( $hunt_limits ) && $hunt_id > 0 && ! in_array( $hunt_id, $hunt_limits, true ) ) {
-										$hunt_limits[] = $hunt_id;
-								}
-								$hunt_limits = array_values( array_unique( array_filter( $hunt_limits ) ) );
-
-								if ( $hunt_map_table ) {
-										$joins = " LEFT JOIN {$hunt_map_table} ht ON ht.hunt_id = h.id";
-								}
-
-								if ( ! empty( $hunt_limits ) ) {
-										$placeholders = implode( ',', array_fill( 0, count( $hunt_limits ), '%d' ) );
-										$hunts_where[] = "h.id IN ({$placeholders})";
-										$hunts_params   = array_merge( $hunts_params, $hunt_limits );
-								} else {
-										if ( $tournament_id > 0 ) {
-												if ( $hunt_map_table ) {
-														$hunts_where[] = '(h.tournament_id = %d OR ht.tournament_id = %d)';
-														$hunts_params[] = $tournament_id;
-														$hunts_params[] = $tournament_id;
-												} else {
-														$hunts_where[] = 'h.tournament_id = %d';
-														$hunts_params[] = $tournament_id;
-												}
-										}
-										if ( $website_id > 0 ) {
-												$hunts_where[] = 'h.affiliate_site_id = %d';
-												$hunts_params[] = $website_id;
-										}
-								}
-
-								$hunts_sql = "SELECT DISTINCT h.id, h.title FROM {$hunts_table} h{$joins}";
-								if ( ! empty( $hunts_where ) ) {
-										$hunts_sql .= ' WHERE ' . implode( ' AND ', $hunts_where );
-								}
-								$hunts_sql .= ' ORDER BY h.created_at DESC, h.id DESC';
-
-								if ( ! empty( $hunts_params ) ) {
-										$hunts = $wpdb->get_results( $wpdb->prepare( $hunts_sql, ...$hunts_params ) );
-								} else {
-										$hunts = $wpdb->get_results( $hunts_sql );
-								}
-
-                                                                if ( $hunt_id > 0 ) {
-                                                                                $has_selected_hunt = false;
-                                                                                foreach ( $hunts as $hunt ) {
-                                                                                                if ( (int) $hunt->id === $hunt_id ) {
-                                                                                                                $has_selected_hunt = true;
-                                                                                                                $selected_hunt_row = $hunt;
-                                                                                                                break;
-                                                                                                }
-                                                                                }
-                                                                                if ( ! $has_selected_hunt ) {
-                                                                                                $hunt_sql      = $wpdb->prepare( "SELECT id, title FROM {$hunts_table} WHERE id = %d", $hunt_id );
-                                                                                                $selected_hunt = $wpdb->get_row( $hunt_sql );
-                                                                                                if ( $selected_hunt ) {
-                                                                                                                $hunts[]           = $selected_hunt;
-                                                                                                                $selected_hunt_row = $selected_hunt;
-                                                                                                }
-                                                                                }
-                                                                }
 						}
-
 						if ( $sites_table ) {
 								$site_limits = array();
 								if ( '' !== $shortcode_site && '0' !== (string) $shortcode_site ) {
