@@ -341,8 +341,6 @@ private function normalize_prize_layout( $layout ) {
 
 
 
-
-
 /**
  * Normalize a click action shortcode attribute.
  *
@@ -2909,7 +2907,7 @@ return ob_get_clean();
 
                                                $sub_select_parts = array(
                                                                'hw.user_id',
-                                                               'COUNT(*) AS total_wins',
+                                                               'COUNT(DISTINCT hw.hunt_id) AS total_wins',
                                                );
 
                                                if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
