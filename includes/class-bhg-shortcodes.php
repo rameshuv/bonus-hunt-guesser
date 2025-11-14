@@ -1699,7 +1699,7 @@ return ob_get_clean();
                                                                                 if ( 'user' === $orderby_key ) {
                                                                                                 $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
                                                                                 }
-                                                                                $label = bhg_t( 'sc_user', 'User' );
+                                                                                $label = bhg_t( 'sc_user', 'Username' );
                                                                                 echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="user"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'user', $label ) . '</a></th>';
                                                                 } elseif ( 'guess' === $field ) {
                                                                                 $classes = array( 'sortable' );
@@ -2517,28 +2517,29 @@ return ob_get_clean();
                                                $enabled_filters   = $default_filters;
                                                $filters_attr      = isset( $a['filters'] ) ? (string) $a['filters'] : '';
                                                $filters_supplied  = array_key_exists( 'filters', $atts );
-                                               if ( $filters_supplied ) {
-                                                               if ( '' === $filters_attr ) {
-                                                                               $enabled_filters = array();
-                                                               } else {
-                                                                               $tokens          = array_filter( array_map( 'trim', explode( ',', strtolower( $filters_attr ) ) ) );
-                                                                               $token_map       = array(
-                                                                                               'timeline'          => 'timeline',
-                                                                                               'tournament'        => 'tournament',
-                                                                                               'affiliate_site'    => 'site',
-                                                                                               'site'              => 'site',
-                                                                                               'affiliate_status'  => 'affiliate',
-                                                                                               'affiliate'         => 'affiliate',
-                                                                               );
-                                                                               $custom_filters  = array();
-                                                                               foreach ( $tokens as $token ) {
-                                                                                               if ( isset( $token_map[ $token ] ) ) {
-                                                                                                               $custom_filters[] = $token_map[ $token ];
-                                                                                               }
-                                                                               }
-                                                                               $enabled_filters = array_values( array_unique( $custom_filters ) );
-                                                               }
-                                               }
+				if ( $filters_supplied ) {
+					if ( '' === $filters_attr ) {
+						$enabled_filters = array();
+					} else {
+						$tokens          = array_filter( array_map( 'trim', explode( ',', strtolower( $filters_attr ) ) ) );
+						$token_map       = array(
+							'timeline'          => 'timeline',
+							'tournament'        => 'tournament',
+							'affiliate_site'    => 'site',
+							'site'              => 'site',
+							'affiliate_status'  => 'affiliate',
+							'affiliate'         => 'affiliate',
+						);
+						$custom_filters  = array();
+						foreach ( $tokens as $token ) {
+							$normalized_token = str_replace( array( ' ', '-' ), '_', $token );
+							if ( isset( $token_map[ $normalized_token ] ) ) {
+								$custom_filters[] = $token_map[ $normalized_token ];
+							}
+						}
+						$enabled_filters = array_values( array_unique( $custom_filters ) );
+					}
+				}
 
 						global $wpdb;
 
@@ -3173,7 +3174,7 @@ return ob_get_clean();
                                                                                $label = bhg_t( 'sc_position', 'Position' );
                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'pos' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'pos', $label ) . '</a></th>';
                                                                } elseif ( 'user' === $field ) {
-                                                                               $label = bhg_t( 'sc_user', 'User' );
+                                                                               $label = bhg_t( 'sc_user', 'Username' );
                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'user', $label ) . '</a></th>';
                                                                } elseif ( 'wins' === $field ) {
                                                                                 $label = bhg_t( 'label_times_won', 'Times Won' );
@@ -4740,7 +4741,7 @@ return ob_get_clean();
 				if ( ! $rows ) {
 						echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 				} else {
-					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
+					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
 					foreach ( $rows as $r ) {
 							/* translators: %d: user ID. */
