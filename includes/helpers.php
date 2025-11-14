@@ -422,7 +422,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_placement_number'                       => 'Placement #%d',
 			'label_search'                                 => 'Search',
 			'search_hunts'                                 => 'Search Hunts',
-			'label_user'                                   => 'User',
+                        'label_user'                                   => 'Username',
 			'label_users'                                  => 'Users',
 			'label_role'                                   => 'Role',
 			'label_guesses'                                => 'Guesses',
