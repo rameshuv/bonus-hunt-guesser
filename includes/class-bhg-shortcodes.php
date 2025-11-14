@@ -2836,9 +2836,10 @@ return ob_get_clean();
 				'hw.eligible = 1',
 				'h.status = %s',
 			);
-                        $range      = $this->get_timeline_range( $timeline_filter );
+                        $range           = $this->get_timeline_range( $timeline_filter );
+                        $win_date_column = 'COALESCE(h.closed_at, hw.created_at, h.created_at)';
                         if ( $range ) {
-                                        $where[]      = 'COALESCE(h.closed_at, h.created_at) BETWEEN %s AND %s';
+                                        $where[]      = $win_date_column . ' BETWEEN %s AND %s';
                                         $prep_where[] = $range['start'];
                                         $prep_where[] = $range['end'];
                         }
@@ -2974,7 +2975,7 @@ return ob_get_clean();
 								$sub_filters[] = $wpdb->prepare( 'h2.affiliate_site_id = %d', $website_id );
 						}
                         if ( $range ) {
-                                        $sub_filters[] = $wpdb->prepare( 'COALESCE(h2.closed_at, h2.created_at) BETWEEN %s AND %s', $range['start'], $range['end'] );
+                                        $sub_filters[] = $wpdb->prepare( 'COALESCE(h2.closed_at, hw2.created_at, h2.created_at) BETWEEN %s AND %s', $range['start'], $range['end'] );
                         }
                                                 $sub_where_parts = array(
                                                                 'hw2.user_id = wins.user_id',
