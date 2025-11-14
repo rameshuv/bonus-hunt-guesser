@@ -9,15 +9,23 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-		exit;
+	exit;
 }
+
 
 if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
 	/**
 	 * Handles shortcode registration and rendering.
 	 */
-	class BHG_Shortcodes {
+        class BHG_Shortcodes {
+
+		/**
+		 * Default filter keys for the leaderboard shortcode.
+		 *
+		 * @var string[]
+		 */
+		private const LEADERBOARD_DEFAULT_FILTERS = array( 'timeline', 'tournament', 'site', 'affiliate' );
 
 		/**
 		 * Flag to prevent enqueueing prize assets multiple times per request.
@@ -72,122 +80,115 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		 * @param string $table Database table name to validate.
 		 * @return string Sanitized table name or empty string if invalid.
 		 */
-				private function sanitize_table( $table ) {
-						global $wpdb;
+                private function sanitize_table( $table ) {
+                                global $wpdb;
 
-$allowed = array(
-$wpdb->prefix . 'bhg_bonus_hunts',
-$wpdb->prefix . 'bhg_guesses',
-$wpdb->prefix . 'bhg_tournaments',
-$wpdb->prefix . 'bhg_tournament_results',
-$wpdb->prefix . 'bhg_affiliate_websites',
-$wpdb->prefix . 'bhg_hunt_winners',
-$wpdb->prefix . 'bhg_tournaments_hunts',
-$wpdb->prefix . 'bhg_prizes',
-$wpdb->prefix . 'bhg_hunt_prizes',
-$wpdb->prefix . 'bhg_jackpots',
-$wpdb->prefix . 'bhg_jackpot_events',
-$wpdb->users,
-$wpdb->usermeta,
-);
+                                $allowed = array(
+                                                $wpdb->prefix . 'bhg_bonus_hunts',
+                                                $wpdb->prefix . 'bhg_guesses',
+                                                $wpdb->prefix . 'bhg_tournaments',
+                                                $wpdb->prefix . 'bhg_tournament_results',
+                                                $wpdb->prefix . 'bhg_affiliate_websites',
+                                                $wpdb->prefix . 'bhg_hunt_winners',
+                                                $wpdb->prefix . 'bhg_tournaments_hunts',
+                                                $wpdb->prefix . 'bhg_prizes',
+                                                $wpdb->prefix . 'bhg_hunt_prizes',
+                                                $wpdb->prefix . 'bhg_jackpots',
+                                                $wpdb->prefix . 'bhg_jackpot_events',
+                                                $wpdb->users,
+                                                $wpdb->usermeta,
+                                );
 
-						return in_array( $table, $allowed, true ) ? $table : '';
-				}
+                                return in_array( $table, $allowed, true ) ? $table : '';
+                }
 
-	/**
-	* Calculates start and end datetime for a given timeline keyword.
-	*
-	* @param string $timeline Timeline keyword.
-	* @return array|null Array with 'start' and 'end' in `Y-m-d H:i:s` or null for no restriction.
-	*/
-		private function get_timeline_range( $timeline ) {
-				$timeline = strtolower( (string) $timeline );
+                /**
+                 * Calculates start and end datetime for a given timeline keyword.
+                 *
+                 * @param string $timeline Timeline keyword.
+                 * @return array|null Array with 'start' and 'end' in `Y-m-d H:i:s` or null for no restriction.
+                 */
+                private function get_timeline_range( $timeline ) {
+                                $timeline = strtolower( (string) $timeline );
 
-				if ( '' === $timeline ) {
-						return null;
-				}
+                                if ( '' === $timeline ) {
+                                                return null;
+                                }
 
-				$aliases = array(
-						'day'         => 'day',
-						'today'       => 'day',
-						'this_day'    => 'day',
-						'week'        => 'week',
-						'this_week'   => 'week',
-						'weekly'      => 'week',
-						'month'       => 'month',
-						'this_month'  => 'month',
-						'monthly'     => 'month',
-						'year'        => 'year',
-						'this_year'   => 'year',
-						'yearly'      => 'year',
-						'quarter'     => 'quarter',
-						'quarterly'   => 'quarter',
-						'this_quarter' => 'quarter',
-						'last_year'   => 'last_year',
-						'all_time'    => 'all_time',
-						'alltime'     => 'all_time',
-				);
+                                $aliases = array(
+                                                'day'          => 'day',
+                                                'today'        => 'day',
+                                                'this_day'     => 'day',
+                                                'week'         => 'week',
+                                                'this_week'    => 'week',
+                                                'weekly'       => 'week',
+                                                'month'        => 'month',
+                                                'this_month'   => 'month',
+                                                'monthly'      => 'month',
+                                                'year'         => 'year',
+                                                'this_year'    => 'year',
+                                                'yearly'       => 'year',
+                                                'quarter'      => 'quarter',
+                                                'quarterly'    => 'quarter',
+                                                'this_quarter' => 'quarter',
+                                                'last_year'    => 'last_year',
+                                                'all_time'     => 'all_time',
+                                                'alltime'      => 'all_time',
+                                );
 
-				$canonical = isset( $aliases[ $timeline ] ) ? $aliases[ $timeline ] : $timeline;
+                                $canonical = isset( $aliases[ $timeline ] ) ? $aliases[ $timeline ] : $timeline;
 
-				$tz  = wp_timezone();
-				$now = new DateTimeImmutable( 'now', $tz );
+                                $tz  = wp_timezone();
+                                $now = new DateTimeImmutable( 'now', $tz );
 
-				switch ( $canonical ) {
-						case 'day':
-								$start_dt = $now->setTime( 0, 0, 0 );
-								$end_dt   = $now->setTime( 23, 59, 59 );
-								break;
+                                switch ( $canonical ) {
+                                        case 'day':
+                                                $start_dt = $now->setTime( 0, 0, 0 );
+                                                $end_dt   = $now->setTime( 23, 59, 59 );
+                                                break;
 
-						case 'week':
-								$week     = get_weekstartend( $now->format( 'Y-m-d' ) );
-								$start_dt = ( new DateTimeImmutable( '@' . $week['start'] ) )->setTimezone( $tz );
-								$end_dt   = ( new DateTimeImmutable( '@' . $week['end'] ) )->setTimezone( $tz );
-								break;
+                                        case 'week':
+                                                $week     = get_weekstartend( $now->format( 'Y-m-d' ) );
+                                                $start_dt = ( new DateTimeImmutable( '@' . $week['start'] ) )->setTimezone( $tz );
+                                                $end_dt   = ( new DateTimeImmutable( '@' . $week['end'] ) )->setTimezone( $tz );
+                                                break;
 
-						case 'month':
-								$start_dt = $now->modify( 'first day of this month' )->setTime( 0, 0, 0 );
-								$end_dt   = $now->modify( 'last day of this month' )->setTime( 23, 59, 59 );
-								break;
+                                        case 'month':
+                                                $start_dt = $now->modify( 'first day of this month' )->setTime( 0, 0, 0 );
+                                                $end_dt   = $now->modify( 'last day of this month' )->setTime( 23, 59, 59 );
+                                                break;
 
-						case 'year':
-								$start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
-								$end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
-								break;
+                                        case 'year':
+                                                $start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
+                                                $end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
+                                                break;
 
-						case 'quarter':
-								$year         = (int) $now->format( 'Y' );
-								$month        = (int) $now->format( 'n' );
-								$quarter      = (int) floor( ( $month - 1 ) / 3 ) + 1;
-								$start_month  = ( ( $quarter - 1 ) * 3 ) + 1;
-								$start_dt     = $now->setDate( $year, $start_month, 1 )->setTime( 0, 0, 0 );
-								$end_dt       = $start_dt->modify( '+2 months' )->modify( 'last day of this month' )->setTime( 23, 59, 59 );
-								break;
+                                        case 'quarter':
+                                                $year        = (int) $now->format( 'Y' );
+                                                $month       = (int) $now->format( 'n' );
+                                                $quarter     = (int) floor( ( $month - 1 ) / 3 ) + 1;
+                                                $start_month = ( ( $quarter - 1 ) * 3 ) + 1;
+                                                $start_dt    = $now->setDate( $year, $start_month, 1 )->setTime( 0, 0, 0 );
+                                                $end_dt      = $start_dt->modify( '+2 months' )->modify( 'last day of this month' )->setTime( 23, 59, 59 );
+                                                break;
 
-						case 'last_year':
-								$year     = (int) $now->format( 'Y' ) - 1;
-								$start_dt = $now->setDate( $year, 1, 1 )->setTime( 0, 0, 0 );
-								$end_dt   = $now->setDate( $year, 12, 31 )->setTime( 23, 59, 59 );
-								break;
+                                        case 'last_year':
+                                                $year     = (int) $now->format( 'Y' ) - 1;
+                                                $start_dt = $now->setDate( $year, 1, 1 )->setTime( 0, 0, 0 );
+                                                $end_dt   = $now->setDate( $year, 12, 31 )->setTime( 23, 59, 59 );
+                                                break;
 
-						case 'all_time':
-						default:
-								return null;
-				}
+                                        case 'all_time':
+                                        default:
+                                                return null;
+                                }
 
-				return array(
-						'start' => $start_dt->format( 'Y-m-d H:i:s' ),
-						'end'   => $end_dt->format( 'Y-m-d H:i:s' ),
-				);
-		}
-
-		/**
-		 * Normalize prize layout keyword.
-		 *
-		 * @param string $layout Layout keyword.
-		 * @return string
-		 */
-		private function normalize_prize_layout( $layout ) {
+                                return array(
+                                                'start' => $start_dt->format( 'Y-m-d H:i:s' ),
+                                                'end'   => $end_dt->format( 'Y-m-d H:i:s' ),
+                                );
+                }
+private function normalize_prize_layout( $layout ) {
 				$layout = strtolower( (string) $layout );
 
 				return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
@@ -287,7 +288,16 @@ if ( '' === $filters_attr ) {
 return array();
 }
 
-$filters_attr = strtolower( $filters_attr );
+$keyword = strtolower( $filters_attr );
+if ( in_array( $keyword, array( 'all', 'default', 'inherit' ), true ) ) {
+return self::LEADERBOARD_DEFAULT_FILTERS;
+}
+
+if ( in_array( $keyword, array( 'none', 'no', 'false', '0' ), true ) ) {
+return array();
+}
+
+$filters_attr = $keyword;
 $filters_attr = str_replace(
 array(
 'affiliate status',
@@ -2598,7 +2608,7 @@ return ob_get_clean();
                                                $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament', 'aff' );
                                }
 
-                               $default_filters    = array( 'timeline', 'tournament', 'site', 'affiliate' );
+                               $default_filters    = self::LEADERBOARD_DEFAULT_FILTERS;
                                $enabled_filters    = $default_filters;
                                $filters_input      = array_key_exists( 'filters', $atts ) ? $atts['filters'] : null;
                                $normalized_filters = $this->normalize_leaderboard_filters( $filters_input );
