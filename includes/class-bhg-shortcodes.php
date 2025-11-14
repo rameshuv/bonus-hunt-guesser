@@ -341,63 +341,6 @@ private function normalize_prize_layout( $layout ) {
 
 
 
-if ( in_array( $keyword, array( 'none', 'no', 'false', '0' ), true ) ) {
-return array();
-}
-
-$filters_attr = $keyword;
-$filters_attr = str_replace(
-array(
-'affiliate status',
-'affiliate statuses',
-'affiliate site',
-'affiliate sites',
-),
-array(
-'affiliate_status',
-'affiliate_statuses',
-'affiliate_site',
-'affiliate_sites',
-),
-$filters_attr
-);
-$filters_attr = str_replace( '-', '_', $filters_attr );
-
-$raw_tokens = wp_parse_list( $filters_attr );
-if ( empty( $raw_tokens ) ) {
-return array();
-}
-
-$token_map = array(
-'timeline'           => 'timeline',
-'timelines'          => 'timeline',
-'tournament'         => 'tournament',
-'tournaments'        => 'tournament',
-'affiliate_site'     => 'site',
-'affiliate_sites'    => 'site',
-'site'               => 'site',
-'sites'              => 'site',
-'affiliate_status'   => 'affiliate',
-'affiliate_statuses' => 'affiliate',
-'affiliate'          => 'affiliate',
-'affiliates'         => 'affiliate',
-);
-
-$normalized = array();
-foreach ( $raw_tokens as $token ) {
-$token = trim( (string) $token );
-if ( '' === $token ) {
-continue;
-}
-
-if ( isset( $token_map[ $token ] ) ) {
-$normalized[] = $token_map[ $token ];
-}
-}
-
-return array_values( array_unique( $normalized ) );
-}
-
 
 
 /**
@@ -2961,16 +2904,29 @@ return ob_get_clean();
 								$where[]   = "(um_aff.user_id IS NULL OR CAST(um_aff.meta_value AS CHAR) = '' OR CAST(um_aff.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
 						}
 
-						$where_sql = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
+                                               $where_sql      = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
+                                               $base_joins_sql = ' ' . implode( ' ', $joins ) . ' ';
 
-						$base_joins_sql = ' ' . implode( ' ', $joins ) . ' ';
+                                               $sub_select_parts = array(
+                                                               'hw.user_id',
+                                                               'COUNT(*) AS total_wins',
+                                               );
 
-						$count_sql = "SELECT COUNT(DISTINCT hw.user_id) FROM {$hw} hw{$base_joins_sql}{$where_sql}";
-						if ( empty( $prep_where ) ) {
-								$total = (int) $wpdb->get_var( $count_sql );
-						} else {
-								$total = (int) $wpdb->get_var( $wpdb->prepare( $count_sql, ...$prep_where ) );
-						}
+                                               if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
+                                                               $need_avg_hunt      = true;
+                                                               $sub_select_parts[] = 'AVG(hw.position) AS avg_hunt_pos';
+                                               }
+
+                                               $sub_sql = 'SELECT ' . implode( ', ', $sub_select_parts ) . " FROM {$hw} hw{$base_joins_sql}{$where_sql} GROUP BY hw.user_id";
+
+                                               if ( empty( $prep_where ) ) {
+                                                               $prepared_sub_sql = $sub_sql;
+                                               } else {
+                                                               $prepared_sub_sql = $wpdb->prepare( $sub_sql, ...$prep_where );
+                                               }
+
+                                               $count_sql = 'SELECT COUNT(*) FROM (' . $prepared_sub_sql . ') wins';
+                                               $total     = (int) $wpdb->get_var( $count_sql );
 
                                                if ( $total <= 0 ) {
                                                                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
@@ -2984,15 +2940,14 @@ return ob_get_clean();
                                                $limit = max( 1, $limit );
 
                                                $select_parts = array(
-                                                               'hw.user_id',
+                                                               'wins.user_id',
                                                                'u.user_login',
-                                                               'COUNT(*) AS total_wins',
-						);
+                                                               'wins.total_wins',
+                                               );
 
-						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
-								$need_avg_hunt = true;
-								$select_parts[] = 'AVG(hw.position) AS avg_hunt_pos';
-						}
+                                               if ( $need_avg_hunt ) {
+                                                               $select_parts[] = 'wins.avg_hunt_pos';
+                                               }
 
 						if ( $need_avg_tournament || 'avg_tournament' === $orderby_request ) {
 								$need_avg_tournament = true;
@@ -3001,7 +2956,7 @@ return ob_get_clean();
 										$tournament_filter_join = $wpdb->prepare( ' WHERE tr.tournament_id = %d', $tournament_id );
 								}
 								$select_parts[] = 'tour_avg.avg_tournament_pos';
-								$tour_join      = "LEFT JOIN (SELECT ranks.user_id, AVG(ranks.rank_position) AS avg_tournament_pos FROM (SELECT tr.user_id, tr.tournament_id, (SELECT 1 + COUNT(*) FROM {$r} tr2 WHERE tr2.tournament_id = tr.tournament_id AND (tr2.wins > tr.wins OR (tr2.wins = tr.wins AND tr2.user_id < tr.user_id))) AS rank_position FROM {$r} tr{$tournament_filter_join}) AS ranks GROUP BY ranks.user_id) AS tour_avg ON tour_avg.user_id = hw.user_id";
+                                                                $tour_join      = "LEFT JOIN (SELECT ranks.user_id, AVG(ranks.rank_position) AS avg_tournament_pos FROM (SELECT tr.user_id, tr.tournament_id, (SELECT 1 + COUNT(*) FROM {$r} tr2 WHERE tr2.tournament_id = tr.tournament_id AND (tr2.wins > tr.wins OR (tr2.wins = tr.wins AND tr2.user_id < tr.user_id))) AS rank_position FROM {$r} tr{$tournament_filter_join}) AS ranks GROUP BY ranks.user_id) AS tour_avg ON tour_avg.user_id = wins.user_id";
 						} else {
 								$tour_join = '';
 						}
@@ -3019,10 +2974,10 @@ return ob_get_clean();
 						if ( $range ) {
 								$sub_filters[] = $wpdb->prepare( 'COALESCE(hw2.created_at, h2.closed_at, h2.created_at) BETWEEN %s AND %s', $range['start'], $range['end'] );
 						}
-						$sub_where_parts = array(
-								'hw2.user_id = hw.user_id',
-								'hw2.eligible = 1',
-						);
+                                                $sub_where_parts = array(
+                                                                'hw2.user_id = wins.user_id',
+                                                                'hw2.eligible = 1',
+                                                );
 						if ( $sub_filters ) {
 								$sub_where_parts = array_merge( $sub_where_parts, $sub_filters );
 						}
@@ -3045,20 +3000,18 @@ return ob_get_clean();
 								$select_parts[]       = "(SELECT COALESCE(t2.title, t2_legacy.title) FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$t} t2 ON t2.id = ht2.tournament_id LEFT JOIN {$t} t2_legacy ON t2_legacy.id = h2.tournament_id{$tournament_where_sql} ORDER BY COALESCE(hw2.created_at, h2.closed_at, h2.created_at) DESC, hw2.id DESC LIMIT 1) AS tournament_title";
 						}
 
-						$select_sql = 'SELECT ' . implode( ', ', $select_parts ) . " FROM {$hw} hw{$base_joins_sql}";
-						if ( $tour_join ) {
-								$select_sql .= ' ' . $tour_join . ' ';
-						}
-						$select_sql .= $where_sql;
-						$select_sql .= ' GROUP BY hw.user_id, u.user_login';
+                                                $select_sql = 'SELECT ' . implode( ', ', $select_parts ) . ' FROM (' . $prepared_sub_sql . ') wins INNER JOIN ' . $u . ' u ON u.ID = wins.user_id';
+                                                if ( $tour_join ) {
+                                                                $select_sql .= ' ' . $tour_join . ' ';
+                                                }
 
 						$orderby_key = $orderby_request;
                                $orderby_map = array(
-                                               'wins'           => 'total_wins',
+                                               'wins'           => 'wins.total_wins',
                                                'user'           => 'u.user_login',
-                                               'avg_hunt'       => 'avg_hunt_pos',
-                                               'avg_tournament' => 'avg_tournament_pos',
-                                               'pos'            => 'total_wins',
+                                               'avg_hunt'       => 'wins.avg_hunt_pos',
+                                               'avg_tournament' => 'tour_avg.avg_tournament_pos',
+                                               'pos'            => 'wins.total_wins',
                                );
 						$direction_map = array(
 								'asc'  => 'ASC',
@@ -3066,12 +3019,9 @@ return ob_get_clean();
 						);
 						$direction     = isset( $direction_map[ $direction_key ] ) ? $direction_map[ $direction_key ] : $direction_map['desc'];
 						$orderby       = isset( $orderby_map[ $orderby_key ] ) ? $orderby_map[ $orderby_key ] : $orderby_map['wins'];
-						$select_sql   .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
+                                                $select_sql   .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
 
-						$query_params = $prep_where;
-						$query_params[] = $limit;
-						$query_params[] = $offset;
-						$query       = $wpdb->prepare( $select_sql, ...$query_params );
+                                                $query       = $wpdb->prepare( $select_sql, $limit, $offset );
 						// db call ok; no-cache ok.
 						$rows        = $wpdb->get_results( $query );
 						if ( ! $rows ) {
