@@ -3232,13 +3232,16 @@ return ob_get_clean();
                                                                                                 echo '<td>' . ( isset( $row->avg_tournament_pos ) ? esc_html( number_format_i18n( (float) $row->avg_tournament_pos, 0 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
 										} elseif ( 'aff' === $field ) {
 														echo '<td>' . wp_kses_post( $aff ) . '</td>';
-										} elseif ( 'site' === $field ) {
-														echo '<td>' . esc_html( $row->site_name ? $row->site_name : bhg_t( 'label_emdash', '—' ) ) . '</td>';
-										} elseif ( 'hunt' === $field ) {
-							echo '<td>' . esc_html( $row->hunt_title ? $row->hunt_title : bhg_t( 'label_emdash', '—' ) ) . '</td>';
-					} elseif ( 'tournament' === $field ) {
-							echo '<td>' . esc_html( $row->tournament_title ? $row->tournament_title : bhg_t( 'label_emdash', '—' ) ) . '</td>';
-					}
+                                       } elseif ( 'site' === $field ) {
+                                               $site_label = ! empty( $row->site_name ) ? $row->site_name : bhg_t( 'label_emdash', '—' );
+                                               echo '<td>' . esc_html( $site_label ) . '</td>';
+                                       } elseif ( 'hunt' === $field ) {
+                                               $hunt_label = ! empty( $row->hunt_title ) ? $row->hunt_title : bhg_t( 'label_emdash', '—' );
+                                               echo '<td>' . esc_html( $hunt_label ) . '</td>';
+                                       } elseif ( 'tournament' === $field ) {
+                                               $tournament_label = ! empty( $row->tournament_title ) ? $row->tournament_title : bhg_t( 'label_emdash', '—' );
+                                               echo '<td>' . esc_html( $tournament_label ) . '</td>';
+                                       }
 				}
 					echo '</tr>';
 					++$pos;
