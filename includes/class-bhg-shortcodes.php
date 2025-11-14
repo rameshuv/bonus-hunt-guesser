@@ -2514,15 +2514,15 @@ return ob_get_clean();
                                                $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament', 'aff' );
                                }
 
-                                               $default_filters  = array( 'timeline', 'tournament', 'site', 'affiliate' );
-                                               $enabled_filters  = $default_filters;
-                                               $filters_supplied = array_key_exists( 'filters', $atts );
-                                               if ( $filters_supplied ) {
-                                                               $filters_attr = isset( $a['filters'] ) ? trim( (string) $a['filters'] ) : '';
-                                                               if ( '' === $filters_attr ) {
-                                                                               $enabled_filters = array();
-                                                               } else {
-                                                                               $token_map = array(
+                               $default_filters = array( 'timeline', 'tournament', 'site', 'affiliate' );
+                               $enabled_filters = $default_filters;
+                               $filters_input   = array_key_exists( 'filters', $atts ) ? $atts['filters'] : null;
+                               if ( null !== $filters_input ) {
+                                               $filters_attr = trim( (string) $filters_input );
+                                               if ( '' === $filters_attr ) {
+                                                               $enabled_filters = array();
+                                               } else {
+                                                               $token_map = array(
                                                                                                'timeline'         => 'timeline',
                                                                                                'timelines'        => 'timeline',
                                                                                                'tournament'       => 'tournament',
@@ -2533,21 +2533,22 @@ return ob_get_clean();
                                                                                                'sites'            => 'site',
                                                                                                'affiliate_status' => 'affiliate',
                                                                                                'affiliate'        => 'affiliate',
-                                                                               );
-                                                                               $custom_filters = array();
-                                                                               $raw_tokens     = wp_parse_list( str_replace( '-', '_', strtolower( $filters_attr ) ) );
-                                                                               foreach ( $raw_tokens as $raw_token ) {
-                                                                                               $token = trim( (string) $raw_token );
-                                                                                               if ( '' === $token ) {
-                                                                                                               continue;
-                                                                                               }
-                                                                                               if ( isset( $token_map[ $token ] ) ) {
-                                                                                                               $custom_filters[] = $token_map[ $token ];
-                                                                                               }
+                                                               );
+                                                               $custom_filters = array();
+                                                               $filters_clean  = str_replace( '-', '_', strtolower( $filters_attr ) );
+                                                               $raw_tokens     = wp_parse_list( $filters_clean );
+                                                               foreach ( $raw_tokens as $raw_token ) {
+                                                                               $token = trim( (string) $raw_token );
+                                                                               if ( '' === $token ) {
+                                                                                               continue;
                                                                                }
-                                                                               $enabled_filters = array_values( array_unique( $custom_filters ) );
+                                                                               if ( isset( $token_map[ $token ] ) ) {
+                                                                                               $custom_filters[] = $token_map[ $token ];
+                                                                               }
                                                                }
+                                                               $enabled_filters = array_values( array_unique( $custom_filters ) );
                                                }
+                               }
 
 						global $wpdb;
 
@@ -2598,8 +2599,11 @@ return ob_get_clean();
 						$shortcode_site       = isset( $a['website'] ) ? $a['website'] : '';
 						$shortcode_aff        = isset( $a['aff'] ) ? $a['aff'] : '';
 
-						$raw_tournament = isset( $_GET['bhg_tournament'] ) ? wp_unslash( $_GET['bhg_tournament'] ) : $shortcode_tournament;
-						$raw_hunt       = isset( $_GET['bhg_hunt'] ) ? wp_unslash( $_GET['bhg_hunt'] ) : $shortcode_hunt;
+                               $raw_tournament = isset( $_GET['bhg_tournament'] ) ? wp_unslash( $_GET['bhg_tournament'] ) : $shortcode_tournament;
+                               $raw_hunt       = $shortcode_hunt;
+                               if ( '' === $raw_hunt && isset( $_GET['bhg_hunt'] ) ) {
+                                               $raw_hunt = wp_unslash( $_GET['bhg_hunt'] );
+                               }
 						$raw_site       = isset( $_GET['bhg_site'] ) ? wp_unslash( $_GET['bhg_site'] ) : $shortcode_site;
 						$raw_aff        = isset( $_GET['bhg_aff'] ) ? wp_unslash( $_GET['bhg_aff'] ) : $shortcode_aff;
 
@@ -3024,12 +3028,12 @@ return ob_get_clean();
                                                 ob_start();
 						echo '<form method="get" class="bhg-search-form">';
                                                foreach ( $_GET as $raw_key => $v ) {
-                                                                $key = sanitize_key( wp_unslash( $raw_key ) );
-                                                                if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_site', 'bhg_aff', 'bhg_timeline' ), true ) ) {
+                                                               $key = sanitize_key( wp_unslash( $raw_key ) );
+                                                               if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_site', 'bhg_aff', 'bhg_timeline', 'bhg_hunt' ), true ) ) {
                                                                                continue;
                                                                }
-								echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
-						}
+                                                               echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
+                                               }
 
                                                if ( $has_filter_dropdowns ) {
                                                                 echo '<div class="bhg-filter-controls">';
