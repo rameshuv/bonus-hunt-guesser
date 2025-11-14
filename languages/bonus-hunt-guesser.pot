@@ -407,7 +407,7 @@ msgstr ""
 #: bonus-hunt-guesser.php:708
 #: includes/class-bhg-shortcodes.php:189
 #: includes/class-bhg-shortcodes.php:542
-msgid "User"
+msgid "Username"
 msgstr ""
 
 #: admin/views/bonus-hunts-results.php:24
