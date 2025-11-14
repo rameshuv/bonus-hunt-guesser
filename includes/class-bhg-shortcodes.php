@@ -2608,13 +2608,18 @@ return ob_get_clean();
                                                $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament', 'aff' );
                                }
 
-                               $default_filters    = self::LEADERBOARD_DEFAULT_FILTERS;
-                               $enabled_filters    = $default_filters;
-                               $filters_input      = array_key_exists( 'filters', $atts ) ? $atts['filters'] : null;
-                               $normalized_filters = $this->normalize_leaderboard_filters( $filters_input );
-                               if ( null !== $normalized_filters ) {
-                                               $enabled_filters = $normalized_filters;
-                               }
+			$default_filters    = self::LEADERBOARD_DEFAULT_FILTERS;
+			$enabled_filters    = $default_filters;
+			$filters_input      = array_key_exists( 'filters', $atts ) ? $atts['filters'] : null;
+			$normalized_filters = $this->normalize_leaderboard_filters( $filters_input );
+			if ( null !== $normalized_filters ) {
+				$enabled_filters = $normalized_filters;
+			}
+
+			$filter_timeline_enabled   = in_array( 'timeline', $enabled_filters, true );
+			$filter_tournament_enabled = in_array( 'tournament', $enabled_filters, true );
+			$filter_site_enabled       = in_array( 'site', $enabled_filters, true );
+			$filter_affiliate_enabled  = in_array( 'affiliate', $enabled_filters, true );
 
 						global $wpdb;
 
@@ -2625,8 +2630,8 @@ return ob_get_clean();
 								$attr_timeline = 'all_time';
 						}
 
-						$timeline_request = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
-						$timeline         = '' !== $timeline_request ? $timeline_request : $attr_timeline;
+			$timeline_request = ( $filter_timeline_enabled && isset( $_GET['bhg_timeline'] ) ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
+			$timeline         = '' !== $timeline_request ? $timeline_request : $attr_timeline;
 
 						$timeline_aliases = array(
 								'day'          => 'day',
@@ -2665,13 +2670,13 @@ return ob_get_clean();
 						$shortcode_site       = isset( $a['website'] ) ? $a['website'] : '';
 						$shortcode_aff        = isset( $a['aff'] ) ? $a['aff'] : '';
 
-                               $raw_tournament = isset( $_GET['bhg_tournament'] ) ? wp_unslash( $_GET['bhg_tournament'] ) : $shortcode_tournament;
-                               $raw_hunt       = $shortcode_hunt;
-                               if ( '' === $raw_hunt && isset( $_GET['bhg_hunt'] ) ) {
-                                               $raw_hunt = wp_unslash( $_GET['bhg_hunt'] );
-                               }
-						$raw_site       = isset( $_GET['bhg_site'] ) ? wp_unslash( $_GET['bhg_site'] ) : $shortcode_site;
-						$raw_aff        = isset( $_GET['bhg_aff'] ) ? wp_unslash( $_GET['bhg_aff'] ) : $shortcode_aff;
+			$raw_tournament = ( $filter_tournament_enabled && isset( $_GET['bhg_tournament'] ) ) ? wp_unslash( $_GET['bhg_tournament'] ) : $shortcode_tournament;
+			$raw_hunt       = $shortcode_hunt;
+			if ( '' === $raw_hunt && isset( $_GET['bhg_hunt'] ) ) {
+				$raw_hunt = wp_unslash( $_GET['bhg_hunt'] );
+			}
+			$raw_site = ( $filter_site_enabled && isset( $_GET['bhg_site'] ) ) ? wp_unslash( $_GET['bhg_site'] ) : $shortcode_site;
+			$raw_aff  = ( $filter_affiliate_enabled && isset( $_GET['bhg_aff'] ) ) ? wp_unslash( $_GET['bhg_aff'] ) : $shortcode_aff;
 
 						$tournament_id = max( 0, absint( $raw_tournament ) );
 						$hunt_id       = max( 0, absint( $raw_hunt ) );
