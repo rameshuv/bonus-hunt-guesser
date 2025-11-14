@@ -238,26 +238,108 @@ private function normalize_prize_layout( $layout ) {
 				return 'small';
 			}
 
-/**
- * Normalize a yes/no shortcode attribute.
- *
- * @param mixed $value         Raw attribute value.
- * @param bool  $allow_inherit Whether to allow inherit/default keywords.
- * @return string Either '1', '0', or 'inherit'.
- */
-private function normalize_yes_no_attr( $value, $allow_inherit = true ) {
-$value = strtolower( trim( (string) $value ) );
+               /**
+                * Normalize a yes/no shortcode attribute.
+                *
+                * @param mixed $value         Raw attribute value.
+                * @param bool  $allow_inherit Whether to allow inherit/default keywords.
+                * @return string Either '1', '0', or 'inherit'.
+                */
+               private function normalize_yes_no_attr( $value, $allow_inherit = true ) {
+                       $value = strtolower( trim( (string) $value ) );
 
-if ( $allow_inherit && in_array( $value, array( 'inherit', 'default', '' ), true ) ) {
-return 'inherit';
-}
+                       if ( $allow_inherit && in_array( $value, array( 'inherit', 'default', '' ), true ) ) {
+                               return 'inherit';
+                       }
 
-if ( in_array( $value, array( 'no', '0', 'false', 'off' ), true ) ) {
-return '0';
-}
+                       if ( in_array( $value, array( 'no', '0', 'false', 'off' ), true ) ) {
+                               return '0';
+                       }
 
-return '1';
-}
+                       return '1';
+               }
+
+               /**
+                * Normalize the `filters` attribute for the leaderboard shortcode.
+                *
+                * Accepts comma-, space-, or newline-delimited values and supports
+                * minor variations such as "affiliate-site" or "affiliate status".
+                * Returns `null` when the shortcode attribute is omitted so the
+                * caller can fall back to default filters.
+                *
+                * @param mixed $filters_input Raw filters attribute value.
+                * @return array|null Normalized filter keys (timeline, tournament,
+                *                    site, affiliate) or `null` if the defaults should
+                *                    be used.
+                */
+               private function normalize_leaderboard_filters( $filters_input ) {
+                       if ( null === $filters_input ) {
+                               return null;
+                       }
+
+                       if ( is_array( $filters_input ) ) {
+                               $filters_attr = implode( ',', $filters_input );
+                       } else {
+                               $filters_attr = (string) $filters_input;
+                       }
+
+                       $filters_attr = trim( $filters_attr );
+                       if ( '' === $filters_attr ) {
+                               return array();
+                       }
+
+                       $keyword = strtolower( $filters_attr );
+                       if ( in_array( $keyword, array( 'all', 'default', 'inherit' ), true ) ) {
+                               return self::LEADERBOARD_DEFAULT_FILTERS;
+                       }
+
+                       if ( in_array( $keyword, array( 'none', 'no', 'false', '0' ), true ) ) {
+                               return array();
+                       }
+
+                       $normalized_tokens = str_replace(
+                               array( 'affiliate status', 'affiliate statuses', 'affiliate site', 'affiliate sites' ),
+                               array( 'affiliate_status', 'affiliate_statuses', 'affiliate_site', 'affiliate_sites' ),
+                               $keyword
+                       );
+                       $normalized_tokens = str_replace( '-', '_', $normalized_tokens );
+
+                       $raw_tokens = wp_parse_list( $normalized_tokens );
+                       if ( empty( $raw_tokens ) ) {
+                               return array();
+                       }
+
+                       $token_map = array(
+                               'timeline'           => 'timeline',
+                               'timelines'          => 'timeline',
+                               'tournament'         => 'tournament',
+                               'tournaments'        => 'tournament',
+                               'affiliate_site'     => 'site',
+                               'affiliate_sites'    => 'site',
+                               'site'               => 'site',
+                               'sites'              => 'site',
+                               'affiliate_status'   => 'affiliate',
+                               'affiliate_statuses' => 'affiliate',
+                               'affiliate'          => 'affiliate',
+                               'affiliates'         => 'affiliate',
+                       );
+
+                       $normalized = array();
+                       foreach ( $raw_tokens as $token ) {
+                               $token = trim( (string) $token );
+                               if ( '' === $token ) {
+                                       continue;
+                               }
+
+                               if ( isset( $token_map[ $token ] ) ) {
+                                       $normalized[] = $token_map[ $token ];
+                               }
+                       }
+
+                       return array_values( array_unique( $normalized ) );
+               }
+
+
 
 /**
  * Normalizes the `filters` attribute for the leaderboard shortcode.
