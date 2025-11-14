@@ -341,40 +341,6 @@ private function normalize_prize_layout( $layout ) {
 
 
 
-/**
- * Normalizes the `filters` attribute for the leaderboard shortcode.
- *
- * Accepts comma-, space-, or newline-delimited values and supports
- * minor variations such as "affiliate-site" or "affiliate status".
- * Returns `null` when the shortcode attribute is omitted so the
- * caller can fall back to default filters.
- *
- * @param mixed $filters_input Raw filters attribute value.
- * @return array|null Normalized filter keys (timeline, tournament,
- *                    site, affiliate) or `null` if the defaults should
- *                    be used.
- */
-private function normalize_leaderboard_filters( $filters_input ) {
-if ( null === $filters_input ) {
-return null;
-}
-
-if ( is_array( $filters_input ) ) {
-$filters_attr = implode( ',', $filters_input );
-} else {
-$filters_attr = (string) $filters_input;
-}
-
-$filters_attr = trim( $filters_attr );
-if ( '' === $filters_attr ) {
-return array();
-}
-
-$keyword = strtolower( $filters_attr );
-if ( in_array( $keyword, array( 'all', 'default', 'inherit' ), true ) ) {
-return self::LEADERBOARD_DEFAULT_FILTERS;
-}
-
 if ( in_array( $keyword, array( 'none', 'no', 'false', '0' ), true ) ) {
 return array();
 }
@@ -2925,7 +2891,7 @@ return ob_get_clean();
 
 						// Optional timeline filter.
 						$prep_where = array();
-						$where      = array();
+						$where      = array( 'hw.eligible = 1' );
 						$range      = $this->get_timeline_range( $timeline_filter );
 						if ( $range ) {
 								$where[]      = 'COALESCE(hw.created_at, h.closed_at, h.created_at) BETWEEN %s AND %s';
@@ -3053,7 +3019,10 @@ return ob_get_clean();
 						if ( $range ) {
 								$sub_filters[] = $wpdb->prepare( 'COALESCE(hw2.created_at, h2.closed_at, h2.created_at) BETWEEN %s AND %s', $range['start'], $range['end'] );
 						}
-						$sub_where_parts = array( 'hw2.user_id = hw.user_id' );
+						$sub_where_parts = array(
+								'hw2.user_id = hw.user_id',
+								'hw2.eligible = 1',
+						);
 						if ( $sub_filters ) {
 								$sub_where_parts = array_merge( $sub_where_parts, $sub_filters );
 						}
