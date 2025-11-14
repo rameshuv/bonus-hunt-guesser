@@ -2830,23 +2830,56 @@ return ob_get_clean();
 								}
 						}
 
-                                                // Optional timeline filter.
-                                                $prep_where        = array( 'closed' );
-                                                $where             = array(
-                                                                'hw.eligible = 1',
-                                                                'h.status = %s',
-                                                );
-                                                $win_date_expr     = 'CASE WHEN h.closed_at IS NOT NULL THEN h.closed_at WHEN hw.created_at IS NOT NULL THEN hw.created_at ELSE h.created_at END';
-                                                $win_date_expr_sub = 'CASE WHEN h2.closed_at IS NOT NULL THEN h2.closed_at WHEN hw2.created_at IS NOT NULL THEN hw2.created_at ELSE h2.created_at END';
-                                                $range             = $this->get_timeline_range( $timeline_filter );
-                                                if ( $range ) {
-                                                                $where[]      = $win_date_expr . ' BETWEEN %s AND %s';
-                                                                $prep_where[] = $range['start'];
-                                                                $prep_where[] = $range['end'];
-                                                }
+                                                						// Optional timeline filter.
+						$win_date_expr     = 'CASE WHEN h.closed_at IS NOT NULL THEN h.closed_at WHEN hw.created_at IS NOT NULL THEN hw.created_at ELSE h.created_at END';
+						$win_date_expr_sub = 'CASE WHEN h2.closed_at IS NOT NULL THEN h2.closed_at WHEN hw2.created_at IS NOT NULL THEN hw2.created_at ELSE h2.created_at END';
+						$range             = $this->get_timeline_range( $timeline_filter );
+
+						$need_avg_hunt        = in_array( 'avg_hunt', $fields_arr, true );
+						$need_avg_tournament  = in_array( 'avg_tournament', $fields_arr, true );
+						$need_site            = in_array( 'site', $fields_arr, true );
+						$need_tournament_name = in_array( 'tournament', $fields_arr, true );
+						$need_hunt_name       = in_array( 'hunt', $fields_arr, true );
+						$need_aff             = in_array( 'aff', $fields_arr, true );
+						$need_site_details    = $need_site || $need_aff;
+
+						$r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
+						$u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
+						$t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+						$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+						$hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
+						$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+						$ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
+						$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
+						if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um || ! $ht ) {
+								return '';
+						}
+
+						$aff_yes_values = array( '1', 'yes', 'true', 'on' );
+						$aff_yes_sql    = array();
+						foreach ( $aff_yes_values as $val ) {
+								$aff_yes_sql[] = '\'' . esc_sql( $val ) . '\'';
+						}
+						$aff_yes_list = implode( ',', $aff_yes_sql );
+
+						$joins = array(
+								"INNER JOIN {$h} h ON h.id = hw.hunt_id",
+								"INNER JOIN {$u} u_filter ON u_filter.ID = hw.user_id",
+						);
+						$where      = array(
+								'hw.eligible = 1',
+								'h.status = %s',
+						);
+						$prep_where = array( 'closed' );
+
+						if ( $range ) {
+								$where[]      = $win_date_expr . ' BETWEEN %s AND %s';
+								$prep_where[] = $range['start'];
+								$prep_where[] = $range['end'];
+						}
 
 						if ( '' !== $search ) {
-								$where[]      = 'u.user_login LIKE %s';
+								$where[]      = 'u_filter.user_login LIKE %s';
 								$prep_where[] = '%' . $wpdb->esc_like( $search ) . '%';
 						}
 
@@ -2860,77 +2893,50 @@ return ob_get_clean();
 								$prep_where[] = $website_id;
 						}
 
-						$need_avg_hunt        = in_array( 'avg_hunt', $fields_arr, true );
-						$need_avg_tournament  = in_array( 'avg_tournament', $fields_arr, true );
-						$need_site            = in_array( 'site', $fields_arr, true );
-						$need_tournament_name = in_array( 'tournament', $fields_arr, true );
-						$need_hunt_name       = in_array( 'hunt', $fields_arr, true );
-						$need_aff             = in_array( 'aff', $fields_arr, true );
-						$need_site_details    = $need_site || $need_aff;
-
-						$r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
-						$u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
-						$t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
-			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
-						$hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
-			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-						$ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
-			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
-						if ( ! $r || ! $u || ! $t || ! $w || ! $hw || ! $h || ! $um || ! $ht ) {
-								return '';
+						if ( $tournament_id > 0 ) {
+								$joins[]     = "LEFT JOIN {$ht} ht ON ht.hunt_id = h.id";
+								$where[]      = '(ht.tournament_id = %d OR (ht.hunt_id IS NULL AND h.tournament_id = %d))';
+								$prep_where[] = $tournament_id;
+								$prep_where[] = $tournament_id;
 						}
 
-			$aff_yes_values = array( '1', 'yes', 'true', 'on' );
-			$aff_yes_sql    = array();
-			foreach ( $aff_yes_values as $val ) {
-				$aff_yes_sql[] = "'" . esc_sql( $val ) . "'";
+						if ( 'yes' === $aff_filter || 'true' === $aff_filter || '1' === $aff_filter ) {
+								$joins[] = "INNER JOIN {$um} um_aff_filter ON um_aff_filter.user_id = u_filter.ID AND um_aff_filter.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+								$where[] = "CAST(um_aff_filter.meta_value AS CHAR) IN ({$aff_yes_list})";
+						} elseif ( 'no' === $aff_filter || 'false' === $aff_filter || '0' === $aff_filter ) {
+								$joins[] = "LEFT JOIN {$um} um_aff_filter ON um_aff_filter.user_id = u_filter.ID AND um_aff_filter.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+								$where[] = "(um_aff_filter.user_id IS NULL OR CAST(um_aff_filter.meta_value AS CHAR) = '' OR CAST(um_aff_filter.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
 						}
-			$aff_yes_list = implode( ',', $aff_yes_sql );
 
-                                               $joins = array(
-                                                               "INNER JOIN {$h} h ON h.id = hw.hunt_id",
-                                                               "INNER JOIN {$u} u ON u.ID = hw.user_id",
-                                               );
+						$joins_sql = implode( ' ', $joins );
+						$where_sql = ' WHERE ' . implode( ' AND ', $where );
 
-                                               if ( $tournament_id > 0 ) {
-                                                                $joins[]     = "LEFT JOIN {$ht} ht ON ht.hunt_id = h.id";
-                                                                $where[]      = '(ht.tournament_id = %d OR (ht.hunt_id IS NULL AND h.tournament_id = %d))';
-                                                                $prep_where[] = $tournament_id;
-                                                                $prep_where[] = $tournament_id;
-                                               }
+						$base_select_parts = array(
+								'hw.user_id',
+								'hw.hunt_id',
+								'MIN(hw.position) AS position',
+								'MAX(' . $win_date_expr . ') AS win_date',
+								'MAX(h.affiliate_site_id) AS affiliate_site_id',
+						);
 
-                                               if ( 'yes' === $aff_filter || 'true' === $aff_filter || '1' === $aff_filter ) {
-                                                                $joins[]   = "INNER JOIN {$um} um_aff ON um_aff.user_id = u.ID AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
-                                                                $where[] = "CAST(um_aff.meta_value AS CHAR) IN ({$aff_yes_list})";
-                                               } elseif ( 'no' === $aff_filter || 'false' === $aff_filter || '0' === $aff_filter ) {
-                                                                $joins[]   = "LEFT JOIN {$um} um_aff ON um_aff.user_id = u.ID AND um_aff.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
-                                                                $where[]   = "(um_aff.user_id IS NULL OR CAST(um_aff.meta_value AS CHAR) = '' OR CAST(um_aff.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
-                                               }
+						$base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
+						$prepared_base_sql = $wpdb->prepare( $base_sql, ...$prep_where );
 
-                                               $joins_sql = implode( ' ', $joins );
-                                               $where_sql = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
+						$aggregate_parts = array(
+								'fw.user_id',
+								'COUNT(*) AS total_wins',
+						);
 
-                                               $sub_select_parts = array(
-                                                               'hw.user_id',
-                                                               'COUNT(DISTINCT hw.hunt_id) AS total_wins',
-                                               );
+						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
+								$need_avg_hunt     = true;
+								$aggregate_parts[] = 'AVG(fw.position) AS avg_hunt_pos';
+						}
 
-                                               if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
-                                                               $need_avg_hunt      = true;
-                                                               $sub_select_parts[] = 'AVG(hw.position) AS avg_hunt_pos';
-                                               }
+						$filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
+						$aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
 
-                                               $sub_sql = 'SELECT ' . implode( ', ', $sub_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id";
-
-                                               $prepared_sub_sql = $sub_sql;
-                                               if ( ! empty( $prep_where ) ) {
-                                                               $prepared_sub_sql = $wpdb->prepare( $sub_sql, ...$prep_where );
-                                               }
-
-                                               $count_sql = 'SELECT COUNT(*) FROM (' . $prepared_sub_sql . ') wins';
-                                               $total     = (int) $wpdb->get_var( $count_sql );
-
-                                               if ( $total <= 0 ) {
+						$count_sql = 'SELECT COUNT(*) FROM (' . $aggregate_sql . ') wins';
+						if ( $total <= 0 ) {
                                                                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
                                                }
 
@@ -2963,51 +2969,27 @@ return ob_get_clean();
 								$tour_join = '';
 						}
 
-                                                $sub_filters   = array(
-                                                                $wpdb->prepare( 'h2.status = %s', 'closed' ),
-                                                );
-			if ( $tournament_id > 0 ) {
-				$sub_filters[] = $wpdb->prepare( '(ht2.tournament_id = %d OR (ht2.hunt_id IS NULL AND h2.tournament_id = %d))', $tournament_id, $tournament_id );
-			}
-						if ( $hunt_id > 0 ) {
-								$sub_filters[] = $wpdb->prepare( 'hw2.hunt_id = %d', $hunt_id );
-						}
-						if ( $website_id > 0 ) {
-								$sub_filters[] = $wpdb->prepare( 'h2.affiliate_site_id = %d', $website_id );
-						}
-                                                if ( $range ) {
-                                                                $sub_filters[] = $wpdb->prepare( $win_date_expr_sub . ' BETWEEN %s AND %s', $range['start'], $range['end'] );
-                                                }
-                                                $sub_where_parts = array(
-                                                                'hw2.user_id = wins.user_id',
-                                                                'hw2.eligible = 1',
-                                                );
-						if ( $sub_filters ) {
-								$sub_where_parts = array_merge( $sub_where_parts, $sub_filters );
-						}
-						$sub_where_sql = ' WHERE ' . implode( ' AND ', $sub_where_parts );
+                                                						$latest_hunt_subquery = '(SELECT fw_inner.hunt_id FROM ' . $filtered_wrapper_sql . ' fw_inner WHERE fw_inner.user_id = wins.user_id ORDER BY fw_inner.win_date DESC, fw_inner.hunt_id DESC LIMIT 1)';
 
-                                                if ( $need_site_details ) {
-                                                                $site_subquery_template = "(SELECT %s FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$w} w2 ON w2.id = h2.affiliate_site_id{$sub_where_sql} ORDER BY {$win_date_expr_sub} DESC, hw2.id DESC LIMIT 1)";
-								$select_parts[]         = sprintf( $site_subquery_template, 'h2.affiliate_site_id' ) . ' AS site_id';
+						if ( $need_site_details ) {
+								$select_parts[] = '(SELECT h2.affiliate_site_id FROM ' . $h . ' h2 WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS site_id';
 								if ( $need_site ) {
-										$select_parts[] = sprintf( $site_subquery_template, 'w2.name' ) . ' AS site_name';
+										$select_parts[] = '(SELECT w2.name FROM ' . $w . ' w2 INNER JOIN ' . $h . ' h2 ON h2.affiliate_site_id = w2.id WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS site_name';
 								}
 						}
 
-                                                if ( $need_hunt_name ) {
-                                                                $select_parts[] = "(SELECT h2.title FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id{$sub_where_sql} ORDER BY {$win_date_expr_sub} DESC, hw2.id DESC LIMIT 1) AS hunt_title";
+						if ( $need_hunt_name ) {
+								$select_parts[] = '(SELECT h2.title FROM ' . $h . ' h2 WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS hunt_title';
 						}
 
-                                                if ( $need_tournament_name ) {
-                                                                $tournament_where_sql = $sub_where_sql . ' AND (ht2.tournament_id IS NOT NULL OR h2.tournament_id IS NOT NULL)';
-                                                                $select_parts[]       = "(SELECT COALESCE(t2.title, t2_legacy.title) FROM {$hw} hw2 INNER JOIN {$h} h2 ON h2.id = hw2.hunt_id LEFT JOIN {$ht} ht2 ON ht2.hunt_id = h2.id LEFT JOIN {$t} t2 ON t2.id = ht2.tournament_id LEFT JOIN {$t} t2_legacy ON t2_legacy.id = h2.tournament_id{$tournament_where_sql} ORDER BY {$win_date_expr_sub} DESC, hw2.id DESC LIMIT 1) AS tournament_title";
+						if ( $need_tournament_name ) {
+								$select_parts[] = '(SELECT COALESCE(t2.title, t2_legacy.title) FROM ' . $h . ' h2 LEFT JOIN ' . $ht . ' ht2 ON ht2.hunt_id = h2.id LEFT JOIN ' . $t . ' t2 ON t2.id = ht2.tournament_id LEFT JOIN ' . $t . ' t2_legacy ON t2_legacy.id = h2.tournament_id WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS tournament_title';
 						}
 
-                                                $select_sql = 'SELECT ' . implode( ', ', $select_parts ) . ' FROM (' . $prepared_sub_sql . ') wins INNER JOIN ' . $u . ' u ON u.ID = wins.user_id';
-                                                if ( $tour_join ) {
-                                                                $select_sql .= ' ' . $tour_join . ' ';
-                                                }
+						$select_sql = 'SELECT ' . implode( ', ', $select_parts ) . ' FROM (' . $aggregate_sql . ') wins INNER JOIN ' . $u . ' u ON u.ID = wins.user_id';
+						if ( $tour_join ) {
+								$select_sql .= ' ' . $tour_join . ' ';
+						}
 
 						$orderby_key = $orderby_request;
                                $orderby_map = array(
