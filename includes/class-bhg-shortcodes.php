@@ -2562,9 +2562,9 @@ return ob_get_clean();
 					 * @return string HTML output.
 					 */
 				public function leaderboards_shortcode( $atts ) {
-                                               $a = shortcode_atts(
-                                                               array(
-                                                                               'fields'     => 'pos,user,wins,avg_hunt,avg_tournament',
+                                              $a = shortcode_atts(
+                                                              array(
+                                                                              'fields'     => 'pos,user,wins,avg_hunt,avg_tournament,aff',
                                                                                'ranking'    => 0,
                                                                                'timeline'   => '',
                                                                                'orderby'    => 'wins',
