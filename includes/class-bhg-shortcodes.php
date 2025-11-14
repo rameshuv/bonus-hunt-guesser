@@ -3084,7 +3084,7 @@ return ob_get_clean();
 						echo '<form method="get" class="bhg-search-form">';
                                                foreach ( $_GET as $raw_key => $v ) {
                                                                $key = sanitize_key( wp_unslash( $raw_key ) );
-                                                               if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_site', 'bhg_aff', 'bhg_timeline', 'bhg_hunt' ), true ) ) {
+                                                               if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_site', 'bhg_aff', 'bhg_timeline' ), true ) ) {
                                                                                continue;
                                                                }
                                                                echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
