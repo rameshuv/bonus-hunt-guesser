@@ -2925,22 +2925,21 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                $joins_sql = implode( ' ', $joins );
                                                $where_sql = ' WHERE ' . implode( ' AND ', $where );
 
-                                               $base_select_parts = array(
-                                                               'hw.user_id',
-                                                               'hw.hunt_id',
-                                                               'COUNT(*) AS win_entries',
-                                                               'MIN(hw.position) AS position',
-                                                               'MAX(' . $win_date_expr . ') AS win_date',
-                                                               'MAX(h.affiliate_site_id) AS affiliate_site_id',
-                                               );
+                                              $base_select_parts = array(
+                                                              'hw.user_id',
+                                                              'hw.hunt_id',
+                                                              'MIN(hw.position) AS position',
+                                                              'MAX(' . $win_date_expr . ') AS win_date',
+                                                              'MAX(h.affiliate_site_id) AS affiliate_site_id',
+                                              );
 
 						$base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
 						$prepared_base_sql = $wpdb->prepare( $base_sql, ...$prep_where );
 
-                                               $aggregate_parts = array(
-                                                               'fw.user_id',
-                                                               'SUM(fw.win_entries) AS total_wins',
-                                               );
+                                              $aggregate_parts = array(
+                                                              'fw.user_id',
+                                                              'COUNT(*) AS total_wins',
+                                              );
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
 								$need_avg_hunt     = true;
