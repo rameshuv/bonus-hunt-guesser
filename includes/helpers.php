@@ -1125,6 +1125,26 @@ if ( ! function_exists( 'bhg_get_win_limit_config' ) ) {
 	}
 }
 
+if ( ! function_exists( 'bhg_get_shortcode_rows_per_page' ) ) {
+        /**
+         * Retrieve the default rows-per-page value for public shortcodes.
+         *
+         * @param int $default Fallback value when no setting is stored.
+         * @return int
+         */
+        function bhg_get_shortcode_rows_per_page( $default = 25 ) {
+                $default  = max( 1, (int) $default );
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                $value    = isset( $settings['shortcode_rows_per_page'] ) ? (int) $settings['shortcode_rows_per_page'] : 0;
+
+                if ( $value < 1 ) {
+                        $value = $default;
+                }
+
+                return (int) apply_filters( 'bhg_shortcode_rows_per_page', $value, $default );
+        }
+}
+
 if ( ! function_exists( 'bhg_get_period_interval_seconds' ) ) {
 		/**
 		 * Convert a period keyword into seconds.

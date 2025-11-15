@@ -1210,10 +1210,11 @@ return ob_get_clean();
 							   );
 					   }
 
-					   $per_page = (int) apply_filters( 'bhg_active_hunt_per_page', 30 );
-					   if ( $per_page <= 0 ) {
-							   $per_page = 30;
-					   }
+                                        $active_default = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 30 ) : 30;
+                                        $per_page       = (int) apply_filters( 'bhg_active_hunt_per_page', $active_default );
+                                        if ( $per_page <= 0 ) {
+                                                        $per_page = $active_default;
+                                        }
 
 			   $current_page = 1;
 			   if ( isset( $_GET['bhg_hunt_page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Viewing data.
@@ -1671,12 +1672,23 @@ return ob_get_clean();
 								}
 								$orderby = $allowed_orderby[ $orderby_key ];
 
-															   $paged    = isset( $_GET['bhg_page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-															   ? max( 1, absint( wp_unslash( $_GET['bhg_page'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-															   : (int) $a['paged']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-															   $paged    = max( 1, $paged );
-															   $per_page = max( 1, (int) $a['per_page'] );
-															   $offset   = ( $paged - 1 ) * $per_page;
+                                                                                                                          $paged    = isset( $_GET['bhg_page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                                                                                          ? max( 1, absint( wp_unslash( $_GET['bhg_page'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                                                                                          : (int) $a['paged']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                                                                                                                          $paged    = max( 1, $paged );
+                                                                                                                          $per_page_default = 30;
+                                                                                                                          if ( function_exists( 'bhg_get_shortcode_rows_per_page' ) ) {
+                                                                                                                          $per_page_default = bhg_get_shortcode_rows_per_page( $per_page_default );
+                                                                                                                          }
+                                                                                                                          $per_page = $per_page_default;
+                                                                                                                          if ( array_key_exists( 'per_page', $atts ) ) {
+                                                                                                                          $per_page_attr = (int) $a['per_page'];
+                                                                                                                          if ( $per_page_attr > 0 ) {
+                                                                                                                          $per_page = $per_page_attr;
+                                                                                                                          }
+                                                                                                                          }
+                                                                                                                          $per_page = max( 1, $per_page );
+                                                                                                                          $offset   = ( $paged - 1 ) * $per_page;
 
 															   $search = isset( $_GET['bhg_search'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 															   ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -1916,7 +1928,8 @@ return ob_get_clean();
 
 		$paged               = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
 		$search              = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-		$limit               = 30;
+                $limit_default       = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 30 ) : 30;
+                $limit               = $limit_default;
 		$offset              = ( $paged - 1 ) * $limit;
 		$has_orderby_query   = isset( $_GET['bhg_orderby'] );
 		$orderby_request     = $has_orderby_query ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
@@ -2320,7 +2333,8 @@ return ob_get_clean();
 
 						$paged           = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
 						$search          = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-						$limit           = 30;
+                                                $limit_default   = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 30 ) : 30;
+                                                $limit           = $limit_default;
 						$offset          = ( $paged - 1 ) * $limit;
 						$orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
 						$order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
@@ -2586,16 +2600,18 @@ return ob_get_clean();
                                               $a = shortcode_atts(
                                                               array(
                                                                               'fields'     => 'pos,user,wins,avg_hunt,avg_tournament,aff',
-                                                                               'ranking'    => 0,
-                                                                               'timeline'   => '',
-                                                                               'orderby'    => 'wins',
-                                                                               'order'      => 'DESC',
-                                                                               'search'     => '',
-                                                                               'tournament' => '',
-                                                                               'bonushunt'  => '',
-                                                                               'website'    => '',
-                                                                               'aff'        => '',
-                                                                               'filters'    => 'timeline,tournament,affiliate_site,affiliate_status',
+                                                                              'ranking'    => 0,
+                                                                              'timeline'   => '',
+                                                                              'orderby'    => 'wins',
+                                                                              'order'      => 'DESC',
+                                                                              'search'     => '',
+                                                                              'tournament' => '',
+                                                                              'bonushunt'  => '',
+                                                                              'website'    => '',
+                                                                              'aff'        => '',
+                                                                              'filters'    => 'timeline,tournament,affiliate_site,affiliate_status',
+                                                                              'per_page'   => 0,
+                                                                              'paged'      => 1,
                                                                ),
                                                                $atts,
                                                                'bhg_leaderboards'
@@ -2669,8 +2685,39 @@ return ob_get_clean();
 
 						$timeline_filter = ( 'all_time' === $timeline ) ? '' : $timeline;
 
-                                               $ranking_limit = max( 0, (int) $a['ranking'] );
-                                               $offset        = 0;
+                                               $ranking_raw = trim( (string) $a['ranking'] );
+                                               $ranking_limit = 0;
+                                               if ( '' !== $ranking_raw ) {
+                                                               if ( preg_match( '/^(?:\d+\s*-\s*)?(\d+)$/', $ranking_raw, $matches ) ) {
+                                                                               $ranking_limit = (int) $matches[1];
+                                                               } else {
+                                                                               $ranking_limit = (int) $ranking_raw;
+                                                               }
+                                               }
+                                               $ranking_limit = max( 0, $ranking_limit );
+
+                                               $paged = isset( $_GET['bhg_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_paged'] ) ) ) : (int) $a['paged'];
+                                               if ( array_key_exists( 'paged', $atts ) ) {
+                                                               $paged_attr = (int) $atts['paged'];
+                                                               if ( $paged_attr > 0 ) {
+                                                                               $paged = $paged_attr;
+                                                               }
+                                               }
+                                               $paged = max( 1, $paged );
+
+                                               $default_per_page = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 25 ) : 25;
+                                               $per_page         = $default_per_page;
+                                               if ( array_key_exists( 'per_page', $atts ) ) {
+                                                               $per_page_attr = (int) $atts['per_page'];
+                                                               if ( $per_page_attr > 0 ) {
+                                                                               $per_page = $per_page_attr;
+                                                               }
+                                               }
+                                               $per_page = (int) apply_filters( 'bhg_leaderboards_per_page', $per_page, $atts );
+                                               if ( $per_page <= 0 ) {
+                                                               $per_page = $default_per_page;
+                                               }
+                                               $offset = ( $paged - 1 ) * $per_page;
 
 						$orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
 						$order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
@@ -2967,12 +3014,24 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
                                                }
 
-                                               if ( $ranking_limit > 0 ) {
-                                                               $limit = min( $ranking_limit, $total );
-                                               } else {
-                                                               $limit = $total;
+                                               if ( $ranking_limit > 0 && $total > $ranking_limit ) {
+                                                               $total = $ranking_limit;
                                                }
-                                               $limit = max( 1, $limit );
+
+                                               $pages = (int) ceil( $total / $per_page );
+                                               if ( $pages < 1 ) {
+                                                               $pages = 1;
+                                               }
+                                               if ( $paged > $pages ) {
+                                                               $paged  = $pages;
+                                                               $offset = ( $paged - 1 ) * $per_page;
+                                               }
+                                               if ( $total <= $offset ) {
+                                                               $offset = max( 0, ( $pages - 1 ) * $per_page );
+                                               }
+
+                                               $limit = min( $per_page, max( 1, $total - $offset ) );
+                                               $total_pages = $pages;
 
                                                $select_parts = array(
                                                                'wins.user_id',
@@ -3035,26 +3094,26 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                 $select_sql   .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
 
                                                 $query       = $wpdb->prepare( $select_sql, $limit, $offset );
-						// db call ok; no-cache ok.
-						$rows        = $wpdb->get_results( $query );
-						if ( ! $rows ) {
-								return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
-						}
-						$pages = (int) ceil( $total / $limit );
+                                                // db call ok; no-cache ok.
+                                                $rows        = $wpdb->get_results( $query );
+                                                if ( ! $rows ) {
+                                                                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+                                                }
 
-						$current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
-						$base_url    = remove_query_arg( array( 'bhg_orderby', 'bhg_order', 'bhg_paged' ), $current_url );
-						if ( '' === $search ) {
-								$base_url = remove_query_arg( 'bhg_search', $base_url );
-						}
-						$toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search, $tournament_id, $hunt_id, $aff_filter, $website_id, $timeline ) {
-								$dir  = ( $orderby_key === $field && 'asc' === $direction_key ) ? 'desc' : 'asc';
-								$args = array(
-										'bhg_orderby' => $field,
-										'bhg_order'   => $dir,
-								);
-								if ( '' !== $search ) {
-										$args['bhg_search'] = $search;
+                                                $current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
+                                                $base_url    = remove_query_arg( array( 'bhg_orderby', 'bhg_order', 'bhg_paged' ), $current_url );
+                                                if ( '' === $search ) {
+                                                                $base_url = remove_query_arg( 'bhg_search', $base_url );
+                                                }
+                                                $toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search, $tournament_id, $hunt_id, $aff_filter, $website_id, $timeline ) {
+                                                                $dir  = ( $orderby_key === $field && 'asc' === $direction_key ) ? 'desc' : 'asc';
+                                                                $args = array(
+                                                                                'bhg_orderby' => $field,
+                                                                                'bhg_order'   => $dir,
+                                                                                'bhg_paged'   => false,
+                                                                );
+                                                                if ( '' !== $search ) {
+                                                                                $args['bhg_search'] = $search;
 								}
 								if ( $tournament_id > 0 ) {
 										$args['bhg_tournament'] = $tournament_id;
@@ -3227,8 +3286,8 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 								} elseif ( 'tournament' === $field ) {
 										echo '<th>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
 								}
-						}
-						echo '</tr></thead><tbody>';
+                                                }
+                                                echo '</tr></thead><tbody>';
 
                                                $pos      = $offset + 1;
                                                $charset  = get_bloginfo( 'charset' );
@@ -3275,14 +3334,53 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                $tournament_label = ! empty( $row->tournament_title ) ? $row->tournament_title : bhg_t( 'label_emdash', '—' );
                                                echo '<td>' . esc_html( $tournament_label ) . '</td>';
                                        }
-				}
-					echo '</tr>';
-					++$pos;
-			}
-						echo '</tbody></table>';
+                               }
+                                        echo '</tr>';
+                                        ++$pos;
+                        }
+                                                echo '</tbody></table>';
 
-						return ob_get_clean();
-				}
+                                                if ( $total_pages > 1 ) {
+                                                                $add_args = array(
+                                                                                'bhg_orderby' => $orderby_key,
+                                                                                'bhg_order'   => $direction_key,
+                                                                );
+                                                                if ( '' !== $search ) {
+                                                                                $add_args['bhg_search'] = $search;
+                                                                }
+                                                                if ( '' !== $timeline && 'all_time' !== $timeline ) {
+                                                                                $add_args['bhg_timeline'] = $timeline;
+                                                                }
+                                                                if ( $tournament_id > 0 ) {
+                                                                                $add_args['bhg_tournament'] = $tournament_id;
+                                                                }
+                                                                if ( $hunt_id > 0 ) {
+                                                                                $add_args['bhg_hunt'] = $hunt_id;
+                                                                }
+                                                                if ( '' !== $aff_filter ) {
+                                                                                $add_args['bhg_aff'] = $aff_filter;
+                                                                }
+                                                                if ( $website_id > 0 ) {
+                                                                                $add_args['bhg_site'] = $website_id;
+                                                                }
+
+                                                                $pagination = paginate_links(
+                                                                                array(
+                                                                                                'base'      => add_query_arg( 'bhg_paged', '%#%', $base_url ),
+                                                                                                'format'    => '',
+                                                                                                'current'   => $paged,
+                                                                                                'total'     => max( 1, $total_pages ),
+                                                                                                'add_args'  => $add_args,
+                                                                                )
+                                                                );
+
+                                                                if ( $pagination ) {
+                                                                                echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
+                                                                }
+                                                }
+
+                                                return ob_get_clean();
+                                }
 
 					/**
 					 * Lists tournaments or shows tournament details.
@@ -3533,10 +3631,12 @@ if ( ! empty( $prizes ) ) {
 echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $this->render_prize_section( $prizes, 'grid', 'medium' ) ) . '</div>';
 }
 
-$per_page = (int) apply_filters( 'bhg_tournament_results_per_page', 25, $tournament );
+$default_rows = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 25 ) : 25;
+$per_page     = (int) apply_filters( 'bhg_tournament_results_per_page', $default_rows, $tournament );
 if ( $per_page <= 0 ) {
-$per_page = 25;
+$per_page = $default_rows;
 }
+$per_page = max( 1, $per_page );
 
 $current_page = isset( $_GET['bhg_tr_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_tr_paged'] ) ) ) : 1;
 $offset       = ( $current_page - 1 ) * $per_page;
@@ -3702,7 +3802,8 @@ return ob_get_clean();
 					   $website    = absint( $a['website'] );
 					   $paged      = isset( $_GET['bhg_paged'] ) ? max( 1, (int) wp_unslash( $_GET['bhg_paged'] ) ) : max( 1, (int) $a['paged'] );
 					   $search     = isset( $_GET['bhg_search'] ) ? sanitize_text_field( wp_unslash( $_GET['bhg_search'] ) ) : sanitize_text_field( $a['search'] );
-					   $limit      = 30;
+                                           $limit_default = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 30 ) : 30;
+                                           $limit      = $limit_default;
 					   $offset     = ( $paged - 1 ) * $limit;
 
 					   $orderby_param = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
