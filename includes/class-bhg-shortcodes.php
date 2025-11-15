@@ -41,31 +41,35 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		 */
 		private $profile_visibility_settings = null;
 
-		/**
-		 * Tracks whether shortcodes have already been registered.
-		 *
-		 * @var bool
-		 */
-		private $shortcodes_registered = false;
+               /**
+                * Tracks whether shortcodes have already been registered.
+                *
+                * @var bool
+                */
+               private static $shortcodes_registered = false;
 
-		/**
-		 * Registers all shortcodes.
-		 */
-		public function __construct() {
-			add_action( 'init', array( $this, 'register_shortcodes' ) );
-		}
+               /**
+                * Registers all shortcodes.
+                */
+               public function __construct() {
+                       add_action( 'init', array( $this, 'register_shortcodes' ), 1 );
+
+                       if ( did_action( 'init' ) ) {
+                               $this->register_shortcodes();
+                       }
+               }
 
 		/**
 		 * Register all plugin shortcodes with WordPress.
 		 *
 		 * @return void
 		 */
-		public function register_shortcodes() {
-			if ( $this->shortcodes_registered ) {
-				return;
-			}
+               public function register_shortcodes() {
+                       if ( self::$shortcodes_registered ) {
+                               return;
+                       }
 
-			// Core shortcodes.
+                       // Core shortcodes.
 			add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
 			add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
 			add_shortcode( 'bhg_leaderboard', array( $this, 'leaderboard_shortcode' ) );
@@ -95,10 +99,10 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			// Legacy/aliases.
 			add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
 			add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
-			add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
+                       add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
 
-			$this->shortcodes_registered = true;
-		}
+                       self::$shortcodes_registered = true;
+               }
 
 		/**
 		 * Validates a database table name against known tables.
