@@ -698,7 +698,8 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'sc_status'                                    => 'Status',
 			'sc_affiliate'                                 => 'Affiliate',
 			'sc_position'                                  => 'Position',
-                        'sc_user'                                      => 'Username',
+                       /* translators: Column header label for username fields. */
+                       'sc_user'                                      => 'Username',
                         'sc_wins'                                      => 'Times Won',
 			'label_times_won'                              => 'Times Won',
 			'sc_avg_rank'                                  => 'Avg Hunt Pos',

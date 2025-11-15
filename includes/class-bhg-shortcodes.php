@@ -2874,15 +2874,15 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 						}
 						$aff_yes_list = implode( ',', $aff_yes_sql );
 
-						$joins = array(
-								"INNER JOIN {$h} h ON h.id = hw.hunt_id",
-								"INNER JOIN {$u} u_filter ON u_filter.ID = hw.user_id",
-						);
-						$where      = array(
-								'hw.eligible = 1',
-								'h.status = %s',
-						);
-						$prep_where = array( 'closed' );
+                                               $joins = array(
+                                                               "INNER JOIN {$h} h ON h.id = hw.hunt_id",
+                                                               "INNER JOIN {$u} u_filter ON u_filter.ID = hw.user_id",
+                                               );
+                                               $where      = array(
+                                                               'hw.eligible = 1',
+                                                               'h.status = %s',
+                                               );
+                                               $prep_where = array( 'closed' );
 
                                                 if ( '' !== $search ) {
                                                                 $where[]      = 'u_filter.user_login LIKE %s';
@@ -2914,8 +2914,14 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 								$where[] = "(um_aff_filter.user_id IS NULL OR CAST(um_aff_filter.meta_value AS CHAR) = '' OR CAST(um_aff_filter.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
 						}
 
-						$joins_sql = implode( ' ', $joins );
-						$where_sql = ' WHERE ' . implode( ' AND ', $where );
+                                               if ( $range ) {
+                                                               $where[]      = '(' . $win_date_expr . ' BETWEEN %s AND %s)';
+                                                               $prep_where[] = $range['start'];
+                                                               $prep_where[] = $range['end'];
+                                               }
+
+                                               $joins_sql = implode( ' ', $joins );
+                                               $where_sql = ' WHERE ' . implode( ' AND ', $where );
 
                                                $base_select_parts = array(
                                                                'hw.user_id',
@@ -2939,14 +2945,7 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 								$aggregate_parts[] = 'AVG(fw.position) AS avg_hunt_pos';
 						}
 
-                                                $filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
-                                                if ( $range ) {
-                                                                $filtered_wrapper_sql = $wpdb->prepare(
-                                                                                '(SELECT * FROM ' . $filtered_wrapper_sql . ' AS base_wins WHERE base_wins.win_date BETWEEN %s AND %s)',
-                                                                                $range['start'],
-                                                                                $range['end']
-                                                                );
-                                                }
+                                               $filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
                                                 $aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
 
                                                $count_sql = 'SELECT COUNT(*) FROM (' . $aggregate_sql . ') wins';
