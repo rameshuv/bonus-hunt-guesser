@@ -43,10 +43,15 @@ class BHG_DB {
 			$wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN points_map LONGTEXT NULL AFTER hunt_link_mode" );
 		}
 
-		if ( ! $db->column_exists( $tours_table, 'ranking_scope' ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN ranking_scope VARCHAR(20) NOT NULL DEFAULT 'all' AFTER points_map" );
-		}
+                if ( ! $db->column_exists( $tours_table, 'ranking_scope' ) ) {
+                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                        $wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN ranking_scope VARCHAR(20) NOT NULL DEFAULT 'all' AFTER points_map" );
+                }
+
+                if ( ! $db->column_exists( $tours_table, 'winners_count' ) ) {
+                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                        $wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN winners_count INT UNSIGNED NOT NULL DEFAULT 3 AFTER ranking_scope" );
+                }
 
 		$tres_table = $wpdb->prefix . 'bhg_tournament_results';
 
@@ -137,8 +142,9 @@ class BHG_DB {
 	participants_mode VARCHAR(20) NOT NULL DEFAULT 'winners',
 	hunt_link_mode VARCHAR(20) NOT NULL DEFAULT 'manual',
 	points_map LONGTEXT NULL,
-	ranking_scope VARCHAR(20) NOT NULL DEFAULT 'all',
-	prizes TEXT NULL,
+        ranking_scope VARCHAR(20) NOT NULL DEFAULT 'all',
+        winners_count INT UNSIGNED NOT NULL DEFAULT 3,
+        prizes TEXT NULL,
 	affiliate_site_id BIGINT UNSIGNED NULL,
 	affiliate_website VARCHAR(255) NULL,
 	affiliate_url_visible TINYINT(1) NOT NULL DEFAULT 1,
