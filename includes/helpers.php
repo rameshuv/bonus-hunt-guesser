@@ -699,7 +699,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'sc_affiliate'                                 => 'Affiliate',
 			'sc_position'                                  => 'Position',
                         'sc_user'                                      => 'Username',
-			'sc_wins'                                      => 'Wins',
+                        'sc_wins'                                      => 'Times Won',
 			'label_times_won'                              => 'Times Won',
 			'sc_avg_rank'                                  => 'Avg Hunt Pos',
 			'sc_avg_tournament_pos'                        => 'Avg Tournament Pos',

@@ -2923,21 +2923,22 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 						$joins_sql = implode( ' ', $joins );
 						$where_sql = ' WHERE ' . implode( ' AND ', $where );
 
-                                                $base_select_parts = array(
-                                                                'hw.user_id',
-                                                                'hw.hunt_id',
-                                                                'MIN(hw.position) AS position',
-                                                                'MAX(' . $win_date_expr . ') AS win_date',
-                                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
-                                                );
+                                               $base_select_parts = array(
+                                                               'hw.user_id',
+                                                               'hw.hunt_id',
+                                                               'COUNT(DISTINCT hw.id) AS win_entries',
+                                                               'MIN(hw.position) AS position',
+                                                               'MAX(' . $win_date_expr . ') AS win_date',
+                                                               'MAX(h.affiliate_site_id) AS affiliate_site_id',
+                                               );
 
 						$base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
 						$prepared_base_sql = $wpdb->prepare( $base_sql, ...$prep_where );
 
-        $aggregate_parts = array(
-                        'fw.user_id',
-                        'COUNT(DISTINCT fw.hunt_id) AS total_wins',
-        );
+                                               $aggregate_parts = array(
+                                                               'fw.user_id',
+                                                               'SUM(fw.win_entries) AS total_wins',
+                                               );
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
 								$need_avg_hunt     = true;
@@ -3464,7 +3465,7 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                                 echo '<thead><tr>';
                                                                 echo '<th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th>';
                                                                 $username_label = bhg_t( 'label_username', 'Username' );
-                                                                $wins_label     = bhg_t( 'sc_wins', 'Wins' );
+                                                               $wins_label     = bhg_t( 'sc_wins', 'Times Won' );
                                                                 $last_win_label = bhg_t( 'label_last_win', 'Last win' );
                                                                 echo '<th class="sortable"><a href="' . esc_url( $toggle( 'username' ) ) . '">' . esc_html( $username_label ) . $sort_icon_markup( 'username', $username_label ) . '</a></th>';
                                                                 echo '<th class="sortable"><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( $wins_label ) . $sort_icon_markup( 'wins', $wins_label ) . '</a></th>';
@@ -4764,7 +4765,7 @@ return ob_get_clean();
 				if ( ! $rows ) {
 						echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 				} else {
-					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th></tr></thead><tbody>';
+					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
 					foreach ( $rows as $r ) {
 							/* translators: %d: user ID. */
