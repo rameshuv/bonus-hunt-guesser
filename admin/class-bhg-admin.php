@@ -1205,10 +1205,16 @@ class BHG_Admin {
 		if ( empty( $points_map ) && function_exists( 'bhg_get_default_points_map' ) ) {
 				$points_map = bhg_get_default_points_map();
 		}
-			$points_map_json = wp_json_encode( $points_map );
-		if ( false === $points_map_json ) {
-				$points_map_json = wp_json_encode( array() );
-		}
+                        $points_map_json = wp_json_encode( $points_map );
+                if ( false === $points_map_json ) {
+                                $points_map_json = wp_json_encode( array() );
+                }
+
+                        $winners_count = isset( $_POST['winners_count'] ) ? absint( wp_unslash( $_POST['winners_count'] ) ) : 3;
+                        if ( $winners_count <= 0 ) {
+                                $winners_count = 3;
+                        }
+                        $winners_count = min( 25, max( 1, $winners_count ) );
 
 			$ranking_scope  = isset( $_POST['ranking_scope'] ) ? sanitize_key( wp_unslash( $_POST['ranking_scope'] ) ) : 'all';
 			$allowed_scopes = array( 'all', 'active', 'closed' );
@@ -1277,9 +1283,10 @@ class BHG_Admin {
 				'description'           => isset( $_POST['description'] ) ? wp_kses_post( wp_unslash( $_POST['description'] ) ) : '',
 				'participants_mode'     => $participants_mode,
 				'hunt_link_mode'        => $hunt_link_mode,
-				'points_map'            => $points_map_json,
-				'ranking_scope'         => $ranking_scope,
-				'prizes'                => $prizes_json,
+                                'points_map'            => $points_map_json,
+                                'ranking_scope'         => $ranking_scope,
+                                'winners_count'         => $winners_count,
+                                'prizes'                => $prizes_json,
 				'affiliate_site_id'     => $affiliate_site_id,
 				'affiliate_website'     => $affiliate_website,
 				'affiliate_url_visible' => $affiliate_url_visible,
@@ -1317,9 +1324,9 @@ class BHG_Admin {
 				$hunt_ids = $this->get_hunt_ids_within_range( $start_date, $end_date );
 			}
 
-			try {
-				$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%d', '%s', '%s', '%s', '%s', '%s' );
-				if ( $id > 0 ) {
+                        try {
+                                $format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s' );
+                                if ( $id > 0 ) {
 						$wpdb->update( $t, $data, array( 'id' => $id ), $format, array( '%d' ) );
 						$saved_id = $id;
 				} else {
