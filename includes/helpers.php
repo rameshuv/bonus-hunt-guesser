@@ -421,8 +421,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'notice_no_rankings_user'                      => 'No ranking data is available yet.',
 			'label_placement_number'                       => 'Placement #%d',
 			'label_search'                                 => 'Search',
-			'search_hunts'                                 => 'Search Hunts',
-			'label_user'                                   => 'User',
+                       'search_hunts'                                 => 'Search Hunts',
+                       /* translators: Column header used in tables that list usernames. */
+                       'label_user'                                   => 'Username',
 			'label_users'                                  => 'Users',
 			'label_role'                                   => 'Role',
 			'label_guesses'                                => 'Guesses',
@@ -698,8 +699,9 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'sc_status'                                    => 'Status',
 			'sc_affiliate'                                 => 'Affiliate',
 			'sc_position'                                  => 'Position',
-			'sc_user'                                      => 'User',
-			'sc_wins'                                      => 'Wins',
+                       /* translators: Column header label for username fields. */
+                       'sc_user'                                      => 'Username',
+                        'sc_wins'                                      => 'Times Won',
 			'label_times_won'                              => 'Times Won',
 			'sc_avg_rank'                                  => 'Avg Hunt Pos',
 			'sc_avg_tournament_pos'                        => 'Avg Tournament Pos',
