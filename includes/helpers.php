@@ -465,7 +465,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_bonus_hunt'                             => 'Bonushunt',
 			'label_bonus_hunts'                            => 'Bonus Hunts',
 			'label_overall'                                => 'Overall',
-			'label_all_time'                               => 'All-Time',
+			'label_all_time'                               => 'Alltime',
 			'label_final'                                  => 'Final',
 			'label_user_number'                            => 'User #%d',
 			'label_diff'                                   => 'diff',
@@ -1123,6 +1123,26 @@ if ( ! function_exists( 'bhg_get_win_limit_config' ) ) {
 				'period' => $period,
 			);
 	}
+}
+
+if ( ! function_exists( 'bhg_get_shortcode_rows_per_page' ) ) {
+        /**
+         * Retrieve the default rows-per-page value for public shortcodes.
+         *
+         * @param int $default Fallback value when no setting is stored.
+         * @return int
+         */
+        function bhg_get_shortcode_rows_per_page( $default = 25 ) {
+                $default  = max( 1, (int) $default );
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                $value    = isset( $settings['shortcode_rows_per_page'] ) ? (int) $settings['shortcode_rows_per_page'] : 0;
+
+                if ( $value < 1 ) {
+                        $value = $default;
+                }
+
+                return (int) apply_filters( 'bhg_shortcode_rows_per_page', $value, $default );
+        }
 }
 
 if ( ! function_exists( 'bhg_get_period_interval_seconds' ) ) {
