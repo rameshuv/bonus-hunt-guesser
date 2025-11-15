@@ -2884,15 +2884,9 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 						);
 						$prep_where = array( 'closed' );
 
-						if ( $range ) {
-								$where[]      = $win_date_expr . ' BETWEEN %s AND %s';
-								$prep_where[] = $range['start'];
-								$prep_where[] = $range['end'];
-						}
-
-						if ( '' !== $search ) {
-								$where[]      = 'u_filter.user_login LIKE %s';
-								$prep_where[] = '%' . $wpdb->esc_like( $search ) . '%';
+                                                if ( '' !== $search ) {
+                                                                $where[]      = 'u_filter.user_login LIKE %s';
+                                                                $prep_where[] = '%' . $wpdb->esc_like( $search ) . '%';
 						}
 
 						if ( $hunt_id > 0 ) {
@@ -2945,8 +2939,15 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 								$aggregate_parts[] = 'AVG(fw.position) AS avg_hunt_pos';
 						}
 
-						$filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
-						$aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
+                                                $filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
+                                                if ( $range ) {
+                                                                $filtered_wrapper_sql = $wpdb->prepare(
+                                                                                '(SELECT * FROM ' . $filtered_wrapper_sql . ' AS base_wins WHERE base_wins.win_date BETWEEN %s AND %s)',
+                                                                                $range['start'],
+                                                                                $range['end']
+                                                                );
+                                                }
+                                                $aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
 
                                                $count_sql = 'SELECT COUNT(*) FROM (' . $aggregate_sql . ') wins';
                                                $total     = (int) $wpdb->get_var( $count_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -2984,7 +2985,7 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 								$tour_join = '';
 						}
 
-                                                						$latest_hunt_subquery = '(SELECT fw_inner.hunt_id FROM ' . $filtered_wrapper_sql . ' fw_inner WHERE fw_inner.user_id = wins.user_id ORDER BY fw_inner.win_date DESC, fw_inner.hunt_id DESC LIMIT 1)';
+                                               $latest_hunt_subquery = '(SELECT fw_inner.hunt_id FROM ' . $filtered_wrapper_sql . ' fw_inner WHERE fw_inner.user_id = wins.user_id ORDER BY fw_inner.win_date DESC, fw_inner.hunt_id DESC LIMIT 1)';
 
 						if ( $need_site_details ) {
 								$select_parts[] = '(SELECT h2.affiliate_site_id FROM ' . $h . ' h2 WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS site_id';
