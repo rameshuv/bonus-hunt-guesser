@@ -108,86 +108,88 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                  * @param string $timeline Timeline keyword.
                  * @return array|null Array with 'start' and 'end' in `Y-m-d H:i:s` or null for no restriction.
                  */
-                private function get_timeline_range( $timeline ) {
-                                $timeline = strtolower( (string) $timeline );
+               private function get_timeline_range( $timeline ) {
+                               $timeline = strtolower( (string) $timeline );
 
-                                if ( '' === $timeline ) {
-                                                return null;
-                                }
+                               if ( '' === $timeline ) {
+                                               return null;
+                               }
 
-                                $aliases = array(
-                                                'day'          => 'day',
-                                                'today'        => 'day',
-                                                'this_day'     => 'day',
-                                                'week'         => 'week',
-                                                'this_week'    => 'week',
-                                                'weekly'       => 'week',
-                                                'month'        => 'month',
-                                                'this_month'   => 'month',
-                                                'monthly'      => 'month',
-                                                'year'         => 'year',
-                                                'this_year'    => 'year',
-                                                'yearly'       => 'year',
-                                                'quarter'      => 'quarter',
-                                                'quarterly'    => 'quarter',
-                                                'this_quarter' => 'quarter',
-                                                'last_year'    => 'last_year',
-                                                'all_time'     => 'all_time',
-                                                'alltime'      => 'all_time',
-                                );
+                               $aliases = array(
+                                               'day'          => 'day',
+                                               'today'        => 'day',
+                                               'this_day'     => 'day',
+                                               'week'         => 'week',
+                                               'this_week'    => 'week',
+                                               'weekly'       => 'week',
+                                               'month'        => 'month',
+                                               'this_month'   => 'month',
+                                               'monthly'      => 'month',
+                                               'year'         => 'year',
+                                               'this_year'    => 'year',
+                                               'yearly'       => 'year',
+                                               'quarter'      => 'quarter',
+                                               'quarterly'    => 'quarter',
+                                               'this_quarter' => 'quarter',
+                                               'last_year'    => 'last_year',
+                                               'all_time'     => 'all_time',
+                                               'alltime'      => 'all_time',
+                               );
 
-                                $canonical = isset( $aliases[ $timeline ] ) ? $aliases[ $timeline ] : $timeline;
+                               $canonical = isset( $aliases[ $timeline ] ) ? $aliases[ $timeline ] : $timeline;
 
-                                $tz  = wp_timezone();
-                                $now = new DateTimeImmutable( 'now', $tz );
+                               $site_timezone = wp_timezone();
+                               $now           = new DateTimeImmutable( 'now', $site_timezone );
 
-                                switch ( $canonical ) {
-                                        case 'day':
-                                                $start_dt = $now->setTime( 0, 0, 0 );
-                                                $end_dt   = $now->setTime( 23, 59, 59 );
-                                                break;
+                               switch ( $canonical ) {
+                                       case 'day':
+                                               $start_dt = $now->setTime( 0, 0, 0 );
+                                               $end_dt   = $now->setTime( 23, 59, 59 );
+                                               break;
 
-                                        case 'week':
-                                                $week     = get_weekstartend( $now->format( 'Y-m-d' ) );
-                                                $start_dt = ( new DateTimeImmutable( '@' . $week['start'] ) )->setTimezone( $tz );
-                                                $end_dt   = ( new DateTimeImmutable( '@' . $week['end'] ) )->setTimezone( $tz );
-                                                break;
+                                       case 'week':
+                                               $week     = get_weekstartend( $now->format( 'Y-m-d' ) );
+                                               $start_dt = ( new DateTimeImmutable( '@' . $week['start'] ) )->setTimezone( $site_timezone );
+                                               $end_dt   = ( new DateTimeImmutable( '@' . $week['end'] ) )->setTimezone( $site_timezone );
+                                               break;
 
-                                        case 'month':
-                                                $start_dt = $now->modify( 'first day of this month' )->setTime( 0, 0, 0 );
-                                                $end_dt   = $now->modify( 'last day of this month' )->setTime( 23, 59, 59 );
-                                                break;
+                                       case 'month':
+                                               $start_dt = $now->modify( 'first day of this month' )->setTime( 0, 0, 0 );
+                                               $end_dt   = $now->modify( 'last day of this month' )->setTime( 23, 59, 59 );
+                                               break;
 
-                                        case 'year':
-                                                $start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
-                                                $end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
-                                                break;
+                                       case 'year':
+                                               $start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
+                                               $end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
+                                               break;
 
-                                        case 'quarter':
-                                                $year        = (int) $now->format( 'Y' );
-                                                $month       = (int) $now->format( 'n' );
-                                                $quarter     = (int) floor( ( $month - 1 ) / 3 ) + 1;
-                                                $start_month = ( ( $quarter - 1 ) * 3 ) + 1;
-                                                $start_dt    = $now->setDate( $year, $start_month, 1 )->setTime( 0, 0, 0 );
-                                                $end_dt      = $start_dt->modify( '+2 months' )->modify( 'last day of this month' )->setTime( 23, 59, 59 );
-                                                break;
+                                       case 'quarter':
+                                               $year        = (int) $now->format( 'Y' );
+                                               $month       = (int) $now->format( 'n' );
+                                               $quarter     = (int) floor( ( $month - 1 ) / 3 ) + 1;
+                                               $start_month = ( ( $quarter - 1 ) * 3 ) + 1;
+                                               $start_dt    = $now->setDate( $year, $start_month, 1 )->setTime( 0, 0, 0 );
+                                               $end_dt      = $start_dt->modify( '+2 months' )->modify( 'last day of this month' )->setTime( 23, 59, 59 );
+                                               break;
 
-                                        case 'last_year':
-                                                $year     = (int) $now->format( 'Y' ) - 1;
-                                                $start_dt = $now->setDate( $year, 1, 1 )->setTime( 0, 0, 0 );
-                                                $end_dt   = $now->setDate( $year, 12, 31 )->setTime( 23, 59, 59 );
-                                                break;
+                                       case 'last_year':
+                                               $year     = (int) $now->format( 'Y' ) - 1;
+                                               $start_dt = $now->setDate( $year, 1, 1 )->setTime( 0, 0, 0 );
+                                               $end_dt   = $now->setDate( $year, 12, 31 )->setTime( 23, 59, 59 );
+                                               break;
 
-                                        case 'all_time':
-                                        default:
-                                                return null;
-                                }
+                                       case 'all_time':
+                                       default:
+                                               return null;
+                               }
 
-                                return array(
-                                                'start' => $start_dt->format( 'Y-m-d H:i:s' ),
-                                                'end'   => $end_dt->format( 'Y-m-d H:i:s' ),
-                                );
-                }
+                               $utc_timezone = new DateTimeZone( 'UTC' );
+
+                               return array(
+                                               'start' => $start_dt->setTimezone( $utc_timezone )->format( 'Y-m-d H:i:s' ),
+                                               'end'   => $end_dt->setTimezone( $utc_timezone )->format( 'Y-m-d H:i:s' ),
+                               );
+               }
 private function normalize_prize_layout( $layout ) {
 				$layout = strtolower( (string) $layout );
 
