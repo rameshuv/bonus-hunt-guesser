@@ -2933,46 +2933,23 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                               'MAX(h.affiliate_site_id) AS affiliate_site_id',
                                               );
 
-						$base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
-						$prepared_base_sql = $wpdb->prepare( $base_sql, ...$prep_where );
+                                                $base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
+
+                                                if ( ! empty( $prep_where ) ) {
+                                                                $prepared_base_sql = $wpdb->prepare( $base_sql, ...$prep_where );
+                                                } else {
+                                                                $prepared_base_sql = $base_sql;
+                                                }
 
 						$aggregate_parts = array(
 							'fw.user_id',
-							// Distinct to avoid counting multiple prize rows from the same hunt.
-							'COUNT(DISTINCT fw.hunt_id) AS total_wins',
+                                                        'COUNT(*) AS total_wins',
 						);
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
 								$need_avg_hunt     = true;
 								$aggregate_parts[] = 'AVG(fw.position) AS avg_hunt_pos';
 						}
-
-                                               $filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
-                                                $aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
-
-                                               $count_sql = 'SELECT COUNT(*) FROM (' . $aggregate_sql . ') wins';
-                                               $total     = (int) $wpdb->get_var( $count_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-
-                                               if ( $total <= 0 ) {
-                                                               return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
-                                               }
-
-                                               if ( $ranking_limit > 0 ) {
-                                                               $limit = min( $ranking_limit, $total );
-                                               } else {
-                                                               $limit = $total;
-                                               }
-                                               $limit = max( 1, $limit );
-
-                                               $select_parts = array(
-                                                               'wins.user_id',
-                                                               'u.user_login',
-                                                               'wins.total_wins',
-                                               );
-
-                                               if ( $need_avg_hunt ) {
-                                                               $select_parts[] = 'wins.avg_hunt_pos';
-                                               }
 
                                                $filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
                                                 $aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
