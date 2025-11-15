@@ -4898,13 +4898,13 @@ return ob_get_clean();
                                            echo '<label class="bhg-tournament-label">' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . ' ';
                                            echo '<select name="bhg_timeline">';
                                                $timeline_options = array(
-                                                               'all_time'  => bhg_t( 'label_all_time', 'All Time' ),
-                                                               'day'       => bhg_t( 'label_today', 'Today' ),
-                                                               'week'      => bhg_t( 'label_this_week', 'This week' ),
-                                                               'month'     => bhg_t( 'label_this_month', 'This month' ),
-                                                               'quarter'   => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
-                                                               'year'      => bhg_t( 'label_this_year', 'This year' ),
-                                                               'last_year' => bhg_t( 'label_last_year', 'Last year' ),
+                                               'all_time'  => bhg_t( 'label_all_time', 'Alltime' ),
+                                               'day'       => bhg_t( 'label_today', 'Today' ),
+                                               'week'      => bhg_t( 'label_this_week', 'This Week' ),
+                                               'month'     => bhg_t( 'label_this_month', 'This Month' ),
+                                               'quarter'   => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+                                               'year'      => bhg_t( 'label_this_year', 'This Year' ),
+                                               'last_year' => bhg_t( 'label_last_year', 'Last Year' ),
                                                );
                         $timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline;
                         if ( isset( $timeline_aliases[ $timeline_key ] ) ) {
