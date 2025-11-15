@@ -309,7 +309,7 @@ foreach ( $notices as $notice ) :
 		<thead>
 			<tr>
 				<th scope="col"><?php echo esc_html( bhg_t( 'sc_position', 'Position' ) ); ?></th>
-				<th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'User' ) ); ?></th>
+                            <th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
 				<th scope="col"><?php echo esc_html( bhg_t( 'label_points', 'Points' ) ); ?></th>
 				<th scope="col"><?php echo esc_html( bhg_t( 'wins', 'Wins' ) ); ?></th>
 			</tr>
@@ -370,7 +370,7 @@ foreach ( $notices as $notice ) :
 		<thead>
 			<tr>
 				<th scope="col"><?php echo esc_html( bhg_t( 'sc_position', 'Position' ) ); ?></th>
-				<th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'User' ) ); ?></th>
+                            <th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
 				<th scope="col"><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) ); ?></th>
 				<th scope="col"><?php echo esc_html( bhg_t( 'difference', 'Difference' ) ); ?></th>
 				<th scope="col"><?php echo esc_html( bhg_t( 'date', 'Date' ) ); ?></th>
