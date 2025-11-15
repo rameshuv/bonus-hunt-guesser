@@ -23,6 +23,7 @@ $hunt_limit_count  = isset( $hunt_limit['count'] ) ? (int) $hunt_limit['count'] 
 $hunt_limit_period = isset( $hunt_limit['period'] ) ? sanitize_key( $hunt_limit['period'] ) : 'none';
 $tour_limit_count  = isset( $tournament_limit['count'] ) ? (int) $tournament_limit['count'] : 0;
 $tour_limit_period = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
+$shortcode_rows_per_page = isset( $settings['shortcode_rows_per_page'] ) ? max( 1, (int) $settings['shortcode_rows_per_page'] ) : 25;
 
 $period_options = array(
 	'none'    => bhg_t( 'limit_period_none', 'No limit' ),
@@ -96,6 +97,13 @@ foreach ( $currencies as $key => $label ) :
 <tr>
 <th scope="row"><label for="bhg_max_guess_amount"><?php echo esc_html( bhg_t( 'max_guess_amount', 'Maximum Guess Amount' ) ); ?></label></th>
 <td><input type="number" class="small-text" id="bhg_max_guess_amount" name="bhg_max_guess_amount" value="<?php echo isset( $settings['max_guess_amount'] ) ? esc_attr( $settings['max_guess_amount'] ) : '100000'; ?>" min="0"></td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_shortcode_rows_per_page"><?php echo esc_html( bhg_t( 'shortcode_rows_per_page', 'Shortcode rows per page' ) ); ?></label></th>
+<td>
+<input type="number" class="small-text" id="bhg_shortcode_rows_per_page" name="bhg_shortcode_rows_per_page" value="<?php echo esc_attr( $shortcode_rows_per_page ); ?>" min="1" step="1">
+<p class="description"><?php echo esc_html( bhg_t( 'shortcode_rows_per_page_help', 'Sets the default number of rows for public leaderboards, tournaments, and other paginated tables.' ) ); ?></p>
+</td>
 </tr>
 <tr>
 <th scope="row"><label for="bhg_allow_guess_changes"><?php echo esc_html( bhg_t( 'allow_guess_changes', 'Allow Guess Changes' ) ); ?></label></th>
