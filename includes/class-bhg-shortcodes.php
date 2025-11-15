@@ -3403,13 +3403,39 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 								echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
 								$heading = $tournament->title ? $tournament->title : bhg_t( 'label_tournament', 'Tournament' );
 								echo '<h3>' . esc_html( $heading ) . '</h3>';
-								echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
-								echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
-								$status_key = strtolower( (string) $tournament->status );
-								echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+                                                                echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
+                                                                echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
+                                                                $status_key = strtolower( (string) $tournament->status );
+                                                                echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
 
-								if ( ! empty( $tournament->description ) ) {
-										echo '<div class="bhg-tournament-description">' . wp_kses_post( wpautop( $tournament->description ) ) . '</div>';
+                                                                $days_remaining = 0;
+                                                                if ( 'active' === $status_key && ! empty( $tournament->end_date ) ) {
+                                                                                try {
+                                                                                                $tz            = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( 'UTC' );
+                                                                                                $now           = new DateTimeImmutable( 'now', $tz );
+                                                                                                $end_date_obj  = new DateTimeImmutable( $tournament->end_date, $tz );
+                                                                                                $end_of_period = $end_date_obj->setTime( 23, 59, 59 );
+                                                                                                $seconds_left  = $end_of_period->getTimestamp() - $now->getTimestamp();
+                                                                                                if ( $seconds_left >= 0 ) {
+                                                                                                                $days_remaining = (int) ceil( $seconds_left / DAY_IN_SECONDS );
+                                                                                                }
+                                                                                } catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+                                                                                                // Gracefully ignore parsing issues.
+                                                                                }
+                                                                }
+
+                                                                if ( $days_remaining > 0 ) {
+                                                                                $days_label = 1 === $days_remaining
+                                                                                                ? bhg_t( 'tournament_closes_in_one_day', 'This tournament will close in 1 day.' )
+                                                                                                : sprintf(
+                                                                                                                bhg_t( 'tournament_closes_in_days', 'This tournament will close in %s days.' ),
+                                                                                                                number_format_i18n( $days_remaining )
+                                                                                                );
+                                                                                echo '<div class="bhg-tournament-countdown">' . esc_html( $days_label ) . '</div>';
+                                                                }
+
+                                                                if ( ! empty( $tournament->description ) ) {
+                                                                                echo '<div class="bhg-tournament-description">' . wp_kses_post( wpautop( $tournament->description ) ) . '</div>';
 								}
 
 								$affiliate_name = isset( $tournament->affiliate_site_name ) ? (string) $tournament->affiliate_site_name : '';
@@ -3469,7 +3495,7 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 
                                                                 echo '<table class="bhg-leaderboard bhg-leaderboard--tournament">';
                                                                 echo '<thead><tr>';
-                                                                echo '<th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th>';
+                                                                echo '<th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
                                                                 $username_label = bhg_t( 'label_username', 'Username' );
                                                                $wins_label     = bhg_t( 'sc_wins', 'Times Won' );
                                                                 $last_win_label = bhg_t( 'label_last_win', 'Last win' );
@@ -4059,7 +4085,7 @@ echo '<p>' . esc_html( bhg_t( 'notice_no_tournaments_user', 'You have not partic
 echo '<table class="bhg-profile-table"><thead><tr>';
 echo '<th>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th>';
-echo '<th>' . esc_html( bhg_t( 'label_wins', 'Wins' ) ) . '</th>';
+echo '<th>' . esc_html( bhg_t( 'label_wins', 'Times Won' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_rank', 'Rank' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</th>';
 echo '</tr></thead><tbody>';
@@ -4072,7 +4098,7 @@ echo '</tr></thead><tbody>';
             echo '<tr>';
             echo '<td data-label="' . esc_attr( bhg_t( 'label_tournament', 'Tournament' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
             echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . esc_html( (int) $row['points'] ) . '</td>';
-            echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Wins' ) ) . '">' . esc_html( (int) $row['wins'] ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Times Won' ) ) . '">' . esc_html( (int) $row['wins'] ) . '</td>';
             echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_cell . '</td>';
             echo '<td data-label="' . esc_attr( bhg_t( 'label_last_win', 'Last win' ) ) . '">' . $last_win_cell . '</td>';
             echo '</tr>';
@@ -4238,7 +4264,7 @@ echo '<h3>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</h3>';
 echo '<table class="bhg-profile-table"><thead><tr>';
 echo '<th>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th>';
-echo '<th>' . esc_html( bhg_t( 'label_wins', 'Wins' ) ) . '</th>';
+echo '<th>' . esc_html( bhg_t( 'label_wins', 'Times Won' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_rank', 'Rank' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_last_win', 'Last win' ) ) . '</th>';
 echo '</tr></thead><tbody>';
@@ -4251,7 +4277,7 @@ echo '</tr></thead><tbody>';
                 echo '<tr>';
                 echo '<td data-label="' . esc_attr( bhg_t( 'label_tournament', 'Tournament' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
                 echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . esc_html( (string) (int) $row['points'] ) . '</td>';
-                echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Wins' ) ) . '">' . esc_html( (string) (int) $row['wins'] ) . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Times Won' ) ) . '">' . esc_html( (string) (int) $row['wins'] ) . '</td>';
                 echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_cell . '</td>';
                 echo '<td data-label="' . esc_attr( bhg_t( 'label_last_win', 'Last win' ) ) . '">' . $last_win_cell . '</td>';
                 echo '</tr>';
@@ -4771,7 +4797,7 @@ return ob_get_clean();
 				if ( ! $rows ) {
 						echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 				} else {
-					echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_hash', '#' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
+                                        echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
 					foreach ( $rows as $r ) {
 							/* translators: %d: user ID. */
