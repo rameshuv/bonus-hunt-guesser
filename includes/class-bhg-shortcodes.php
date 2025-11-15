@@ -2542,7 +2542,7 @@ return ob_get_clean();
 		  echo '<span>' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . '</span> ';
   echo '<select name="bhg_timeline">';
   $timeline_options = array(
-                  'all_time'  => bhg_t( 'label_all_time', 'All-Time' ),
+                  'all_time'  => bhg_t( 'label_all_time', 'Alltime' ),
                   'day'       => bhg_t( 'label_today', 'Today' ),
                   'week'      => bhg_t( 'label_this_week', 'This Week' ),
                   'month'     => bhg_t( 'label_this_month', 'This Month' ),
@@ -4150,7 +4150,7 @@ return ob_get_clean();
 
                                                                 if ( $show_timeline_filter ) {
                                                                                 $timeline_options = array(
-                                                                                                'all_time'  => bhg_t( 'option_timeline_all_time', 'All-Time' ),
+                                                                                                'all_time'  => bhg_t( 'option_timeline_all_time', 'Alltime' ),
                                                                                                 'day'       => bhg_t( 'option_timeline_today', 'Today' ),
                                                                                                 'week'      => bhg_t( 'option_timeline_this_week', 'This Week' ),
                                                                                                 'month'     => bhg_t( 'option_timeline_this_month', 'This Month' ),
@@ -5928,7 +5928,7 @@ return ob_get_clean();
 										'end'   => $current_year . '-12-31',
 								),
 								'alltime' => array(
-										'label' => esc_html( bhg_t( 'label_all_time', 'All-Time' ) ),
+										'label' => esc_html( bhg_t( 'label_all_time', 'Alltime' ) ),
 										'start' => '',
 										'end'   => '',
 								),

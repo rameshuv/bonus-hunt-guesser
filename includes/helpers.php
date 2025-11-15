@@ -465,7 +465,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_bonus_hunt'                             => 'Bonushunt',
 			'label_bonus_hunts'                            => 'Bonus Hunts',
 			'label_overall'                                => 'Overall',
-			'label_all_time'                               => 'All-Time',
+			'label_all_time'                               => 'Alltime',
 			'label_final'                                  => 'Final',
 			'label_user_number'                            => 'User #%d',
 			'label_diff'                                   => 'diff',
