@@ -2922,10 +2922,10 @@ return ob_get_clean();
 						$base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
 						$prepared_base_sql = $wpdb->prepare( $base_sql, ...$prep_where );
 
-						$aggregate_parts = array(
-								'fw.user_id',
-								'COUNT(*) AS total_wins',
-						);
+                                               $aggregate_parts = array(
+                                                               'fw.user_id',
+                                                               'COUNT(DISTINCT fw.hunt_id) AS total_wins',
+                                               );
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
 								$need_avg_hunt     = true;
