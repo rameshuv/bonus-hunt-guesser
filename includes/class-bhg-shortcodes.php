@@ -2935,8 +2935,10 @@ return ob_get_clean();
 						$filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
 						$aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
 
-						$count_sql = 'SELECT COUNT(*) FROM (' . $aggregate_sql . ') wins';
-						if ( $total <= 0 ) {
+                                               $count_sql = 'SELECT COUNT(*) FROM (' . $aggregate_sql . ') wins';
+                                               $total     = (int) $wpdb->get_var( $count_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+                                               if ( $total <= 0 ) {
                                                                return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
                                                }
 
