@@ -2937,7 +2937,7 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 
                                                $aggregate_parts = array(
                                                                'fw.user_id',
-                                                               'COUNT(*) AS total_wins',
+                                                               'COUNT(DISTINCT fw.hunt_id) AS total_wins',
                                                );
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
