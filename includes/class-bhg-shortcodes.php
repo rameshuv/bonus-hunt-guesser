@@ -2924,7 +2924,7 @@ return ob_get_clean();
 
                                                $aggregate_parts = array(
                                                                'fw.user_id',
-                                                               'COUNT(DISTINCT fw.hunt_id) AS total_wins',
+                                                               'COUNT(*) AS total_wins',
                                                );
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
