@@ -2928,7 +2928,7 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                $base_select_parts = array(
                                                                'hw.user_id',
                                                                'hw.hunt_id',
-                                                               '1 AS win_entries',
+                                                               'COUNT(*) AS win_entries',
                                                                'MIN(hw.position) AS position',
                                                                'MAX(' . $win_date_expr . ') AS win_date',
                                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
@@ -2939,7 +2939,7 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 
                                                $aggregate_parts = array(
                                                                'fw.user_id',
-                                                               'COUNT(DISTINCT fw.hunt_id) AS total_wins',
+                                                               'SUM(fw.win_entries) AS total_wins',
                                                );
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
