@@ -3360,43 +3360,105 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 										}
 								}
 
-								$orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'wins';
-								$allowed_orders = array( 'asc', 'desc' );
-								$order          = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
+$orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'position';
+$allowed_orders = array( 'asc', 'desc' );
+$order          = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'asc';
 
-								$allowed = array(
-										'wins'        => 'r.wins',
-										'username'    => 'u.user_login',
-										'last_win_at' => 'r.last_win_date',
-								);
-								if ( ! isset( $allowed[ $orderby ] ) ) {
-										$orderby = 'wins';
-								}
-								if ( ! in_array( $order, $allowed_orders, true ) ) {
-										$order = 'desc';
-								}
-								$orderby_column = $allowed[ $orderby ];
-								$order          = strtoupper( $order );
+$allowed = array(
+'position'    => 'position',
+'wins'        => 'r.wins',
+'username'    => 'u.user_login',
+'last_win_at' => 'r.last_win_date',
+);
+if ( ! isset( $allowed[ $orderby ] ) ) {
+$orderby = 'position';
+}
+if ( ! in_array( $order, $allowed_orders, true ) ) {
+$order = 'asc';
+}
+$order = strtoupper( $order );
 
-								$query = $wpdb->prepare(
-										"SELECT r.user_id, r.wins, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY " . esc_sql( $orderby_column ) . ' ' . esc_sql( $order ) . ', r.user_id ASC',
-										$tournament->id
-								);
-								$rows = $wpdb->get_results( $query );
+$order_parts = array();
+switch ( $orderby ) {
+case 'position':
+$points_dir = ( 'ASC' === $order ) ? 'DESC' : 'ASC';
+$wins_dir   = $points_dir;
+$last_dir   = ( 'ASC' === $order ) ? 'ASC' : 'DESC';
+$order_parts[] = 'r.points ' . $points_dir;
+$order_parts[] = 'r.wins ' . $wins_dir;
+$order_parts[] = 'r.last_win_date ' . $last_dir;
+break;
+case 'wins':
+$order_parts[] = 'r.wins ' . $order;
+$order_parts[] = 'r.points ' . ( 'DESC' === $order ? 'DESC' : 'ASC' );
+$order_parts[] = 'r.last_win_date ' . ( 'DESC' === $order ? 'ASC' : 'DESC' );
+break;
+case 'username':
+$order_parts[] = 'u.user_login ' . $order;
+$order_parts[] = 'r.points DESC';
+$order_parts[] = 'r.wins DESC';
+break;
+case 'last_win_at':
+default:
+$order_parts[] = 'r.last_win_date ' . $order;
+$order_parts[] = 'r.points DESC';
+$order_parts[] = 'r.wins DESC';
+break;
+}
+$order_parts[] = 'r.user_id ASC';
+$order_sql     = implode( ', ', $order_parts );
 
-								$base   = remove_query_arg( array( 'orderby', 'order' ) );
-                                                                $toggle = function ( $key ) use ( $orderby, $order, $base ) {
-                                                                                $next = ( $orderby === $key && strtolower( $order ) === 'asc' ) ? 'desc' : 'asc';
-                                                                                return esc_url(
-                                                                                                add_query_arg(
-                                                                                                                array(
-                                                                                                                               'orderby' => $key,
-                                                                                                                               'order'   => $next,
-                                                                                                                ),
-                                                                                                                $base
-                                                                                                )
-                                                                                );
-                                                                };
+$query = $wpdb->prepare(
+"SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql} LIMIT %d OFFSET %d",
+$tournament->id,
+$per_page,
+$offset
+);
+$rows = $wpdb->get_results( $query );
+
+$last_win_map = array();
+if ( $rows ) {
+$hw_table  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
+$hunts_tbl = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+$rel_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
+if ( $hw_table && $hunts_tbl && $rel_table ) {
+$user_ids = array();
+foreach ( $rows as $row ) {
+$user_id = isset( $row->user_id ) ? (int) $row->user_id : 0;
+if ( $user_id > 0 ) {
+$user_ids[ $user_id ] = $user_id;
+}
+}
+if ( ! empty( $user_ids ) ) {
+$placeholders = implode( ', ', array_fill( 0, count( $user_ids ), '%d' ) );
+$last_win_sql = "SELECT hw.user_id, MAX(COALESCE(hw.created_at, h.closed_at, h.updated_at, h.created_at)) AS last_win_date FROM {$hw_table} hw INNER JOIN {$hunts_tbl} h ON h.id = hw.hunt_id LEFT JOIN {$rel_table} ht ON ht.hunt_id = h.id WHERE hw.user_id IN ({$placeholders}) AND hw.eligible = 1 AND (ht.tournament_id = %d OR (ht.tournament_id IS NULL AND h.tournament_id = %d)) GROUP BY hw.user_id"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table names sanitized above.
+$last_win_args = array_merge( array_values( $user_ids ), array( $tournament->id, $tournament->id ) );
+$win_rows      = $wpdb->get_results( $wpdb->prepare( $last_win_sql, ...$last_win_args ) );
+if ( $win_rows ) {
+foreach ( $win_rows as $win_row ) {
+$uid = isset( $win_row->user_id ) ? (int) $win_row->user_id : 0;
+if ( $uid > 0 && ! empty( $win_row->last_win_date ) ) {
+$last_win_map[ $uid ] = $win_row->last_win_date;
+}
+}
+}
+}
+}
+}
+
+$base = remove_query_arg( array( 'orderby', 'order', 'bhg_tr_paged' ) );
+$toggle = function ( $key ) use ( $orderby, $order, $base ) {
+$next = ( $orderby === $key && 'ASC' === strtoupper( (string) $order ) ) ? 'desc' : 'asc';
+
+return add_query_arg(
+array(
+'orderby'      => $key,
+'order'        => $next,
+'bhg_tr_paged' => false,
+),
+$base
+);
+};
 
                                                                 ob_start();
 								echo '<div class="bhg-tournament-details">';
@@ -3461,9 +3523,17 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
 										echo '</p>';
 								}
 
-								if ( ! empty( $prizes ) ) {
-										echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $this->render_prize_section( $prizes, 'grid', 'medium' ) ) . '</div>';
-								}
+if ( ! empty( $prizes ) ) {
+echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $this->render_prize_section( $prizes, 'grid', 'medium' ) ) . '</div>';
+}
+
+$per_page = (int) apply_filters( 'bhg_tournament_results_per_page', 25, $tournament );
+if ( $per_page <= 0 ) {
+$per_page = 25;
+}
+
+$current_page = isset( $_GET['bhg_tr_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_tr_paged'] ) ) ) : 1;
+$offset       = ( $current_page - 1 ) * $per_page;
 
 								if ( ! $rows ) {
 										echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
@@ -3493,49 +3563,108 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                                                 return '<span class="bhg-sort-icon" aria-hidden="true">' . esc_html( $icon ) . '</span><span class="screen-reader-text">' . esc_html( $sr_text ) . '</span>';
                                                                 };
 
-                                                                echo '<table class="bhg-leaderboard bhg-leaderboard--tournament">';
-                                                                echo '<thead><tr>';
-                                                                echo '<th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
-                                                                $username_label = bhg_t( 'label_username', 'Username' );
-                                                               $wins_label     = bhg_t( 'sc_wins', 'Times Won' );
-                                                                $last_win_label = bhg_t( 'label_last_win', 'Last win' );
-                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'username' ) ) . '">' . esc_html( $username_label ) . $sort_icon_markup( 'username', $username_label ) . '</a></th>';
-                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( $wins_label ) . $sort_icon_markup( 'wins', $wins_label ) . '</a></th>';
-                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'last_win_at' ) ) . '">' . esc_html( $last_win_label ) . $sort_icon_markup( 'last_win_at', $last_win_label ) . '</a></th>';
-								echo '</tr></thead><tbody>';
+echo '<table class="bhg-leaderboard bhg-leaderboard--tournament">';
+echo '<thead><tr>';
+$position_label = bhg_t( 'label_position', 'Position' );
+$username_label = bhg_t( 'label_username', 'Username' );
+$wins_label     = bhg_t( 'sc_wins', 'Times Won' );
+$last_win_label = bhg_t( 'label_last_win', 'Last win' );
+echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'position' ) ) . '">' . esc_html( $position_label ) . $sort_icon_markup( 'position', $position_label ) . '</a></th>';
+echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'username' ) ) . '">' . esc_html( $username_label ) . $sort_icon_markup( 'username', $username_label ) . '</a></th>';
+echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'wins' ) ) . '">' . esc_html( $wins_label ) . $sort_icon_markup( 'wins', $wins_label ) . '</a></th>';
+echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'last_win_at' ) ) . '">' . esc_html( $last_win_label ) . $sort_icon_markup( 'last_win_at', $last_win_label ) . '</a></th>';
+echo '</tr></thead><tbody>';
 
-								$pos = 1;
-								foreach ( $rows as $row ) {
-										$row_classes = array( 'bhg-tournament-row' );
-										if ( isset( $row->wins ) && (int) $row->wins > 0 ) {
-												$row_classes[] = 'bhg-tournament-row--winner';
-										}
-										if ( $pos <= 3 ) {
-												$row_classes[] = 'bhg-tournament-row--top-three';
-										}
-										if ( 1 === $pos ) {
-												$row_classes[] = 'bhg-tournament-row--first';
-										}
-										$class_attr = ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
+foreach ( $rows as $index => $row ) {
+$position_number = $offset + $index + 1;
+$row_classes     = array( 'bhg-tournament-row' );
+if ( isset( $row->wins ) && (int) $row->wins > 0 ) {
+$row_classes[] = 'bhg-tournament-row--winner';
+}
+if ( $position_number <= 3 ) {
+$row_classes[] = 'bhg-tournament-row--top-three';
+}
+if ( 1 === $position_number ) {
+$row_classes[] = 'bhg-tournament-row--first';
+}
+$class_attr = ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
 
-										echo '<tr' . $class_attr . '>';
-										echo '<td>' . (int) $pos . '</td>';
-										++$pos;
-										echo '<td>' . esc_html(
-												$row->user_login ? $row->user_login : sprintf(
-														/* translators: %d: user ID. */
-														bhg_t( 'label_user_hash', 'user#%d' ),
-														(int) $row->user_id
-												)
-										) . '</td>';
-										echo '<td>' . (int) $row->wins . '</td>';
-										echo '<td>' . ( $row->last_win_date ? esc_html( mysql2date( get_option( 'date_format' ), $row->last_win_date ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-										echo '</tr>';
-								}
-								echo '</tbody></table>';
-								echo '</div>';
+$user_label = $row->user_login ? $row->user_login : sprintf(
+/* translators: %d: user ID. */
+bhg_t( 'label_user_hash', 'user#%d' ),
+(int) $row->user_id
+);
 
-								return ob_get_clean();
+$resolved_last_win = '';
+if ( isset( $row->user_id ) && isset( $last_win_map[ (int) $row->user_id ] ) ) {
+$resolved_last_win = $last_win_map[ (int) $row->user_id ];
+} elseif ( ! empty( $row->last_win_date ) ) {
+$resolved_last_win = $row->last_win_date;
+}
+
+echo '<tr' . $class_attr . '>';
+echo '<td data-label="' . esc_attr( $position_label ) . '">' . (int) $position_number . '</td>';
+echo '<td data-label="' . esc_attr( $username_label ) . '">' . esc_html( $user_label ) . '</td>';
+echo '<td data-label="' . esc_attr( $wins_label ) . '">' . (int) $row->wins . '</td>';
+echo '<td data-label="' . esc_attr( $last_win_label ) . '">';
+echo $resolved_last_win ? esc_html( mysql2date( get_option( 'date_format' ), $resolved_last_win ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
+echo '</td>';
+echo '</tr>';
+}
+echo '</tbody></table>';
+
+$total_pages = $total > 0 ? (int) ceil( $total / $per_page ) : 1;
+if ( $total_pages > 1 ) {
+$preserved_args = array();
+if ( ! empty( $_GET ) ) {
+foreach ( $_GET as $raw_key => $value ) {
+$key = sanitize_key( wp_unslash( $raw_key ) );
+if ( in_array( $key, array( 'orderby', 'order', 'bhg_tr_paged' ), true ) ) {
+continue;
+}
+if ( is_array( $value ) ) {
+continue;
+}
+
+$preserved_args[ $key ] = sanitize_text_field( wp_unslash( $value ) );
+}
+}
+
+$pagination_args = array_merge(
+$preserved_args,
+array(
+'orderby' => $orderby,
+'order'   => strtolower( $order ),
+)
+);
+
+$pagination_links = paginate_links(
+array(
+'base'      => esc_url_raw( add_query_arg( array( 'bhg_tr_paged' => '%#%' ), $base ) ),
+'format'    => '',
+'current'   => $current_page,
+'total'     => $total_pages,
+'type'      => 'array',
+'add_args'  => $pagination_args,
+'prev_text' => esc_html__( '&laquo;', 'bonus-hunt-guesser' ),
+'next_text' => esc_html__( '&raquo;', 'bonus-hunt-guesser' ),
+)
+);
+
+if ( ! empty( $pagination_links ) ) {
+echo '<nav class="bhg-pagination" aria-label="' . esc_attr( bhg_t( 'label_pagination', 'Pagination' ) ) . '">';
+echo '<ul class="bhg-pagination-list">';
+foreach ( $pagination_links as $link ) {
+$class = false !== strpos( $link, 'current' ) ? ' class="bhg-current-page"' : '';
+echo '<li' . $class . '>' . wp_kses_post( $link ) . '</li>';
+}
+echo '</ul>';
+echo '</nav>';
+}
+}
+echo '</div>';
+
+return ob_get_clean();
 						}
 
 						// List view with filters.
