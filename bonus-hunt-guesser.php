@@ -707,12 +707,20 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	if ( isset( $_POST['bhg_currency'] ) ) {
-		$currency = sanitize_key( wp_unslash( $_POST['bhg_currency'] ) );
-		if ( in_array( $currency, array( 'eur', 'usd' ), true ) ) {
-			$settings['currency'] = $currency;
-		}
-	}
+        if ( isset( $_POST['bhg_currency'] ) ) {
+                $currency = sanitize_key( wp_unslash( $_POST['bhg_currency'] ) );
+                if ( in_array( $currency, array( 'eur', 'usd' ), true ) ) {
+                        $settings['currency'] = $currency;
+                }
+        }
+
+        if ( isset( $_POST['bhg_shortcode_rows_per_page'] ) ) {
+                $per_page_input = wp_unslash( $_POST['bhg_shortcode_rows_per_page'] );
+                $per_page_value = is_numeric( $per_page_input ) ? (int) $per_page_input : 0;
+                if ( $per_page_value > 0 ) {
+                        $settings['shortcode_rows_per_page'] = $per_page_value;
+                }
+        }
 
 	// Validate that min is not greater than max.
 	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
