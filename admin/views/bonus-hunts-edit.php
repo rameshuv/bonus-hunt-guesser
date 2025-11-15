@@ -180,7 +180,7 @@ $selected_prizes = array(
 			<tr>
 				<th>
 				<?php
-				echo esc_html( bhg_t( 'sc_user', 'User' ) );
+                            echo esc_html( bhg_t( 'sc_user', 'Username' ) );
 				?>
 </th>
 				<th>
