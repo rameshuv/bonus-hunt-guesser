@@ -2974,6 +2974,33 @@ $win_date_expr = $this->get_leaderboard_win_date_expression();
                                                                $select_parts[] = 'wins.avg_hunt_pos';
                                                }
 
+                                               $filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
+                                                $aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
+
+                                               $count_sql = 'SELECT COUNT(*) FROM (' . $aggregate_sql . ') wins';
+                                               $total     = (int) $wpdb->get_var( $count_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+                                               if ( $total <= 0 ) {
+                                                               return '<p>' . esc_html( bhg_t( 'notice_no_data_available', 'No data available.' ) ) . '</p>';
+                                               }
+
+                                               if ( $ranking_limit > 0 ) {
+                                                               $limit = min( $ranking_limit, $total );
+                                               } else {
+                                                               $limit = $total;
+                                               }
+                                               $limit = max( 1, $limit );
+
+                                               $select_parts = array(
+                                                               'wins.user_id',
+                                                               'u.user_login',
+                                                               'wins.total_wins',
+                                               );
+
+                                               if ( $need_avg_hunt ) {
+                                                               $select_parts[] = 'wins.avg_hunt_pos';
+                                               }
+
 						if ( $need_avg_tournament || 'avg_tournament' === $orderby_request ) {
 								$need_avg_tournament = true;
 								$tournament_filter_join = '';
