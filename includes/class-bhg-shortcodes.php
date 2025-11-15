@@ -238,156 +238,169 @@ private function normalize_prize_layout( $layout ) {
 				return 'small';
 			}
 
-               /**
-                * Normalize a yes/no shortcode attribute.
-                *
-                * @param mixed $value         Raw attribute value.
-                * @param bool  $allow_inherit Whether to allow inherit/default keywords.
-                * @return string Either '1', '0', or 'inherit'.
-                */
-               private function normalize_yes_no_attr( $value, $allow_inherit = true ) {
-                       $value = strtolower( trim( (string) $value ) );
+                       /**
+                        * Normalize a yes/no shortcode attribute.
+                        *
+                        * @param mixed $value         Raw attribute value.
+                        * @param bool  $allow_inherit Whether to allow inherit/default keywords.
+                        * @return string Either '1', '0', or 'inherit'.
+                        */
+                       private function normalize_yes_no_attr( $value, $allow_inherit = true ) {
+                               $value = strtolower( trim( (string) $value ) );
 
-                       if ( $allow_inherit && in_array( $value, array( 'inherit', 'default', '' ), true ) ) {
-                               return 'inherit';
-                       }
-
-                       if ( in_array( $value, array( 'no', '0', 'false', 'off' ), true ) ) {
-                               return '0';
-                       }
-
-                       return '1';
-               }
-
-               /**
-                * Normalize the `filters` attribute for the leaderboard shortcode.
-                *
-                * Accepts comma-, space-, or newline-delimited values and supports
-                * minor variations such as "affiliate-site" or "affiliate status".
-                * Returns `null` when the shortcode attribute is omitted so the
-                * caller can fall back to default filters.
-                *
-                * @param mixed $filters_input Raw filters attribute value.
-                * @return array|null Normalized filter keys (timeline, tournament,
-                *                    site, affiliate) or `null` if the defaults should
-                *                    be used.
-                */
-               private function normalize_leaderboard_filters( $filters_input ) {
-                       if ( null === $filters_input ) {
-                               return null;
-                       }
-
-                       if ( is_array( $filters_input ) ) {
-                               $filters_attr = implode( ',', $filters_input );
-                       } else {
-                               $filters_attr = (string) $filters_input;
-                       }
-
-                       $filters_attr = trim( $filters_attr );
-                       if ( '' === $filters_attr ) {
-                               return array();
-                       }
-
-                       $keyword = strtolower( $filters_attr );
-                       if ( in_array( $keyword, array( 'all', 'default', 'inherit' ), true ) ) {
-                               return self::LEADERBOARD_DEFAULT_FILTERS;
-                       }
-
-                       if ( in_array( $keyword, array( 'none', 'no', 'false', '0' ), true ) ) {
-                               return array();
-                       }
-
-                       $normalized_tokens = str_replace(
-                               array( 'affiliate status', 'affiliate statuses', 'affiliate site', 'affiliate sites' ),
-                               array( 'affiliate_status', 'affiliate_statuses', 'affiliate_site', 'affiliate_sites' ),
-                               $keyword
-                       );
-                       $normalized_tokens = str_replace( '-', '_', $normalized_tokens );
-
-                       $raw_tokens = wp_parse_list( $normalized_tokens );
-                       if ( empty( $raw_tokens ) ) {
-                               return array();
-                       }
-
-                       $token_map = array(
-                               'timeline'           => 'timeline',
-                               'timelines'          => 'timeline',
-                               'tournament'         => 'tournament',
-                               'tournaments'        => 'tournament',
-                               'affiliate_site'     => 'site',
-                               'affiliate_sites'    => 'site',
-                               'site'               => 'site',
-                               'sites'              => 'site',
-                               'affiliate_status'   => 'affiliate',
-                               'affiliate_statuses' => 'affiliate',
-                               'affiliate'          => 'affiliate',
-                               'affiliates'         => 'affiliate',
-                       );
-
-                       $normalized = array();
-                       foreach ( $raw_tokens as $token ) {
-                               $token = trim( (string) $token );
-                               if ( '' === $token ) {
-                                       continue;
+                               if ( $allow_inherit && in_array( $value, array( 'inherit', 'default', '' ), true ) ) {
+                                       return 'inherit';
                                }
 
-                               if ( isset( $token_map[ $token ] ) ) {
-                                       $normalized[] = $token_map[ $token ];
+                               if ( in_array( $value, array( 'no', '0', 'false', 'off' ), true ) ) {
+                                       return '0';
                                }
+
+                               return '1';
                        }
 
-                       return array_values( array_unique( $normalized ) );
-               }
+                       /**
+                        * Normalize the `filters` attribute for the leaderboard shortcode.
+                        *
+                        * Accepts comma-, space-, or newline-delimited values and supports
+                        * minor variations such as "affiliate-site" or "affiliate status".
+                        * Returns `null` when the shortcode attribute is omitted so the
+                        * caller can fall back to default filters.
+                        *
+                        * @param mixed $filters_input Raw filters attribute value.
+                        * @return array|null Normalized filter keys (timeline, tournament,
+                        *                    site, affiliate) or `null` if the defaults should
+                        *                    be used.
+                        */
+                       private function normalize_leaderboard_filters( $filters_input ) {
+                               if ( null === $filters_input ) {
+                                       return null;
+                               }
 
+                               if ( is_array( $filters_input ) ) {
+                                       $filters_attr = implode( ',', $filters_input );
+                               } else {
+                                       $filters_attr = (string) $filters_input;
+                               }
 
+                               $filters_attr = trim( $filters_attr );
+                               if ( '' === $filters_attr ) {
+                                       return array();
+                               }
 
-/**
- * Normalize a click action shortcode attribute.
- *
- * @param mixed $value Raw attribute value.
- * @return string Normalized keyword or empty string when invalid.
- */
-private function normalize_click_action_attr( $value ) {
-if ( ! class_exists( 'BHG_Prizes' ) ) {
-return '';
-}
+                               $keyword = strtolower( $filters_attr );
+                               if ( in_array( $keyword, array( 'all', 'default', 'inherit' ), true ) ) {
+                                       return self::LEADERBOARD_DEFAULT_FILTERS;
+                               }
 
-$action = sanitize_key( (string) $value );
+                               if ( in_array( $keyword, array( 'none', 'no', 'false', '0' ), true ) ) {
+                                       return array();
+                               }
 
-if ( '' === $action ) {
-return '';
-}
+                               $normalized_tokens = str_replace(
+                                       array( 'affiliate status', 'affiliate statuses', 'affiliate site', 'affiliate sites' ),
+                                       array( 'affiliate_status', 'affiliate_statuses', 'affiliate_site', 'affiliate_sites' ),
+                                       $keyword
+                               );
+                               $normalized_tokens = str_replace( '-', '_', $normalized_tokens );
 
-if ( in_array( $action, array( 'inherit', 'default' ), true ) ) {
-return 'inherit';
-}
+                               $raw_tokens = wp_parse_list( $normalized_tokens );
+                               if ( empty( $raw_tokens ) ) {
+                                       return array();
+                               }
 
-return BHG_Prizes::sanitize_click_action( $action, 'link' );
-}
+                               $token_map = array(
+                                       'timeline'           => 'timeline',
+                                       'timelines'          => 'timeline',
+                                       'tournament'         => 'tournament',
+                                       'tournaments'        => 'tournament',
+                                       'affiliate_site'     => 'site',
+                                       'affiliate_sites'    => 'site',
+                                       'site'               => 'site',
+                                       'sites'              => 'site',
+                                       'affiliate_status'   => 'affiliate',
+                                       'affiliate_statuses' => 'affiliate',
+                                       'affiliate'          => 'affiliate',
+                                       'affiliates'         => 'affiliate',
+                               );
 
-/**
- * Normalize a link target shortcode attribute.
- *
- * @param mixed $value         Raw attribute value.
- * @param bool  $allow_inherit Whether to accept inherit/default keywords.
- * @return string Normalized target keyword or empty string when invalid.
- */
-private function normalize_link_target_attr( $value, $allow_inherit = true ) {
-if ( ! class_exists( 'BHG_Prizes' ) ) {
-return '';
-}
+                               $normalized = array();
+                               foreach ( $raw_tokens as $token ) {
+                                       $token = trim( (string) $token );
+                                       if ( '' === $token ) {
+                                               continue;
+                                       }
 
-$target = sanitize_key( (string) $value );
+                                       if ( isset( $token_map[ $token ] ) ) {
+                                               $normalized[] = $token_map[ $token ];
+                                       }
+                               }
 
-if ( $allow_inherit && in_array( $target, array( 'inherit', 'default', '' ), true ) ) {
-return 'inherit';
-}
+                               return array_values( array_unique( $normalized ) );
+                       }
 
-return BHG_Prizes::sanitize_link_target( $target, '_self' );
-}
+                       /**
+                        * Build the SQL expression used for determining a winner's effective
+                        * win date when filtering leaderboards by timeline.
+                        *
+                        * The expression coalesces the hunt's closed date, the winner record's
+                        * creation date, and finally the hunt's creation date while treating
+                        * `0000-00-00 00:00:00` values as `NULL` so they do not interfere with
+                        * timeline windows.
+                        *
+                        * @return string SQL expression fragment.
+                        */
+                       private function get_leaderboard_win_date_expression() {
+                               return "COALESCE( NULLIF( h.closed_at, '0000-00-00 00:00:00' ), NULLIF( hw.created_at, '0000-00-00 00:00:00' ), NULLIF( h.created_at, '0000-00-00 00:00:00' ) )";
+                       }
 
-		/**
-		 * Locate a shortcode view file.
+                       /**
+                        * Normalize a click action shortcode attribute.
+                        *
+                        * @param mixed $value Raw attribute value.
+                        * @return string Normalized keyword or empty string when invalid.
+                        */
+                       private function normalize_click_action_attr( $value ) {
+                               if ( ! class_exists( 'BHG_Prizes' ) ) {
+                                       return '';
+                               }
+
+                               $action = sanitize_key( (string) $value );
+
+                               if ( '' === $action ) {
+                                       return '';
+                               }
+
+                               if ( in_array( $action, array( 'inherit', 'default' ), true ) ) {
+                                       return 'inherit';
+                               }
+
+                               return BHG_Prizes::sanitize_click_action( $action, 'link' );
+                       }
+
+                       /**
+                        * Normalize a link target shortcode attribute.
+                        *
+                        * @param mixed $value         Raw attribute value.
+                        * @param bool  $allow_inherit Whether to accept inherit/default keywords.
+                        * @return string Normalized target keyword or empty string when invalid.
+                        */
+                       private function normalize_link_target_attr( $value, $allow_inherit = true ) {
+                               if ( ! class_exists( 'BHG_Prizes' ) ) {
+                                       return '';
+                               }
+
+                               $target = sanitize_key( (string) $value );
+
+                               if ( $allow_inherit && in_array( $target, array( 'inherit', 'default', '' ), true ) ) {
+                                       return 'inherit';
+                               }
+
+                               return BHG_Prizes::sanitize_link_target( $target, '_self' );
+                       }
+
+                /**
+                 * Locate a shortcode view file.
 		 *
 		 * @param string $view View identifier relative to the views directory.
 		 * @return string
@@ -2831,7 +2844,7 @@ return ob_get_clean();
 						}
 
                                                 						// Optional timeline filter.
-                                            $win_date_expr = 'CASE WHEN h.closed_at IS NOT NULL THEN h.closed_at WHEN hw.created_at IS NOT NULL THEN hw.created_at ELSE h.created_at END';
+$win_date_expr = $this->get_leaderboard_win_date_expression();
 						$range             = $this->get_timeline_range( $timeline_filter );
 
 						$need_avg_hunt        = in_array( 'avg_hunt', $fields_arr, true );
@@ -2910,13 +2923,21 @@ return ob_get_clean();
 						$joins_sql = implode( ' ', $joins );
 						$where_sql = ' WHERE ' . implode( ' AND ', $where );
 
-						$base_select_parts = array(
-								'hw.user_id',
-								'hw.hunt_id',
-								'MIN(hw.position) AS position',
-								'MAX(' . $win_date_expr . ') AS win_date',
-								'MAX(h.affiliate_site_id) AS affiliate_site_id',
-						);
+                                                $base_select_parts = array(
+                                                                'hw.user_id',
+                                                                'hw.hunt_id',
+                                                                'MIN(hw.position) AS position',
+                                                                'MAX(' . $win_date_expr . ') AS win_date',
+                                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
+                                                );
+
+						$base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
+						$prepared_base_sql = $wpdb->prepare( $base_sql, ...$prep_where );
+
+                                                $aggregate_parts = array(
+                                                                'fw.user_id',
+                                                                'COUNT(*) AS total_wins',
+                                                );
 
 						$base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
 						$prepared_base_sql = $wpdb->prepare( $base_sql, ...$prep_where );
