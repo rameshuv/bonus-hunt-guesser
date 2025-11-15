@@ -42,9 +42,29 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		private $profile_visibility_settings = null;
 
 		/**
+		 * Tracks whether shortcodes have already been registered.
+		 *
+		 * @var bool
+		 */
+		private $shortcodes_registered = false;
+
+		/**
 		 * Registers all shortcodes.
 		 */
 		public function __construct() {
+			add_action( 'init', array( $this, 'register_shortcodes' ) );
+		}
+
+		/**
+		 * Register all plugin shortcodes with WordPress.
+		 *
+		 * @return void
+		 */
+		public function register_shortcodes() {
+			if ( $this->shortcodes_registered ) {
+				return;
+			}
+
 			// Core shortcodes.
 			add_shortcode( 'bhg_active_hunt', array( $this, 'active_hunt_shortcode' ) );
 			add_shortcode( 'bhg_guess_form', array( $this, 'guess_form_shortcode' ) );
@@ -58,24 +78,26 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			add_shortcode( 'bhg_user_guesses', array( $this, 'user_guesses_shortcode' ) );
 			add_shortcode( 'bhg_hunts', array( $this, 'hunts_shortcode' ) );
 			add_shortcode( 'bhg_leaderboards', array( $this, 'leaderboards_shortcode' ) );
-                        add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
-                        add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
-                        add_shortcode( 'my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
-                        add_shortcode( 'my_prizes', array( $this, 'my_prizes_shortcode' ) );
-                        add_shortcode( 'my_rankings', array( $this, 'my_rankings_shortcode' ) );
-                        add_shortcode( 'bhg_jackpot_current', array( $this, 'jackpot_current_shortcode' ) );
-                        add_shortcode( 'bhg_jackpot_latest', array( $this, 'jackpot_latest_shortcode' ) );
-                        add_shortcode( 'bhg_jackpot_ticker', array( $this, 'jackpot_ticker_shortcode' ) );
-                        add_shortcode( 'bhg_jackpot_winners', array( $this, 'jackpot_winners_shortcode' ) );
-                        add_shortcode( 'latest-winners-list', array( $this, 'latest_winners_list_shortcode' ) );
-                        add_shortcode( 'leaderboard-list', array( $this, 'leaderboard_list_shortcode' ) );
-                        add_shortcode( 'tournament-list', array( $this, 'tournament_list_shortcode' ) );
-                        add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
+			add_shortcode( 'bhg_prizes', array( $this, 'prizes_shortcode' ) );
+			add_shortcode( 'my_bonushunts', array( $this, 'my_bonushunts_shortcode' ) );
+			add_shortcode( 'my_tournaments', array( $this, 'my_tournaments_shortcode' ) );
+			add_shortcode( 'my_prizes', array( $this, 'my_prizes_shortcode' ) );
+			add_shortcode( 'my_rankings', array( $this, 'my_rankings_shortcode' ) );
+			add_shortcode( 'bhg_jackpot_current', array( $this, 'jackpot_current_shortcode' ) );
+			add_shortcode( 'bhg_jackpot_latest', array( $this, 'jackpot_latest_shortcode' ) );
+			add_shortcode( 'bhg_jackpot_ticker', array( $this, 'jackpot_ticker_shortcode' ) );
+			add_shortcode( 'bhg_jackpot_winners', array( $this, 'jackpot_winners_shortcode' ) );
+			add_shortcode( 'latest-winners-list', array( $this, 'latest_winners_list_shortcode' ) );
+			add_shortcode( 'leaderboard-list', array( $this, 'leaderboard_list_shortcode' ) );
+			add_shortcode( 'tournament-list', array( $this, 'tournament_list_shortcode' ) );
+			add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
 
 			// Legacy/aliases.
 			add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
 			add_shortcode( 'bonus_hunt_login', array( $this, 'login_hint_shortcode' ) );
 			add_shortcode( 'bhg_active', array( $this, 'active_hunt_shortcode' ) );
+
+			$this->shortcodes_registered = true;
 		}
 
 		/**
