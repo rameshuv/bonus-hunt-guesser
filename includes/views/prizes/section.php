@@ -21,6 +21,8 @@ $card_renderer = ( isset( $view_card_renderer ) && is_callable( $view_card_rende
 $visible       = isset( $context['carousel_visible'] ) ? max( 1, (int) $context['carousel_visible'] ) : 1;
 $autoplay      = ! empty( $context['carousel_autoplay'] );
 $interval      = isset( $context['carousel_interval'] ) ? max( 1000, (int) $context['carousel_interval'] ) : 5000;
+$summary_label = isset( $view_summary_label ) ? (string) $view_summary_label : ( isset( $summary_label ) ? (string) $summary_label : '' );
+$summary_items = isset( $view_summary_items ) && is_array( $view_summary_items ) ? $view_summary_items : ( isset( $summary_items ) && is_array( $summary_items ) ? $summary_items : array() );
 ?>
 <div class="bhg-prizes-block bhg-prizes-layout-<?php echo esc_attr( $layout ); ?> size-<?php echo esc_attr( $size ); ?>">
         <?php if ( '' !== $title_text ) : ?>
@@ -61,6 +63,27 @@ $interval      = isset( $context['carousel_interval'] ) ? max( 1000, (int) $cont
                         <?php foreach ( $prizes as $prize ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
                                 <?php echo call_user_func( $card_renderer, $prize, $size, $display, $context ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         <?php endforeach; ?>
+                </div>
+        <?php endif; ?>
+        <?php if ( ! empty( $summary_items ) ) : ?>
+                <div class="bhg-prize-summary">
+                        <?php if ( '' !== $summary_label ) : ?>
+                                <h5 class="bhg-prize-summary-title"><?php echo esc_html( $summary_label ); ?></h5>
+                        <?php endif; ?>
+                        <ol class="bhg-prize-summary-list">
+                                <?php foreach ( $summary_items as $summary_item ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
+                                        <?php
+                                        $text = '';
+                                        if ( is_array( $summary_item ) && isset( $summary_item['text'] ) ) {
+                                                $text = (string) $summary_item['text'];
+                                        }
+                                        if ( '' === $text ) {
+                                                $text = bhg_t( 'label_emdash', '—' );
+                                        }
+                                        ?>
+                                        <li><?php echo esc_html( $text ); ?></li>
+                                <?php endforeach; ?>
+                        </ol>
                 </div>
         <?php endif; ?>
 </div>

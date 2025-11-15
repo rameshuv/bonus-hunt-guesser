@@ -166,6 +166,79 @@
         transform: translateY(-2px);
 }
 
+.bhg-prize-summary {
+        border-top: 1px solid rgba(15, 23, 42, 0.1);
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+}
+
+.bhg-prize-summary-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #0f172a;
+}
+
+.bhg-prize-summary-list {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #334155;
+        line-height: 1.6;
+}
+
+.bhg-prize-summary-list li {
+        margin-bottom: 0.4rem;
+}
+
+.bhg-prize-summary-list li:last-child {
+        margin-bottom: 0;
+}
+
+.bhg-prize-tabset {
+        margin-top: 1.5rem;
+}
+
+.bhg-prize-tabs {
+        display: inline-flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.05);
+        padding: 0.35rem;
+}
+
+.bhg-prize-tab {
+        background: transparent;
+        border: 0;
+        border-radius: 999px;
+        color: #475569;
+        cursor: pointer;
+        font-weight: 600;
+        padding: 0.5rem 1.25rem;
+        transition: background 0.2s ease, color 0.2s ease;
+}
+
+.bhg-prize-tab.is-active,
+.bhg-prize-tab:focus {
+        background: #0f172a;
+        color: #ffffff;
+        outline: none;
+}
+
+.bhg-prize-tab:focus-visible {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45);
+}
+
+.bhg-prize-tab-panel {
+        display: block;
+}
+
+.bhg-prize-tab-panel[hidden] {
+        display: none;
+}
+
 .bhg-prize-card--popup {
         cursor: zoom-in;
 }
