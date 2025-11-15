@@ -465,7 +465,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_bonus_hunt'                             => 'Bonushunt',
 			'label_bonus_hunts'                            => 'Bonus Hunts',
 			'label_overall'                                => 'Overall',
-			'label_all_time'                               => 'All-Time',
+			'label_all_time'                               => 'Alltime',
 			'label_final'                                  => 'Final',
 			'label_user_number'                            => 'User #%d',
 			'label_diff'                                   => 'diff',
@@ -906,8 +906,29 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'shortcode_attr_jackpot_year'                  => 'Filter wins by calendar year.',
 			'shortcode_jackpot_ticker_desc'                => 'Ticker of live jackpot totals or recent winners.',
 			'shortcode_attr_jackpot_mode'                  => 'Display mode: amount (default) or winners.',
-			'shortcode_jackpot_winners_desc'               => 'Formatted table or list of jackpot winners.',
-			'shortcode_attr_jackpot_layout'                => 'Layout style: table or list.',
+                        'shortcode_jackpot_winners_desc'               => 'Formatted table or list of jackpot winners.',
+                        'shortcode_attr_jackpot_layout'                => 'Layout style: table or list.',
+                        'shortcode_attr_timeline'                      => 'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).',
+                        'shortcode_attr_show_search'                   => 'yes to display the search controls; no to hide them.',
+                        'shortcode_latest_winners_desc'                => 'Displays a text list of the most recent hunt winners.',
+                        'shortcode_attr_latest_winners_limit'          => 'Maximum number of winners to display (1-100).',
+                        'shortcode_attr_latest_winners_fields'         => 'Comma list of segments: date, username, prize, bonushunt, tournament, position.',
+                        'shortcode_attr_latest_winners_empty'          => 'Custom message when no winners are available.',
+                        'shortcode_leaderboard_list_desc'              => 'Compact leaderboard feed for sidebars and homepages.',
+                        'shortcode_attr_leaderboard_list_limit'        => 'Maximum number of ranked users to display (1-100).',
+                        'shortcode_attr_leaderboard_list_fields'       => 'Comma list of metrics: position, username, times_won, avg_hunt, avg_tournament.',
+                        'shortcode_attr_leaderboard_list_orderby'      => 'Sort column: wins, user, avg_hunt, or avg_tournament.',
+                        'shortcode_attr_leaderboard_list_empty'        => 'Custom message when no leaderboard entries match.',
+                        'shortcode_tournament_list_desc'               => 'Text list of tournaments for compact layouts.',
+                        'shortcode_attr_tournament_list_limit'         => 'Maximum number of tournaments to list (1-100).',
+                        'shortcode_attr_tournament_list_orderby'       => 'Sort column: start_date, end_date, title, or status.',
+                        'shortcode_attr_tournament_list_fields'        => 'Comma list of fields: name, start_date, end_date, status, details.',
+                        'shortcode_attr_tournament_list_empty'         => 'Custom message when no tournaments match.',
+                        'shortcode_bonushunt_list_desc'                => 'Text list of bonus hunts for compact layouts.',
+                        'shortcode_attr_bonushunt_list_limit'          => 'Maximum number of hunts to list (1-100).',
+                        'shortcode_attr_bonushunt_list_orderby'        => 'Sort column: created_at, title, start_balance, final_balance, or status.',
+                        'shortcode_attr_bonushunt_list_fields'         => 'Comma list of fields: title, start_balance, final_balance, winners, status, details.',
+                        'shortcode_attr_bonushunt_list_empty'          => 'Custom message when no bonus hunts match.',
 			'remove'                                       => 'Remove',
 			'remove_this_guess'                            => 'Remove this guess?',
 			'reset_reseed_demo'                            => 'Reset & Reseed Demo',
@@ -1123,6 +1144,26 @@ if ( ! function_exists( 'bhg_get_win_limit_config' ) ) {
 				'period' => $period,
 			);
 	}
+}
+
+if ( ! function_exists( 'bhg_get_shortcode_rows_per_page' ) ) {
+        /**
+         * Retrieve the default rows-per-page value for public shortcodes.
+         *
+         * @param int $default Fallback value when no setting is stored.
+         * @return int
+         */
+        function bhg_get_shortcode_rows_per_page( $default = 25 ) {
+                $default  = max( 1, (int) $default );
+                $settings = get_option( 'bhg_plugin_settings', array() );
+                $value    = isset( $settings['shortcode_rows_per_page'] ) ? (int) $settings['shortcode_rows_per_page'] : 0;
+
+                if ( $value < 1 ) {
+                        $value = $default;
+                }
+
+                return (int) apply_filters( 'bhg_shortcode_rows_per_page', $value, $default );
+        }
 }
 
 if ( ! function_exists( 'bhg_get_period_interval_seconds' ) ) {
