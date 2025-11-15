@@ -244,7 +244,30 @@
 
                 frame.on('select', function () {
                         var attachment = frame.state().get('selection').first().toJSON();
-                        var previewUrl = attachment.sizes && attachment.sizes.thumbnail ? attachment.sizes.thumbnail.url : attachment.url;
+                        var previewUrl = attachment.url;
+                        var container = $('#' + targetField).closest('.bhg-media-control');
+                        var sizeKey = container.length ? container.data('size') : '';
+
+                        if (attachment.sizes) {
+                                var preferredSize = '';
+
+                                if ('small' === sizeKey) {
+                                        preferredSize = 'thumbnail';
+                                } else if ('medium' === sizeKey) {
+                                        preferredSize = 'medium';
+                                } else if ('big' === sizeKey) {
+                                        preferredSize = 'bhg_prize_big';
+                                }
+
+                                if (preferredSize && attachment.sizes[ preferredSize ]) {
+                                        previewUrl = attachment.sizes[ preferredSize ].url;
+                                } else if ('big' === sizeKey && attachment.sizes.large) {
+                                        previewUrl = attachment.sizes.large.url;
+                                } else if (attachment.sizes.full) {
+                                        previewUrl = attachment.sizes.full.url;
+                                }
+                        }
+
                         setFieldValue(targetField, attachment.id, previewUrl);
                 });
 

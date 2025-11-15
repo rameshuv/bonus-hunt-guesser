@@ -933,7 +933,7 @@ $wp_size    = 'medium';
 if ( 'small' === $size ) {
 $wp_size = 'thumbnail';
 } elseif ( 'big' === $size ) {
-$wp_size = 'large';
+$wp_size = 'bhg_prize_big';
 }
 
 $show_title       = BHG_Prizes::resolve_display_flag(
@@ -1037,7 +1037,13 @@ echo '<' . $tag . ' class="' . esc_attr( $class_attr ) . '"' . $style_attr . $at
 if ( $show_image && $image_url ) {
 $img_attr = '';
 $srcset   = $image_id ? wp_get_attachment_image_srcset( $image_id, $wp_size ) : '';
-$sizes    = $image_id ? wp_get_attachment_image_sizes( $image_id, $wp_size ) : '';
+if ( ! $srcset && 'bhg_prize_big' === $wp_size ) {
+$srcset = $image_id ? wp_get_attachment_image_srcset( $image_id, 'large' ) : '';
+}
+$sizes = $image_id ? wp_get_attachment_image_sizes( $image_id, $wp_size ) : '';
+if ( ! $sizes && 'bhg_prize_big' === $wp_size ) {
+$sizes = $image_id ? wp_get_attachment_image_sizes( $image_id, 'large' ) : '';
+}
 if ( $srcset ) {
 $img_attr .= ' srcset="' . esc_attr( $srcset ) . '"';
 }
