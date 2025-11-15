@@ -1531,7 +1531,7 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 	echo '<table class="bhg-leaderboard bhg-table" data-timeframe="' . esc_attr( $timeframe ) . '">';
 	echo '<thead><tr>';
 	echo '<th class="sortable" data-sort="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
-	echo '<th class="sortable" data-sort="username">' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
+        echo '<th class="sortable" data-sort="username">' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th>';
 	echo '<th class="sortable" data-sort="wins">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
 	echo '</tr></thead><tbody>';
 
