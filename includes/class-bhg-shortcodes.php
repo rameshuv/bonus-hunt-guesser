@@ -2831,8 +2831,7 @@ return ob_get_clean();
 						}
 
                                                 						// Optional timeline filter.
-						$win_date_expr     = 'CASE WHEN h.closed_at IS NOT NULL THEN h.closed_at WHEN hw.created_at IS NOT NULL THEN hw.created_at ELSE h.created_at END';
-						$win_date_expr_sub = 'CASE WHEN h2.closed_at IS NOT NULL THEN h2.closed_at WHEN hw2.created_at IS NOT NULL THEN hw2.created_at ELSE h2.created_at END';
+                                            $win_date_expr = 'CASE WHEN h.closed_at IS NOT NULL THEN h.closed_at WHEN hw.created_at IS NOT NULL THEN hw.created_at ELSE h.created_at END';
 						$range             = $this->get_timeline_range( $timeline_filter );
 
 						$need_avg_hunt        = in_array( 'avg_hunt', $fields_arr, true );
@@ -2924,7 +2923,7 @@ return ob_get_clean();
 
                                                $aggregate_parts = array(
                                                                'fw.user_id',
-                                                               'COUNT(*) AS total_wins',
+                                                               'COUNT(DISTINCT fw.hunt_id) AS total_wins',
                                                );
 
 						if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
