@@ -70,6 +70,7 @@ $shortcodes = array(
 			'order'    => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
 			'paged'    => bhg_t( 'shortcode_attr_paged', 'Starting page number for the table.' ),
 			'search'   => bhg_t( 'shortcode_attr_search', 'Default search string for hunt titles.' ),
+			'show_search' => bhg_t( 'shortcode_attr_show_search', 'yes to display the search input block; no to hide it.' ),
 		),
 	),
 	array(
@@ -77,11 +78,13 @@ $shortcodes = array(
 		'description' => bhg_t( 'shortcode_leaderboards_desc', 'Overall rankings with sortable wins and averages.' ),
 		'attributes'  => array(
 			'fields'     => bhg_t( 'shortcode_attr_leaderboards_fields', 'Columns to display (pos,user,wins,avg,aff,site,hunt,tournament).' ),
+			'filters'    => bhg_t( 'shortcode_attr_leaderboards_filters', 'Comma-separated filters to show: timeline,tournament,affiliate_site,affiliate_status.' ),
 			'ranking'    => bhg_t( 'shortcode_attr_leaderboards_ranking', 'Ranking scope ID or slug to load (defaults to 1).' ),
 			'timeline'   => bhg_t( 'shortcode_attr_timeline', 'Timeline keyword for filtering results.' ),
 			'orderby'    => bhg_t( 'shortcode_attr_orderby', 'Default sort column (wins, avg, user, etc.).' ),
 			'order'      => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
 			'search'     => bhg_t( 'shortcode_attr_search', 'Default search term for usernames.' ),
+			'show_search' => bhg_t( 'shortcode_attr_show_search', 'yes to display the search box; no to hide it.' ),
 			'tournament' => bhg_t( 'shortcode_attr_leaderboards_tournament', 'Limit rankings to a specific tournament ID.' ),
 			'bonushunt'  => bhg_t( 'shortcode_attr_leaderboards_hunt', 'Limit rankings to a specific hunt ID.' ),
 			'website'    => bhg_t( 'shortcode_attr_leaderboards_site', 'Filter by affiliate website ID.' ),
@@ -91,11 +94,75 @@ $shortcodes = array(
 	array(
 		'tag'         => 'bhg_tournaments',
 		'description' => bhg_t( 'shortcode_tournaments_desc', 'Lists tournaments with filters for timeline, status, and search.' ),
-		'attributes'  => array(),
+		'attributes'  => array(
+			'status'      => bhg_t( 'shortcode_attr_tournaments_status', 'Filter by tournament status: active, closed, or all.' ),
+			'tournament'  => bhg_t( 'shortcode_attr_tournaments_id', 'Default tournament ID to highlight (optional).' ),
+			'website'     => bhg_t( 'shortcode_attr_tournaments_site', 'Affiliate website ID filter.' ),
+			'timeline'    => bhg_t( 'shortcode_attr_timeline', 'Limit tournaments by timeline keyword.' ),
+			'orderby'     => bhg_t( 'shortcode_attr_orderby', 'Default sort column (start_date,end_date,title,status).' ),
+			'order'       => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
+			'paged'       => bhg_t( 'shortcode_attr_paged', 'Starting page number for the listing.' ),
+			'search'      => bhg_t( 'shortcode_attr_search', 'Default search term applied to tournament titles.' ),
+			'show_search' => bhg_t( 'shortcode_attr_show_search', 'yes to display the search input; no to hide it.' ),
+		),
 		'notes'       => bhg_t( 'shortcode_tournaments_notes', 'Use query parameters (bhg_timeline, bhg_status, bhg_search, bhg_orderby, bhg_order) to filter the table.' ),
 	),
-	array(
-		'tag'         => 'bhg_prizes',
+        array(
+                'tag'         => 'latest-winners-list',
+                'description' => bhg_t( 'shortcode_latest_winners_desc', 'Displays a text list of the most recent hunt winners.' ),
+                'attributes'  => array(
+                        'limit'  => bhg_t( 'shortcode_attr_latest_winners_limit', 'Maximum number of winners to display (1-100).' ),
+                        'fields' => bhg_t( 'shortcode_attr_latest_winners_fields', 'Comma list of segments to show: date,username,prize,bonushunt,tournament,position.' ),
+                        'empty'  => bhg_t( 'shortcode_attr_latest_winners_empty', 'Custom message when no winners are available.' ),
+                ),
+        ),
+
+        array(
+                'tag'         => 'leaderboard-list',
+                'description' => bhg_t( 'shortcode_leaderboard_list_desc', 'Compact leaderboard list for use in sidebar sections.' ),
+                'attributes'  => array(
+                        'limit'      => bhg_t( 'shortcode_attr_leaderboard_list_limit', 'Maximum number of ranked users to display (1-100).' ),
+                        'fields'     => bhg_t( 'shortcode_attr_leaderboard_list_fields', 'Comma list of metrics: position,username,times_won,avg_hunt,avg_tournament.' ),
+                        'timeline'   => bhg_t( 'shortcode_attr_timeline', 'Timeline keyword to scope rankings.' ),
+                        'tournament' => bhg_t( 'shortcode_attr_leaderboards_tournament', 'Limit rankings to a specific tournament ID.' ),
+                        'bonushunt'  => bhg_t( 'shortcode_attr_leaderboards_hunt', 'Limit rankings to a specific hunt ID.' ),
+                        'website'    => bhg_t( 'shortcode_attr_leaderboards_site', 'Affiliate website ID filter.' ),
+                        'aff'        => bhg_t( 'shortcode_attr_leaderboards_aff', 'yes or no to require affiliate winners.' ),
+                        'orderby'    => bhg_t( 'shortcode_attr_leaderboard_list_orderby', 'Sort column: wins, user, avg_hunt, or avg_tournament.' ),
+                        'order'      => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
+                        'empty'      => bhg_t( 'shortcode_attr_leaderboard_list_empty', 'Custom message when no rankings match.' ),
+                ),
+        ),
+
+        array(
+                'tag'         => 'tournament-list',
+                'description' => bhg_t( 'shortcode_tournament_list_desc', 'Text list of tournaments for compact layouts.' ),
+                'attributes'  => array(
+                        'status' => bhg_t( 'shortcode_attr_tournaments_status', 'Filter by tournament status: active, closed, or all.' ),
+                        'timeline' => bhg_t( 'shortcode_attr_timeline', 'Timeline keyword to restrict tournaments.' ),
+                        'limit'   => bhg_t( 'shortcode_attr_tournament_list_limit', 'Maximum number of tournaments to list (1-100).' ),
+                        'orderby' => bhg_t( 'shortcode_attr_tournament_list_orderby', 'Sort column: start_date,end_date,title,status.' ),
+                        'order'   => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
+                        'fields'  => bhg_t( 'shortcode_attr_tournament_list_fields', 'Comma list of fields: name,start_date,end_date,status,details.' ),
+                        'empty'   => bhg_t( 'shortcode_attr_tournament_list_empty', 'Custom message when no tournaments match.' ),
+                ),
+        ),
+
+        array(
+                'tag'         => 'bonushunt-list',
+                'description' => bhg_t( 'shortcode_bonushunt_list_desc', 'Text list of bonus hunts for homepage widgets.' ),
+                'attributes'  => array(
+                        'status' => bhg_t( 'shortcode_attr_bonushunt_list_status', 'Filter hunts by status: open, closed, or all.' ),
+                        'timeline' => bhg_t( 'shortcode_attr_timeline', 'Timeline keyword to restrict hunts.' ),
+                        'limit'   => bhg_t( 'shortcode_attr_bonushunt_list_limit', 'Maximum number of hunts to list (1-100).' ),
+                        'orderby' => bhg_t( 'shortcode_attr_bonushunt_list_orderby', 'Sort column: created_at,title,start_balance,final_balance,status.' ),
+                        'order'   => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
+                        'fields'  => bhg_t( 'shortcode_attr_bonushunt_list_fields', 'Comma list of fields: title,start_balance,final_balance,winners,status,details.' ),
+                        'empty'   => bhg_t( 'shortcode_attr_bonushunt_list_empty', 'Custom message when no hunts match.' ),
+                ),
+        ),
+        array(
+'tag'         => 'bhg_prizes',
 		'description' => bhg_t( 'shortcode_prizes_desc', 'Displays prizes in a grid or carousel layout.' ),
 'attributes'  => array(
 'category'        => bhg_t( 'shortcode_attr_prizes_category', 'Filter by prize category slug.' ),
