@@ -698,18 +698,44 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                 $timeline_filter = ( 'all_time' === $timeline ) ? '' : $timeline;
                                 $range           = $this->get_timeline_range( $timeline_filter );
 
-                                $r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
-                                $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
-                                $um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
-                                $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
-                                $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-                                $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
-                                $t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
-                                $w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+			$r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
+			$u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
+			$um = esc_sql( $this->sanitize_table( $wpdb->usermeta ) );
+			$hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
+			$h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+			$ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
+			$t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+			$w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 
-                                if ( ! $r || ! $u || ! $hw || ! $h || ! $ht || ! $t ) {
-                                                return null;
-                                }
+			if ( ! $r || ! $u ) {
+			return null;
+			}
+
+			$has_hw      = (bool) $hw;
+			$has_hunts   = (bool) $h;
+			$has_ht      = (bool) $ht;
+			$has_sites   = (bool) $w;
+			$has_t_table = (bool) $t;
+
+			$can_use_hunt_meta = $has_hw && $has_hunts;
+
+			if ( $need_avg_hunt && ! $can_use_hunt_meta ) {
+			$need_avg_hunt = false;
+			}
+
+			if ( $need_hunt_name && ! $can_use_hunt_meta ) {
+			$need_hunt_name = false;
+			}
+
+			if ( $need_site_details && ( ! $can_use_hunt_meta || ( $need_site && ! $has_sites ) ) ) {
+			$need_site_details = false;
+			$need_site         = false;
+			$need_aff          = false;
+			}
+
+			if ( $need_tournament_name && ! $has_t_table ) {
+			$need_tournament_name = false;
+			}
 
                                 $aff_yes_values = array( '1', 'yes', 'true', 'on' );
                                 $aff_yes_sql    = array();
@@ -752,9 +778,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                 $params[] = $range['end'];
                                 }
 
-                                if ( $need_tournament_name ) {
-                                                $select_joins[] = "LEFT JOIN {$t} t_main ON t_main.id = tr.tournament_id";
-                                }
+if ( $need_tournament_name && $t ) {
+$select_joins[] = "LEFT JOIN {$t} t_main ON t_main.id = tr.tournament_id";
+}
 
                                 $count_sql = 'SELECT COUNT(*) FROM ' . $r . ' tr ' . implode( ' ', $count_joins );
                                 if ( ! empty( $where ) ) {
@@ -825,19 +851,21 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                 'tr.wins AS total_wins',
                                 );
 
-                                $tournament_scope = sprintf( '(ht_scope.tournament_id = %1$d OR (ht_scope.hunt_id IS NULL AND h_scope.tournament_id = %1$d))', $tournament_id );
-
-                                if ( $need_avg_hunt ) {
-                                                $avg_hunt_query = sprintf(
-                                                                'SELECT hw_avg.user_id, AVG(hw_avg.position) AS avg_hunt_pos FROM %1$s hw_avg INNER JOIN %2$s h_scope ON h_scope.id = hw_avg.hunt_id LEFT JOIN %3$s ht_scope ON ht_scope.hunt_id = hw_avg.hunt_id WHERE %4$s GROUP BY hw_avg.user_id',
-                                                                $hw,
-                                                                $h,
-                                                                $ht,
-                                                                $tournament_scope
-                                                );
-                                                $select_parts[] = 'hunt_stats.avg_hunt_pos';
-                                                $select_joins[] = 'LEFT JOIN (' . $avg_hunt_query . ') hunt_stats ON hunt_stats.user_id = tr.user_id';
-                                }
+                               if ( $need_avg_hunt ) {
+                                               $avg_scope_condition = $has_ht
+                                                               ? sprintf( '(ht_scope.tournament_id = %1$d OR (ht_scope.hunt_id IS NULL AND h_scope.tournament_id = %1$d))', $tournament_id )
+                                                               : sprintf( 'h_scope.tournament_id = %d', $tournament_id );
+                                               $avg_ht_join        = $has_ht ? ' LEFT JOIN ' . $ht . ' ht_scope ON ht_scope.hunt_id = hw_avg.hunt_id' : '';
+                                               $avg_hunt_query     = sprintf(
+                                                               'SELECT hw_avg.user_id, AVG(hw_avg.position) AS avg_hunt_pos FROM %1$s hw_avg INNER JOIN %2$s h_scope ON h_scope.id = hw_avg.hunt_id%3$s WHERE %4$s GROUP BY hw_avg.user_id',
+                                                               $hw,
+                                                               $h,
+                                                               $avg_ht_join,
+                                                               $avg_scope_condition
+                                               );
+                                               $select_parts[] = 'hunt_stats.avg_hunt_pos';
+                                               $select_joins[] = 'LEFT JOIN (' . $avg_hunt_query . ') hunt_stats ON hunt_stats.user_id = tr.user_id';
+                               }
 
                                 if ( $need_avg_tournament || 'avg_tournament' === $orderby_request ) {
                                                 $need_avg_tournament = true;
@@ -850,31 +878,37 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                 $select_joins[] = 'LEFT JOIN (' . $rank_query . ') tour_rank ON tour_rank.user_id = tr.user_id';
                                 }
 
-                                $latest_hunt_scope = sprintf( '(ht_inner.tournament_id = %1$d OR (ht_inner.hunt_id IS NULL AND h_inner.tournament_id = %1$d))', $tournament_id );
-                                $win_expr_inner    = "COALESCE( NULLIF( h_inner.closed_at, '0000-00-00 00:00:00' ), NULLIF( hw_inner.created_at, '0000-00-00 00:00:00' ), NULLIF( h_inner.created_at, '0000-00-00 00:00:00' ) )";
-                                $latest_hunt_subquery = sprintf(
-                                                '(SELECT hw_inner.hunt_id FROM %1$s hw_inner INNER JOIN %2$s h_inner ON h_inner.id = hw_inner.hunt_id LEFT JOIN %3$s ht_inner ON ht_inner.hunt_id = hw_inner.hunt_id WHERE hw_inner.user_id = tr.user_id AND %4$s ORDER BY %5$s DESC, hw_inner.hunt_id DESC LIMIT 1)',
-                                                $hw,
-                                                $h,
-                                                $ht,
-                                                $latest_hunt_scope,
-                                                $win_expr_inner
-                                );
+			$latest_hunt_subquery = '';
+			if ( $need_site_details || $need_hunt_name ) {
+			$latest_scope = $has_ht
+			? sprintf( '(ht_inner.tournament_id = %1$d OR (ht_inner.hunt_id IS NULL AND h_inner.tournament_id = %1$d))', $tournament_id )
+			: sprintf( 'h_inner.tournament_id = %d', $tournament_id );
+			$latest_ht_join = $has_ht ? ' LEFT JOIN ' . $ht . ' ht_inner ON ht_inner.hunt_id = hw_inner.hunt_id' : '';
+			$win_expr_inner  = "COALESCE( NULLIF( h_inner.closed_at, '0000-00-00 00:00:00' ), NULLIF( hw_inner.created_at, '0000-00-00 00:00:00' ), NULLIF( h_inner.created_at, '0000-00-00 00:00:00' ) )";
+			$latest_hunt_subquery = sprintf(
+			'(SELECT hw_inner.hunt_id FROM %1$s hw_inner INNER JOIN %2$s h_inner ON h_inner.id = hw_inner.hunt_id%3$s WHERE hw_inner.user_id = tr.user_id AND %4$s ORDER BY %5$s DESC, hw_inner.hunt_id DESC LIMIT 1)',
+			$hw,
+			$h,
+			$latest_ht_join,
+			$latest_scope,
+			$win_expr_inner
+			);
+			}
 
-                                if ( $need_site_details ) {
-                                                $select_parts[] = '(SELECT h2.affiliate_site_id FROM ' . $h . ' h2 WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS site_id';
-                                                if ( $need_site && $w ) {
-                                                                $select_parts[] = '(SELECT w2.name FROM ' . $w . ' w2 INNER JOIN ' . $h . ' h2 ON h2.affiliate_site_id = w2.id WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS site_name';
-                                                }
-                                }
+			if ( $need_site_details && '' !== $latest_hunt_subquery ) {
+			$select_parts[] = '(SELECT h2.affiliate_site_id FROM ' . $h . ' h2 WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS site_id';
+			if ( $need_site && $w ) {
+			$select_parts[] = '(SELECT w2.name FROM ' . $w . ' w2 INNER JOIN ' . $h . ' h2 ON h2.affiliate_site_id = w2.id WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS site_name';
+			}
+			}
 
-                                if ( $need_hunt_name ) {
-                                                $select_parts[] = '(SELECT h2.title FROM ' . $h . ' h2 WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS hunt_title';
-                                }
+			if ( $need_hunt_name && '' !== $latest_hunt_subquery ) {
+			$select_parts[] = '(SELECT h2.title FROM ' . $h . ' h2 WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS hunt_title';
+			}
 
-                                if ( $need_tournament_name ) {
-                                                $select_parts[] = 't_main.title AS tournament_title';
-                                }
+			if ( $need_tournament_name && $t ) {
+				$select_parts[] = 't_main.title AS tournament_title';
+			}
 
                                 $select_sql = 'SELECT ' . implode( ', ', $select_parts ) . ' FROM ' . $r . ' tr ' . implode( ' ', $select_joins );
                                 if ( ! empty( $where ) ) {
@@ -4020,9 +4054,9 @@ return ob_get_clean();
 				$params[] = $id;
 			}
 
-			if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
+			if ( in_array( $status_filter, array( 'open', 'closed' ), true ) ) {
 				$where[]  = 'h.status = %s';
-				$params[] = $a['status'];
+				$params[] = $status_filter;
 			}
 
 			$website = (int) $a['website'];
@@ -4204,7 +4238,6 @@ return ob_get_clean();
                                                                echo '<div class="bhg-search-control bhg-search-control--text">';
                                                                echo '<label for="bhg_hunts_search" class="screen-reader-text">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</label>';
                                                                echo '<input type="text" id="bhg_hunts_search" name="bhg_search" value="' . esc_attr( $search ) . '">';
-                                                               echo '</div>';
                                                                echo '</div>';
                                                }
 
