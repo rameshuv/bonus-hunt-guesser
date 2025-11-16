@@ -4504,17 +4504,22 @@ echo '</div>';
 						$orderby_request = isset( $_GET['bhg_orderby'] ) ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
 						$order_request   = isset( $_GET['bhg_order'] ) ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
 
-						$shortcode_tournament = isset( $a['tournament'] ) ? $a['tournament'] : '';
-						$shortcode_hunt       = isset( $a['bonushunt'] ) ? $a['bonushunt'] : '';
-						$shortcode_site       = isset( $a['website'] ) ? $a['website'] : '';
-						$shortcode_aff        = isset( $a['aff'] ) ? $a['aff'] : '';
+                                                $shortcode_tournament = isset( $a['tournament'] ) ? $a['tournament'] : '';
+                                                $shortcode_hunt       = isset( $a['bonushunt'] ) ? $a['bonushunt'] : '';
+                                                $shortcode_site       = isset( $a['website'] ) ? $a['website'] : '';
+                                                $shortcode_aff        = isset( $a['aff'] ) ? $a['aff'] : '';
 
-			$raw_tournament = ( $filter_tournament_enabled && isset( $_GET['bhg_tournament'] ) ) ? wp_unslash( $_GET['bhg_tournament'] ) : $shortcode_tournament;
-			$raw_hunt       = $shortcode_hunt;
-			if ( '' === $raw_hunt && isset( $_GET['bhg_hunt'] ) ) {
-				$raw_hunt = wp_unslash( $_GET['bhg_hunt'] );
-			}
-			$raw_site = ( $filter_site_enabled && isset( $_GET['bhg_site'] ) ) ? wp_unslash( $_GET['bhg_site'] ) : $shortcode_site;
+                        $raw_tournament = $shortcode_tournament;
+                        if ( isset( $_GET['bhg_tournament'] ) ) {
+                                $raw_tournament = wp_unslash( $_GET['bhg_tournament'] );
+                        } elseif ( isset( $_GET['bhg_tournament_id'] ) ) {
+                                $raw_tournament = wp_unslash( $_GET['bhg_tournament_id'] );
+                        }
+                        $raw_hunt       = $shortcode_hunt;
+                        if ( '' === $raw_hunt && isset( $_GET['bhg_hunt'] ) ) {
+                                $raw_hunt = wp_unslash( $_GET['bhg_hunt'] );
+                        }
+                        $raw_site = ( $filter_site_enabled && isset( $_GET['bhg_site'] ) ) ? wp_unslash( $_GET['bhg_site'] ) : $shortcode_site;
 			$raw_aff  = ( $filter_affiliate_enabled && isset( $_GET['bhg_aff'] ) ) ? wp_unslash( $_GET['bhg_aff'] ) : $shortcode_aff;
 
                                                 $tournament_id = max( 0, absint( $raw_tournament ) );
@@ -4811,7 +4816,7 @@ echo '</div>';
 						echo '<form method="get" class="bhg-search-form">';
                                                foreach ( $_GET as $raw_key => $v ) {
                                                                $key = sanitize_key( wp_unslash( $raw_key ) );
-                                                               if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_site', 'bhg_aff', 'bhg_timeline' ), true ) ) {
+                                                               if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_tournament_id', 'bhg_site', 'bhg_aff', 'bhg_timeline' ), true ) ) {
                                                                                continue;
                                                                }
                                                                echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
