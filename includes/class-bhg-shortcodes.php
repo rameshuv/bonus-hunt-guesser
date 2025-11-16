@@ -296,6 +296,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                $fields               = array_map( 'sanitize_key', (array) $args['fields'] );
                                $timeline             = sanitize_key( (string) $args['timeline'] );
                                $search               = (string) $args['search'];
+                               $search_like          = '' !== $search ? '%' . $wpdb->esc_like( $search ) . '%' : '';
                                $tournament_id        = max( 0, (int) $args['tournament_id'] );
                                $hunt_id              = max( 0, (int) $args['hunt_id'] );
                                $website_id           = max( 0, (int) $args['website_id'] );
@@ -363,9 +364,9 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                );
                                $prep_where = array( 'closed' );
 
-                               if ( '' !== $search ) {
+                               if ( '' !== $search_like ) {
                                                $where[]      = 'u_filter.user_login LIKE %s';
-                                               $prep_where[] = '%' . $wpdb->esc_like( $search ) . '%';
+                                               $prep_where[] = $search_like;
                                }
 
                                if ( $hunt_id > 0 ) {
@@ -408,6 +409,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                'MIN(hw.position) AS position',
                                                'MAX(' . $win_date_expr . ') AS win_date',
                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
+                                               '1 AS win_count',
                                );
 
                                $base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
@@ -420,7 +422,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 
                                $aggregate_parts = array(
                                                'fw.user_id',
-                                               'COUNT(*) AS total_wins',
+                                               'SUM(fw.win_count) AS total_wins',
                                );
 
                                if ( $need_avg_hunt || 'avg_hunt' === $orderby_request ) {
@@ -428,7 +430,53 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                $aggregate_parts[] = 'AVG(fw.position) AS avg_hunt_pos';
                                }
 
-                               $filtered_wrapper_sql = '(' . $prepared_base_sql . ')';
+                               $base_union_sql = $prepared_base_sql;
+
+                               $allow_union = $tournament_id > 0 && $r && $t && $hunt_id <= 0 && $website_id <= 0;
+                               if ( $allow_union ) {
+                                               $participant_select = array(
+                                                               'tr.user_id',
+                                                               '-1 * ABS(tr.user_id) AS hunt_id',
+                                                               'NULL AS position',
+                                                               "COALESCE( NULLIF( tr.last_win_date, '0000-00-00 00:00:00' ), tr.last_win_date ) AS win_date",
+                                                               't_union.affiliate_site_id AS affiliate_site_id',
+                                                               '0 AS win_count',
+                                               );
+
+                                               $participant_joins = array( "LEFT JOIN {$t} t_union ON t_union.id = tr.tournament_id" );
+                                               $participant_where = array( 'tr.tournament_id = %d' );
+                                               $participant_params = array( $tournament_id );
+
+                                               if ( '' !== $search_like ) {
+                                                               $participant_joins[] = "INNER JOIN {$u} u_part ON u_part.ID = tr.user_id";
+                                                               $participant_where[] = 'u_part.user_login LIKE %s';
+                                                               $participant_params[] = $search_like;
+                                               }
+
+                                               if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
+                                                               $participant_joins[] = "INNER JOIN {$um} um_part ON um_part.user_id = tr.user_id AND um_part.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+                                                               $participant_where[] = "CAST(um_part.meta_value AS CHAR) IN ({$aff_yes_list})";
+                                               } elseif ( in_array( $aff_filter, array( 'no', 'false', '0' ), true ) ) {
+                                                               $participant_joins[] = "LEFT JOIN {$um} um_part ON um_part.user_id = tr.user_id AND um_part.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
+                                                               $participant_where[] = "(um_part.user_id IS NULL OR CAST(um_part.meta_value AS CHAR) = '' OR CAST(um_part.meta_value AS CHAR) NOT IN ({$aff_yes_list}))";
+                                               }
+
+                                               if ( $range ) {
+                                                               $participant_where[] = "(COALESCE( NULLIF( tr.last_win_date, '0000-00-00 00:00:00' ), tr.last_win_date ) BETWEEN %s AND %s)";
+                                                               $participant_params[] = $range['start'];
+                                                               $participant_params[] = $range['end'];
+                                               }
+
+                                               $participant_sql = 'SELECT ' . implode( ', ', $participant_select ) . " FROM {$r} tr " . implode( ' ', $participant_joins );
+                                               if ( ! empty( $participant_where ) ) {
+                                                               $participant_sql .= ' WHERE ' . implode( ' AND ', $participant_where );
+                                               }
+
+                                               $prepared_participant_sql = $wpdb->prepare( $participant_sql, ...$participant_params );
+                                               $base_union_sql          = '(' . $prepared_base_sql . ') UNION ALL (' . $prepared_participant_sql . ')';
+                               }
+
+                               $filtered_wrapper_sql = '(' . $base_union_sql . ')';
                                $aggregate_sql        = 'SELECT ' . implode( ', ', $aggregate_parts ) . ' FROM ' . $filtered_wrapper_sql . ' fw GROUP BY fw.user_id';
 
                                $count_sql = 'SELECT COUNT(*) FROM (' . $aggregate_sql . ') wins';
@@ -492,7 +540,7 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                                                $tour_join = '';
                                }
 
-                               $latest_hunt_subquery = '(SELECT fw_inner.hunt_id FROM ' . $filtered_wrapper_sql . ' fw_inner WHERE fw_inner.user_id = wins.user_id ORDER BY fw_inner.win_date DESC, fw_inner.hunt_id DESC LIMIT 1)';
+                               $latest_hunt_subquery = '(SELECT fw_inner.hunt_id FROM ' . $filtered_wrapper_sql . ' fw_inner WHERE fw_inner.user_id = wins.user_id AND fw_inner.hunt_id > 0 ORDER BY fw_inner.win_date DESC, fw_inner.hunt_id DESC LIMIT 1)';
 
                                if ( $need_site_details ) {
                                                $select_parts[] = '(SELECT h2.affiliate_site_id FROM ' . $h . ' h2 WHERE h2.id = ' . $latest_hunt_subquery . ' LIMIT 1) AS site_id';
@@ -2521,10 +2569,10 @@ return ob_get_clean();
 			$count_joins  = array( "INNER JOIN {$h} h ON h.id = g.hunt_id" );
 			$select_joins = $count_joins;
 
-			if ( in_array( $a['status'], array( 'open', 'closed' ), true ) ) {
-				$where[]  = 'h.status = %s';
-				$params[] = $a['status'];
-			}
+                        if ( in_array( $status_filter, array( 'open', 'closed' ), true ) ) {
+                                $where[]  = 'h.status = %s';
+                                $params[] = $status_filter;
+                        }
 
 			$website = (int) $a['website'];
 			if ( $website > 0 ) {
@@ -3587,9 +3635,56 @@ return ob_get_clean();
 					)
 				)
 			);
-						if ( empty( $fields_arr ) ) {
-								$fields_arr = array( 'title', 'start', 'final', 'status' );
-						}
+                                               if ( empty( $fields_arr ) ) {
+                                                                $fields_arr = array( 'title', 'start', 'final', 'status' );
+                                               }
+
+                                               $status_attr = sanitize_key( (string) $a['status'] );
+                                               if ( ! in_array( $status_attr, array( 'open', 'closed' ), true ) ) {
+                                                               $status_attr = '';
+                                               }
+
+                                               $status_request = isset( $_GET['bhg_status'] ) ? sanitize_key( wp_unslash( $_GET['bhg_status'] ) ) : '';
+                                               $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ? $status_request : $status_attr;
+
+                                               $timeline_ui_aliases = array(
+                                                               ''            => 'all_time',
+                                                               'all_time'    => 'all_time',
+                                                               'alltime'     => 'all_time',
+                                                               'today'       => 'today',
+                                                               'day'         => 'today',
+                                                               'this_day'    => 'today',
+                                                               'this_week'   => 'this_week',
+                                                               'week'        => 'this_week',
+                                                               'weekly'      => 'this_week',
+                                                               'this_month'  => 'this_month',
+                                                               'month'       => 'this_month',
+                                                               'monthly'     => 'this_month',
+                                                               'this_quarter'=> 'this_quarter',
+                                                               'quarter'     => 'this_quarter',
+                                                               'quarterly'   => 'this_quarter',
+                                                               'this_year'   => 'this_year',
+                                                               'year'        => 'this_year',
+                                                               'yearly'      => 'this_year',
+                                                               'last_year'   => 'last_year',
+                                               );
+
+                                               $timeline_attr     = sanitize_key( (string) $a['timeline'] );
+                                               $timeline_default  = isset( $timeline_ui_aliases[ $timeline_attr ] ) ? $timeline_ui_aliases[ $timeline_attr ] : 'all_time';
+                                               $timeline_request  = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
+                                               $timeline_ui_value = isset( $timeline_ui_aliases[ $timeline_request ] ) ? $timeline_ui_aliases[ $timeline_request ] : $timeline_default;
+
+                                               $timeline_query_map = array(
+                                                               'all_time'     => 'all_time',
+                                                               'today'        => 'day',
+                                                               'this_week'    => 'week',
+                                                               'this_month'   => 'month',
+                                                               'this_quarter' => 'quarter',
+                                                               'this_year'    => 'year',
+                                                               'last_year'    => 'last_year',
+                                               );
+
+                                               $timeline_query_value = isset( $timeline_query_map[ $timeline_ui_value ] ) ? $timeline_query_map[ $timeline_ui_value ] : 'all_time';
 
 						$need_site_field = in_array( 'site', $fields_arr, true );
 
@@ -3630,8 +3725,8 @@ return ob_get_clean();
 			}
 
 											// Timeline handling.
-						$timeline = sanitize_key( $a['timeline'] );
-						$range    = $this->get_timeline_range( $timeline );
+                                                $timeline_for_range = ( 'all_time' === $timeline_query_value ) ? '' : $timeline_query_value;
+                                                $range              = $this->get_timeline_range( $timeline_for_range );
 						if ( $range ) {
 								$where[]  = 'h.created_at BETWEEN %s AND %s';
 								$params[] = $range['start'];
@@ -3702,20 +3797,32 @@ return ob_get_clean();
 
 						$current_url = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_validate_redirect( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), home_url( '/' ) ) ) : home_url( '/' );
 						$base_url    = remove_query_arg( array( 'bhg_orderby', 'bhg_order', 'bhg_paged' ), $current_url );
-						if ( '' === $search ) {
-								$base_url = remove_query_arg( 'bhg_search', $base_url );
-						}
-						$toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search ) {
-								$dir  = ( $orderby_key === $field && 'asc' === $direction_key ) ? 'desc' : 'asc';
-								$args = array(
-										'bhg_orderby' => $field,
-										'bhg_order'   => $dir,
-								);
-								if ( '' !== $search ) {
-										$args['bhg_search'] = $search;
-								}
-								return add_query_arg( $args, $base_url );
-						};
+                                                if ( '' === $search ) {
+                                                                $base_url = remove_query_arg( 'bhg_search', $base_url );
+                                                }
+                                                if ( 'all_time' === $timeline_ui_value ) {
+                                                                $base_url = remove_query_arg( 'bhg_timeline', $base_url );
+                                                }
+                                                if ( '' === $status_filter ) {
+                                                                $base_url = remove_query_arg( 'bhg_status', $base_url );
+                                                }
+                                                $toggle = function ( $field ) use ( $base_url, $orderby_key, $direction_key, $search, $timeline_ui_value, $status_filter ) {
+                                                                $dir  = ( $orderby_key === $field && 'asc' === $direction_key ) ? 'desc' : 'asc';
+                                                                $args = array(
+                                                                                'bhg_orderby' => $field,
+                                                                                'bhg_order'   => $dir,
+                                                                );
+                                                                if ( '' !== $search ) {
+                                                                                $args['bhg_search'] = $search;
+                                                                }
+                                                                if ( 'all_time' !== $timeline_ui_value ) {
+                                                                                $args['bhg_timeline'] = $timeline_ui_value;
+                                                                }
+                                                                if ( '' !== $status_filter ) {
+                                                                                $args['bhg_status'] = $status_filter;
+                                                                }
+                                                                return add_query_arg( $args, $base_url );
+                                                };
 
 						if ( ! $rows ) {
 								return '<p>' . esc_html( bhg_t( 'notice_no_hunts_found', 'No hunts found.' ) ) . '</p>';
@@ -3766,20 +3873,69 @@ return ob_get_clean();
                                                 echo '<form method="get" class="bhg-search-form">';
                                                 foreach ( $_GET as $raw_key => $v ) {
                                                                 $key = sanitize_key( wp_unslash( $raw_key ) );
-                                                                if ( 'bhg_search' === $key ) {
+                                                                if ( in_array( $key, array( 'bhg_search', 'bhg_timeline', 'bhg_status' ), true ) ) {
                                                                                 continue;
                                                                 }
                                                                 echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
                                                 }
 
-                                               if ( ! $show_search_form && '' !== $search ) {
-                                                               echo '<input type="hidden" name="bhg_search" value="' . esc_attr( $search ) . '">';
+                                               if ( ! $show_search_form ) {
+                                                               if ( '' !== $search ) {
+                                                                               echo '<input type="hidden" name="bhg_search" value="' . esc_attr( $search ) . '">';
+                                                               }
+                                                               if ( 'all_time' !== $timeline_ui_value ) {
+                                                                               echo '<input type="hidden" name="bhg_timeline" value="' . esc_attr( $timeline_ui_value ) . '">';
+                                                               }
+                                                               if ( '' !== $status_filter ) {
+                                                                               echo '<input type="hidden" name="bhg_status" value="' . esc_attr( $status_filter ) . '">';
+                                                               }
                                                }
 
                                                if ( $show_search_form ) {
-                                                               echo '<div class="bhg-search-control">';
-                                                               echo '<input type="text" name="bhg_search" value="' . esc_attr( $search ) . '">';
+                                                               echo '<div class="bhg-search-controls">';
+                                                               echo '<div class="bhg-search-control bhg-search-control--text">';
+                                                               echo '<label for="bhg_hunts_search" class="screen-reader-text">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</label>';
+                                                               echo '<input type="text" id="bhg_hunts_search" name="bhg_search" value="' . esc_attr( $search ) . '">';
+                                                               echo '</div>';
+
+                                                               $timeline_options = array(
+                                                                               'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
+                                                                               'today'        => bhg_t( 'label_today', 'Today' ),
+                                                                               'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
+                                                                               'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
+                                                                               'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+                                                                               'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
+                                                                               'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
+                                                               );
+
+                                                               echo '<div class="bhg-search-control bhg-search-control--select">';
+                                                               echo '<label for="bhg_hunts_timeline">' . esc_html( bhg_t( 'label_timeline', 'Timeline' ) ) . '</label>';
+                                                               echo '<select name="bhg_timeline" id="bhg_hunts_timeline">';
+                                                               foreach ( $timeline_options as $value => $label ) {
+                                                                               echo '<option value="' . esc_attr( $value ) . '"' . selected( $timeline_ui_value, $value, false ) . '>' . esc_html( $label ) . '</option>';
+                                                               }
+                                                               echo '</select>';
+                                                               echo '</div>';
+
+                                                               $status_options = array(
+                                                                               ''       => bhg_t( 'option_status_all', 'All Statuses' ),
+                                                                               'open'   => bhg_t( 'status_open', 'Open' ),
+                                                                               'closed' => bhg_t( 'status_closed', 'Closed' ),
+                                                               );
+
+                                                               echo '<div class="bhg-search-control bhg-search-control--select">';
+                                                               echo '<label for="bhg_hunts_status">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</label>';
+                                                               echo '<select name="bhg_status" id="bhg_hunts_status">';
+                                                               foreach ( $status_options as $value => $label ) {
+                                                                               $selected_status = ( '' === $value ) ? '' : $value;
+                                                                               echo '<option value="' . esc_attr( $value ) . '"' . selected( $status_filter, $selected_status, false ) . '>' . esc_html( $label ) . '</option>';
+                                                               }
+                                                               echo '</select>';
+                                                               echo '</div>';
+
+                                                               echo '<div class="bhg-search-control bhg-search-control--submit">';
                                                                echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
+                                                               echo '</div>';
                                                                echo '</div>';
                                                }
 
@@ -3837,21 +3993,23 @@ return ob_get_clean();
 			}
 						echo '</tbody></table>';
 
-						$pagination = paginate_links(
-								array(
-										'base'     => add_query_arg( 'bhg_paged', '%#%', $base_url ),
-										'format'   => '',
-										'current'  => $paged,
-										'total'    => max( 1, $pages ),
-										'add_args' => array_filter(
-												array(
-														'bhg_orderby' => $orderby_key,
-														'bhg_order'   => $direction_key,
-														'bhg_search'  => $search,
-												)
-										),
-								)
-						);
+                                                $pagination = paginate_links(
+                                                                array(
+                                                                                'base'     => add_query_arg( 'bhg_paged', '%#%', $base_url ),
+                                                                                'format'   => '',
+                                                                                'current'  => $paged,
+                                                                                'total'    => max( 1, $pages ),
+                                                                                'add_args' => array_filter(
+                                                                                                array(
+                                                                                                                'bhg_orderby' => $orderby_key,
+                                                                                                                'bhg_order'   => $direction_key,
+                                                                                                                'bhg_search'  => $search,
+                                                                                                                'bhg_timeline'=> 'all_time' === $timeline_ui_value ? '' : $timeline_ui_value,
+                                                                                                                'bhg_status'  => $status_filter,
+                                                                                                )
+                                                                                ),
+                                                                )
+                                                );
 						if ( $pagination ) {
 								echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
 						}
