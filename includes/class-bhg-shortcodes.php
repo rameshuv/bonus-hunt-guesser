@@ -4186,8 +4186,16 @@ return ob_get_clean();
                                                                 echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( is_array( $v ) ? reset( $v ) : wp_unslash( $v ) ) . '">';
                                                 }
 
-                                               if ( ! $show_search_form && '' !== $search ) {
-                                                               echo '<input type="hidden" name="bhg_search" value="' . esc_attr( $search ) . '">';
+                                               if ( ! $show_search_form ) {
+                                                               if ( '' !== $search ) {
+                                                                               echo '<input type="hidden" name="bhg_search" value="' . esc_attr( $search ) . '">';
+                                                               }
+                                                               if ( 'all_time' !== $timeline_ui_value ) {
+                                                                               echo '<input type="hidden" name="bhg_timeline" value="' . esc_attr( $timeline_ui_value ) . '">';
+                                                               }
+                                                               if ( '' !== $status_filter ) {
+                                                                               echo '<input type="hidden" name="bhg_status" value="' . esc_attr( $status_filter ) . '">';
+                                                               }
                                                }
 
                                                echo '<div class="bhg-search-controls">';
@@ -4196,6 +4204,7 @@ return ob_get_clean();
                                                                echo '<div class="bhg-search-control bhg-search-control--text">';
                                                                echo '<label for="bhg_hunts_search" class="screen-reader-text">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</label>';
                                                                echo '<input type="text" id="bhg_hunts_search" name="bhg_search" value="' . esc_attr( $search ) . '">';
+                                                               echo '</div>';
                                                                echo '</div>';
                                                }
 
