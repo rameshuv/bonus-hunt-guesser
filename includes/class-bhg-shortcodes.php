@@ -2708,7 +2708,8 @@ return ob_get_clean();
 											   echo '<input type="text" name="bhg_search" value="' . esc_attr( $search ) . '">';
 											   echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
 											   echo '</form>';
-											   echo '<table class="bhg-leaderboard">';
+echo '<div class="bhg-table-wrapper">';
+echo '<table class="bhg-leaderboard">';
 											   echo '<thead><tr>';
                                            foreach ( $fields as $field ) {
                                                                 if ( 'position' === $field ) {
@@ -3142,7 +3143,8 @@ return ob_get_clean();
 		  echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
 		  echo '</form>';
 
-                echo '<table class="bhg-user-guesses"><thead><tr>';
+echo '<div class="bhg-table-wrapper">';
+echo '<table class="bhg-user-guesses"><thead><tr>';
                 echo '<th class="' . esc_attr( $header_class( 'hunt' ) ) . '"><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
                 if ( $need_users ) {
                                 echo '<th>' . esc_html( bhg_t( 'label_user', 'Username' ) ) . '</th>';
@@ -4299,9 +4301,10 @@ echo '<option value="' . esc_attr( $value ) . '"' . selected( $status_filter, $s
 echo '</select>';
 echo '</div>';
 
-                                               echo '</form>';
+echo '</form>';
 
-                                                echo '<table class="bhg-hunts"><thead><tr>';
+echo '<div class="bhg-table-wrapper">';
+echo '<table class="bhg-hunts"><thead><tr>';
                                                 $title_label   = bhg_t( 'sc_title', 'Title' );
                                                 $start_label   = bhg_t( 'sc_start_balance', 'Start Balance' );
                                                 $final_label   = bhg_t( 'sc_final_balance', 'Final Balance' );
@@ -5299,6 +5302,7 @@ $offset       = ( $current_page - 1 ) * $per_page;
                                                                                 return '<span class="bhg-sort-icon" aria-hidden="true">' . esc_html( $icon ) . '</span><span class="screen-reader-text">' . esc_html( $sr_text ) . '</span>';
                                                                 };
 
+echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-leaderboard bhg-leaderboard--tournament">';
 echo '<thead><tr>';
 $position_label = bhg_t( 'label_position', 'Position' );
@@ -5348,6 +5352,11 @@ echo '</td>';
 echo '</tr>';
 }
 echo '</tbody></table>';
+echo '</div>';
+echo '</div>';
+echo '</div>';
+echo '</div>';
+echo '</div>';
 
 $total_pages = $total > 0 ? (int) ceil( $total / $per_page ) : 1;
 if ( $total_pages > 1 ) {
@@ -5615,7 +5624,8 @@ return ob_get_clean();
                                         return '<span class="bhg-sort-icon" aria-hidden="true">' . esc_html( $icon ) . '</span><span class="screen-reader-text">' . esc_html( $sr_text ) . '</span>';
                         };
 
-                        echo '<table class="bhg-tournaments">';
+echo '<div class="bhg-table-wrapper">';
+echo '<table class="bhg-tournaments">';
                         echo '<thead><tr>';
                         $name_label   = bhg_t( 'label_name', 'Name' );
                         $start_label  = bhg_t( 'sc_start', 'Start' );
@@ -5907,6 +5917,7 @@ echo '<h2>' . esc_html( bhg_t( 'profile_section_my_bonushunts', 'My Bonus Hunts'
 if ( empty( $rows ) ) {
 echo '<p>' . esc_html( bhg_t( 'notice_no_hunts_user', 'You have not participated in any bonus hunts yet.' ) ) . '</p>';
 } else {
+echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-profile-table"><thead><tr>';
 echo '<th>' . esc_html( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_guess', 'Guess' ) ) . '</th>';
@@ -5943,6 +5954,8 @@ $classes[] = 'bhg-profile-row--winner';
 }
 
 echo '</tbody></table>';
+echo '</div>';
+echo '</div>';
 }
 
 echo '</div>';
@@ -5979,6 +5992,7 @@ echo '<h2>' . esc_html( bhg_t( 'profile_section_my_tournaments', 'My Tournaments
 if ( empty( $tournaments ) ) {
 echo '<p>' . esc_html( bhg_t( 'notice_no_tournaments_user', 'You have not participated in any tournaments yet.' ) ) . '</p>';
 } else {
+echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-profile-table"><thead><tr>';
 echo '<th>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th>';
@@ -6002,6 +6016,7 @@ echo '</tr></thead><tbody>';
         }
 
 echo '</tbody></table>';
+echo '</div>';
 }
 
 echo '</div>';
@@ -6038,6 +6053,7 @@ echo '<h2>' . esc_html( bhg_t( 'profile_section_my_prizes', 'My Prizes' ) ) . '<
 if ( empty( $prizes ) ) {
 echo '<p>' . esc_html( bhg_t( 'notice_no_prizes_user', 'You have not won any prizes yet.' ) ) . '</p>';
 } else {
+echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-profile-table"><thead><tr>';
 echo '<th>' . esc_html( bhg_t( 'label_prize', 'Prize' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_category', 'Category' ) ) . '</th>';
@@ -6066,6 +6082,7 @@ echo '</tr></thead><tbody>';
         }
 
 echo '</tbody></table>';
+echo '</div>';
 }
 
 echo '</div>';
@@ -6132,6 +6149,7 @@ echo '<p>' . esc_html( bhg_t( 'notice_no_rankings_user', 'No ranking data is ava
 } else {
 if ( ! empty( $wins ) ) {
 echo '<h3>' . esc_html( bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ) ) . '</h3>';
+echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-profile-table"><thead><tr>';
 echo '<th>' . esc_html( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
@@ -6154,10 +6172,12 @@ echo '</tr></thead><tbody>';
             }
 
 echo '</tbody></table>';
+echo '</div>';
 }
 
 if ( ! empty( $tournaments ) ) {
 echo '<h3>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</h3>';
+echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-profile-table"><thead><tr>';
 echo '<th>' . esc_html( bhg_t( 'label_tournament', 'Tournament' ) ) . '</th>';
 echo '<th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th>';
@@ -6181,6 +6201,7 @@ echo '</tr></thead><tbody>';
             }
 
 echo '</tbody></table>';
+echo '</div>';
 }
 }
 
@@ -6224,7 +6245,7 @@ return ob_get_clean();
 					   if ( current_user_can( 'edit_user', $user_id ) ) {
 							   $edit_link = get_edit_user_link( $user_id );
 					   }
-					  $output  = '<div class="bhg-user-profile"><table class="bhg-user-profile-table">';
+$output  = '<div class="bhg-user-profile"><div class="bhg-table-wrapper"><table class="bhg-user-profile-table">';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th><td>' . esc_html( $real_name ) . '</td></tr>';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_email', 'Email' ) ) . '</th><td>' . esc_html( $email ) . '</td></tr>';
@@ -6255,7 +6276,7 @@ return ob_get_clean();
 							  }
 					  }
 
-					  $output .= '</table>';
+$output .= '</table></div>';
 					   if ( $edit_link ) {
 							   $output .= '<p><a href="' . esc_url( $edit_link ) . '">' . esc_html( bhg_t( 'link_edit_profile', 'Edit Profile' ) ) . '</a></p>';
 					   }
@@ -6532,14 +6553,15 @@ return ob_get_clean();
 								return ob_get_clean();
 						}
 
-						ob_start();
-						echo '<table class="bhg-jackpot-winners-table"><thead><tr>';
+ob_start();
+echo '<div class="bhg-table-wrapper">';
+echo '<table class="bhg-jackpot-winners-table"><thead><tr>';
 						echo '<th>' . esc_html( bhg_t( 'label_title', 'Title' ) ) . '</th>';
 						echo '<th>' . esc_html( bhg_t( 'label_amount', 'Amount' ) ) . '</th>';
 						echo '<th>' . esc_html( bhg_t( 'label_winner', 'Winner' ) ) . '</th>';
 						echo '<th>' . esc_html( bhg_t( 'label_date', 'Date' ) ) . '</th>';
 						echo '<th>' . esc_html( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '</th>';
-						echo '</tr></thead><tbody>';
+echo '</tr></thead><tbody>';
 						foreach ( $rows as $row ) {
 								$title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
 								$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
@@ -6561,7 +6583,8 @@ return ob_get_clean();
             echo '<td data-label="' . esc_attr( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '">' . esc_html( $hunt_title ) . '</td>';
             echo '</tr>';
 						}
-						echo '</tbody></table>';
+echo '</tbody></table>';
+echo '</div>';
 
 						return ob_get_clean();
 				}
@@ -6691,10 +6714,11 @@ return ob_get_clean();
 				}
 					echo '<div id="bhg-tab-' . esc_attr( $key ) . '" class="' . esc_attr( $classes ) . '">';
 					$rows = isset( $results[ $key ] ) ? $results[ $key ] : array();
-				if ( ! $rows ) {
-						echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
-				} else {
-                                        echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
+if ( ! $rows ) {
+echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
+} else {
+echo '<div class="bhg-table-wrapper">';
+echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
 					foreach ( $rows as $r ) {
 							/* translators: %d: user ID. */
@@ -6702,7 +6726,8 @@ return ob_get_clean();
 							echo '<tr><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
 							++$pos;
 					}
-						echo '</tbody></table>';
+echo '</tbody></table>';
+echo '</div>';
 				}
 					echo '</div>';
 			}

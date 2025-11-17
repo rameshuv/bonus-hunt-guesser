@@ -4,6 +4,93 @@
 .bhg-leaderboard{width:100%;border-collapse:collapse}
 .bhg-leaderboard th,.bhg-leaderboard td{border:1px solid #e2e8f0;padding:8px}
 
+.bhg-table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 16px}
+.bhg-table-scroll::-webkit-scrollbar{height:8px}
+.bhg-table-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px}
+.bhg-table-scroll::-webkit-scrollbar-track{background:#f8fafc}
+
+.bhg-table-wrapper{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 18px;padding:0 4px 12px;background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border-radius:10px}
+.bhg-table-wrapper table{width:100%;min-width:720px}
+.bhg-table-wrapper table th,.bhg-table-wrapper table td{word-break:break-word}
+
+.bhg-search-form{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+.bhg-filter-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.bhg-filter-label{display:flex;flex-direction:column;gap:6px;font-weight:600;color:#0f172a}
+.bhg-filter-select,.bhg-search-form input[type=text]{min-width:200px;padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;box-shadow:0 1px 1px rgba(15,23,42,.05)}
+.bhg-filter-select:focus,.bhg-search-form input[type=text]:focus{outline:2px solid #2271b1;outline-offset:1px}
+.bhg-search-control{display:flex;flex-wrap:wrap;gap:8px}
+.bhg-filter-button,.bhg-search-control button{background-color:#2271b1;border:1px solid #2271b1;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer}
+.bhg-filter-button:hover,.bhg-filter-button:focus,.bhg-search-control button:hover,.bhg-search-control button:focus{filter:brightness(.9);color:#fff}
+
+@media (max-width:960px){
+    .bhg-table-wrapper table{min-width:620px}
+}
+
+@media (max-width:720px){
+    .bhg-table-wrapper{padding:0 2px 12px}
+    .bhg-table-wrapper table{min-width:520px}
+    .bhg-filter-controls,.bhg-search-control{align-items:stretch}
+}
+
+@media (max-width:560px){
+    .bhg-table-wrapper table{min-width:460px}
+    .bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{padding:9px;font-size:.95rem}
+    .bhg-filter-select,.bhg-search-form input[type=text]{min-width:100%}
+}
+
+@media (max-width:460px){
+    .bhg-table-wrapper{padding:0 1px 10px}
+    .bhg-table-wrapper table{min-width:420px}
+    .bhg-guess-form button,.bhg-guess-form input[type=number]{width:100%}
+}
+
+@media (max-width:400px){
+    .bhg-table-wrapper{padding:0 1px 8px}
+    .bhg-table-wrapper table{min-width:360px}
+    .bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{padding:8px;font-size:.9rem}
+}
+
+.bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{word-break:break-word}
+
+@media (max-width:640px){
+    .bhg-box{padding:12px}
+    .bhg-guess-form{display:flex;flex-direction:column;gap:8px}
+    .bhg-guess-form input[type=number]{margin-left:0;width:100%}
+    .bhg-guess-form button{width:100%}
+    .bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{padding:10px;font-size:.95rem}
+    .bhg-table-scroll{padding-bottom:10px;margin-bottom:20px}
+}
+
+@media (max-width:782px){
+    .bhg-table,
+    .bhg-table thead,
+    .bhg-table tbody,
+    .bhg-table th,
+    .bhg-table td,
+    .bhg-table tr,
+    .bhg-leaderboard,
+    .bhg-leaderboard thead,
+    .bhg-leaderboard tbody,
+    .bhg-leaderboard th,
+    .bhg-leaderboard td,
+    .bhg-leaderboard tr{display:block;width:100%}
+
+    .bhg-table thead tr,
+    .bhg-leaderboard thead tr{position:absolute;top:-9999px;left:-9999px}
+
+    .bhg-table tr,
+    .bhg-leaderboard tr{border:1px solid #e5e7eb;margin-bottom:8px;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+
+    .bhg-table td,
+    .bhg-leaderboard td{border:none;border-bottom:1px solid #e5e7eb;position:relative;padding:12px 12px 12px 12px;white-space:normal}
+
+    .bhg-table td:before,
+    .bhg-leaderboard td:before{display:block;margin-bottom:6px;font-weight:700;color:#0f172a;content:attr(data-label)}
+
+    .bhg-table td:last-child,
+    .bhg-leaderboard td:last-child{border-bottom:0}
+}
+
 /* Navigation menus */
 .bhg-menu,
 .bhg-nav{margin:16px 0}
