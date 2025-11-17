@@ -10,7 +10,7 @@
 .bhg-table-scroll::-webkit-scrollbar-track{background:#f8fafc}
 
 .bhg-table-wrapper{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 18px;padding:0 4px 12px;background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border-radius:10px}
-.bhg-table-wrapper table{min-width:720px}
+.bhg-table-wrapper table{width:100%;min-width:720px}
 .bhg-table-wrapper table th,.bhg-table-wrapper table td{word-break:break-word}
 
 @media (max-width:960px){
@@ -20,6 +20,17 @@
 @media (max-width:720px){
     .bhg-table-wrapper{padding:0 2px 12px}
     .bhg-table-wrapper table{min-width:520px}
+}
+
+@media (max-width:560px){
+    .bhg-table-wrapper table{min-width:460px}
+    .bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{padding:9px;font-size:.95rem}
+}
+
+@media (max-width:460px){
+    .bhg-table-wrapper{padding:0 1px 10px}
+    .bhg-table-wrapper table{min-width:420px}
+    .bhg-guess-form button,.bhg-guess-form input[type=number]{width:100%}
 }
 
 .bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{word-break:break-word}
