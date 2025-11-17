@@ -43,15 +43,15 @@ class BHG_DB {
 			$wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN points_map LONGTEXT NULL AFTER hunt_link_mode" );
 		}
 
-                if ( ! $db->column_exists( $tours_table, 'ranking_scope' ) ) {
-                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-                        $wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN ranking_scope VARCHAR(20) NOT NULL DEFAULT 'all' AFTER points_map" );
-                }
+		if ( ! $db->column_exists( $tours_table, 'ranking_scope' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN ranking_scope VARCHAR(20) NOT NULL DEFAULT 'all' AFTER points_map" );
+		}
 
-                if ( ! $db->column_exists( $tours_table, 'winners_count' ) ) {
-                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-                        $wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN winners_count INT UNSIGNED NOT NULL DEFAULT 3 AFTER ranking_scope" );
-                }
+		if ( ! $db->column_exists( $tours_table, 'winners_count' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$tours_table}` ADD COLUMN winners_count INT UNSIGNED NOT NULL DEFAULT 3 AFTER ranking_scope" );
+		}
 
 		$tres_table = $wpdb->prefix . 'bhg_tournament_results';
 
