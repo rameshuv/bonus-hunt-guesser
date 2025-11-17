@@ -51,7 +51,8 @@ Statuses: **Met** (verified in code), **Partial** (implemented but missing optio
 - **Migrations scaffold present** — **Partial**. Installer handles schema via `dbDelta`, but coverage for all requested columns (guessing_enabled, participants_mode, affiliate_id, junction tables) needs confirmation.【F:bonus-hunt-guesser.php†L200-L234】 _Review installer/migrations to ensure fields exist._
 
 ## Remaining Frontend Polish
-- **Table header link color white; hunts “Details” column** — **Not Verified**. Inspect `assets/css/public.css` and hunts template for color/column changes. _Likely files: `assets/css/public.css`, `includes/class-bhg-shortcodes.php`, hunts template._
+- **Table header link color white** — **Met**. Shared table styles force header links to white for leaderboards, tournaments, hunts, user guesses, profiles, and jackpot winners.【F:assets/css/bhg-shortcodes.css†L520-L539】
+- **Hunts “Details” column with Guess Now/Show Results links** — **Met**. Hunts shortcode renders a Details column with context-aware links for closed hunts (Show Results) and open hunts (Guess Now) plus guessing-closed text when disabled.【F:includes/class-bhg-shortcodes.php†L4294-L4338】
 - **Mobile responsiveness across shortcodes** — **Not Verified**. Requires CSS/markup review and device testing.
 
 ## Actions to Reach Full Compliance
