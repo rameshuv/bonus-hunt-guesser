@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser
 
-**Version:** 8.0.16  
+**Version:** 8.0.18
 **Requires:** WordPress 6.3.5+, PHP 7.4+, MySQL 5.5.5+
 
 ## Overview
@@ -41,7 +41,7 @@ integration (Google, Twitch, Kick).
 4. Review **Bonus Hunt → Settings** to confirm currency, winner limits, menu
    assignments, and notification templates.
 
-## Release 8.0.16 highlights
+## Release 8.0.18 highlights
 
 - Dashboard “Latest Hunts” card now lists every winner per hunt, showing
   guesses and differences alongside starting/final balances.
@@ -76,7 +76,7 @@ integration (Google, Twitch, Kick).
   menus, translations editor) to confirm visibility rules.
 
 Documenting evidence (screenshots or logs) of these flows remains part of the
-customer’s acceptance checklist for v8.0.16.
+customer’s acceptance checklist for v8.0.18.
 
 ## Automated testing
 

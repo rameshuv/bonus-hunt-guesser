@@ -4,13 +4,13 @@ Statuses: **Met** (implemented and referenced in code), **Partial** (present but
 
 ## 1. Runtime, Standards, Text Domain
 - PHP 7.4 / WP 6.3.5 minimums declared in the plugin header. **Met.**【F:bonus-hunt-guesser.php†L3-L12】
-- Plugin version must read **8.0.18**; header/constant still show **8.0.16**. **Gap.**【F:bonus-hunt-guesser.php†L3-L12】
+- Plugin version reads **8.0.18** in both header and constant. **Met.**【F:bonus-hunt-guesser.php†L3-L16】
 - Text domain `bonus-hunt-guesser` loads on `plugins_loaded`. **Met.**【F:bonus-hunt-guesser.php†L399-L410】
 - PHPCS conformance (WordPress-Core/Extra/Docs) not recently verified. **Not Verified.**
 
 ## 2. Plugin Header & Bootstrapping
 - Required header fields (Name, URI, Description, Requires PHP, Requires at least, Text Domain, Domain Path, GPLv2+). **Met.**【F:bonus-hunt-guesser.php†L3-L12】
-- Version mismatch vs. customer target (8.0.18). **Gap.**【F:bonus-hunt-guesser.php†L3-L12】
+- Version aligns with customer target (8.0.18). **Met.**【F:bonus-hunt-guesser.php†L3-L16】
 - Boot sequence loads admin/front components and text domain. **Met.**【F:bonus-hunt-guesser.php†L399-L419】
 
 ## 3. Leaderboards (Frontend Shortcode)
@@ -70,9 +70,9 @@ Statuses: **Met** (implemented and referenced in code), **Partial** (present but
 - Jackpot tables added but require deployment confirmation. **Not Verified.**【F:includes/class-bhg-db.php†L250-L344】
 
 ## 14. Release & Documentation
-- Changelog/README not yet updated for version 8.0.18 or outstanding prize/leaderboard changes. **Gap.**【F:CHANGELOG.md†L1-L38】
+- Changelog/README updated to reflect version 8.0.18. **Met.**【F:CHANGELOG.md†L1-L17】【F:README.md†L1-L66】
 - Info & Help shortcodes catalog includes jackpot entries. **Met.**【F:admin/views/shortcodes.php†L276-L306】
 
 ## 15. QA / Acceptance Tests
-- Automated/PHPCS runs not recorded for current branch. **Not Verified.**
+- PHPCS run recorded for current branch and reports coding-standard violations needing follow-up. **Gap.**【e7e706†L1-L110】
 - End-to-end flows (hunts → winners → tournaments → jackpots, currency toggle, notifications) remain to be documented. **Not Verified.**

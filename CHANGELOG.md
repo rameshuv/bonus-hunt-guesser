@@ -8,6 +8,12 @@
 
 # Changelog
 
+## 8.0.18 — 2025-02-06
+- Bumped plugin metadata and internal version constant to 8.0.18 to match the
+  current customer requirement baseline.
+- Refreshed README highlights and acceptance checklist text to align with the
+  8.0.18 release designation.
+
 ## 8.0.16 — 2025-01-24
 - Added the Jackpot management module with admin CRUD, hunt-close integration, and the `[bhg_jackpot_current]`, `[bhg_jackpot_latest]`, `[bhg_jackpot_ticker]`, and `[bhg_jackpot_winners]` shortcodes.
 - Introduced jackpot database tables with idempotent `dbDelta()` migrations covering jackpots and jackpot event logs.
