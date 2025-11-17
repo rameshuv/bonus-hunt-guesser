@@ -715,11 +715,12 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	if ( isset( $_POST['bhg_shortcode_rows_per_page'] ) ) {
-			$per_page_input = wp_unslash( $_POST['bhg_shortcode_rows_per_page'] );
-			$per_page_value = is_numeric( $per_page_input ) ? (int) $per_page_input : 0;
+	$per_page_input = filter_input( INPUT_POST, 'bhg_shortcode_rows_per_page', FILTER_SANITIZE_NUMBER_INT );
+
+	if ( null !== $per_page_input ) {
+		$per_page_value = absint( $per_page_input );
 		if ( $per_page_value > 0 ) {
-				$settings['shortcode_rows_per_page'] = $per_page_value;
+			$settings['shortcode_rows_per_page'] = $per_page_value;
 		}
 	}
 
@@ -1180,7 +1181,7 @@ function bhg_handle_submit_guess() {
 	$hunt           = wp_cache_get( $hunt_cache_key );
 	if ( false === $hunt ) {
 		// db call ok; caching added.
-		$hunt = $wpdb->get_row(
+		$hunt = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- cached lookup for current hunt context.
 			$wpdb->prepare(
 				"SELECT id, status, guessing_enabled FROM {$wpdb->bhg_bonus_hunts} WHERE id = %d",
 				$hunt_id
@@ -1209,7 +1210,7 @@ function bhg_handle_submit_guess() {
 	$count           = wp_cache_get( $count_cache_key );
 	if ( false === $count ) {
 		// db call ok; caching added.
-		$count = (int) $wpdb->get_var(
+		$count = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- cached guess count for user/hunt combination.
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->bhg_guesses} WHERE hunt_id = %d AND user_id = %d",
 				$hunt_id,
@@ -1225,7 +1226,7 @@ function bhg_handle_submit_guess() {
 			$gid            = wp_cache_get( $last_guess_key );
 			if ( false === $gid ) {
 				// db call ok; caching added.
-				$gid = (int) $wpdb->get_var(
+				$gid = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- cached fetch of latest guess id for editing.
 					$wpdb->prepare(
 						"SELECT id FROM {$wpdb->bhg_guesses} WHERE hunt_id = %d AND user_id = %d ORDER BY id DESC LIMIT 1",
 						$hunt_id,
@@ -1236,7 +1237,7 @@ function bhg_handle_submit_guess() {
 			}
 			if ( $gid ) {
 				// db call ok; no-cache ok.
-				$wpdb->update(
+				$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- single-row update scoped to guess id.
 					$wpdb->bhg_guesses,
 					array(
 						'guess'      => $guess,
@@ -1274,16 +1275,16 @@ function bhg_handle_submit_guess() {
 
 	// Insert.
 	// db call ok; no-cache ok.
-	$wpdb->insert(
-		$wpdb->bhg_guesses,
-		array(
-			'hunt_id'    => $hunt_id,
-			'user_id'    => $user_id,
-			'guess'      => $guess,
-			'created_at' => current_time( 'mysql' ),
-		),
-		array( '%d', '%d', '%f', '%s' )
-	);
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- single insert scoped to guesses table.
+			$wpdb->bhg_guesses,
+			array(
+				'hunt_id'    => $hunt_id,
+				'user_id'    => $user_id,
+				'guess'      => $guess,
+				'created_at' => current_time( 'mysql' ),
+			),
+			array( '%d', '%d', '%f', '%s' )
+		);
 	wp_cache_delete( $count_cache_key );
 	$last_guess_key = 'bhg_last_guess_' . $hunt_id . '_' . $user_id;
 	if ( ! empty( $last_guess_key ) ) {
@@ -1358,7 +1359,7 @@ function bhg_build_ads_query( $table, $placement = 'footer' ) {
 	$rows      = wp_cache_get( $cache_key );
 	if ( false === $rows ) {
 		// db call ok; caching added.
-		$rows = $wpdb->get_results(
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- cached ad lookup for validated placement.
 			$wpdb->prepare(
 				"SELECT * FROM {$wpdb->bhg_ads} WHERE placement = %s AND active = %d",
 				$placement,
@@ -1453,7 +1454,7 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 
 	if ( $start_date ) {
 		// db call ok; no-cache ok.
-		$total = (int) $wpdb->get_var(
+		$total = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- aggregated leaderboard count scoped to timeframe.
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM (
 					SELECT g.user_id
@@ -1473,7 +1474,7 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		);
 
 		// db call ok; no-cache ok.
-		$rows = $wpdb->get_results(
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- leaderboard aggregation scoped to timeframe.
 			$wpdb->prepare(
 				"SELECT g.user_id, u.user_login, COUNT(*) AS wins
 				 FROM {$wpdb->bhg_guesses} g
@@ -1496,7 +1497,7 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		);
 	} else {
 		// db call ok; no-cache ok.
-		$total = (int) $wpdb->get_var(
+		$total = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- aggregated leaderboard count across all time.
 			"SELECT COUNT(*) FROM (
 				SELECT g.user_id
 				FROM {$wpdb->bhg_guesses} g
@@ -1512,7 +1513,7 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 		);
 
 		// db call ok; no-cache ok.
-		$rows = $wpdb->get_results(
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- leaderboard aggregation across all time.
 			$wpdb->prepare(
 				"SELECT g.user_id, u.user_login, COUNT(*) AS wins
 				 FROM {$wpdb->bhg_guesses} g
