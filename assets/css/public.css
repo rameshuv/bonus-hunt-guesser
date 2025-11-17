@@ -13,6 +13,15 @@
 .bhg-table-wrapper table{width:100%;min-width:720px}
 .bhg-table-wrapper table th,.bhg-table-wrapper table td{word-break:break-word}
 
+.bhg-search-form{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+.bhg-filter-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.bhg-filter-label{display:flex;flex-direction:column;gap:6px;font-weight:600;color:#0f172a}
+.bhg-filter-select,.bhg-search-form input[type=text]{min-width:200px;padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;box-shadow:0 1px 1px rgba(15,23,42,.05)}
+.bhg-filter-select:focus,.bhg-search-form input[type=text]:focus{outline:2px solid #2271b1;outline-offset:1px}
+.bhg-search-control{display:flex;flex-wrap:wrap;gap:8px}
+.bhg-filter-button,.bhg-search-control button{background-color:#2271b1;border:1px solid #2271b1;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer}
+.bhg-filter-button:hover,.bhg-filter-button:focus,.bhg-search-control button:hover,.bhg-search-control button:focus{filter:brightness(.9);color:#fff}
+
 @media (max-width:960px){
     .bhg-table-wrapper table{min-width:620px}
 }
@@ -20,11 +29,13 @@
 @media (max-width:720px){
     .bhg-table-wrapper{padding:0 2px 12px}
     .bhg-table-wrapper table{min-width:520px}
+    .bhg-filter-controls,.bhg-search-control{align-items:stretch}
 }
 
 @media (max-width:560px){
     .bhg-table-wrapper table{min-width:460px}
     .bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{padding:9px;font-size:.95rem}
+    .bhg-filter-select,.bhg-search-form input[type=text]{min-width:100%}
 }
 
 @media (max-width:460px){
