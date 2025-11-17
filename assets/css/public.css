@@ -4,6 +4,45 @@
 .bhg-leaderboard{width:100%;border-collapse:collapse}
 .bhg-leaderboard th,.bhg-leaderboard td{border:1px solid #e2e8f0;padding:8px}
 
+.bhg-table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 16px}
+
+@media (max-width:640px){
+    .bhg-box{padding:12px}
+    .bhg-guess-form{display:flex;flex-direction:column;gap:8px}
+    .bhg-guess-form input[type=number]{margin-left:0;width:100%}
+    .bhg-guess-form button{width:100%}
+}
+
+@media (max-width:782px){
+    .bhg-table,
+    .bhg-table thead,
+    .bhg-table tbody,
+    .bhg-table th,
+    .bhg-table td,
+    .bhg-table tr,
+    .bhg-leaderboard,
+    .bhg-leaderboard thead,
+    .bhg-leaderboard tbody,
+    .bhg-leaderboard th,
+    .bhg-leaderboard td,
+    .bhg-leaderboard tr{display:block;width:100%}
+
+    .bhg-table thead tr,
+    .bhg-leaderboard thead tr{position:absolute;top:-9999px;left:-9999px}
+
+    .bhg-table tr,
+    .bhg-leaderboard tr{border:1px solid #e5e7eb;margin-bottom:8px;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+
+    .bhg-table td,
+    .bhg-leaderboard td{border:none;border-bottom:1px solid #e5e7eb;position:relative;padding:12px 12px 12px 12px;white-space:normal}
+
+    .bhg-table td:before,
+    .bhg-leaderboard td:before{display:block;margin-bottom:6px;font-weight:700;color:#0f172a;content:attr(data-label)}
+
+    .bhg-table td:last-child,
+    .bhg-leaderboard td:last-child{border-bottom:0}
+}
+
 /* Navigation menus */
 .bhg-menu,
 .bhg-nav{margin:16px 0}
