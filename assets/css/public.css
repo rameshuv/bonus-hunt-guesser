@@ -33,6 +33,12 @@
     .bhg-guess-form button,.bhg-guess-form input[type=number]{width:100%}
 }
 
+@media (max-width:400px){
+    .bhg-table-wrapper{padding:0 1px 8px}
+    .bhg-table-wrapper table{min-width:360px}
+    .bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{padding:8px;font-size:.9rem}
+}
+
 .bhg-leaderboard th,.bhg-leaderboard td,.bhg-table th,.bhg-table td{word-break:break-word}
 
 @media (max-width:640px){

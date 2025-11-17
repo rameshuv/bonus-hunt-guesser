@@ -590,6 +590,32 @@
     }
 }
 
+@media (max-width: 400px) {
+    .bhg-table-wrapper {
+        padding: 0 1px 8px;
+    }
+
+    .bhg-table-wrapper table {
+        min-width: 360px;
+    }
+
+    .bhg-leaderboard th,
+    .bhg-leaderboard td,
+    .bhg-tournaments th,
+    .bhg-tournaments td,
+    .bhg-user-guesses th,
+    .bhg-user-guesses td,
+    .bhg-hunts th,
+    .bhg-hunts td,
+    .bhg-profile-table th,
+    .bhg-profile-table td,
+    .bhg-jackpot-winners-table th,
+    .bhg-jackpot-winners-table td {
+        padding: 7px 5px;
+        font-size: 0.9rem;
+    }
+}
+
 .bhg-leaderboard,
 .bhg-tournaments,
 .bhg-user-guesses,
