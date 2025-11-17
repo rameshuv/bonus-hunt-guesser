@@ -468,6 +468,19 @@
     color: #fff;
 }
 
+@media screen and (max-width: 640px) {
+    .bhg-pagination-list {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .bhg-pagination-list li a,
+    .bhg-pagination-list li span {
+        min-width: 42px;
+        text-align: center;
+    }
+}
+
 .bhg-pagination a {
     margin: 0 4px;
 }
@@ -506,7 +519,9 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     margin: 0 0 16px;
-    padding-bottom: 6px;
+    padding: 0 6px 10px;
+    max-width: 100%;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 }
 
 .bhg-leaderboard,
@@ -627,6 +642,37 @@
 .bhg-jackpot-winners-table td {
     padding: 6px;
     border-bottom: 1px solid #f1f5f9;
+    word-break: break-word;
+}
+
+@media (max-width: 960px) {
+    .bhg-table-wrapper {
+        margin-left: -4px;
+        margin-right: -4px;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    .bhg-leaderboard th,
+    .bhg-tournaments th,
+    .bhg-user-guesses th,
+    .bhg-hunts th,
+    .bhg-profile-table th,
+    .bhg-jackpot-winners-table th {
+        font-size: 14px;
+        line-height: 1.35;
+    }
+
+    .bhg-leaderboard td,
+    .bhg-tournaments td,
+    .bhg-user-guesses td,
+    .bhg-hunts td,
+    .bhg-profile-table td,
+    .bhg-jackpot-winners-table td {
+        font-size: 14px;
+        line-height: 1.5;
+        word-break: break-word;
+    }
 }
 
 @media (max-width: 960px) {
@@ -764,6 +810,7 @@
         position: relative;
         padding: 12px 12px 12px 12px;
         white-space: normal;
+        word-break: break-word;
     }
 
     .bhg-leaderboard td::before,
