@@ -715,11 +715,12 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	if ( isset( $_POST['bhg_shortcode_rows_per_page'] ) ) {
-			$per_page_input = wp_unslash( $_POST['bhg_shortcode_rows_per_page'] );
-			$per_page_value = is_numeric( $per_page_input ) ? (int) $per_page_input : 0;
+	$per_page_input = filter_input( INPUT_POST, 'bhg_shortcode_rows_per_page', FILTER_SANITIZE_NUMBER_INT );
+
+	if ( null !== $per_page_input ) {
+		$per_page_value = absint( $per_page_input );
 		if ( $per_page_value > 0 ) {
-				$settings['shortcode_rows_per_page'] = $per_page_value;
+			$settings['shortcode_rows_per_page'] = $per_page_value;
 		}
 	}
 
