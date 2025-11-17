@@ -4,6 +4,13 @@
 .bhg-leaderboard{width:100%;border-collapse:collapse}
 .bhg-leaderboard th,.bhg-leaderboard td{border:1px solid #e2e8f0;padding:8px}
 
+@media (max-width:640px){
+    .bhg-box{padding:12px}
+    .bhg-guess-form{display:flex;flex-direction:column;gap:8px}
+    .bhg-guess-form input[type=number]{margin-left:0;width:100%}
+    .bhg-guess-form button{width:100%}
+}
+
 /* Navigation menus */
 .bhg-menu,
 .bhg-nav{margin:16px 0}
