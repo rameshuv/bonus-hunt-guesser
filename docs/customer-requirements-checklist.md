@@ -1,85 +1,57 @@
-# Customer Requirements Checklist — Bonus Hunt Guesser v8.0.16
+# Customer Requirements Checklist (Audit)
 
-Status legend: ✅ Complete · ⚠️ Not verified · ❌ Missing / incomplete · ➖ Not applicable
+Statuses:
+- **Met**: Confirmed in codebase with current version.
+- **Partial**: Partially implemented or needs additional validation.
+- **Gap**: Not implemented or conflicting with stated requirement.
+- **Not verified**: Needs manual QA or deeper review beyond static scan.
 
-> Reference: For the detailed compliance matrix, consult `docs/final-checklist-20240917.md`.
+## Runtime & Versioning
+- **PHP 7.4 / WordPress 6.3.5 minimum**: **Met** — plugin header requires PHP 7.4 and WP 6.3.5.【F:bonus-hunt-guesser.php†L3-L8】
+- **Plugin version 8.0.18 target**: **Gap** — header currently declares 8.0.16, below requested 8.0.18 and earlier release note reference.【F:bonus-hunt-guesser.php†L3-L8】
 
-## 0) Plugin Header & Bootstrapping
-- ✅ Plugin header exposes the requested metadata (name, version 8.0.16, PHP 7.4, WP 6.3.5+, MySQL 5.5.5+, text domain, license). 【F:bonus-hunt-guesser.php†L1-L16】
-- ✅ Text domain loads during `plugins_loaded`. 【F:bonus-hunt-guesser.php†L386-L404】
-- ❌ PHPCS compliance not confirmed (sniffs not executed in this review).
+## Frontpage / List Shortcodes
+- **latest-winners-list shortcode**: **Met** — registered in shortcode loader.【F:includes/class-bhg-shortcodes.php†L72-L97】
+- **leaderboard-list shortcode**: **Met** — registered alongside other list views.【F:includes/class-bhg-shortcodes.php†L72-L97】
+- **tournament-list shortcode**: **Met** — available for tournament text lists.【F:includes/class-bhg-shortcodes.php†L72-L97】
+- **bonushunt-list shortcode**: **Met** — available for bonushunt text lists.【F:includes/class-bhg-shortcodes.php†L72-L97】
+- **Frontpage block usability / 2-column layout**: **Not verified** — requires front-end QA for responsiveness and design fit.
 
-## 1) Admin Dashboard (Latest Hunts)
-- ✅ “Latest Hunts” card renders the latest three hunts with Bonushunt, All Winners (bold usernames with guess/difference), Start Balance, Final Balance (– if open), and Closed At columns. 【F:admin/views/dashboard.php†L44-L197】
+## Jackpot Module
+- **Admin jackpots CRUD & linking modes**: **Met** — dedicated jackpot class provides CRUD, link configurations, and event tracking tables.【F:includes/class-bhg-jackpots.php†L12-L119】
+- **Frontend jackpot shortcodes**: **Partial** — shortcodes are registered, but UI/behavior needs QA against ticker/winners requirements.【F:includes/class-bhg-shortcodes.php†L72-L97】
 
-## 2) Bonus Hunts (List · Edit · Results)
-- ✅ List view includes Final Balance (em dash when open), Affiliate, configurable Winners count, and actions for Edit/Close/Results plus Delete and Guessing toggle. 【F:admin/views/bonus-hunts.php†L226-L320】
-- ✅ Edit view restricts tournaments to active entries, exposes winners count, participant removal table with profile links, and affiliate selection. 【F:admin/views/bonus-hunts-edit.php†L92-L229】
-- ⚠️ Results page implements selectors and timeframe filters, but requires verification to confirm default selection and empty-state copy. 【F:admin/views/bonus-hunts-results.php†L86-L320】
-- ⚠️ Empty state string should be confirmed as “There are no winners yet.” 【F:admin/views/bonus-hunts-results.php†L249-L269】
-- ✅ Winners highlighted (row class `bhg-results-row--winner`) and include Price column. 【F:admin/views/bonus-hunts-results.php†L198-L238】
-- ✅ Database migrations add `guessing_enabled` and `affiliate_id`. 【F:includes/class-bhg-db.php†L96-L114】【F:includes/class-bhg-db.php†L269-L296】
+## Prizes Enhancements
+- **Prize image size support (1200×800 big)**: **Partial** — big size registered; need confirmation of medium/small and upload issue resolution.【F:bonus-hunt-guesser.php†L65-L69】
+- **Dual prize sets (regular + premium)**: **Not verified** — code-level handling for premium prize set not confirmed in audit.
+- **Prize links, categories, click behavior, carousel controls, responsive sizing**: **Not verified** — requires UI review in admin and front-end output.
 
-## 3) Tournaments (List · Edit)
-- ✅ List screen implements search, sorting, pagination, and actions (Edit, Close, Results, Delete). 【F:admin/views/tournaments.php†L144-L296】
-- ✅ Edit form exposes Title, Description, and Participants Mode options. 【F:admin/views/tournaments.php†L300-L380】
-- ⚠️ Type selector now offers requested options but still surfaces legacy values in some contexts; requires UX confirmation. 【F:admin/views/tournaments.php†L312-L375】
-- ✅ Database migration adds `participants_mode`. 【F:includes/class-bhg-db.php†L130-L139】【F:includes/class-bhg-db.php†L317-L324】
+## Leaderboards Adjustments
+- **Leaderboard/tournament list shortcodes present**: **Met** — base leaderboards and list/tabs exist.【F:includes/class-bhg-shortcodes.php†L72-L97】
+- **Avg Rank/Avg Tournament Pos rounding, username capitalization, affiliate light column, position sorting, prize box for selected tournament, heading placement, dropdown filter toggles/removal, timeline-aware “times won”, rename headers, etc.**: **Not verified** — static scan didn’t confirm these numerous UX tweaks; manual review and tests required in shortcode rendering templates.
 
-## 4) Users (Admin)
-- ✅ Custom `WP_List_Table` supports search, sortable columns, affiliate toggles, and 30-per-page pagination with navigation rendered above/below the table. 【F:admin/views/users.php†L21-L41】【F:admin/class-bhg-users-table.php†L27-L256】
+## Tournament Adjustments
+- **Basic tournament shortcodes and admin controller**: **Met** — tournament controller and shortcode present.【F:includes/class-bhg-tournaments-controller.php†L1-L120】
+- **Number of winners field, closing countdown notice, header renames, position sorting, last-win logic, pagination setting**: **Not verified** — needs targeted UI/data validation beyond code scan.
 
-## 5) Affiliates (Sync)
-- ⚠️ Requires end-to-end testing to confirm affiliate CRUD updates propagate to user profiles; static review not conclusive.
+## General Frontend Tweaks
+- **Table header link color white; hunts details column with contextual links**: **Not verified** — CSS/layout adjustments not yet confirmed in `assets/css/public.css` or shortcode templates.
 
-## 6) Prizes (Admin · Frontend · Shortcode)
-- ⚠️ Admin CRUD and shortcode rendering present in codebase, but carousel/grid behavior and image sizing need runtime verification beyond static review.
+## Menus, Login Redirects, Profiles, Affiliates
+- **Front-end menus and smart login redirect support**: **Partial** — login redirect helper exists; menu customization requires QA for role-based menus.【F:includes/class-bhg-login-redirect.php†L1-L140】
+- **Affiliate lights and multi-site handling**: **Partial** — affiliate utilities exist, but per-requirement display rules need verification.【F:includes/class-bhg-utils.php†L1-L160】
 
-## 7) Shortcodes (Catalog & Pages)
-- ⚠️ Shortcode catalogue and required pages exist in code, yet comprehensive option coverage and page creation were not validated in this pass.
+## Notifications & Ads
+- **Winner notifications shortcode**: **Met** — registered in shortcode loader.【F:includes/class-bhg-shortcodes.php†L72-L99】
+- **Ads placement “none” option and actions**: **Not verified** — admin ads table/actions need UI check.
 
-## 8) Notifications
-- ⚠️ Email notification settings (including BCC) appear in code but were not exercised in this review.
+## Database & Migrations
+- **Jackpot and prize tables present**: **Met** — jackpot tables referenced; prize handling in migrations requires review.【F:includes/class-bhg-jackpots.php†L37-L119】
+- **Versioned migrations to align with requested schema updates**: **Partial** — migration helper exists, but alignment with all new columns (e.g., leaderboard/tournament filters) needs confirmation.【F:bonus-hunt-guesser.php†L200-L234】
 
-## 9) Ranking & Points
-- ⚠️ Ranking service logic and automated tests not executed during this verification cycle.
-
-## 10) Global CSS / Color Panel
-- ⚠️ Global style builder is referenced but not validated across components in this pass.
-
-## 11) Currency System
-- ✅ Currency helpers provide EUR/USD toggle and formatting; dashboard uses them for money values. 【F:bonus-hunt-guesser.php†L1029-L1046】【F:admin/views/dashboard.php†L120-L184】
-
-## 12) Database & Migrations
-- ✅ Migrations ensure `guessing_enabled`, `participants_mode`, `affiliate_id`, and hunt↔tournament mapping support via `BHG_DB`. 【F:includes/class-bhg-db.php†L80-L205】【F:includes/class-bhg-db.php†L269-L332】
-- ⚠️ Idempotence and live upgrade behavior still require database testing.
-
-## 13) Security & i18n
-- ⚠️ Spot checks show sanitization and escaping, but full audit outstanding.
-
-## 14) Backward Compatibility
-- ⚠️ Legacy data handling and safe defaults were not regression-tested in this review.
-
-## 15) Global UX Guarantees
-- ⚠️ Sorting/search/pagination confirmed for major admin tables, yet shortcode timeline filters and affiliate indicators need frontend verification.
-
-## 16) Release & Docs
-- ⚠️ Changelog, readme, and “Info & Help” updates still need manual confirmation.
-
-## 17) QA (Acceptance)
-- ⚠️ Winner-limit add-on partially implemented (settings, enforcement hooks, notices) but needs integration testing to confirm rolling windows and messaging. 【F:includes/class-bhg-models.php†L24-L249】【F:includes/helpers.php†L240-L347】
-- ⚠️ Other acceptance tests (currency switch, guessing toggle behavior, prizes FE grid/carousel, notifications) not executed.
-
-## Add-On: Winner Limits per User
-- ⚠️ Settings page and logging utilities exist for win limits, yet rolling-window accuracy and admin feedback still need end-to-end validation. 【F:includes/helpers.php†L240-L347】【F:includes/class-bhg-models.php†L24-L249】
-
-## Add-On: Jackpot Feature (New Module)
-- ❌ No jackpot schema, admin UI, hunt-close logic, or front-end shortcodes exist. Repository searches for “jackpot” only surface QA notes, confirming the module is outstanding. 【7a8486†L1-L10】
+## Documentation / Help
+- **Shortcode catalog page**: **Partial** — shortcode registrations exist; need to verify admin help page completeness.【F:includes/class-bhg-shortcodes.php†L72-L104】
 
 ---
 
-### Follow-up Actions
-1. Add hunt/tournament selectors, timeframe filters, and the specified empty-state copy to the results screen to satisfy section 2.
-2. Remove or repurpose the legacy tournament `type` selector per section 3.
-3. Deliver the full jackpot module (schema, admin CRUD, hunt-close integration, shortcodes) per the add-on contract.
-4. Run PHPCS and execute functional/end-to-end tests for sections still flagged ⚠️.
+> This checklist highlights where the current codebase aligns with, partially addresses, or needs further work to satisfy the customer’s detailed requirements. Items marked “Not verified” should be validated through targeted functional testing or deeper code review before sign-off.
