@@ -116,36 +116,36 @@ if ( ! function_exists( 'bhg_sanitize_tournament_id' ) ) {
 }
 
 if ( ! function_exists( 'bhg_sanitize_tournament_ids' ) ) {
-        /**
-         * Sanitize a list of tournament IDs.
-         *
-         * @param mixed $ids Raw IDs or array of IDs.
-         * @return int[] Sanitized, unique IDs.
-         */
-        function bhg_sanitize_tournament_ids( $ids ) {
-                $ids        = is_array( $ids ) ? $ids : array( $ids );
-                $normalized = array();
+		/**
+		 * Sanitize a list of tournament IDs.
+		 *
+		 * @param mixed $ids Raw IDs or array of IDs.
+		 * @return int[] Sanitized, unique IDs.
+		 */
+	function bhg_sanitize_tournament_ids( $ids ) {
+			$ids        = is_array( $ids ) ? $ids : array( $ids );
+			$normalized = array();
 
-                foreach ( $ids as $id ) {
-                        $id = bhg_sanitize_tournament_id( $id );
-                        if ( $id > 0 ) {
-                                $normalized[ $id ] = $id;
-                        }
-                }
+		foreach ( $ids as $id ) {
+				$id = bhg_sanitize_tournament_id( $id );
+			if ( $id > 0 ) {
+				$normalized[ $id ] = $id;
+			}
+		}
 
-                return array_values( $normalized );
-        }
+			return array_values( $normalized );
+	}
 }
 
 if ( ! function_exists( 'bhg_register_prize_image_size' ) ) {
-        /**
-         * Register custom image sizes used by the plugin.
-         *
-         * @return void
-         */
-        function bhg_register_prize_image_size() {
-                add_image_size( 'bhg_prize_big', 1200, 800, true );
-        }
+		/**
+		 * Register custom image sizes used by the plugin.
+		 *
+		 * @return void
+		 */
+	function bhg_register_prize_image_size() {
+			add_image_size( 'bhg_prize_big', 1200, 800, true );
+	}
 }
 add_action( 'after_setup_theme', 'bhg_register_prize_image_size' );
 
@@ -227,7 +227,7 @@ spl_autoload_register(
 			'BHG_Admin'                  => 'admin/class-bhg-admin.php',
 			'BHG_Demo'                   => 'admin/class-bhg-demo.php',
 			'BHG_Bonus_Hunts_Controller' => 'admin/class-bhg-bonus-hunts-controller.php',
-      'BHG_Prizes_Controller'      => 'admin/class-bhg-prizes-controller.php',
+			'BHG_Prizes_Controller'      => 'admin/class-bhg-prizes-controller.php',
 			'BHG_Shortcodes'             => 'includes/class-bhg-shortcodes.php',
 			'BHG_Logger'                 => 'includes/class-bhg-logger.php',
 			'BHG_Utils'                  => 'includes/class-bhg-utils.php',
@@ -708,20 +708,20 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-        if ( isset( $_POST['bhg_currency'] ) ) {
-                $currency = sanitize_key( wp_unslash( $_POST['bhg_currency'] ) );
-                if ( in_array( $currency, array( 'eur', 'usd' ), true ) ) {
-                        $settings['currency'] = $currency;
-                }
-        }
+	if ( isset( $_POST['bhg_currency'] ) ) {
+			$currency = sanitize_key( wp_unslash( $_POST['bhg_currency'] ) );
+		if ( in_array( $currency, array( 'eur', 'usd' ), true ) ) {
+				$settings['currency'] = $currency;
+		}
+	}
 
-        if ( isset( $_POST['bhg_shortcode_rows_per_page'] ) ) {
-                $per_page_input = wp_unslash( $_POST['bhg_shortcode_rows_per_page'] );
-                $per_page_value = is_numeric( $per_page_input ) ? (int) $per_page_input : 0;
-                if ( $per_page_value > 0 ) {
-                        $settings['shortcode_rows_per_page'] = $per_page_value;
-                }
-        }
+	if ( isset( $_POST['bhg_shortcode_rows_per_page'] ) ) {
+			$per_page_input = wp_unslash( $_POST['bhg_shortcode_rows_per_page'] );
+			$per_page_value = is_numeric( $per_page_input ) ? (int) $per_page_input : 0;
+		if ( $per_page_value > 0 ) {
+				$settings['shortcode_rows_per_page'] = $per_page_value;
+		}
+	}
 
 	// Validate that min is not greater than max.
 	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
@@ -1011,7 +1011,7 @@ function bhg_handle_settings_save() {
 
 	$settings['global_styles'] = $clean_styles;
 
-	$remove_data_flag = filter_input( INPUT_POST, 'bhg_remove_data_on_uninstall', FILTER_SANITIZE_STRING );
+	$remove_data_flag                     = filter_input( INPUT_POST, 'bhg_remove_data_on_uninstall', FILTER_SANITIZE_STRING );
 	$settings['remove_data_on_uninstall'] = '1' === $remove_data_flag ? 1 : 0;
 
 	// Save settings.
@@ -1540,7 +1540,7 @@ function bhg_generate_leaderboard_html( $timeframe, $paged ) {
 	echo '<table class="bhg-leaderboard bhg-table" data-timeframe="' . esc_attr( $timeframe ) . '">';
 	echo '<thead><tr>';
 	echo '<th class="sortable" data-sort="position">' . esc_html( bhg_t( 'sc_position', 'Position' ) ) . '</th>';
-        echo '<th class="sortable" data-sort="username">' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th>';
+		echo '<th class="sortable" data-sort="username">' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th>';
 	echo '<th class="sortable" data-sort="wins">' . esc_html( bhg_t( 'sc_wins', 'Wins' ) ) . '</th>';
 	echo '</tr></thead><tbody>';
 
