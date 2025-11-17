@@ -3,56 +3,51 @@
 Statuses: **Met** (verified in code), **Partial** (implemented but missing options/QA), **Gap** (not present), **Not Verified** (needs functional QA).
 
 ## Runtime & Versioning
-- **Plugin header declares PHP 7.4 / WP 6.3.5 minimum** — **Met**. Header enforces the required runtime targets.【F:bonus-hunt-guesser.php†L3-L12】
-- **Version bumped to 8.0.18** — **Gap**. Codebase still defines **8.0.16** in the plugin header and constant; update `bonus-hunt-guesser.php` to 8.0.18 to match the spec.【F:bonus-hunt-guesser.php†L6-L12】【F:bonus-hunt-guesser.php†L154-L158】
+- **Plugin header enforces PHP 7.4 / WP 6.3.5 minimums** — **Met**.【F:bonus-hunt-guesser.php†L3-L12】
+- **Version set to 8.0.18** — **Gap**. Header and constant remain **8.0.16**; bump `bonus-hunt-guesser.php` to 8.0.18.【F:bonus-hunt-guesser.php†L6-L12】【F:bonus-hunt-guesser.php†L154-L158】
 
 ## Admin Dashboard & Navigation
-- **Top-level menu label + Dashboard submenu present** — **Met**. Dashboard remains the first submenu under the Bonus Hunt menu.【F:admin/class-bhg-admin.php†L53-L99】
-- **Dashboard shows “Latest Hunts” (latest 3) with all winners, start/final balance, closed at** — **Met**. The dashboard template lists the latest hunts with multi-row winners, balances, and closed timestamps.【F:admin/views/dashboard.php†L111-L205】
+- **Menu label + Dashboard submenu** — **Met**. Dashboard is the first submenu under the Bonus Hunt menu.【F:admin/class-bhg-admin.php†L53-L99】
+- **“Latest Hunts” shows last 3 hunts with all winners/start/final/closed-at** — **Met**.【F:admin/views/dashboard.php†L111-L205】
 
 ## Bonus Hunts (List/Edit/Results)
-- **List columns include Final Balance and guessing toggle** — **Met**. The admin list shows a Final Balance column plus enable/disable guessing controls.【F:admin/views/bonus-hunts.php†L168-L236】【F:admin/views/bonus-hunts.php†L264-L287】
-- **Winners count configurable + participant list with removal + profile links** — **Met**. Hunt edit surfaces winners count, a participants table with remove buttons, and username profile links.【F:admin/views/bonus-hunts-edit.php†L152-L251】
-- **Results page with ranking and highlighted winners** — **Partial**. Results view lists guesses with winner highlighting, but the checklist still lacks explicit confirmation of the “remove guess” control on the results screen; verify/extend in `admin/views/bonus-hunts-results.php`.
+- **List shows Final Balance + guessing toggle** — **Met**.【F:admin/views/bonus-hunts.php†L168-L236】【F:admin/views/bonus-hunts.php†L264-L287】
+- **Edit: winners count + participant list with remove/profile links** — **Met**.【F:admin/views/bonus-hunts-edit.php†L152-L251】
+- **Results: ranked table with highlighted winners** — **Partial**. Winners are styled, but confirm/remove controls on the results screen; adjust `admin/views/bonus-hunts-results.php` if missing.
 
-## Tournaments
-- **Admin list + edit form (title, description, type, participants mode, winners count, prizes, actions)** — **Met**. The tournaments screen supports search/sort/pagination, edit/close/delete/results actions, title/description fields, type options (including quarterly/alltime), participants mode, winners count, prize selection, and affiliate fields.【F:admin/views/tournaments.php†L44-L303】【F:admin/views/tournaments.php†L329-L420】
-- **Frontend controller hook coverage** — **Gap**. `BHG_Tournaments_Controller::init()` is empty, so tournament logic is not wired into WordPress hooks; implement needed behaviors in `includes/class-bhg-tournaments-controller.php`.【F:includes/class-bhg-tournaments-controller.php†L18-L26】
-
-## Users (Admin)
-- **Search, sort, and 30-per-page pagination** — **Not Verified**. The custom table exists but needs confirmation of enforced pagination size and search/sort behavior (`admin/class-bhg-users-table.php`).
-
-## Ads / Translations / Tools
-- **Menus wired** — **Met**. Ads, translations, and tools submenus are registered.【F:admin/class-bhg-admin.php†L68-L88】
-- **Ads actions + placement “none”** — **Not Verified**. Review ads list/templates to confirm edit/delete buttons and “none” placement option (e.g., `admin/views/ads.php`).
-
-## Shortcodes & Frontpage Lists
-- **Core shortcodes (leaderboard, tournaments, prizes, jackpot, list views) registered** — **Met**.【F:includes/class-bhg-shortcodes.php†L72-L104】
-- **Hunts shortcode details column** — **Met**. Details column outputs context-aware Guess Now / Show Results links plus guessing-disabled text.【F:includes/class-bhg-shortcodes.php†L4292-L4338】
-- **Leaderboard heading/prize box + rounded averages + capitalized usernames** — **Met**. Leaderboard renderer adds selected tournament/hunt headings, injects prize markup, capitalizes usernames, and rounds averages to whole numbers.【F:includes/class-bhg-shortcodes.php†L4896-L4975】
-- **Remaining Nov 13 leaderboard UI tweaks (remove bonushunt filter, affiliate column lights, filter toggles, prize box placement) and list shortcode mobile styles** — **Not Verified**. Validate in `includes/class-bhg-shortcodes.php` and `assets/css/bhg-shortcodes.css`.
+## Leaderboards (Nov 13 set)
+- **Headings (tournament/hunt), prize box, rounded averages, capitalized usernames** — **Met**.【F:includes/class-bhg-shortcodes.php†L4896-L4975】
+- **Affiliate column/lights + filter toggles (timeline/tournament/affiliate site/status) + search control** — **Met** in UI; ensure shortcode attributes expose the requested hide/show switches.【F:includes/class-bhg-shortcodes.php†L4865-L4894】
+- **Bonushunt filter removed for leaderboard, position sorting, Times Won scope, query returns full roster** — **Not Verified**. QA leaderboard query section to confirm more than one entrant is returned and unwanted filters are hidden (`includes/class-bhg-shortcodes.php`).
 
 ## Tournament Adjustments (Nov 13)
-- **Closing countdown banner** — **Met**. Active tournaments show “This tournament will close in X days” above the table.【F:includes/class-bhg-shortcodes.php†L5229-L5253】
-- **Position header/Times Won labels & sorting** — **Met**. Tournament tables render sortable Position and Times Won headers; confirm pagination setting exposure in settings UI if required.【F:includes/class-bhg-shortcodes.php†L5342-L5416】
-- **Last Win calculation + global rows-per-page setting** — **Not Verified**. Check tournament query logic and settings panel to ensure last-win source and pagination control match customer request.
+- **Title/description fields + quarterly/alltime types + participants mode + actions (results/close/delete)** — **Met**.【F:admin/views/tournaments.php†L44-L303】【F:admin/views/tournaments.php†L329-L420】
+- **Countdown (“This tournament will close in X days”), Position/Times Won headers sortable** — **Met**.【F:includes/class-bhg-shortcodes.php†L5229-L5253】【F:includes/class-bhg-shortcodes.php†L5342-L5416】
+- **Last Win column source + global rows-per-page pagination** — **Not Verified**. Validate tournament query logic and ensure settings rows-per-page applies to the table.
+- **Controller hook wiring** — **Gap**. `BHG_Tournaments_Controller::init()` is empty; wire required hooks in `includes/class-bhg-tournaments-controller.php`.【F:includes/class-bhg-tournaments-controller.php†L18-L26】
 
-## Prizes & Prize Shortcodes
-- **Prize CRUD, CSS settings, dual regular/premium sets, and image sizes (small/medium/big)** — **Partial**. Prizes include regular/premium handling and register a 1200×800 big size, but admin UI lacks explicit size hints, link/category management, tabbed regular vs premium carousel, and click-behavior controls.【F:bonus-hunt-guesser.php†L139-L149】【F:includes/class-bhg-prizes.php†L1025-L1080】 Add these options in `admin/class-bhg-prizes-controller.php` and related templates.
-- **Prize summary list + carousel/grid controls (visible count, total loaded, auto-scroll, hide title/category/description, responsive sizing)** — **Gap**. Shortcode rendering does not expose these toggles; extend `includes/class-bhg-shortcodes.php` and prize templates accordingly.
+## Frontpage/List Shortcodes (Nov 13 add-on)
+- **latest-winners-list, leaderboard-list, tournament-list, bonushunt-list shortcodes registered** — **Met**.【F:includes/class-bhg-shortcodes.php†L72-L97】
+- **Visibility toggles & mobile styling for these list blocks** — **Not Verified**. Review list renderers around the shortcode handlers for option coverage and responsive CSS.
+
+## Prizes
+- **Dual regular/premium sets + big image size (1200×800) registered** — **Partial**. Image size exists and prize models handle premium sets, but admin UI still lacks size hints, prize-link field, category/link visibility toggles, click-behavior options, and carousel/grid controls (visible count, total loaded, auto-scroll, hide title/category/description, responsive sizing, tabbed regular/premium view).【F:bonus-hunt-guesser.php†L139-L149】【F:includes/class-bhg-prizes.php†L1025-L1080】 Update `admin/class-bhg-prizes-controller.php` and shortcode templates.
+- **Prize summary list under tournament/leaderboard prize boxes + shortcode opt-in/out** — **Gap**. Add summary rendering and visibility toggles to prize, leaderboard, and tournament shortcodes in `includes/class-bhg-shortcodes.php`.
+- **Heading removal above grid/carousel** — **Not Verified**. Confirm the “Prizes” label is suppressed in prize templates.
 
 ## Jackpot Module
-- **Jackpot CRUD/linkage** — **Met**. Jackpot manager supports creation, linking, and balance updates.【F:includes/class-bhg-jackpots.php†L12-L137】
-- **Ticker/winner shortcode options** — **Partial**. Shortcodes exist but need QA to ensure ticker modes and latest-winner filters match the spec (`includes/class-bhg-shortcodes.php`).
+- **Jackpot CRUD/linkage + balance growth** — **Met**.【F:includes/class-bhg-jackpots.php†L12-L137】
+- **Shortcodes (current/latest/ticker/winners) fully match options** — **Partial**. Handlers exist but need option-level QA in `includes/class-bhg-shortcodes.php` to ensure affiliate/date filters and ticker modes behave as requested.
 
 ## Settings, Login, Currency, Limits
-- **Currency helper, guess limits, win limits, pagination controls, styles panel** — **Met/Partial**. Settings page wires these options, but verify labels match customer wording and that rows-per-page setting drives tournament/leaderboard pagination.【F:bonus-hunt-guesser.php†L668-L878】
-- **Smart login redirect** — **Partial**. Redirect helper exists; confirm menu role-based visibility is implemented (`includes/class-bhg-login-redirect.php`, `includes/class-bhg-front-menus.php`).
-- **Notifications with BCC toggle** — **Partial**. Notification code present; confirm admin tab exposes enable/disable and BCC fields with validation (`includes/notifications.php`).
+- **Currency helper, guess limits, win limits, shortcode rows-per-page, style panel** — **Met/Partial**. Settings page exposes these controls, but confirm wording matches customer settings and that pagination and win-limit settings drive the front-end tables during QA.【F:bonus-hunt-guesser.php†L668-L878】【F:admin/views/settings.php†L101-L155】
+- **Smart redirect after login + menu role variants** — **Partial**. Redirect helper exists; verify role-based menus in `includes/class-bhg-front-menus.php` and related templates.
+- **Notifications tab with enable/disable + BCC** — **Partial**. Email hooks exist; confirm admin UI shows enable and BCC fields with validation in `includes/notifications.php`.
 
 ## Database & Migrations
-- **Schema creation with guessing_enabled, participants_mode, affiliate linkage, and hunt↔tournament junction** — **Partial**. Migrator scaffolding exists but needs a pass to ensure all required columns/tables are version-gated for upgrades.【F:bonus-hunt-guesser.php†L200-L234】【F:includes/class-bhg-db.php†L93-L216】
+- **Schema includes guessing_enabled, participants_mode, affiliate_id, hunt↔tournament junction** — **Partial**. `bhg_create_tables()` and `BHG_DB::create_tables()` scaffold these, but double-check version gating and dbDelta statements for upgrades.【F:bonus-hunt-guesser.php†L200-L234】【F:includes/class-bhg-db.php†L93-L216】
 
-## Remaining Frontend Polish
-- **Table header links forced to white** — **Met**. Shared shortcode stylesheet sets header link color to white across tables.【F:assets/css/bhg-shortcodes.css†L520-L539】
-- **Mobile responsiveness across shortcodes** — **Not Verified**. Requires CSS/markup QA on common viewports (`assets/css/bhg-shortcodes.css`).
+## Global UX & Styling
+- **Table header links forced to white** — **Met**.【F:assets/css/bhg-shortcodes.css†L512-L539】
+- **Sorting/search/pagination applied to public tables** — **Met** for hunts/tournaments/leaderboards via shared helpers; ensure page-size follows settings during QA.【F:includes/class-bhg-shortcodes.php†L4294-L4350】【F:includes/class-bhg-shortcodes.php†L4896-L4975】
+- **Mobile responsiveness** — **Not Verified**. Run responsive checks for shortcode tables and list blocks (`assets/css/bhg-shortcodes.css`).
