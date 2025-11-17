@@ -506,6 +506,7 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     margin: 0 0 16px;
+    padding-bottom: 6px;
 }
 
 .bhg-leaderboard,
@@ -626,6 +627,35 @@
 .bhg-jackpot-winners-table td {
     padding: 6px;
     border-bottom: 1px solid #f1f5f9;
+}
+
+@media (max-width: 960px) {
+    .bhg-table-wrapper {
+        margin-left: -4px;
+        margin-right: -4px;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    .bhg-leaderboard th,
+    .bhg-tournaments th,
+    .bhg-user-guesses th,
+    .bhg-hunts th,
+    .bhg-profile-table th,
+    .bhg-jackpot-winners-table th {
+        font-size: 14px;
+        line-height: 1.35;
+    }
+
+    .bhg-leaderboard td,
+    .bhg-tournaments td,
+    .bhg-user-guesses td,
+    .bhg-hunts td,
+    .bhg-profile-table td,
+    .bhg-jackpot-winners-table td {
+        font-size: 14px;
+        line-height: 1.5;
+    }
 }
 
 .bhg-leaderboard--tournament tr.bhg-tournament-row--winner {
