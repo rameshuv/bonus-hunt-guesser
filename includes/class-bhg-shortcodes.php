@@ -4393,13 +4393,12 @@ echo '<table class="bhg-hunts"><thead><tr>';
                                                                               'ranking'    => 0,
                                                                               'timeline'   => '',
                                                                               'orderby'    => 'wins',
-                                                                              'order'      => 'DESC',
-                                                                              'search'     => '',
-                                                                              'tournament' => '',
-                                                                              'bonushunt'  => '',
-                                                                              'website'    => '',
-                                                                              'aff'        => '',
-                                                                              'filters'    => 'timeline,tournament,affiliate_site,affiliate_status',
+'order'      => 'DESC',
+'search'     => '',
+'tournament' => '',
+'website'    => '',
+'aff'        => '',
+'filters'    => 'timeline,tournament,affiliate_site,affiliate_status',
                                                                               'per_page'   => 0,
                                                                               'paged'      => 1,
                                                                               'show_search'=> 'yes',
@@ -4525,7 +4524,6 @@ $raw_site = ( $filter_site_enabled && isset( $_GET['bhg_site'] ) ) ? wp_unslash(
 $raw_aff  = ( $filter_affiliate_enabled && isset( $_GET['bhg_aff'] ) ) ? wp_unslash( $_GET['bhg_aff'] ) : $shortcode_aff;
 
 $tournament_id = max( 0, absint( $raw_tournament ) );
-$hunt_id       = 0;
 $website_id    = max( 0, absint( $raw_site ) );
 
                                                 $show_prize_summary = false;
