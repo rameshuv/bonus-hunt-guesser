@@ -1,4 +1,4 @@
-# Customer Requirements Review – 2025-02-06
+# Customer Requirements Review – 2025-02-06 (Final Checklist)
 
 ## Runtime, Standards, and Text Domain
 - ✅ Plugin header declares PHP 7.4, WordPress 6.3.5 minimum, MySQL 5.5.5 minimum, GPLv2+, and text domain `bonus-hunt-guesser`, with version set to 8.0.18. 【F:bonus-hunt-guesser.php†L3-L13】
@@ -13,6 +13,7 @@
 - ✅ `./vendor/bin/phpcs --standard=phpcs.xml --report=summary` (fails with WordPress coding-standard violations). 【03f34c†L3-L40】
 - ✅ `./vendor/bin/phpunit` 【cf419d†L1-L8】
 
-## High-Priority Follow-Ups
-1) Fix all PHPCS violations to meet WordPress-Core/Docs/Extra standards.
-2) Make a pass over frontend templates for responsive/mobile behavior to align with the customer’s mobile-first requirement.
+## Outstanding Actions Before Release
+1) Resolve all PHPCS violations (2,882 errors / 1,458 warnings) to meet WordPress-Core/Docs/Extra standards.
+2) Re-verify all frontend tables and shortcodes on mobile to ensure responsive behavior matches the customer’s requirement.
+3) After code fixes, rerun PHPCS and PHPUnit to confirm a clean build.
