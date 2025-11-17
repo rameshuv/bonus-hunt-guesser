@@ -352,6 +352,13 @@ array(
                                $win_date_expr   = $this->get_leaderboard_win_date_expression();
                                $range           = $this->get_timeline_range( $timeline_filter );
 
+                               // When a specific tournament is selected, include all of its wins
+                               // regardless of timeline so the leaderboard lists every participant
+                               // and prize win for that tournament.
+                               if ( $tournament_id > 0 ) {
+                                               $range = null;
+                               }
+
                                $r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
                                $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
                                $t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
@@ -700,8 +707,12 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 }
 
                                 $search_like = '' !== $search ? '%' . $wpdb->esc_like( $search ) . '%' : '';
-                                $timeline_filter = ( 'all_time' === $timeline ) ? '' : $timeline;
-                                $range           = $this->get_timeline_range( $timeline_filter );
+                               $timeline_filter = ( 'all_time' === $timeline ) ? '' : $timeline;
+                               $range           = $this->get_timeline_range( $timeline_filter );
+
+                               // Tournament leaderboards must include all tournament entries
+                               // even if the timeline filter is set, per requirements.
+                               $range = null;
 
                                 $r  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
                                 $u  = esc_sql( $this->sanitize_table( $wpdb->users ) );
