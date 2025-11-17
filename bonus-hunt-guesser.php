@@ -6,6 +6,7 @@
  * Version: 8.0.18
  * Requires at least: 6.3.5
  * Requires PHP: 7.4
+ * Requires MySQL: 5.5.5
  * Author: Bonus Hunt Guesser Development Team
  * Text Domain: bonus-hunt-guesser
  * Domain Path: /languages
