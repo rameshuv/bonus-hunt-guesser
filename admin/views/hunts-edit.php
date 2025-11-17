@@ -61,7 +61,7 @@ $pages    = max( 1, (int) ceil( $total / $per_page ) );
 		<tr>
 		<th>
 		<?php
-            echo esc_html( bhg_t( 'sc_user', 'Username' ) );
+			echo esc_html( bhg_t( 'sc_user', 'Username' ) );
 		?>
 </th>
 		<th>

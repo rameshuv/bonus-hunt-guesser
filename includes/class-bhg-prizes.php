@@ -1305,116 +1305,116 @@ class BHG_Prizes {
 	public static function save_prize( $data, $id = 0 ) {
 			global $wpdb;
 
-                        $table = $wpdb->prefix . 'bhg_prizes';
+						$table = $wpdb->prefix . 'bhg_prizes';
 
-                        if ( isset( $data['image_big'] ) ) {
-                                $big_id = absint( $data['image_big'] );
-                                if ( empty( $data['image_large'] ) && $big_id > 0 ) {
-                                        $data['image_large'] = $big_id;
-                                }
-                                unset( $data['image_big'] );
-                        }
+		if ( isset( $data['image_big'] ) ) {
+				$big_id = absint( $data['image_big'] );
+			if ( empty( $data['image_large'] ) && $big_id > 0 ) {
+								$data['image_large'] = $big_id;
+			}
+				unset( $data['image_big'] );
+		}
 
-                                                $defaults = array(
-                                                        'title'                => '',
-                                                        'description'          => '',
-                                                        'category'             => 'various',
-							'link_url'             => '',
-							'link_target'          => '_self',
-							'click_action'         => 'link',
-							'category_link_url'    => '',
-							'category_link_target' => '_self',
-							'image_small'          => 0,
-							'image_medium'         => 0,
-							'image_large'          => 0,
-							'show_title'           => 1,
-							'show_description'     => 1,
-							'show_category'        => 1,
-							'show_image'           => 1,
-							'css_settings'         => self::default_css_settings(),
-							'active'               => 1,
-						);
+												$defaults = array(
+													'title' => '',
+													'description' => '',
+													'category' => 'various',
+													'link_url'             => '',
+													'link_target'          => '_self',
+													'click_action'         => 'link',
+													'category_link_url'    => '',
+													'category_link_target' => '_self',
+													'image_small'          => 0,
+													'image_medium'         => 0,
+													'image_large'          => 0,
+													'show_title'           => 1,
+													'show_description'     => 1,
+													'show_category'        => 1,
+													'show_image'           => 1,
+													'css_settings'         => self::default_css_settings(),
+													'active'               => 1,
+												);
 
-						$data = wp_parse_args( $data, $defaults );
+												$data = wp_parse_args( $data, $defaults );
 
-						$category = sanitize_key( $data['category'] );
-						if ( ! self::category_exists( $category ) ) {
-										$category = 'various';
-						}
+												$category = sanitize_key( $data['category'] );
+												if ( ! self::category_exists( $category ) ) {
+																$category = 'various';
+												}
 
-						$row = array(
-							'title'                => sanitize_text_field( $data['title'] ),
-							'description'          => wp_kses_post( $data['description'] ),
-							'category'             => $category,
-							'link_url'             => esc_url_raw( $data['link_url'] ),
-							'link_target'          => self::sanitize_link_target( $data['link_target'], '_self' ),
-							'click_action'         => self::sanitize_click_action( $data['click_action'], 'link' ),
-							'category_link_url'    => esc_url_raw( $data['category_link_url'] ),
-							'category_link_target' => self::sanitize_link_target( $data['category_link_target'], '_self' ),
-							'image_small'          => isset( $data['image_small'] ) ? absint( $data['image_small'] ) : 0,
-							'image_medium'         => isset( $data['image_medium'] ) ? absint( $data['image_medium'] ) : 0,
-							'image_large'          => isset( $data['image_large'] ) ? absint( $data['image_large'] ) : 0,
-							'show_title'           => ! empty( $data['show_title'] ) ? 1 : 0,
-							'show_description'     => ! empty( $data['show_description'] ) ? 1 : 0,
-							'show_category'        => ! empty( $data['show_category'] ) ? 1 : 0,
-							'show_image'           => ! empty( $data['show_image'] ) ? 1 : 0,
-							'active'               => ! empty( $data['active'] ) ? 1 : 0,
-						);
+												$row = array(
+													'title'    => sanitize_text_field( $data['title'] ),
+													'description' => wp_kses_post( $data['description'] ),
+													'category' => $category,
+													'link_url' => esc_url_raw( $data['link_url'] ),
+													'link_target' => self::sanitize_link_target( $data['link_target'], '_self' ),
+													'click_action' => self::sanitize_click_action( $data['click_action'], 'link' ),
+													'category_link_url' => esc_url_raw( $data['category_link_url'] ),
+													'category_link_target' => self::sanitize_link_target( $data['category_link_target'], '_self' ),
+													'image_small' => isset( $data['image_small'] ) ? absint( $data['image_small'] ) : 0,
+													'image_medium' => isset( $data['image_medium'] ) ? absint( $data['image_medium'] ) : 0,
+													'image_large' => isset( $data['image_large'] ) ? absint( $data['image_large'] ) : 0,
+													'show_title' => ! empty( $data['show_title'] ) ? 1 : 0,
+													'show_description' => ! empty( $data['show_description'] ) ? 1 : 0,
+													'show_category' => ! empty( $data['show_category'] ) ? 1 : 0,
+													'show_image' => ! empty( $data['show_image'] ) ? 1 : 0,
+													'active'   => ! empty( $data['active'] ) ? 1 : 0,
+												);
 
-						$css_settings = isset( $data['css_settings'] ) ? $data['css_settings'] : array();
-						$css_settings = self::sanitize_css_settings( $css_settings );
+												$css_settings = isset( $data['css_settings'] ) ? $data['css_settings'] : array();
+												$css_settings = self::sanitize_css_settings( $css_settings );
 
-						$row['css_border']       = $css_settings['border'];
-						$row['css_border_color'] = $css_settings['border_color'];
-						$row['css_padding']      = $css_settings['padding'];
-						$row['css_margin']       = $css_settings['margin'];
-						$row['css_background']   = $css_settings['background'];
+												$row['css_border']       = $css_settings['border'];
+												$row['css_border_color'] = $css_settings['border_color'];
+												$row['css_padding']      = $css_settings['padding'];
+												$row['css_margin']       = $css_settings['margin'];
+												$row['css_background']   = $css_settings['background'];
 
-						$formats = array(
-							'%s', // title.
-							'%s', // description.
-							'%s', // category.
-							'%s', // link_url.
-							'%s', // link_target.
-							'%s', // click_action.
-							'%s', // category_link_url.
-							'%s', // category_link_target.
-							'%d', // image_small.
-							'%d', // image_medium.
-							'%d', // image_large.
-							'%d', // show_title.
-							'%d', // show_description.
-							'%d', // show_category.
-							'%d', // show_image.
-							'%d', // active.
-							'%s', // css_border.
-							'%s', // css_border_color.
-							'%s', // css_padding.
-							'%s', // css_margin.
-							'%s', // css_background.
-						);
+												$formats = array(
+													'%s', // title.
+													'%s', // description.
+													'%s', // category.
+													'%s', // link_url.
+													'%s', // link_target.
+													'%s', // click_action.
+													'%s', // category_link_url.
+													'%s', // category_link_target.
+													'%d', // image_small.
+													'%d', // image_medium.
+													'%d', // image_large.
+													'%d', // show_title.
+													'%d', // show_description.
+													'%d', // show_category.
+													'%d', // show_image.
+													'%d', // active.
+													'%s', // css_border.
+													'%s', // css_border_color.
+													'%s', // css_padding.
+													'%s', // css_margin.
+													'%s', // css_background.
+												);
 
-						if ( $id > 0 ) {
-								$row['updated_at'] = current_time( 'mysql' );
-								$formats[]         = '%s';
-								$result            = $wpdb->update( $table, $row, array( 'id' => $id ), $formats, array( '%d' ) );
-							if ( false === $result ) {
-									return false;
-							}
-								return $id;
-						}
+												if ( $id > 0 ) {
+														$row['updated_at'] = current_time( 'mysql' );
+														$formats[]         = '%s';
+														$result            = $wpdb->update( $table, $row, array( 'id' => $id ), $formats, array( '%d' ) );
+													if ( false === $result ) {
+															return false;
+													}
+														return $id;
+												}
 
-						$row['created_at'] = current_time( 'mysql' );
-						$row['updated_at'] = $row['created_at'];
-						$formats[]         = '%s';
-						$formats[]         = '%s';
+												$row['created_at'] = current_time( 'mysql' );
+												$row['updated_at'] = $row['created_at'];
+												$formats[]         = '%s';
+												$formats[]         = '%s';
 
-						$inserted = $wpdb->insert( $table, $row, $formats );
-						if ( false === $inserted ) {
-								return false;
-						}
+												$inserted = $wpdb->insert( $table, $row, $formats );
+												if ( false === $inserted ) {
+														return false;
+												}
 
-						return (int) $wpdb->insert_id;
+												return (int) $wpdb->insert_id;
 	}
 
 		/**
