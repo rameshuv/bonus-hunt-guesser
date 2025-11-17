@@ -64,8 +64,7 @@ class BHG_Admin {
 			55
 		);
 
-		add_submenu_page( $slug, bhg_t( 'menu_dashboard', 'Dashboard' ), bhg_t( 'menu_dashboard', 'Dashboard' ), $cap, $slug, array( $this, 'dashboard' ) );
-		add_submenu_page( $slug, bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), $cap, 'bhg-bonus-hunts', array( $this, 'bonus_hunts' ) );
+                add_submenu_page( $slug, bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), bhg_t( 'label_bonus_hunts', 'Bonus Hunts' ), $cap, 'bhg-bonus-hunts', array( $this, 'bonus_hunts' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_prizes', 'Prizes' ), bhg_t( 'menu_prizes', 'Prizes' ), $cap, 'bhg-prizes', array( $this, 'prizes' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_jackpots', 'Jackpots' ), bhg_t( 'menu_jackpots', 'Jackpots' ), $cap, 'bhg-jackpots', array( $this, 'jackpots' ) );
 		add_submenu_page( $slug, bhg_t( 'button_results', 'Results' ), bhg_t( 'button_results', 'Results' ), $cap, 'bhg-bonus-hunts-results', array( $this, 'bonus_hunts_results' ) );
@@ -86,15 +85,15 @@ class BHG_Admin {
 			array( $this, 'bhg_tools_page' )
 		);
 
-		if ( class_exists( 'BHG_Demo' ) ) {
-			BHG_Demo::instance()->register_menu( $slug, $cap );
-		}
+                if ( class_exists( 'BHG_Demo' ) ) {
+                        BHG_Demo::instance()->register_menu( $slug, $cap );
+                }
 
-				// NOTE: By default, WordPress adds a submenu item that duplicates the
-				// top-level “Bonus Hunt” menu. The previous `remove_submenu_page()`
-				// call removed this submenu, but it also inadvertently removed our
-				// custom “Dashboard” submenu. Removing the call ensures the Dashboard
-		// item remains visible under the "Bonus Hunt" menu.
+                global $submenu;
+
+                if ( isset( $submenu[ $slug ][0] ) ) {
+                        $submenu[ $slug ][0][0] = bhg_t( 'menu_dashboard', 'Dashboard' );
+                }
 	}
 
 		/**
