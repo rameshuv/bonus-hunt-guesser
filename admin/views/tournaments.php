@@ -368,9 +368,9 @@ echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
 												</select>
 								</td>
 								</tr>
-                                                                <tr>
-                                                                <th><?php echo esc_html( bhg_t( 'label_points_map', 'Points per placement' ) ); ?></th>
-                                                                <td>
+																<tr>
+																<th><?php echo esc_html( bhg_t( 'label_points_map', 'Points per placement' ) ); ?></th>
+																<td>
 												<fieldset>
 																<?php for ( $i = 1; $i <= 8; $i++ ) : ?>
 																				<label>
@@ -381,20 +381,20 @@ echo esc_html( bhg_t( 'participants_mode', 'Participants Mode' ) );
 												</fieldset>
 												<p class="description"><?php echo esc_html( bhg_t( 'points_map_help', 'Assign tournament points for each placement.' ) ); ?></p>
 								</td>
-                                                                </tr>
-                                                                <tr>
-                                                                <th scope="row"><label for="bhg_t_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
-                                                                <td>
-                                                                                                <?php
-                                                                                                $tournament_winners = $row && isset( $row->winners_count ) ? (int) $row->winners_count : 3;
-                                                                                                if ( $tournament_winners <= 0 ) {
-                                                                                                        $tournament_winners = 3;
-                                                                                                }
-                                                                                                ?>
-                                                                                                <input type="number" min="1" max="25" id="bhg_t_winners" name="winners_count" value="<?php echo esc_attr( $tournament_winners ); ?>" />
-                                                                                                <p class="description"><?php echo esc_html( bhg_t( 'number_of_winners_help', 'Set how many winners this tournament will award.' ) ); ?></p>
-                                                                </td>
-                                                                </tr>
+																</tr>
+																<tr>
+																<th scope="row"><label for="bhg_t_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
+																<td>
+																								<?php
+																								$tournament_winners = $row && isset( $row->winners_count ) ? (int) $row->winners_count : 3;
+																								if ( $tournament_winners <= 0 ) {
+																										$tournament_winners = 3;
+																								}
+																								?>
+																								<input type="number" min="1" max="25" id="bhg_t_winners" name="winners_count" value="<?php echo esc_attr( $tournament_winners ); ?>" />
+																								<p class="description"><?php echo esc_html( bhg_t( 'number_of_winners_help', 'Set how many winners this tournament will award.' ) ); ?></p>
+																</td>
+																</tr>
 				<tr>
 						<th><label for="bhg-ranking-scope"><?php echo esc_html( bhg_t( 'label_ranking_scope', 'Ranking scope' ) ); ?></label></th>
 						<td>
