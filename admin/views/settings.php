@@ -19,10 +19,10 @@ $settings = get_option( 'bhg_plugin_settings', array() );
 $hunt_limit       = isset( $settings['hunt_win_limit'] ) && is_array( $settings['hunt_win_limit'] ) ? $settings['hunt_win_limit'] : array();
 $tournament_limit = isset( $settings['tournament_win_limit'] ) && is_array( $settings['tournament_win_limit'] ) ? $settings['tournament_win_limit'] : array();
 
-$hunt_limit_count  = isset( $hunt_limit['count'] ) ? (int) $hunt_limit['count'] : 0;
-$hunt_limit_period = isset( $hunt_limit['period'] ) ? sanitize_key( $hunt_limit['period'] ) : 'none';
-$tour_limit_count  = isset( $tournament_limit['count'] ) ? (int) $tournament_limit['count'] : 0;
-$tour_limit_period = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
+$hunt_limit_count        = isset( $hunt_limit['count'] ) ? (int) $hunt_limit['count'] : 0;
+$hunt_limit_period       = isset( $hunt_limit['period'] ) ? sanitize_key( $hunt_limit['period'] ) : 'none';
+$tour_limit_count        = isset( $tournament_limit['count'] ) ? (int) $tournament_limit['count'] : 0;
+$tour_limit_period       = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
 $shortcode_rows_per_page = isset( $settings['shortcode_rows_per_page'] ) ? max( 1, (int) $settings['shortcode_rows_per_page'] ) : 25;
 
 $period_options = array(

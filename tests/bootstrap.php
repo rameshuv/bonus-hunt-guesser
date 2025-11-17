@@ -625,33 +625,33 @@ if ( ! function_exists( 'add_action' ) ) {
 }
 
 if ( ! isset( $GLOBALS['bhg_test_actions_done'] ) ) {
-        $GLOBALS['bhg_test_actions_done'] = array();
+		$GLOBALS['bhg_test_actions_done'] = array();
 }
 
 if ( ! function_exists( 'do_action' ) ) {
-        function do_action( $hook, ...$args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
-                global $bhg_test_actions_done;
+	function do_action( $hook, ...$args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+			global $bhg_test_actions_done;
 
-                if ( ! isset( $bhg_test_actions_done[ $hook ] ) ) {
-                        $bhg_test_actions_done[ $hook ] = 0;
-                }
+		if ( ! isset( $bhg_test_actions_done[ $hook ] ) ) {
+				$bhg_test_actions_done[ $hook ] = 0;
+		}
 
-                ++$bhg_test_actions_done[ $hook ];
+			++$bhg_test_actions_done[ $hook ];
 
-                return true;
-        }
+			return true;
+	}
 }
 
 if ( ! function_exists( 'did_action' ) ) {
-        function did_action( $hook ) {
-                global $bhg_test_actions_done;
+	function did_action( $hook ) {
+			global $bhg_test_actions_done;
 
-                if ( isset( $bhg_test_actions_done[ $hook ] ) ) {
-                        return (int) $bhg_test_actions_done[ $hook ];
-                }
+		if ( isset( $bhg_test_actions_done[ $hook ] ) ) {
+				return (int) $bhg_test_actions_done[ $hook ];
+		}
 
-                return 0;
-        }
+			return 0;
+	}
 }
 
 if ( ! function_exists( 'apply_filters' ) ) {
@@ -673,56 +673,56 @@ if ( ! function_exists( 'remove_action' ) ) {
 }
 
 if ( ! function_exists( 'remove_filter' ) ) {
-        function remove_filter( $hook, $callback, $priority = 10 ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
-                return true;
-        }
+	function remove_filter( $hook, $callback, $priority = 10 ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+			return true;
+	}
 }
 
 if ( ! function_exists( 'shortcode_atts' ) ) {
-        function shortcode_atts( $pairs, $atts, $shortcode = '' ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
-                $atts = (array) $atts;
+	function shortcode_atts( $pairs, $atts, $shortcode = '' ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+			$atts = (array) $atts;
 
-                $out = array();
-                foreach ( (array) $pairs as $name => $default ) {
-                        if ( array_key_exists( $name, $atts ) ) {
-                                $out[ $name ] = $atts[ $name ];
-                        } else {
-                                $out[ $name ] = $default;
-                        }
-                }
+			$out = array();
+		foreach ( (array) $pairs as $name => $default ) {
+			if ( array_key_exists( $name, $atts ) ) {
+				$out[ $name ] = $atts[ $name ];
+			} else {
+					$out[ $name ] = $default;
+			}
+		}
 
-                return $out;
-        }
+			return $out;
+	}
 }
 
 if ( ! function_exists( 'add_shortcode' ) ) {
-        function add_shortcode( $tag, $callback ) {
-                global $shortcode_tags;
+	function add_shortcode( $tag, $callback ) {
+			global $shortcode_tags;
 
-                if ( ! is_array( $shortcode_tags ) ) {
-                        $shortcode_tags = array();
-                }
+		if ( ! is_array( $shortcode_tags ) ) {
+				$shortcode_tags = array();
+		}
 
-                $shortcode_tags[ $tag ] = $callback;
-        }
+			$shortcode_tags[ $tag ] = $callback;
+	}
 }
 
 if ( ! function_exists( 'shortcode_exists' ) ) {
-        function shortcode_exists( $tag ) {
-                global $shortcode_tags;
+	function shortcode_exists( $tag ) {
+			global $shortcode_tags;
 
-                return is_array( $shortcode_tags ) && array_key_exists( $tag, $shortcode_tags );
-        }
+			return is_array( $shortcode_tags ) && array_key_exists( $tag, $shortcode_tags );
+	}
 }
 
 if ( ! function_exists( 'remove_shortcode' ) ) {
-        function remove_shortcode( $tag ) {
-                global $shortcode_tags;
+	function remove_shortcode( $tag ) {
+			global $shortcode_tags;
 
-                if ( is_array( $shortcode_tags ) && isset( $shortcode_tags[ $tag ] ) ) {
-                        unset( $shortcode_tags[ $tag ] );
-                }
-        }
+		if ( is_array( $shortcode_tags ) && isset( $shortcode_tags[ $tag ] ) ) {
+				unset( $shortcode_tags[ $tag ] );
+		}
+	}
 }
 
 if ( ! function_exists( 'current_time' ) ) {

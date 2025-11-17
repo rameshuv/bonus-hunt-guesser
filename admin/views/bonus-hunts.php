@@ -632,7 +632,7 @@ if ( 'edit' === $view ) :
 	<table class="widefat striped">
 	<thead>
 		<tr>
-            <th><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
+			<th><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
 		<th><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) ); ?></th>
 		<th><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
 		</tr>
