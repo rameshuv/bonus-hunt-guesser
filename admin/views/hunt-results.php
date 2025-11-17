@@ -44,7 +44,7 @@ $winners_count = (int) ( $hunt->winners_count ?? 3 );
 				<th><?php echo esc_html( bhg_t( 'label_hash', '#' ) ); ?></th>
 				<th>
 				<?php
-                             echo esc_html( bhg_t( 'sc_user', 'Username' ) );
+							echo esc_html( bhg_t( 'sc_user', 'Username' ) );
 				?>
 </th>
 				<th>

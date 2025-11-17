@@ -25,65 +25,65 @@ $summary_label = isset( $view_summary_label ) ? (string) $view_summary_label : (
 $summary_items = isset( $view_summary_items ) && is_array( $view_summary_items ) ? $view_summary_items : ( isset( $summary_items ) && is_array( $summary_items ) ? $summary_items : array() );
 ?>
 <div class="bhg-prizes-block bhg-prizes-layout-<?php echo esc_attr( $layout ); ?> size-<?php echo esc_attr( $size ); ?>">
-        <?php if ( '' !== $title_text ) : ?>
-                <h4 class="bhg-prizes-title"><?php echo esc_html( $title_text ); ?></h4>
-        <?php endif; ?>
+		<?php if ( '' !== $title_text ) : ?>
+				<h4 class="bhg-prizes-title"><?php echo esc_html( $title_text ); ?></h4>
+		<?php endif; ?>
 
-        <?php if ( 'carousel' === $layout && $card_renderer ) : ?>
-                <?php $show_nav = $pages > 1; ?>
-                <div class="bhg-prize-carousel" data-count="<?php echo esc_attr( $count ); ?>" data-visible="<?php echo esc_attr( $visible ); ?>" data-pages="<?php echo esc_attr( $pages ); ?>" data-autoplay="<?php echo $autoplay ? '1' : '0'; ?>" data-interval="<?php echo esc_attr( $interval ); ?>">
-                        <?php if ( $show_nav ) : ?>
-                                <button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="<?php echo esc_attr( bhg_t( 'previous', 'Previous' ) ); ?>">
-                                        <span aria-hidden="true">&lsaquo;</span>
-                                </button>
-                        <?php endif; ?>
+		<?php if ( 'carousel' === $layout && $card_renderer ) : ?>
+				<?php $show_nav = $pages > 1; ?>
+				<div class="bhg-prize-carousel" data-count="<?php echo esc_attr( $count ); ?>" data-visible="<?php echo esc_attr( $visible ); ?>" data-pages="<?php echo esc_attr( $pages ); ?>" data-autoplay="<?php echo $autoplay ? '1' : '0'; ?>" data-interval="<?php echo esc_attr( $interval ); ?>">
+						<?php if ( $show_nav ) : ?>
+								<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="<?php echo esc_attr( bhg_t( 'previous', 'Previous' ) ); ?>">
+										<span aria-hidden="true">&lsaquo;</span>
+								</button>
+						<?php endif; ?>
 
-                        <div class="bhg-prize-track-wrapper">
-                                <div class="bhg-prize-track">
-                                        <?php foreach ( $prizes as $prize ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
-                                                <?php echo $card_renderer ? call_user_func( $card_renderer, $prize, $size, $display, $context ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                        <?php endforeach; ?>
-                                </div>
-                        </div>
+						<div class="bhg-prize-track-wrapper">
+								<div class="bhg-prize-track">
+										<?php foreach ( $prizes as $prize ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
+												<?php echo $card_renderer ? call_user_func( $card_renderer, $prize, $size, $display, $context ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+										<?php endforeach; ?>
+								</div>
+						</div>
 
-                        <?php if ( $show_nav ) : ?>
+						<?php if ( $show_nav ) : ?>
 				<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="<?php echo esc_attr( bhg_t( 'next', 'Next' ) ); ?>">
 					<span aria-hidden="true">&rsaquo;</span>
 				</button>
 
-                                <div class="bhg-prize-dots" role="tablist">
-                                        <?php for ( $i = 0; $i < $pages; $i++ ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
-                                                <button type="button" class="bhg-prize-dot<?php echo 0 === $i ? ' active' : ''; ?>" data-index="<?php echo esc_attr( $i ); ?>" aria-label="<?php echo esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ); ?>"></button>
-                                        <?php endfor; ?>
-                                </div>
-                        <?php endif; ?>
-                </div>
-        <?php elseif ( $card_renderer ) : ?>
-                <div class="bhg-prizes-grid">
-                        <?php foreach ( $prizes as $prize ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
-                                <?php echo call_user_func( $card_renderer, $prize, $size, $display, $context ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                        <?php endforeach; ?>
-                </div>
-        <?php endif; ?>
-        <?php if ( ! empty( $summary_items ) ) : ?>
-                <div class="bhg-prize-summary">
-                        <?php if ( '' !== $summary_label ) : ?>
-                                <h5 class="bhg-prize-summary-title"><?php echo esc_html( $summary_label ); ?></h5>
-                        <?php endif; ?>
-                        <ol class="bhg-prize-summary-list">
-                                <?php foreach ( $summary_items as $summary_item ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
-                                        <?php
-                                        $text = '';
-                                        if ( is_array( $summary_item ) && isset( $summary_item['text'] ) ) {
-                                                $text = (string) $summary_item['text'];
-                                        }
-                                        if ( '' === $text ) {
-                                                $text = bhg_t( 'label_emdash', '—' );
-                                        }
-                                        ?>
-                                        <li><?php echo esc_html( $text ); ?></li>
-                                <?php endforeach; ?>
-                        </ol>
-                </div>
-        <?php endif; ?>
+								<div class="bhg-prize-dots" role="tablist">
+										<?php for ( $i = 0; $i < $pages; $i++ ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
+												<button type="button" class="bhg-prize-dot<?php echo 0 === $i ? ' active' : ''; ?>" data-index="<?php echo esc_attr( $i ); ?>" aria-label="<?php echo esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ); ?>"></button>
+										<?php endfor; ?>
+								</div>
+						<?php endif; ?>
+				</div>
+		<?php elseif ( $card_renderer ) : ?>
+				<div class="bhg-prizes-grid">
+						<?php foreach ( $prizes as $prize ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
+								<?php echo call_user_func( $card_renderer, $prize, $size, $display, $context ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php endforeach; ?>
+				</div>
+		<?php endif; ?>
+		<?php if ( ! empty( $summary_items ) ) : ?>
+				<div class="bhg-prize-summary">
+						<?php if ( '' !== $summary_label ) : ?>
+								<h5 class="bhg-prize-summary-title"><?php echo esc_html( $summary_label ); ?></h5>
+						<?php endif; ?>
+						<ol class="bhg-prize-summary-list">
+								<?php foreach ( $summary_items as $summary_item ) : // phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace ?>
+										<?php
+										$text = '';
+										if ( is_array( $summary_item ) && isset( $summary_item['text'] ) ) {
+												$text = (string) $summary_item['text'];
+										}
+										if ( '' === $text ) {
+												$text = bhg_t( 'label_emdash', '—' );
+										}
+										?>
+										<li><?php echo esc_html( $text ); ?></li>
+								<?php endforeach; ?>
+						</ol>
+				</div>
+		<?php endif; ?>
 </div>
