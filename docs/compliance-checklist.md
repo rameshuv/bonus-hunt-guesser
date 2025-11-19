@@ -15,10 +15,10 @@ This checklist consolidates runtime expectations, coding standards, customer fea
 - [ ] Shortcode `[bhg_leaderboards tournament="" bonushunt="" aff="" website="" ranking="1-10" timeline=""]` returns full user list (e.g., 26 users) not a single entry.
 - [ ] Avg Rank and Avg Tournament Pos display rounded integers (no decimals).
 - [ ] Username outputs are capitalized in all frontend shortcodes; column header reads "username".
-- [ ] Prize box appears above table when a specific active tournament is selected.
+- [x] Prize box appears above table when a specific active tournament is selected.
 - [ ] Affiliate column added after Avg Tournament Pos with green/red light indicator; Position column sortable.
-- [ ] Tournament/bonushunt titles rendered as H2 above table (tournament first when both set).
-- [ ] Bonushunt dropdown removed; leaderboard filters configurable via shortcode attributes to hide/show timeline, tournament, affiliate site, and affiliate status filters.
+- [x] Tournament/bonushunt titles rendered as H2 above table (tournament first when both set).
+- [x] Bonushunt dropdown removed; leaderboard filters configurable via shortcode attributes to hide/show timeline, tournament, affiliate site, and affiliate status filters.
 - [ ] Times Won counts only prize wins within timeline filter or selected tournament.
 - [ ] Supports search, sorting, pagination (30 per page or global setting), timeline filters (Alltime, Today, This Week, This Month, This Quarter, This Year, Last Year), affiliate lights, optional affiliate website display, and documentation on Info & Help page.
 
