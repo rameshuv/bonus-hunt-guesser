@@ -25,12 +25,12 @@ final class ShortcodesRegistrationTest extends TestCase {
 			$instance = new BHG_Shortcodes();
 			$instance->register_shortcodes();
 
-			$expected = array(
-				'latest-winners-list',
-				'leaderboard-list',
-				'tournament-list',
-				'bonushunt-list',
-			);
+		$expected = array(
+			'bhg_latest_winners_list',
+			'bhg_leaderboard_list',
+			'bhg_tournament_list',
+			'bhg_bonushunt_list',
+		);
 
 			foreach ( $expected as $tag ) {
 					$this->assertTrue(
