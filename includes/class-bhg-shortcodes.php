@@ -3527,16 +3527,13 @@ $atts,
                                                $timeline = sanitize_key( (string) $atts['timeline'] );
                                                $timeline_aliases = array(
                                                                'today'        => 'day',
-                                                               'this_day'     => 'day',
                                                                'this_week'    => 'week',
-                                                               'weekly'       => 'week',
                                                                'this_month'   => 'month',
-                                                               'monthly'      => 'month',
                                                                'this_quarter' => 'quarter',
-                                                               'quarterly'    => 'quarter',
                                                                'this_year'    => 'year',
-                                                               'yearly'       => 'year',
+                                                               'last_year'    => 'last_year',
                                                                'alltime'      => 'all_time',
+                                                               'all_time'     => 'all_time',
                                                );
                                                if ( isset( $timeline_aliases[ $timeline ] ) ) {
                                                                $timeline = $timeline_aliases[ $timeline ];
@@ -3714,16 +3711,13 @@ $atts,
                                                $timeline = sanitize_key( (string) $atts['timeline'] );
                                                $timeline_aliases = array(
                                                                'today'        => 'day',
-                                                               'this_day'     => 'day',
                                                                'this_week'    => 'week',
-                                                               'weekly'       => 'week',
                                                                'this_month'   => 'month',
-                                                               'monthly'      => 'month',
                                                                'this_quarter' => 'quarter',
-                                                               'quarterly'    => 'quarter',
                                                                'this_year'    => 'year',
-                                                               'yearly'       => 'year',
+                                                               'last_year'    => 'last_year',
                                                                'alltime'      => 'all_time',
+                                                               'all_time'     => 'all_time',
                                                );
                                                if ( isset( $timeline_aliases[ $timeline ] ) ) {
                                                                $timeline = $timeline_aliases[ $timeline ];
@@ -3870,16 +3864,13 @@ $atts,
                                                $timeline = sanitize_key( (string) $atts['timeline'] );
                                                $timeline_aliases = array(
                                                                'today'        => 'day',
-                                                               'this_day'     => 'day',
                                                                'this_week'    => 'week',
-                                                               'weekly'       => 'week',
                                                                'this_month'   => 'month',
-                                                               'monthly'      => 'month',
                                                                'this_quarter' => 'quarter',
-                                                               'quarterly'    => 'quarter',
                                                                'this_year'    => 'year',
-                                                               'yearly'       => 'year',
+                                                               'last_year'    => 'last_year',
                                                                'alltime'      => 'all_time',
+                                                               'all_time'     => 'all_time',
                                                );
                                                if ( isset( $timeline_aliases[ $timeline ] ) ) {
                                                                $timeline = $timeline_aliases[ $timeline ];
@@ -5513,16 +5504,13 @@ return ob_get_clean();
 
                                            $timeline_aliases = array(
                                                            'today'        => 'day',
-                                                           'this_day'     => 'day',
                                                            'this_week'    => 'week',
-                                                           'weekly'       => 'week',
                                                            'this_month'   => 'month',
-                                                           'monthly'      => 'month',
                                                            'this_quarter' => 'quarter',
-                                                           'quarterly'    => 'quarter',
                                                            'this_year'    => 'year',
-                                                           'yearly'       => 'year',
+                                                           'last_year'    => 'last_year',
                                                            'alltime'      => 'all_time',
+                                                           'all_time'     => 'all_time',
                                            );
                                            if ( isset( $timeline_aliases[ $timeline ] ) ) {
                                                            $timeline = $timeline_aliases[ $timeline ];
