@@ -91,10 +91,16 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			add_shortcode( 'bhg_jackpot_latest', array( $this, 'jackpot_latest_shortcode' ) );
 			add_shortcode( 'bhg_jackpot_ticker', array( $this, 'jackpot_ticker_shortcode' ) );
 			add_shortcode( 'bhg_jackpot_winners', array( $this, 'jackpot_winners_shortcode' ) );
-			add_shortcode( 'latest-winners-list', array( $this, 'latest_winners_list_shortcode' ) );
-			add_shortcode( 'leaderboard-list', array( $this, 'leaderboard_list_shortcode' ) );
-			add_shortcode( 'tournament-list', array( $this, 'tournament_list_shortcode' ) );
-			add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
+add_shortcode( 'bhg_latest_winners_list', array( $this, 'latest_winners_list_shortcode' ) );
+add_shortcode( 'bhg_leaderboard_list', array( $this, 'leaderboard_list_shortcode' ) );
+add_shortcode( 'bhg_tournament_list', array( $this, 'tournament_list_shortcode' ) );
+add_shortcode( 'bhg_bonushunt_list', array( $this, 'bonushunt_list_shortcode' ) );
+
+// Back-compat aliases for early adopters without the bhg_ prefix.
+add_shortcode( 'latest-winners-list', array( $this, 'latest_winners_list_shortcode' ) );
+add_shortcode( 'leaderboard-list', array( $this, 'leaderboard_list_shortcode' ) );
+add_shortcode( 'tournament-list', array( $this, 'tournament_list_shortcode' ) );
+add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
 
 			// Legacy/aliases.
 			add_shortcode( 'bonus_hunt_leaderboard', array( $this, 'leaderboard_shortcode' ) );
@@ -3232,9 +3238,9 @@ echo '<table class="bhg-user-guesses"><thead><tr>';
                                                                                'fields' => 'date,username,prize,bonushunt,tournament',
                                                                                'empty'  => '',
                                                                ),
-                                                               $atts,
-                                                               'latest-winners-list'
-                                               );
+$atts,
+'bhg_latest_winners_list'
+);
 
                                                $limit = max( 1, min( 100, (int) $atts['limit'] ) );
 
@@ -3493,9 +3499,9 @@ echo '<table class="bhg-user-guesses"><thead><tr>';
                                                                                'order'      => 'DESC',
                                                                                'empty'      => '',
                                                                ),
-                                                               $atts,
-                                                               'leaderboard-list'
-                                               );
+$atts,
+'bhg_leaderboard_list'
+);
 
                                                $limit = max( 1, min( 100, (int) $atts['limit'] ) );
 
@@ -3666,9 +3672,9 @@ echo '<table class="bhg-user-guesses"><thead><tr>';
                                                                                'fields' => 'name,start_date,end_date,status,details',
                                                                                'empty'  => '',
                                                                ),
-                                                               $atts,
-                                                               'tournament-list'
-                                               );
+$atts,
+'bhg_tournament_list'
+);
 
                                                $limit   = max( 1, min( 100, (int) $atts['limit'] ) );
                                                $orderby = sanitize_key( (string) $atts['orderby'] );
@@ -3822,9 +3828,9 @@ echo '<table class="bhg-user-guesses"><thead><tr>';
                                                                                'fields' => 'title,start_balance,final_balance,winners,status,details',
                                                                                'empty'  => '',
                                                                ),
-                                                               $atts,
-                                                               'bonushunt-list'
-                                               );
+$atts,
+'bhg_bonushunt_list'
+);
 
                                                $limit   = max( 1, min( 100, (int) $atts['limit'] ) );
                                                $orderby = sanitize_key( (string) $atts['orderby'] );
