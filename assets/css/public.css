@@ -4,6 +4,17 @@
 .bhg-leaderboard{width:100%;border-collapse:collapse}
 .bhg-leaderboard th,.bhg-leaderboard td{border:1px solid #e2e8f0;padding:8px}
 
+.bhg-leaderboard th a,
+.bhg-table th a,
+.bhg-table-wrapper th a {color:#fff}
+
+.bhg-leaderboard th a:hover,
+.bhg-leaderboard th a:focus,
+.bhg-table th a:hover,
+.bhg-table th a:focus,
+.bhg-table-wrapper th a:hover,
+.bhg-table-wrapper th a:focus {color:#f8fafc}
+
 .bhg-table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 16px}
 .bhg-table-scroll::-webkit-scrollbar{height:8px}
 .bhg-table-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px}

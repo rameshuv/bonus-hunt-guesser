@@ -627,6 +627,33 @@
     border-collapse: collapse;
 }
 
+.bhg-leaderboard th a,
+.bhg-tournaments th a,
+.bhg-user-guesses th a,
+.bhg-hunts th a,
+.bhg-profile-table th a,
+.bhg-jackpot-winners-table th a,
+.bhg-user-profile-table th a {
+    color: #fff;
+}
+
+.bhg-leaderboard th a:focus,
+.bhg-leaderboard th a:hover,
+.bhg-tournaments th a:focus,
+.bhg-tournaments th a:hover,
+.bhg-user-guesses th a:focus,
+.bhg-user-guesses th a:hover,
+.bhg-hunts th a:focus,
+.bhg-hunts th a:hover,
+.bhg-profile-table th a:focus,
+.bhg-profile-table th a:hover,
+.bhg-jackpot-winners-table th a:focus,
+.bhg-jackpot-winners-table th a:hover,
+.bhg-user-profile-table th a:focus,
+.bhg-user-profile-table th a:hover {
+    color: #f8fafc;
+}
+
 .bhg-tournaments th:first-child,
 .bhg-tournaments td:first-child {
     width: 35%;
