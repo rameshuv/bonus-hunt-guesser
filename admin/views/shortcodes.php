@@ -120,7 +120,7 @@ $shortcodes = array(
 		'notes'       => bhg_t( 'shortcode_tournaments_notes', 'Use query parameters (bhg_timeline, bhg_status, bhg_search, bhg_orderby, bhg_order) to filter the table.' ),
 	),
 	array(
-		'tag'         => 'latest-winners-list',
+		'tag'         => 'bhg_latest_winners_list',
 		'description' => bhg_t( 'shortcode_latest_winners_desc', 'Displays a text list of the most recent hunt winners.' ),
 		'attributes'  => array(
 			'limit'  => bhg_t( 'shortcode_attr_latest_winners_limit', 'Maximum number of winners to display (1-100).' ),
@@ -130,7 +130,7 @@ $shortcodes = array(
 	),
 
 	array(
-		'tag'         => 'leaderboard-list',
+		'tag'         => 'bhg_leaderboard_list',
 		'description' => bhg_t( 'shortcode_leaderboard_list_desc', 'Compact leaderboard list for use in sidebar sections.' ),
 		'attributes'  => array(
 			'limit'      => bhg_t( 'shortcode_attr_leaderboard_list_limit', 'Maximum number of ranked users to display (1-100).' ),
@@ -150,7 +150,7 @@ $shortcodes = array(
 	),
 
 	array(
-		'tag'         => 'tournament-list',
+		'tag'         => 'bhg_tournament_list',
 		'description' => bhg_t( 'shortcode_tournament_list_desc', 'Text list of tournaments for compact layouts.' ),
 		'attributes'  => array(
 			'status'   => bhg_t( 'shortcode_attr_tournaments_status', 'Filter by tournament status: active, closed, or all.' ),
@@ -167,7 +167,7 @@ $shortcodes = array(
 	),
 
 	array(
-		'tag'         => 'bonushunt-list',
+		'tag'         => 'bhg_bonushunt_list',
 		'description' => bhg_t( 'shortcode_bonushunt_list_desc', 'Text list of bonus hunts for homepage widgets.' ),
 		'attributes'  => array(
 			'status'   => bhg_t( 'shortcode_attr_bonushunt_list_status', 'Filter hunts by status: open, closed, or all.' ),
