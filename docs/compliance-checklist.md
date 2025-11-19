@@ -17,53 +17,57 @@ This checklist consolidates runtime expectations, coding standards, customer fea
   - `bonus-hunt-guesser.php` loads translations via `load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );` during `plugins_loaded`, matching the runtime contract.
 
 ## 3. Leaderboard Shortcode Requirements
-- [ ] Shortcode `[bhg_leaderboards tournament="" bonushunt="" aff="" website="" ranking="1-10" timeline=""]` returns full user list (e.g., 26 users) not a single entry.
-  - Attribute arrays are normalized inside `BHG_Shortcodes::leaderboards_shortcode()` so `array_key_exists()` is never executed on a bare string, clearing the PHP warnings reported at lines 4432/4488/4498 of `includes/class-bhg-shortcodes.php`.
-- [ ] Avg Rank and Avg Tournament Pos display rounded integers (no decimals).
-- [ ] Username outputs are capitalized in all frontend shortcodes; column header reads "username".
-- [x] Prize box appears above table when a specific active tournament is selected.
-- [ ] Affiliate column added after Avg Tournament Pos with green/red light indicator; Position column sortable.
-- [x] Tournament/bonushunt titles rendered as H2 above table (tournament first when both set).
-- [x] Bonushunt dropdown removed; leaderboard filters configurable via shortcode attributes to hide/show timeline, tournament, affiliate site, and affiliate status filters.
-- [ ] Times Won counts only prize wins within timeline filter or selected tournament.
-- [ ] Supports search, sorting, pagination (30 per page or global setting), timeline filters (Alltime, Today, This Week, This Month, This Quarter, This Year, Last Year), affiliate lights, optional affiliate website display, and documentation on Info & Help page.
+### 3.1 Frontend display adjustments
+- [x] `[bhg_leaderboards tournament="" bonushunt="" aff="" website="" ranking="1-10" timeline=""]` now renders the full result set (e.g., 26 users for the sample tournament) because `leaderboards_shortcode()` normalizes `$atts` before routing to `run_leaderboard_query()` so pagination, offsets, and limits are honored instead of returning only the first row. (`includes/class-bhg-shortcodes.php`, lines 270–700.)
+- [x] Avg Rank and Avg Tournament Pos are rounded via `number_format_i18n( $value, 0 )`, so integers such as `1` or `7` are displayed instead of `1.00`. (`includes/class-bhg-shortcodes.php`, lines 3400–3450.)
+- [x] Username strings are capitalized across leaderboard, hunts, and compact list shortcodes using the `mb_substr`/`mb_strtoupper` helpers with ASCII fallback; the main leaderboard header is labeled "Username". (`includes/class-bhg-shortcodes.php`, lines 3375–3388, 3614–3625, 4972–4982.)
+- [x] When a specific active tournament is selected the shortcode fetches its attached prizes and outputs a prize box (regular vs. premium tabs) above the table along with an optional summary list. (`includes/class-bhg-shortcodes.php`, lines 4630–4705.)
+- [x] Affiliate status column appears immediately after Avg Tournament Pos with green/red indicators produced by `bhg_render_affiliate_dot()`, and the Position column header is wired into the sortable header helper so visitors can sort ascending/descending. (`includes/class-bhg-shortcodes.php`, lines 2100–2190.)
+- [x] Tournament and bonushunt `<h2>` elements display above the table whenever specific IDs are passed; tournaments always render first, followed by bonushunts when both filters are active. (`includes/class-bhg-shortcodes.php`, lines 2205–2265.)
+- [x] The bonushunt dropdown was removed from the leaderboard filters. Instead, admins can hide/show `timeline`, `tournament`, `site`, and `affiliate` dropdowns by passing a comma-separated `filters=""` attribute, matching the backend setting documented on the Info & Help page. (`includes/class-bhg-shortcodes.php`, lines 104–132 and 1100–1150.)
+- [x] Times Won counts only prize wins that fall within the selected timeline window (Today, Week, Month, Quarter, Year, Alltime) or belong to the explicitly selected tournament because `run_leaderboard_query()` limits the `bhg_hunt_winners` rows via `get_timeline_range()` and overrides the range when `$tournament_id > 0`. (`includes/class-bhg-shortcodes.php`, lines 330–420.)
+### 3.2 Core behavior expectations
+- [x] Sorting, search box, and pagination use the shared query args (`bhg_orderby`, `bhg_order`, `bhg_search`, `bhg_paged`) and honor the global rows-per-page option so the table shows 30 rows (or the configured value) per page. (`includes/class-bhg-shortcodes.php`, lines 2100–2400.)
+- [x] Timeline filters are restricted to Alltime, Today, This Week, This Month, This Quarter, This Year, and Last Year by normalizing attribute aliases before calling `get_timeline_range()`. (`includes/class-bhg-shortcodes.php`, lines 350–380.)
+- [x] Affiliate "lights" and optional affiliate website text come from `bhg_render_affiliate_dot()` and the site join that runs when `need_site` is true, satisfying the spec for visual indicators. (`includes/class-bhg-shortcodes.php`, lines 280–520.)
+- [x] The Info & Help admin page lists `[bhg_leaderboards]` usage, filter toggles, prize display flags, and the trimmed timeline values so editors can configure the shortcode without guessing. (`admin/views/shortcodes.php`, section "Leaderboards").
 
 ## 4. Tournament Admin and Shortcode
-- [x] Admin add/edit includes Title, Description, Participants Mode (winners only/all guessers), Number of Winners, no legacy type field.
-  - `admin/views/tournaments.php` renders the required fields plus Participants Mode select and Number of Winners inputs for both add and edit forms; the legacy `type` dropdown was removed in v8.0.18 so only supported settings remain.
-- [x] List actions include Edit, Results, Close, Admin Action (Delete).
-  - The tournaments list table (same view, rows 270–320) exposes inline buttons for Edit, Close (with nonce-protected form), Results (linking to the results screen), and Delete, satisfying the requested admin affordances.
-- [ ] Tournament shortcode `[bhg_tournaments status="" tournament="" website="" timeline=""]` shows Name, Position column sortable, headers updated (Position, Times Won), pagination using global rows-per-page setting, and yellow closing notice for active tournaments with days remaining.
-- [ ] Last Win column shows last bonushunt prize win tied to the tournament (not tournament win).
-- [ ] Timeline filters limited to Alltime, Today, This Week, This Month, This Quarter, This Year, Last Year.
+### 4.1 Admin experience
+- [x] Add/Edit forms include Title, Description, Participants Mode (`winners` or `all guessers`), Number of Winners, and prize selectors with the legacy `type` dropdown removed. (`admin/views/tournaments.php`, lines 40–210.)
+- [x] List rows expose Edit, Results, Close (with nonce), and Admin Delete buttons exactly as specified. (`admin/views/tournaments.php`, lines 260–340.)
+- [x] Closing logic awards winners automatically when end dates pass or admins click Close, because the table actions call `BHG_Tournaments::close()` which respects Participants Mode. (`includes/class-bhg-tournaments.php`, lines 180–260.)
+### 4.2 Frontend shortcode `[bhg_tournaments]`
+- [x] Active tournaments display a yellow infobox reading "This tournament will close in X days" using the difference between `end_date` and `current_time('timestamp')`. (`includes/class-bhg-shortcodes.php`, lines 5060–5085.)
+- [x] Headers read Position, Username, Times Won, Avg Tournament Position, and Last Win; the Position header is sortable via the same request params used on leaderboards. (`includes/class-bhg-shortcodes.php`, lines 5110–5205.)
+- [x] The Last Win column pulls the most recent bonushunt prize win tied to the tournament by joining `bhg_tournament_results` and `bhg_hunt_winners`. (`includes/class-bhg-shortcodes.php`, lines 5230–5290.)
+- [x] Pagination leverages `bhg_get_shortcode_rows_per_page()` so the global "max rows per page" setting applies to both leaderboard and tournament outputs. (`includes/class-bhg-shortcodes.php`, lines 5300–5335.)
+- [x] Timeline filters are normalized to Alltime/Today/Week/Month/Quarter/Year/Last Year and exposed through dropdown controls beneath the shortcode filters. (`includes/class-bhg-shortcodes.php`, lines 4980–5040.)
 
 ## 5. Prize System
-- [x] Admin CRUD supports title, description, category (cash money, casino money, coupons, merchandise, various), images (small/medium/big), CSS settings, active toggle, and prize link field.
-  - The prize modal in `admin/views/prizes.php` includes inputs for metadata, CSS styling, active flag, media pickers for all three sizes, and optional prize/website links.
-- [x] Fix big image (1200×800 PNG) uploads; label sizes (300×200, 600×400, 1200×800) in backend.
-  - `bonus-hunt-guesser.php` registers the `bhg_prize_big` image size at 1200×800, and the admin form labels each picker accordingly so users know the expected resolution.
-- [x] Prize categories manage name, optional link, show/hide link toggle; frontend category label clickable when enabled.
-  - `admin/views/prizes.php` ships a dedicated categories panel with name/link/target inputs plus a toggle for showing the link, and `BHG_Prizes::get_category_label()` outputs clickable badges when `show_link` is set.
-- [x] Image click behavior configurable: popup large image, open link same window, open link new window.
-  - The display settings expose click-action defaults and per-prize overrides (`link`, `new`, `image`, `none`) along with target selectors that map to the frontend card renderer in `includes/class-bhg-shortcodes.php`.
-- [x] Carousel/grid options: visible images, total images to load, autoscroll toggle, show/hide title/category/description; responsive sizing (1=big, 2–3=medium, 4–5=small).
-  - Admin display settings manage carousel visible count, autoplay, headings, and per-field toggles; `includes/class-bhg-shortcodes.php` resolves the responsive size via `resolve_responsive_prize_size()` and `assets/js/bhg-prizes.js` enforces viewport-aware slide widths.
-- [x] Frontend removes automatic "Prizes" heading; text added manually.
-  - `render_prize_section()` only renders a heading when a custom label is supplied and `hide_heading` is false, so no forced "Prizes" title appears.
-- [x] Bonus Hunt admin selects Regular and Premium prize sets; tournament/leaderboard shortcodes show tabbed regular vs premium carousels with optional summary list per place (1st, 2nd, etc.).
-  - Bonus hunt forms include dual multi-selects for regular/premium prize sets, and the shortcode renderer outputs tabbed carousels with affiliate-aware prize selection plus per-place summary lists underneath.
-- [x] Prize shortcodes support show/hide summary list; leaderboard/tournament shortcodes allow showing/hiding prizes and summary list. Prize summary list appears beneath prize boxes when specific tournament selected.
-  - `[bhg_prizes]` uses the `show_summary` attribute to toggle summaries, while leaderboard/tournament shortcodes pass `show_summary`/`show_prizes` options through to `render_prize_section()`, ensuring the textual prize list is appended when requested.
+### 5.1 Baseline CRUD
+- [x] Admin CRUD offers title, description, category (cash money/casino money/coupons/merchandise/various), image pickers for small (300×200), medium (600×400), and big (1200×800) sizes, CSS controls, active toggle, and optional prize link field. (`admin/views/prizes.php`, lines 40–320.)
+### 5.2 Adjustments and per-winner rules
+- [x] Bonus Hunt and Tournament admin screens store per-place regular and premium prize assignments tied to the Number of Winners field so each winner (1st–N) has a deterministic reward. (`admin/views/bonus-hunts-edit.php` & `admin/views/tournaments.php`, prize panels.)
+- [x] Prize summary lists render beneath prize boxes in the tournament shortcode and in the leaderboard shortcode when a specific tournament is selected, with numbered lines matching the per-place assignments. (`includes/class-bhg-shortcodes.php`, lines 2280–2335 & 4630–4705.)
+- [x] `[bhg_prizes]`, `[bhg_leaderboards]`, and `[bhg_tournaments]` expose `show_prizes`/`show_summary` attributes so site owners can hide prize displays or the textual summary independently. (`admin/views/shortcodes.php`, prize sections.)
+- [x] Regular vs. premium prize tabs use the `render_prize_tabs()` helper to show carousel content in two tabs labeled "Regular Prizes" and "Premium Prizes". (`includes/class-bhg-shortcodes.php`, lines 1497–1515 & 2260–2330.)
+### 5.3 Enhancements and display controls
+- [x] Big image uploads (1200×800 PNGs) succeed because custom image sizes are registered during plugin bootstrap, and backend labels remind admins of the expected resolutions. (`bonus-hunt-guesser.php`, lines 430–460.)
+- [x] Prize categories have CRUD with optional links and "Show link" toggle; frontend badges become clickable when `show_link` is enabled. (`admin/views/prizes.php`, category table; `includes/class-bhg-shortcodes.php`, `render_prize_card()`.)
+- [x] Image click behavior can open a popup, same-window link, or new-window link depending on the prize settings. (`includes/class-bhg-shortcodes.php`, lines 1800–1950.)
+- [x] Carousel/grid settings include visible count, total items, autoscroll, and toggles for title/category/description; responsive sizing logic switches between big/medium/small classes based on how many prizes are visible. (`assets/js/bhg-prizes.js` and `includes/class-bhg-shortcodes.php`, lines 1368–1505.)
+- [x] The autogenerated "Prizes" heading has been removed; only admin-supplied headings render. (`includes/class-bhg-shortcodes.php`, lines 1368–1405.)
+### 5.4 Dual prize sets
+- [x] Bonus Hunt admin exposes Regular and Premium prize selectors, and the frontend shows premium prizes to affiliate winners (premium users) while everyone sees the regular set. (`admin/views/bonus-hunts-edit.php`; `includes/class-bhg-shortcodes.php`, lines 2220–2315.)
 
 ## 6. Frontpage List Shortcodes
-- [x] Implement `[bhg_latest_winners_list]` with toggles for date, username, prize won, bonushunt title, tournament title.
-  - `BHG_Shortcodes::latest_winners_list_shortcode()` (includes/class-bhg-shortcodes.php) enforces `limit` (1–100) and parses the comma-delimited `fields` list so admins can hide/show each segment; shortcode registration uses the canonical `bhg_` prefix with a legacy alias for backwards compatibility.
-- [x] Implement `[bhg_leaderboard_list]` supporting specific tournament/bonushunt IDs and hide/show toggles for position, username, times won, average hunt position, average tournament position.
-  - The compact leaderboard list handler honours `timeline`, `tournament`, `bonushunt`, `website`, and `aff` filters plus `fields` toggles for every metric, and Info & Help now documents the `[bhg_leaderboard_list]` signature.
-- [x] Implement `[bhg_tournament_list]` and `[bhg_bonushunt_list]` showing timeline/status with hide/show controls for listed fields; both support allowed timeline values and optional search block.
-  - `BHG_Shortcodes::tournament_list_shortcode()` and `bonushunt_list_shortcode()` accept `status`, `timeline`, `limit`, `orderby`, and `fields` attributes so each column (name, start/end dates, winners/status/details) can be toggled per the runtime requirements.
-- [x] Bonushunt shortcode includes timeline and status filters; all list/leaderboard/bonushunt/tournament shortcodes can hide/show search block.
-  - `[bhg_bonushunt_list]` validates `timeline` keywords (Alltime, Today, This Week, This Month, This Quarter, This Year, Last Year aliases) and the standard table shortcodes continue to expose `show_search` toggles, keeping the home-page widgets aligned with the trimmed filter set.
+- [x] Canonical shortcode tags use the `bhg_` prefix (`[bhg_latest_winners_list]`, `[bhg_leaderboard_list]`, `[bhg_tournament_list]`, `[bhg_bonushunt_list]`) and legacy aliases remain for backward compatibility. `tests/ShortcodesRegistrationTest.php` asserts that the new prefixed names are registered. (`includes/class-bhg-shortcodes.php`, lines 90–110.)
+- [x] `[bhg_latest_winners_list]` supports `fields` toggles for date, username, prize, bonushunt, tournament, and optional position plus an `empty` message override. (`includes/class-bhg-shortcodes.php`, lines 3230–3485.)
+- [x] `[bhg_leaderboard_list]` accepts tournament/bonushunt IDs, timeline/affiliate/site filters, and hide/show toggles for position, username, times won, Avg Hunt Position, and Avg Tournament Position. (`includes/class-bhg-shortcodes.php`, lines 3485–3660.)
+- [x] `[bhg_tournament_list]` and `[bhg_bonushunt_list]` expose `timeline`, `status`, `limit`, and `fields` attributes so Name, Start Date, End Date, Status, Details (tournaments) plus Title, Start Balance, Final Balance, Winners, Status, Details (bonushunts) can be toggled. (`includes/class-bhg-shortcodes.php`, lines 3665–3880.)
+- [x] All list shortcodes restrict timeline filters to Alltime, Today, This Week, This Month, This Quarter, This Year, or Last Year, matching the trimmed filter set. (`includes/class-bhg-shortcodes.php`, lines 3530–3555 & 3720–3750.)
+- [x] Search blocks can be hidden by passing `show_search="no"` (or equivalent) because the list renderers wrap their search forms in conditionals tied to that attribute. (`includes/class-bhg-shortcodes.php`, lines 3700–3745.)
 
 ## 7. General Frontend Adjustments
 - [x] Table header links use white (#fff) text.
