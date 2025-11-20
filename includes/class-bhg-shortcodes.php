@@ -3527,16 +3527,13 @@ $atts,
                                                $timeline = sanitize_key( (string) $atts['timeline'] );
                                                $timeline_aliases = array(
                                                                'today'        => 'day',
-                                                               'this_day'     => 'day',
                                                                'this_week'    => 'week',
-                                                               'weekly'       => 'week',
                                                                'this_month'   => 'month',
-                                                               'monthly'      => 'month',
                                                                'this_quarter' => 'quarter',
-                                                               'quarterly'    => 'quarter',
                                                                'this_year'    => 'year',
-                                                               'yearly'       => 'year',
+                                                               'last_year'    => 'last_year',
                                                                'alltime'      => 'all_time',
+                                                               'all_time'     => 'all_time',
                                                );
                                                if ( isset( $timeline_aliases[ $timeline ] ) ) {
                                                                $timeline = $timeline_aliases[ $timeline ];
@@ -3714,16 +3711,13 @@ $atts,
                                                $timeline = sanitize_key( (string) $atts['timeline'] );
                                                $timeline_aliases = array(
                                                                'today'        => 'day',
-                                                               'this_day'     => 'day',
                                                                'this_week'    => 'week',
-                                                               'weekly'       => 'week',
                                                                'this_month'   => 'month',
-                                                               'monthly'      => 'month',
                                                                'this_quarter' => 'quarter',
-                                                               'quarterly'    => 'quarter',
                                                                'this_year'    => 'year',
-                                                               'yearly'       => 'year',
+                                                               'last_year'    => 'last_year',
                                                                'alltime'      => 'all_time',
+                                                               'all_time'     => 'all_time',
                                                );
                                                if ( isset( $timeline_aliases[ $timeline ] ) ) {
                                                                $timeline = $timeline_aliases[ $timeline ];
@@ -3870,16 +3864,13 @@ $atts,
                                                $timeline = sanitize_key( (string) $atts['timeline'] );
                                                $timeline_aliases = array(
                                                                'today'        => 'day',
-                                                               'this_day'     => 'day',
                                                                'this_week'    => 'week',
-                                                               'weekly'       => 'week',
                                                                'this_month'   => 'month',
-                                                               'monthly'      => 'month',
                                                                'this_quarter' => 'quarter',
-                                                               'quarterly'    => 'quarter',
                                                                'this_year'    => 'year',
-                                                               'yearly'       => 'year',
+                                                               'last_year'    => 'last_year',
                                                                'alltime'      => 'all_time',
+                                                               'all_time'     => 'all_time',
                                                );
                                                if ( isset( $timeline_aliases[ $timeline ] ) ) {
                                                                $timeline = $timeline_aliases[ $timeline ];
@@ -4399,10 +4390,12 @@ echo '<table class="bhg-hunts"><thead><tr>';
 					 * @param array $atts Shortcode attributes.
 					 * @return string HTML output.
 					 */
-                               public function leaderboards_shortcode( $atts ) {
-                                               if ( ! is_array( $atts ) ) {
-                                                               $atts = array();
-                                               }
+public function leaderboards_shortcode( $atts ) {
+if ( ! is_array( $atts ) ) {
+$atts = array();
+}
+
+$atts = (array) $atts;
                                                $a = shortcode_atts(
 array(
 'fields'     => 'pos,user,wins,avg_hunt,avg_tournament,aff',
@@ -4444,9 +4437,9 @@ $atts,
                                                $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament', 'aff' );
                                }
 
-			$default_filters    = self::LEADERBOARD_DEFAULT_FILTERS;
-			$enabled_filters    = $default_filters;
-			$filters_input      = array_key_exists( 'filters', $atts ) ? $atts['filters'] : null;
+$default_filters    = self::LEADERBOARD_DEFAULT_FILTERS;
+$enabled_filters    = $default_filters;
+$filters_input      = ( is_array( $atts ) && array_key_exists( 'filters', $atts ) ) ? $atts['filters'] : null;
 			$normalized_filters = $this->normalize_leaderboard_filters( $filters_input );
 			if ( null !== $normalized_filters ) {
 				$enabled_filters = $normalized_filters;
@@ -4501,23 +4494,23 @@ $timeline = 'all_time';
                                                }
                                                $ranking_limit = max( 0, $ranking_limit );
 
-                                               $paged = isset( $_GET['bhg_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_paged'] ) ) ) : (int) $a['paged'];
-                                               if ( array_key_exists( 'paged', $atts ) ) {
-                                                               $paged_attr = (int) $atts['paged'];
-                                                               if ( $paged_attr > 0 ) {
-                                                                               $paged = $paged_attr;
-                                                               }
-                                               }
+$paged = isset( $_GET['bhg_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_paged'] ) ) ) : (int) $a['paged'];
+if ( is_array( $atts ) && array_key_exists( 'paged', $atts ) ) {
+$paged_attr = (int) $atts['paged'];
+if ( $paged_attr > 0 ) {
+$paged = $paged_attr;
+}
+}
                                                $paged = max( 1, $paged );
 
-                                               $default_per_page = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 25 ) : 25;
-                                               $per_page         = $default_per_page;
-                                               if ( array_key_exists( 'per_page', $atts ) ) {
-                                                               $per_page_attr = (int) $atts['per_page'];
-                                                               if ( $per_page_attr > 0 ) {
-                                                                               $per_page = $per_page_attr;
-                                                               }
-                                               }
+$default_per_page = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 25 ) : 25;
+$per_page         = $default_per_page;
+if ( is_array( $atts ) && array_key_exists( 'per_page', $atts ) ) {
+$per_page_attr = (int) $atts['per_page'];
+if ( $per_page_attr > 0 ) {
+$per_page = $per_page_attr;
+}
+}
                                                $per_page = (int) apply_filters( 'bhg_leaderboards_per_page', $per_page, $atts );
                                                if ( $per_page <= 0 ) {
                                                                $per_page = $default_per_page;
@@ -5513,16 +5506,13 @@ return ob_get_clean();
 
                                            $timeline_aliases = array(
                                                            'today'        => 'day',
-                                                           'this_day'     => 'day',
                                                            'this_week'    => 'week',
-                                                           'weekly'       => 'week',
                                                            'this_month'   => 'month',
-                                                           'monthly'      => 'month',
                                                            'this_quarter' => 'quarter',
-                                                           'quarterly'    => 'quarter',
                                                            'this_year'    => 'year',
-                                                           'yearly'       => 'year',
+                                                           'last_year'    => 'last_year',
                                                            'alltime'      => 'all_time',
+                                                           'all_time'     => 'all_time',
                                            );
                                            if ( isset( $timeline_aliases[ $timeline ] ) ) {
                                                            $timeline = $timeline_aliases[ $timeline ];
