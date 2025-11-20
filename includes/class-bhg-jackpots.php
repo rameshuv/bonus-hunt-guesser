@@ -322,15 +322,17 @@ class BHG_Jackpots {
 	 * @param array $context       Additional context (affiliate IDs, closed_at).
 	 * @return void
 	 */
-	public function handle_hunt_closure( $hunt_id, $final_balance, array $guess_rows, array $context = array() ) {
-		$eligible = $this->get_jackpots_for_hunt( $hunt_id, $context );
+        public function handle_hunt_closure( $hunt_id, $final_balance, array $guess_rows, array $context = array() ) {
+                $eligible = $this->get_jackpots_for_hunt( $hunt_id, $context );
 
-		if ( empty( $eligible ) ) {
-			return;
-		}
+                if ( empty( $eligible ) ) {
+                        return;
+                }
 
-		$final_formatted = number_format( (float) $final_balance, 2, '.', '' );
-		$exact_guess     = null;
+                $increase_allowed = ! isset( $context['jackpot_increase_enabled'] ) || (int) $context['jackpot_increase_enabled'];
+
+                $final_formatted = number_format( (float) $final_balance, 2, '.', '' );
+                $exact_guess     = null;
 
 		foreach ( $guess_rows as $row ) {
 			$row_guess = isset( $row->guess ) ? number_format( (float) $row->guess, 2, '.', '' ) : null;
@@ -343,14 +345,16 @@ class BHG_Jackpots {
 			}
 		}
 
-		foreach ( $eligible as $jackpot ) {
-			if ( $exact_guess && $exact_guess['user_id'] > 0 ) {
-				$this->record_hit( $jackpot, $exact_guess['user_id'], $hunt_id, $exact_guess['guess_id'], (float) $final_balance );
-			} else {
-				$this->record_miss( $jackpot, $hunt_id );
-			}
-		}
-	}
+                foreach ( $eligible as $jackpot ) {
+                        if ( $exact_guess && $exact_guess['user_id'] > 0 ) {
+                                $this->record_hit( $jackpot, $exact_guess['user_id'], $hunt_id, $exact_guess['guess_id'], (float) $final_balance );
+                        } else {
+                                if ( $increase_allowed ) {
+                                        $this->record_miss( $jackpot, $hunt_id );
+                                }
+                        }
+                }
+        }
 
 	/**
 	 * Retrieve jackpots applicable to a hunt.
@@ -568,9 +572,10 @@ class BHG_Jackpots {
 		);
 		$args     = wp_parse_args( $args, $defaults );
 
-		$events_table  = self::events_table();
-		$jackpot_table = self::table_name();
-		$hunts_table   = $wpdb->prefix . 'bhg_bonus_hunts';
+               $events_table     = self::events_table();
+               $jackpot_table    = self::table_name();
+               $hunts_table      = $wpdb->prefix . 'bhg_bonus_hunts';
+               $affiliates_table = $wpdb->prefix . 'bhg_affiliate_websites';
 
 		$where  = array( "e.event_type = 'hit'" );
 		$params = array();
@@ -585,13 +590,14 @@ class BHG_Jackpots {
 			$params[] = (int) $args['year'];
 		}
 
-		$sql = "SELECT e.*, j.title AS jackpot_title, j.current_amount, h.title AS hunt_title
-                FROM {$events_table} e
-                LEFT JOIN {$jackpot_table} j ON j.id = e.jackpot_id
-                LEFT JOIN {$hunts_table} h ON h.id = e.hunt_id
-                WHERE " . implode( ' AND ', $where ) . '
-                ORDER BY e.created_at DESC, e.id DESC
-                LIMIT %d';
+               $sql = "SELECT e.*, j.title AS jackpot_title, j.current_amount, h.title AS hunt_title, a.name AS affiliate_site_name
+               FROM {$events_table} e
+               LEFT JOIN {$jackpot_table} j ON j.id = e.jackpot_id
+               LEFT JOIN {$hunts_table} h ON h.id = e.hunt_id
+               LEFT JOIN {$affiliates_table} a ON a.id = h.affiliate_site_id
+               WHERE " . implode( ' AND ', $where ) . '
+               ORDER BY e.created_at DESC, e.id DESC
+               LIMIT %d';
 
 		$params[] = max( 1, (int) $args['limit'] );
 
@@ -607,19 +613,27 @@ class BHG_Jackpots {
 	 * @param string $mode Mode.
 	 * @return array
 	 */
-	public function get_ticker_items( $mode = 'amount' ) {
-		$mode = sanitize_key( $mode );
+       public function get_ticker_items( $mode = 'amount', $status = 'active' ) {
+               $mode = sanitize_key( $mode );
 
-		if ( 'winners' === $mode ) {
-			return $this->get_latest_hits( array( 'limit' => 10 ) );
-		}
+               if ( 'winners' === $mode ) {
+                       return $this->get_latest_hits( array( 'limit' => 10 ) );
+               }
 
-		return $this->get_jackpots(
-			array(
-				'status' => array( 'active', 'pending' ),
-			)
-		);
-	}
+               $status_filter = array( 'active', 'pending' );
+
+               if ( 'closed' === $status ) {
+                       $status_filter = array( 'hit', 'inactive' );
+               } elseif ( 'all' === $status ) {
+                       $status_filter = array( 'active', 'pending', 'hit', 'inactive' );
+               }
+
+               return $this->get_jackpots(
+                       array(
+                               'status' => $status_filter,
+                       )
+               );
+       }
 
 	/**
 	 * Retrieve jackpot winner history rows.
