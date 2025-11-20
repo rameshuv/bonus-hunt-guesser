@@ -374,10 +374,10 @@ class BHG_Admin {
 						return array_values( $ids );
 				};
 
-				$prize_sets = array(
-					'regular' => $extract_prize_ids( 'regular_prize_ids' ),
-					'premium' => $extract_prize_ids( 'premium_prize_ids' ),
-				);
+                                $prize_sets = array(
+                                        'regular' => $extract_prize_ids( 'regular_prize_ids' ),
+                                        'premium' => $extract_prize_ids( 'premium_prize_ids' ),
+                                );
 
 				if ( empty( $prize_sets['regular'] ) && empty( $prize_sets['premium'] ) ) {
 						$prize_sets['regular'] = $extract_prize_ids( 'prize_ids' );
@@ -388,11 +388,12 @@ class BHG_Admin {
 							$tournament_ids = array( $legacy );
 					}
 				}
-				$primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
-				$winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
-				$guessing_enabled      = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
-				$final_balance_raw     = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
-				$final_balance         = null;
+                                $primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
+                                $winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
+                                $guessing_enabled      = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
+                                $jackpot_increase      = isset( $_POST['jackpot_increase_enabled'] ) ? 1 : 0;
+                                $final_balance_raw     = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
+                                $final_balance         = null;
 
 				if ( '' !== trim( (string) $final_balance_raw ) ) {
 						$final_parsed = function_exists( 'bhg_parse_amount' ) ? bhg_parse_amount( $final_balance_raw ) : null;
@@ -409,17 +410,18 @@ class BHG_Admin {
 					$status = 'open';
 				}
 
-								$data = array(
-									'title'             => $title,
-									'starting_balance'  => $starting,
-									'num_bonuses'       => $num_bonuses,
-									'affiliate_site_id' => $affiliate_site,
-									'tournament_id'     => $primary_tournament_id,
-									'winners_count'     => $winners_count,
-									'guessing_enabled'  => $guessing_enabled,
-								);
+                                                                $data = array(
+                                                                        'title'             => $title,
+                                                                        'starting_balance'  => $starting,
+                                                                        'num_bonuses'       => $num_bonuses,
+                                                                        'affiliate_site_id' => $affiliate_site,
+                                                                        'tournament_id'     => $primary_tournament_id,
+                                                                        'winners_count'     => $winners_count,
+                                                                        'guessing_enabled'  => $guessing_enabled,
+                                                                        'jackpot_increase_enabled' => $jackpot_increase,
+                                                                );
 
-								$format = array( '%s', '%f', '%d', '%d', '%d', '%d', '%d' );
+                                                                $format = array( '%s', '%f', '%d', '%d', '%d', '%d', '%d', '%d' );
 
 								if ( null !== $final_balance ) {
 									$data['final_balance'] = $final_balance;

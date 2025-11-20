@@ -141,14 +141,18 @@ $base     = remove_query_arg( 'ppaged' );
 										<th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
 																		<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ? $hunt->winners_count : 3 ); ?>"></td>
 								</tr>
-								<tr>
-										<th scope="row"><label for="bhg_guessing_enabled"><?php echo esc_html( bhg_t( 'guessing_enabled', 'Guessing Enabled' ) ); ?></label></th>
-										<td><label><input type="checkbox" id="bhg_guessing_enabled" name="guessing_enabled" value="1" <?php checked( ! empty( $hunt->guessing_enabled ) ); ?> /> <?php echo esc_html( bhg_t( 'enable_guessing_help', 'Allow users to submit or update guesses while the hunt is open.' ) ); ?></label></td>
-								</tr>
-								<tr>
-										<th scope="row"><label for="bhg_final"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></label></th>
-																				<td><input type="number" step="0.01" min="0" id="bhg_final" name="final_balance" value="<?php echo esc_attr( $hunt->final_balance ); ?>" placeholder="<?php echo esc_attr( esc_html( bhg_t( 'label_dash', '-' ) ) ); ?>"></td>
-								</tr>
+                                                                <tr>
+                                                                                <th scope="row"><label for="bhg_guessing_enabled"><?php echo esc_html( bhg_t( 'guessing_enabled', 'Guessing Enabled' ) ); ?></label></th>
+                                                                                <td><label><input type="checkbox" id="bhg_guessing_enabled" name="guessing_enabled" value="1" <?php checked( ! empty( $hunt->guessing_enabled ) ); ?> /> <?php echo esc_html( bhg_t( 'enable_guessing_help', 'Allow users to submit or update guesses while the hunt is open.' ) ); ?></label></td>
+                                                                </tr>
+                                                                <tr>
+                                                                                <th scope="row"><label for="bhg_jackpot_increase_enabled"><?php echo esc_html( bhg_t( 'jackpot_increase_enabled', 'Jackpot Increase' ) ); ?></label></th>
+                                                                                <td><label><input type="checkbox" id="bhg_jackpot_increase_enabled" name="jackpot_increase_enabled" value="1" <?php checked( ! isset( $hunt->jackpot_increase_enabled ) || (int) $hunt->jackpot_increase_enabled ); ?> /> <?php echo esc_html( bhg_t( 'jackpot_increase_enabled_help', 'Increase connected jackpots when this hunt closes without a hit.' ) ); ?></label></td>
+                                                                </tr>
+                                                                <tr>
+                                                                                <th scope="row"><label for="bhg_final"><?php echo esc_html( bhg_t( 'sc_final_balance', 'Final Balance' ) ); ?></label></th>
+                                                                                <td><input type="number" step="0.01" min="0" id="bhg_final" name="final_balance" value="<?php echo esc_attr( $hunt->final_balance ); ?>" placeholder="<?php echo esc_attr( esc_html( bhg_t( 'label_dash', '-' ) ) ); ?>"></td>
+                                                                </tr>
 				<tr>
 					<th scope="row"><label for="bhg_status"><?php echo esc_html( bhg_t( 'sc_status', 'Status' ) ); ?></label></th>
 					<td>
