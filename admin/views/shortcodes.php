@@ -50,7 +50,7 @@ $shortcodes = array(
 			'status'   => bhg_t( 'shortcode_attr_user_guesses_status', 'Hunt status filter: open or closed.' ),
 			'timeline' => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'fields'   => bhg_t( 'shortcode_attr_user_guesses_fields', 'Columns to display (hunt,user,guess,final,site).' ),
 			'orderby'  => bhg_t( 'shortcode_attr_orderby', 'Default sort column (hunt, guess, final, difference).' ),
@@ -69,7 +69,7 @@ $shortcodes = array(
 			'status'      => bhg_t( 'shortcode_attr_hunts_status', 'Filter by hunt status: open or closed.' ),
 			'timeline'    => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'fields'      => bhg_t( 'shortcode_attr_hunts_fields', 'Columns to display (title,start,final,winners,status,site).' ),
 			'orderby'     => bhg_t( 'shortcode_attr_orderby', 'Default sort column (title,start,final,winners,status,created).' ),
@@ -88,7 +88,7 @@ $shortcodes = array(
 			'ranking'     => bhg_t( 'shortcode_attr_leaderboards_ranking', 'Ranking scope ID or slug to load (defaults to 1).' ),
 			'timeline'    => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'orderby'     => bhg_t( 'shortcode_attr_orderby', 'Default sort column (wins, avg, user, etc.).' ),
 			'order'       => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
@@ -109,7 +109,7 @@ $shortcodes = array(
 			'website'     => bhg_t( 'shortcode_attr_tournaments_site', 'Affiliate website ID filter.' ),
 			'timeline'    => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'orderby'     => bhg_t( 'shortcode_attr_orderby', 'Default sort column (start_date,end_date,title,status).' ),
 			'order'       => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
@@ -137,7 +137,7 @@ $shortcodes = array(
 			'fields'     => bhg_t( 'shortcode_attr_leaderboard_list_fields', 'Comma list of metrics: position,username,times_won,avg_hunt,avg_tournament.' ),
 			'timeline'   => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'tournament' => bhg_t( 'shortcode_attr_leaderboards_tournament', 'Limit rankings to a specific tournament ID.' ),
 			'bonushunt'  => bhg_t( 'shortcode_attr_leaderboards_hunt', 'Limit rankings to a specific hunt ID.' ),
@@ -156,7 +156,7 @@ $shortcodes = array(
 			'status'   => bhg_t( 'shortcode_attr_tournaments_status', 'Filter by tournament status: active, closed, or all.' ),
 			'timeline' => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'limit'    => bhg_t( 'shortcode_attr_tournament_list_limit', 'Maximum number of tournaments to list (1-100).' ),
 			'orderby'  => bhg_t( 'shortcode_attr_tournament_list_orderby', 'Sort column: start_date,end_date,title,status.' ),
@@ -173,7 +173,7 @@ $shortcodes = array(
 			'status'   => bhg_t( 'shortcode_attr_bonushunt_list_status', 'Filter hunts by status: open, closed, or all.' ),
 			'timeline' => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'limit'    => bhg_t( 'shortcode_attr_bonushunt_list_limit', 'Maximum number of hunts to list (1-100).' ),
 			'orderby'  => bhg_t( 'shortcode_attr_bonushunt_list_orderby', 'Sort column: created_at,title,start_balance,final_balance,status.' ),

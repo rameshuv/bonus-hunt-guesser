@@ -914,7 +914,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
                         'shortcode_attr_jackpot_design'                => 'Visual style: fade or scroll.',
                         'shortcode_jackpot_winners_desc'               => 'Formatted table or list of jackpot winners.',
                         'shortcode_attr_jackpot_layout'                => 'Layout style: table or list.',
-			'shortcode_attr_timeline'                      => 'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).',
+                        'shortcode_attr_timeline'                      => 'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).',
 			'shortcode_attr_show_search'                   => 'yes to display the search controls; no to hide them.',
 			'shortcode_latest_winners_desc'                => 'Displays a text list of the most recent hunt winners.',
 			'shortcode_attr_latest_winners_limit'          => 'Maximum number of winners to display (1-100).',

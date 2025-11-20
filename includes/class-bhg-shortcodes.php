@@ -143,60 +143,60 @@ add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
                  * @param string $timeline Timeline keyword.
                  * @return array|null Array with 'start' and 'end' in `Y-m-d H:i:s` or null for no restriction.
                  */
-               private function get_timeline_range( $timeline ) {
-                               $timeline = strtolower( (string) $timeline );
+              private function get_timeline_range( $timeline ) {
+                              $timeline = strtolower( (string) $timeline );
+                              $timeline = str_replace( array( ' ', '-' ), '_', $timeline );
 
-                               if ( '' === $timeline ) {
-                                               return null;
-                               }
+                              if ( '' === $timeline ) {
+                                              return null;
+                              }
 
-                               $aliases = array(
-                                               'day'          => 'day',
-                                               'today'        => 'day',
-                                               'week'         => 'week',
-                                               'this_week'    => 'week',
-                                               'month'        => 'month',
-                                               'this_month'   => 'month',
-                                               'quarter'      => 'quarter',
-                                               'this_quarter' => 'quarter',
-                                               'year'         => 'year',
-                                               'this_year'    => 'year',
-                                               'last_year'    => 'last_year',
-                                               'all_time'     => 'all_time',
-                               );
+                              if ( 'alltime' === $timeline ) {
+                                              $timeline = 'all_time';
+                              }
 
-                               if ( ! isset( $aliases[ $timeline ] ) ) {
-                                               return null;
-                               }
+                              $allowed = array(
+                                              'today',
+                                              'this_week',
+                                              'this_month',
+                                              'this_quarter',
+                                              'this_year',
+                                              'last_year',
+                                              'all_time',
+                              );
 
-                               $canonical = $aliases[ $timeline ];
+                              if ( ! in_array( $timeline, $allowed, true ) ) {
+                                              return null;
+                              }
+
+                              $canonical = $timeline;
 
                                $site_timezone = wp_timezone();
                                $now           = new DateTimeImmutable( 'now', $site_timezone );
 
                                switch ( $canonical ) {
-                                       case 'day':
+                                       case 'today':
                                                $start_dt = $now->setTime( 0, 0, 0 );
                                                $end_dt   = $now->setTime( 23, 59, 59 );
                                                break;
 
-                                       case 'week':
+                                       case 'this_week':
                                                $week     = get_weekstartend( $now->format( 'Y-m-d' ) );
                                                $start_dt = ( new DateTimeImmutable( '@' . $week['start'] ) )->setTimezone( $site_timezone );
                                                $end_dt   = ( new DateTimeImmutable( '@' . $week['end'] ) )->setTimezone( $site_timezone );
                                                break;
 
-                                       case 'month':
+                                       case 'this_month':
                                                $start_dt = $now->modify( 'first day of this month' )->setTime( 0, 0, 0 );
                                                $end_dt   = $now->modify( 'last day of this month' )->setTime( 23, 59, 59 );
                                                break;
 
-                                       case 'year':
+                                       case 'this_year':
                                                $start_dt = $now->setDate( (int) $now->format( 'Y' ), 1, 1 )->setTime( 0, 0, 0 );
                                                $end_dt   = $now->setDate( (int) $now->format( 'Y' ), 12, 31 )->setTime( 23, 59, 59 );
                                                break;
 
-                                       case 'quarter':
+                                       case 'this_quarter':
                                                $year        = (int) $now->format( 'Y' );
                                                $month       = (int) $now->format( 'n' );
                                                $quarter     = (int) floor( ( $month - 1 ) / 3 ) + 1;
