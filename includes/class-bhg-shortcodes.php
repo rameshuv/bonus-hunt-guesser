@@ -1323,7 +1323,7 @@ private function normalize_prize_layout( $layout ) {
 		 * @param string $section Section key.
 		 * @return bool
 		 */
-		private function is_profile_section_enabled( $section ) {
+                private function is_profile_section_enabled( $section ) {
 				if ( null === $this->profile_visibility_settings ) {
 						$settings = get_option( 'bhg_plugin_settings', array() );
 						$sections = array();
@@ -1341,13 +1341,17 @@ private function normalize_prize_layout( $layout ) {
 						return true;
 				}
 
-				if ( empty( $this->profile_visibility_settings ) ) {
-						return true;
-				}
+                                if ( ! is_array( $this->profile_visibility_settings ) ) {
+                                                $this->profile_visibility_settings = array();
+                                }
 
-				if ( ! array_key_exists( $section, $this->profile_visibility_settings ) ) {
-						return true;
-				}
+                                if ( empty( $this->profile_visibility_settings ) ) {
+                                                return true;
+                                }
+
+                                if ( ! array_key_exists( $section, $this->profile_visibility_settings ) ) {
+                                                return true;
+                                }
 
 				return (bool) $this->profile_visibility_settings[ $section ];
 		}
@@ -1820,25 +1824,26 @@ $wp_size = 'thumbnail';
 $wp_size = 'bhg_prize_big';
 }
 
+$defaults         = is_array( $defaults ) ? $defaults : array();
 $show_title       = BHG_Prizes::resolve_display_flag(
-isset( $display['show_title'] ) ? $display['show_title'] : null,
-isset( $prize->show_title ) ? $prize->show_title : 1,
-array_key_exists( 'show_title', $defaults ) ? $defaults['show_title'] : null
+        isset( $display['show_title'] ) ? $display['show_title'] : null,
+        isset( $prize->show_title ) ? $prize->show_title : 1,
+        array_key_exists( 'show_title', $defaults ) ? $defaults['show_title'] : null
 );
 $show_description = BHG_Prizes::resolve_display_flag(
-isset( $display['show_description'] ) ? $display['show_description'] : null,
-isset( $prize->show_description ) ? $prize->show_description : 1,
-array_key_exists( 'show_description', $defaults ) ? $defaults['show_description'] : null
+        isset( $display['show_description'] ) ? $display['show_description'] : null,
+        isset( $prize->show_description ) ? $prize->show_description : 1,
+        array_key_exists( 'show_description', $defaults ) ? $defaults['show_description'] : null
 );
 $show_category    = BHG_Prizes::resolve_display_flag(
-isset( $display['show_category'] ) ? $display['show_category'] : null,
-isset( $prize->show_category ) ? $prize->show_category : 1,
-array_key_exists( 'show_category', $defaults ) ? $defaults['show_category'] : null
+        isset( $display['show_category'] ) ? $display['show_category'] : null,
+        isset( $prize->show_category ) ? $prize->show_category : 1,
+        array_key_exists( 'show_category', $defaults ) ? $defaults['show_category'] : null
 );
 $show_image       = BHG_Prizes::resolve_display_flag(
-isset( $display['show_image'] ) ? $display['show_image'] : null,
-isset( $prize->show_image ) ? $prize->show_image : 1,
-array_key_exists( 'show_image', $defaults ) ? $defaults['show_image'] : null
+        isset( $display['show_image'] ) ? $display['show_image'] : null,
+        isset( $prize->show_image ) ? $prize->show_image : 1,
+        array_key_exists( 'show_image', $defaults ) ? $defaults['show_image'] : null
 );
 
 $action_override = isset( $display['click_action'] ) ? $display['click_action'] : 'inherit';
