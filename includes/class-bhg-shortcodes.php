@@ -2585,7 +2585,7 @@ return ob_get_clean();
 								}
 								$orderby = $allowed_orderby[ $orderby_key ];
 
-                                                                                                                          $paged    = isset( $_GET['bhg_page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                        $paged    = isset( $_GET['bhg_page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                                                                                                                           ? max( 1, absint( wp_unslash( $_GET['bhg_page'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                                                                                                                           : (int) $a['paged']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                                                                                                                           $paged    = max( 1, $paged );
@@ -2593,11 +2593,11 @@ return ob_get_clean();
                                                                                                                           if ( function_exists( 'bhg_get_shortcode_rows_per_page' ) ) {
                                                                                                                           $per_page_default = bhg_get_shortcode_rows_per_page( $per_page_default );
                                                                                                                           }
-                                                                                                                          $per_page = $per_page_default;
-                                                                                                                          if ( array_key_exists( 'per_page', $atts ) ) {
-                                                                                                                          $per_page_attr = (int) $a['per_page'];
-                                                                                                                          if ( $per_page_attr > 0 ) {
-                                                                                                                          $per_page = $per_page_attr;
+                        $per_page = $per_page_default;
+                        if ( is_array( $atts ) && array_key_exists( 'per_page', $atts ) ) {
+                                $per_page_attr = (int) $a['per_page'];
+                                if ( $per_page_attr > 0 ) {
+                                        $per_page = $per_page_attr;
                                                                                                                           }
                                                                                                                           }
                                                                                                                           $per_page = max( 1, $per_page );
@@ -2849,7 +2849,7 @@ echo '<table class="bhg-leaderboard">';
 		$orderby_request     = $has_orderby_query ? sanitize_key( wp_unslash( $_GET['bhg_orderby'] ) ) : sanitize_key( $a['orderby'] );
 		$has_order_query     = isset( $_GET['bhg_order'] );
 		$order_request       = $has_order_query ? sanitize_key( wp_unslash( $_GET['bhg_order'] ) ) : sanitize_key( $a['order'] );
-$has_order_attribute = array_key_exists( 'order', $atts );
+                        $has_order_attribute = is_array( $atts ) && array_key_exists( 'order', $atts );
 
 $status_attr = sanitize_key( (string) $a['status'] );
 if ( ! in_array( $status_attr, array( 'open', 'closed' ), true ) ) {
@@ -2921,7 +2921,7 @@ $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ?
 		$hunt_has_final_balance = ( $hunt_context && null !== $hunt_context->final_balance );
 		$is_open_hunt           = ! $hunt_has_final_balance;
 
-			$aff_raw    = array_key_exists( 'aff', $atts ) ? $atts['aff'] : '';
+                        $aff_raw    = ( is_array( $atts ) && array_key_exists( 'aff', $atts ) ) ? $atts['aff'] : '';
 			$aff_filter = sanitize_key( (string) $aff_raw );
 			if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
 				$aff_filter = 'yes';
