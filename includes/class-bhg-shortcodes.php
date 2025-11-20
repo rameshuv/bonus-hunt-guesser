@@ -88,9 +88,8 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 			add_shortcode( 'my_prizes', array( $this, 'my_prizes_shortcode' ) );
 			add_shortcode( 'my_rankings', array( $this, 'my_rankings_shortcode' ) );
 			add_shortcode( 'bhg_jackpot_current', array( $this, 'jackpot_current_shortcode' ) );
-			add_shortcode( 'bhg_jackpot_latest', array( $this, 'jackpot_latest_shortcode' ) );
-			add_shortcode( 'bhg_jackpot_ticker', array( $this, 'jackpot_ticker_shortcode' ) );
-			add_shortcode( 'bhg_jackpot_winners', array( $this, 'jackpot_winners_shortcode' ) );
+                       add_shortcode( 'bhg_jackpot_ticker', array( $this, 'jackpot_ticker_shortcode' ) );
+                       add_shortcode( 'bhg_jackpot_winners', array( $this, 'jackpot_winners_shortcode' ) );
 add_shortcode( 'bhg_latest_winners_list', array( $this, 'latest_winners_list_shortcode' ) );
 add_shortcode( 'bhg_leaderboard_list', array( $this, 'leaderboard_list_shortcode' ) );
 add_shortcode( 'bhg_tournament_list', array( $this, 'tournament_list_shortcode' ) );
@@ -151,28 +150,26 @@ add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
                                                return null;
                                }
 
-$aliases = array(
-'day'          => 'day',
-'today'        => 'day',
-'this_day'     => 'day',
-'week'         => 'week',
-'this_week'    => 'week',
-'weekly'       => 'week',
-'month'        => 'month',
-'this_month'   => 'month',
-'monthly'      => 'month',
-'year'         => 'year',
-'this_year'    => 'year',
-'yearly'       => 'year',
-'quarter'      => 'quarter',
-'quarterly'    => 'quarter',
-'this_quarter' => 'quarter',
-'last_year'    => 'last_year',
-'all_time'     => 'all_time',
-'alltime'      => 'all_time',
-);
+                               $aliases = array(
+                                               'day'          => 'day',
+                                               'today'        => 'day',
+                                               'week'         => 'week',
+                                               'this_week'    => 'week',
+                                               'month'        => 'month',
+                                               'this_month'   => 'month',
+                                               'quarter'      => 'quarter',
+                                               'this_quarter' => 'quarter',
+                                               'year'         => 'year',
+                                               'this_year'    => 'year',
+                                               'last_year'    => 'last_year',
+                                               'all_time'     => 'all_time',
+                               );
 
-                               $canonical = isset( $aliases[ $timeline ] ) ? $aliases[ $timeline ] : $timeline;
+                               if ( ! isset( $aliases[ $timeline ] ) ) {
+                                               return null;
+                               }
+
+                               $canonical = $aliases[ $timeline ];
 
                                $site_timezone = wp_timezone();
                                $now           = new DateTimeImmutable( 'now', $site_timezone );
@@ -1326,7 +1323,7 @@ private function normalize_prize_layout( $layout ) {
 		 * @param string $section Section key.
 		 * @return bool
 		 */
-		private function is_profile_section_enabled( $section ) {
+                private function is_profile_section_enabled( $section ) {
 				if ( null === $this->profile_visibility_settings ) {
 						$settings = get_option( 'bhg_plugin_settings', array() );
 						$sections = array();
@@ -1344,13 +1341,17 @@ private function normalize_prize_layout( $layout ) {
 						return true;
 				}
 
-				if ( empty( $this->profile_visibility_settings ) ) {
-						return true;
-				}
+                                if ( ! is_array( $this->profile_visibility_settings ) ) {
+                                                $this->profile_visibility_settings = array();
+                                }
 
-				if ( ! array_key_exists( $section, $this->profile_visibility_settings ) ) {
-						return true;
-				}
+                                if ( empty( $this->profile_visibility_settings ) ) {
+                                                return true;
+                                }
+
+                                if ( ! array_key_exists( $section, $this->profile_visibility_settings ) ) {
+                                                return true;
+                                }
 
 				return (bool) $this->profile_visibility_settings[ $section ];
 		}
@@ -1823,25 +1824,26 @@ $wp_size = 'thumbnail';
 $wp_size = 'bhg_prize_big';
 }
 
+$defaults         = is_array( $defaults ) ? $defaults : array();
 $show_title       = BHG_Prizes::resolve_display_flag(
-isset( $display['show_title'] ) ? $display['show_title'] : null,
-isset( $prize->show_title ) ? $prize->show_title : 1,
-array_key_exists( 'show_title', $defaults ) ? $defaults['show_title'] : null
+        isset( $display['show_title'] ) ? $display['show_title'] : null,
+        isset( $prize->show_title ) ? $prize->show_title : 1,
+        array_key_exists( 'show_title', $defaults ) ? $defaults['show_title'] : null
 );
 $show_description = BHG_Prizes::resolve_display_flag(
-isset( $display['show_description'] ) ? $display['show_description'] : null,
-isset( $prize->show_description ) ? $prize->show_description : 1,
-array_key_exists( 'show_description', $defaults ) ? $defaults['show_description'] : null
+        isset( $display['show_description'] ) ? $display['show_description'] : null,
+        isset( $prize->show_description ) ? $prize->show_description : 1,
+        array_key_exists( 'show_description', $defaults ) ? $defaults['show_description'] : null
 );
 $show_category    = BHG_Prizes::resolve_display_flag(
-isset( $display['show_category'] ) ? $display['show_category'] : null,
-isset( $prize->show_category ) ? $prize->show_category : 1,
-array_key_exists( 'show_category', $defaults ) ? $defaults['show_category'] : null
+        isset( $display['show_category'] ) ? $display['show_category'] : null,
+        isset( $prize->show_category ) ? $prize->show_category : 1,
+        array_key_exists( 'show_category', $defaults ) ? $defaults['show_category'] : null
 );
 $show_image       = BHG_Prizes::resolve_display_flag(
-isset( $display['show_image'] ) ? $display['show_image'] : null,
-isset( $prize->show_image ) ? $prize->show_image : 1,
-array_key_exists( 'show_image', $defaults ) ? $defaults['show_image'] : null
+        isset( $display['show_image'] ) ? $display['show_image'] : null,
+        isset( $prize->show_image ) ? $prize->show_image : 1,
+        array_key_exists( 'show_image', $defaults ) ? $defaults['show_image'] : null
 );
 
 $action_override = isset( $display['click_action'] ) ? $display['click_action'] : 'inherit';
@@ -3116,36 +3118,17 @@ $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ?
 		  echo '<span>' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . '</span> ';
   echo '<select name="bhg_timeline">';
   $timeline_options = array(
-                  'all_time'  => bhg_t( 'label_all_time', 'Alltime' ),
-                  'day'       => bhg_t( 'label_today', 'Today' ),
-                  'week'      => bhg_t( 'label_this_week', 'This Week' ),
-                  'month'     => bhg_t( 'label_this_month', 'This Month' ),
-                  'quarter'   => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
-                  'year'      => bhg_t( 'label_this_year', 'This Year' ),
-                  'last_year' => bhg_t( 'label_last_year', 'Last Year' ),
+                  'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
+                  'today'        => bhg_t( 'label_today', 'Today' ),
+                  'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
+                  'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
+                  'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+                  'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
+                  'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
   );
   $selected_timeline = $timeline;
-  if ( '' === $selected_timeline ) {
-                  $selected_timeline = 'all_time';
-  }
   if ( ! array_key_exists( $selected_timeline, $timeline_options ) ) {
-                  $alias_map = array(
-                                  'today'        => 'day',
-                                  'this_day'     => 'day',
-                                  'this_week'    => 'week',
-                                  'weekly'       => 'week',
-                                  'this_month'   => 'month',
-                                  'monthly'      => 'month',
-                                  'this_quarter' => 'quarter',
-                                  'quarterly'    => 'quarter',
-                                  'quarter'      => 'quarter',
-                                  'this_year'    => 'year',
-                                  'yearly'       => 'year',
-                                  'alltime'      => 'all_time',
-                  );
-                  if ( isset( $alias_map[ $selected_timeline ] ) ) {
-                                  $selected_timeline = $alias_map[ $selected_timeline ];
-                  }
+                  $selected_timeline = 'all_time';
   }
   foreach ( $timeline_options as $key => $label ) {
                   echo '<option value="' . esc_attr( $key ) . '"' . selected( $selected_timeline, $key, false ) . '>' . esc_html( $label ) . '</option>';
@@ -3524,20 +3507,21 @@ $atts,
                                                $show_avg_hunt       = in_array( 'avg_hunt', $fields, true );
                                                $show_avg_tournament = in_array( 'avg_tournament', $fields, true );
 
-                                               $timeline = sanitize_key( (string) $atts['timeline'] );
-                                               $timeline_aliases = array(
+                                               $timeline_key      = sanitize_key( (string) $atts['timeline'] );
+                                               $allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
+                                               if ( ! in_array( $timeline_key, $allowed_timelines, true ) ) {
+                                                               $timeline_key = 'all_time';
+                                               }
+                                               $timeline_map = array(
+                                                               'all_time'     => 'all_time',
                                                                'today'        => 'day',
                                                                'this_week'    => 'week',
                                                                'this_month'   => 'month',
                                                                'this_quarter' => 'quarter',
                                                                'this_year'    => 'year',
                                                                'last_year'    => 'last_year',
-                                                               'alltime'      => 'all_time',
-                                                               'all_time'     => 'all_time',
                                                );
-                                               if ( isset( $timeline_aliases[ $timeline ] ) ) {
-                                                               $timeline = $timeline_aliases[ $timeline ];
-                                               }
+                                               $timeline = $timeline_map[ $timeline_key ];
 
                                                $tournament_id = isset( $atts['tournament'] ) ? (int) $atts['tournament'] : 0;
                                                $hunt_id       = isset( $atts['bonushunt'] ) ? (int) $atts['bonushunt'] : 0;
@@ -3708,20 +3692,21 @@ $atts,
                                                                $status_filter = 'active';
                                                }
 
-                                               $timeline = sanitize_key( (string) $atts['timeline'] );
-                                               $timeline_aliases = array(
+                                               $timeline_key      = sanitize_key( (string) $atts['timeline'] );
+                                               $allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
+                                               if ( ! in_array( $timeline_key, $allowed_timelines, true ) ) {
+                                                               $timeline_key = 'all_time';
+                                               }
+                                               $timeline_map = array(
+                                                               'all_time'     => 'all_time',
                                                                'today'        => 'day',
                                                                'this_week'    => 'week',
                                                                'this_month'   => 'month',
                                                                'this_quarter' => 'quarter',
                                                                'this_year'    => 'year',
                                                                'last_year'    => 'last_year',
-                                                               'alltime'      => 'all_time',
-                                                               'all_time'     => 'all_time',
                                                );
-                                               if ( isset( $timeline_aliases[ $timeline ] ) ) {
-                                                               $timeline = $timeline_aliases[ $timeline ];
-                                               }
+                                               $timeline = $timeline_map[ $timeline_key ];
 
                                                $table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
                                                if ( ! $table ) {
@@ -3861,20 +3846,21 @@ $atts,
                                                                $status_filter = 'open';
                                                }
 
-                                               $timeline = sanitize_key( (string) $atts['timeline'] );
-                                               $timeline_aliases = array(
+                                               $timeline_key      = sanitize_key( (string) $atts['timeline'] );
+                                               $allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
+                                               if ( ! in_array( $timeline_key, $allowed_timelines, true ) ) {
+                                                               $timeline_key = 'all_time';
+                                               }
+                                               $timeline_map = array(
+                                                               'all_time'     => 'all_time',
                                                                'today'        => 'day',
                                                                'this_week'    => 'week',
                                                                'this_month'   => 'month',
                                                                'this_quarter' => 'quarter',
                                                                'this_year'    => 'year',
                                                                'last_year'    => 'last_year',
-                                                               'alltime'      => 'all_time',
-                                                               'all_time'     => 'all_time',
                                                );
-                                               if ( isset( $timeline_aliases[ $timeline ] ) ) {
-                                                               $timeline = $timeline_aliases[ $timeline ];
-                                               }
+                                               $timeline = $timeline_map[ $timeline_key ];
 
                                                $table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
                                                if ( ! $table ) {
@@ -4014,32 +4000,11 @@ $atts,
                                                $status_request = isset( $_GET['bhg_status'] ) ? sanitize_key( wp_unslash( $_GET['bhg_status'] ) ) : '';
                                                $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ? $status_request : $status_attr;
 
-                                               $timeline_ui_aliases = array(
-                                                               ''            => 'all_time',
-                                                               'all_time'    => 'all_time',
-                                                               'alltime'     => 'all_time',
-                                                               'today'       => 'today',
-                                                               'day'         => 'today',
-                                                               'this_day'    => 'today',
-                                                               'this_week'   => 'this_week',
-                                                               'week'        => 'this_week',
-                                                               'weekly'      => 'this_week',
-                                                               'this_month'  => 'this_month',
-                                                               'month'       => 'this_month',
-                                                               'monthly'     => 'this_month',
-                                                               'this_quarter'=> 'this_quarter',
-                                                               'quarter'     => 'this_quarter',
-                                                               'quarterly'   => 'this_quarter',
-                                                               'this_year'   => 'this_year',
-                                                               'year'        => 'this_year',
-                                                               'yearly'      => 'this_year',
-                                                               'last_year'   => 'last_year',
-                                               );
-
-                                               $timeline_attr     = sanitize_key( (string) $a['timeline'] );
-                                               $timeline_default  = isset( $timeline_ui_aliases[ $timeline_attr ] ) ? $timeline_ui_aliases[ $timeline_attr ] : 'all_time';
-                                               $timeline_request  = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
-                                               $timeline_ui_value = isset( $timeline_ui_aliases[ $timeline_request ] ) ? $timeline_ui_aliases[ $timeline_request ] : $timeline_default;
+                                               $allowed_timeline_ui = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
+                                               $timeline_attr       = sanitize_key( (string) $a['timeline'] );
+                                               $timeline_default    = in_array( $timeline_attr, $allowed_timeline_ui, true ) ? $timeline_attr : 'all_time';
+                                               $timeline_request    = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
+                                               $timeline_ui_value   = in_array( $timeline_request, $allowed_timeline_ui, true ) ? $timeline_request : $timeline_default;
 
                                                $timeline_query_map = array(
                                                                'all_time'     => 'all_time',
@@ -4051,7 +4016,7 @@ $atts,
                                                                'last_year'    => 'last_year',
                                                );
 
-                                               $timeline_query_value = isset( $timeline_query_map[ $timeline_ui_value ] ) ? $timeline_query_map[ $timeline_ui_value ] : 'all_time';
+                                               $timeline_query_value = $timeline_query_map[ $timeline_ui_value ];
 
 						$need_site_field = in_array( 'site', $fields_arr, true );
 
@@ -4463,20 +4428,7 @@ $filters_input      = ( is_array( $atts ) && array_key_exists( 'filters', $atts 
 			$timeline_request = ( $filter_timeline_enabled && isset( $_GET['bhg_timeline'] ) ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
 			$timeline         = '' !== $timeline_request ? $timeline_request : $attr_timeline;
 
-$timeline_aliases = array(
-'today'        => 'today',
-'this_week'    => 'this_week',
-'this_month'   => 'this_month',
-'this_quarter' => 'this_quarter',
-'this_year'    => 'this_year',
-'last_year'    => 'last_year',
-'all_time'     => 'all_time',
-'alltime'      => 'all_time',
-);
-if ( isset( $timeline_aliases[ $timeline ] ) ) {
-$timeline = $timeline_aliases[ $timeline ];
-}
-$allowed_timelines = array_keys( $timeline_aliases );
+$allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
 if ( ! in_array( $timeline, $allowed_timelines, true ) ) {
 $timeline = 'all_time';
 }
@@ -4856,10 +4808,6 @@ $timeline_options = array(
 'this_year'    => bhg_t( 'option_timeline_this_year', 'This Year' ),
 'last_year'    => bhg_t( 'option_timeline_last_year', 'Last Year' ),
 );
-
-if ( '' !== $timeline && ! isset( $timeline_options[ $timeline ] ) ) {
-$timeline_options[ $timeline ] = ucwords( str_replace( '_', ' ', $timeline ) );
-}
 
 echo '<label class="bhg-filter-label">' . esc_html( bhg_t( 'label_filter_timeline', 'Timeline' ) );
 echo '<select name="bhg_timeline" class="bhg-filter-select">';
@@ -5504,19 +5452,21 @@ return ob_get_clean();
 							   $params[] = $status;
 					   }
 
-                                           $timeline_aliases = array(
+                                           $timeline_ui        = $timeline;
+                                           $timeline_map       = array(
+                                                           'all_time'     => 'all_time',
                                                            'today'        => 'day',
                                                            'this_week'    => 'week',
                                                            'this_month'   => 'month',
                                                            'this_quarter' => 'quarter',
                                                            'this_year'    => 'year',
                                                            'last_year'    => 'last_year',
-                                                           'alltime'      => 'all_time',
-                                                           'all_time'     => 'all_time',
                                            );
-                                           if ( isset( $timeline_aliases[ $timeline ] ) ) {
-                                                           $timeline = $timeline_aliases[ $timeline ];
+                                           $allowed_timelines = array_keys( $timeline_map );
+                                           if ( ! in_array( $timeline_ui, $allowed_timelines, true ) ) {
+                                                           $timeline_ui = 'all_time';
                                            }
+                                           $timeline = $timeline_map[ $timeline_ui ];
 
                                            // Accept explicit time window or derive range from timeline keyword.
                                            $range = $this->get_timeline_range( $timeline );
@@ -5577,17 +5527,17 @@ return ob_get_clean();
                                            echo '<label class="bhg-tournament-label">' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . ' ';
                                            echo '<select name="bhg_timeline">';
                                                $timeline_options = array(
-                                               'all_time'  => bhg_t( 'label_all_time', 'Alltime' ),
-                                               'day'       => bhg_t( 'label_today', 'Today' ),
-                                               'week'      => bhg_t( 'label_this_week', 'This Week' ),
-                                               'month'     => bhg_t( 'label_this_month', 'This Month' ),
-                                               'quarter'   => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
-                                               'year'      => bhg_t( 'label_this_year', 'This Year' ),
-                                               'last_year' => bhg_t( 'label_last_year', 'Last Year' ),
+                                                               'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
+                                                               'today'        => bhg_t( 'label_today', 'Today' ),
+                                                               'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
+                                                               'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
+                                                               'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+                                                               'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
+                                                               'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
                                                );
-                        $timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline;
-                        if ( isset( $timeline_aliases[ $timeline_key ] ) ) {
-                                $timeline_key = $timeline_aliases[ $timeline_key ];
+                        $timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline_ui;
+                        if ( ! array_key_exists( $timeline_key, $timeline_options ) ) {
+                                $timeline_key = 'all_time';
                         }
                         foreach ( $timeline_options as $key => $label ) {
                                 echo '<option value="' . esc_attr( $key ) . '"' . selected( $timeline_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
@@ -6351,116 +6301,40 @@ $output .= '</table></div>';
 						return '<span class="bhg-jackpot-amount" data-jackpot-id="' . esc_attr( $jackpot_id ) . '">' . esc_html( $amount ) . '</span>';
 				}
 
-				/**
-				 * Render a list of the latest jackpot hits.
-				 *
-				 * @param array $atts Shortcode attributes.
-				 * @return string
-				 */
-				public function jackpot_latest_shortcode( $atts ) {
-						if ( ! class_exists( 'BHG_Jackpots' ) ) {
-								return '';
-						}
-
-						$atts = shortcode_atts(
-								array(
-										'limit'     => 5,
-										'affiliate' => 0,
-										'year'      => 0,
-										'empty'     => '',
-								),
-								$atts,
-								'bhg_jackpot_latest'
-						);
-
-						$limit = max( 1, absint( $atts['limit'] ) );
-						$args  = array( 'limit' => $limit );
-
-						if ( ! empty( $atts['affiliate'] ) ) {
-								$args['affiliate'] = absint( $atts['affiliate'] );
-						}
-
-						if ( ! empty( $atts['year'] ) ) {
-								$args['year'] = absint( $atts['year'] );
-						}
-
-						$rows = BHG_Jackpots::instance()->get_latest_hits( $args );
-
-						if ( empty( $rows ) ) {
-								return $atts['empty'] ? '<div class="bhg-jackpot-latest-empty">' . esc_html( $atts['empty'] ) . '</div>' : '';
-						}
-
-						$format_amount = static function ( $amount ) {
-								if ( function_exists( 'bhg_format_money' ) ) {
-										return bhg_format_money( $amount );
-								}
-
-								return number_format_i18n( (float) $amount, 2 );
-						};
-
-						ob_start();
-						echo '<div class="bhg-jackpot-latest"><ul class="bhg-jackpot-latest-list">';
-						foreach ( $rows as $row ) {
-								$winner     = '';
-								$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-								$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-								$title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-								$created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
-								$hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
-
-								if ( $user_id ) {
-										$user = get_userdata( $user_id );
-										if ( $user ) {
-												$winner = $user->display_name;
-										}
-								}
-
-								echo '<li class="bhg-jackpot-latest-item">';
-								if ( $title ) {
-										echo '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span> ';
-								}
-								echo '<span class="bhg-jackpot-winning-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
-								if ( $winner ) {
-										echo ' <span class="bhg-jackpot-winner">' . esc_html( $winner ) . '</span>';
-								}
-								if ( $hunt_title ) {
-										echo ' <span class="bhg-jackpot-hunt">' . esc_html( $hunt_title ) . '</span>';
-								}
-								if ( $created_at ) {
-										echo ' <time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>';
-								}
-								echo '</li>';
-						}
-						echo '</ul></div>';
-
-						return ob_get_clean();
-				}
-
-				/**
-				 * Render a ticker of jackpots or winners.
-				 *
-				 * @param array $atts Shortcode attributes.
-				 * @return string
+                                /**
+                                 * Render a ticker of jackpots or winners.
+                                 *
+                                 * @param array $atts Shortcode attributes.
+                                 * @return string
 				 */
 				public function jackpot_ticker_shortcode( $atts ) {
 						if ( ! class_exists( 'BHG_Jackpots' ) ) {
 								return '';
 						}
 
-						$atts = shortcode_atts(
-								array(
-										'mode' => 'amount',
-								),
-								$atts,
-								'bhg_jackpot_ticker'
-						);
+                                                $atts = shortcode_atts(
+                                                                array(
+                                                                                'mode'   => 'amount',
+                                                                                'status' => 'active',
+                                                                                'design' => 'fade',
+                                                                ),
+                                                                $atts,
+                                                                'bhg_jackpot_ticker'
+                                                );
 
-						$mode    = sanitize_key( $atts['mode'] );
-						$jackets = BHG_Jackpots::instance()->get_ticker_items( $mode );
+                                                $mode    = sanitize_key( $atts['mode'] );
+                                                $status  = in_array( sanitize_key( $atts['status'] ), array( 'active', 'closed', 'all' ), true ) ? sanitize_key( $atts['status'] ) : 'active';
+                                                $design  = in_array( sanitize_key( $atts['design'] ), array( 'fade', 'scroll' ), true ) ? sanitize_key( $atts['design'] ) : 'fade';
+                                                $jackets = BHG_Jackpots::instance()->get_ticker_items( $mode, $status );
 
-						if ( empty( $jackets ) ) {
-								return '';
-						}
+                                                if ( empty( $jackets ) ) {
+                                                                return '';
+                                                }
+
+                                                $fade_interval = max( 1, (int) get_option( 'bhg_jackpot_ticker_interval', 5 ) );
+                                                $scroll_speed  = max( 1, (int) get_option( 'bhg_jackpot_ticker_scroll_speed', 25 ) );
+                                                $separator     = (string) get_option( 'bhg_jackpot_ticker_separator', '-' );
+                                                $padding       = max( 0, (int) get_option( 'bhg_jackpot_ticker_padding', 10 ) );
 
 						$format_amount = static function ( $amount ) {
 								if ( function_exists( 'bhg_format_money' ) ) {
@@ -6470,34 +6344,61 @@ $output .= '</table></div>';
 								return number_format_i18n( (float) $amount, 2 );
 						};
 
-						ob_start();
-						echo '<div class="bhg-jackpot-ticker bhg-jackpot-ticker--' . esc_attr( $mode ) . '"><ul>';
-						if ( 'winners' === $mode ) {
-								foreach ( $jackets as $row ) {
-										$user_label = '';
-										$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-										if ( $user_id ) {
+                                                ob_start();
+                                                $classes = array(
+                                                                'bhg-jackpot-ticker',
+                                                                'bhg-jackpot-ticker--' . $mode,
+                                                                'bhg-jackpot-ticker--design-' . $design,
+                                                );
+                                                echo '<div class="' . esc_attr( implode( ' ', $classes ) ) . '" data-interval="' . esc_attr( $fade_interval ) . '" data-speed="' . esc_attr( $scroll_speed ) . '" data-separator="' . esc_attr( $separator ) . '" data-padding="' . esc_attr( $padding ) . '"><ul style="margin:0;padding:0;list-style:none;">';
+                                                if ( 'winners' === $mode ) {
+                                                                $total = count( $jackets );
+                                                                $index = 0;
+                                                                foreach ( $jackets as $row ) {
+                                                                                ++$index;
+                                                                                $user_label = '';
+                                                                                $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+                                                                                if ( $user_id ) {
 												$user = get_userdata( $user_id );
 												if ( $user ) {
 														$user_label = $user->display_name;
 												}
 										}
-										$amount = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-										$title  = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-										echo '<li><span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span> <span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
-										if ( $user_label ) {
-												echo ' <span class="bhg-ticker-winner">' . esc_html( $user_label ) . '</span>';
-										}
-										echo '</li>';
-								}
-						} else {
-								foreach ( $jackets as $row ) {
-										$title  = isset( $row['title'] ) ? $row['title'] : '';
-										$amount = isset( $row['current_amount'] ) ? (float) $row['current_amount'] : 0.0;
-										echo '<li><span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span> <span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span></li>';
-								}
-						}
-						echo '</ul></div>';
+                                                                                $amount = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+                                                                                $title  = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
+                                                                                echo '<li style="margin:0;padding:0;">';
+                                                                                echo '<span class="bhg-ticker-winner-name">' . esc_html( $user_label ) . '</span> ';
+                                                                                echo '<span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span> ';
+                                                                                if ( $title ) {
+                                                                                                echo '<span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span>';
+                                                                                }
+                                                                                if ( $user_label ) {
+                                                                                                echo ' <span class="bhg-ticker-winner">' . esc_html( $user_label ) . '</span>';
+                                                                                }
+                                                                                if ( 'scroll' === $design && $separator && $index < $total ) {
+                                                                                                echo '<span class="bhg-ticker-separator" aria-hidden="true">' . esc_html( $separator ) . '</span>';
+                                                                                }
+                                                                                echo '</li>';
+                                                                }
+                                                } else {
+                                                                $total = count( $jackets );
+                                                                $index = 0;
+                                                                foreach ( $jackets as $row ) {
+                                                                                ++$index;
+                                                                                $title  = isset( $row['title'] ) ? $row['title'] : '';
+                                                                                $amount = isset( $row['current_amount'] ) ? (float) $row['current_amount'] : 0.0;
+                                                                                echo '<li style="margin:0;padding:0;">';
+                                                                                if ( $title ) {
+                                                                                                echo '<span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span> ';
+                                                                                }
+                                                                                echo '<span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
+                                                                                if ( 'scroll' === $design && $separator && $index < $total ) {
+                                                                                                echo ' <span class="bhg-ticker-separator" aria-hidden="true">' . esc_html( $separator ) . '</span>';
+                                                                                }
+                                                                                echo '</li>';
+                                                                }
+                                                }
+                                                echo '</ul></div>';
 
 						return ob_get_clean();
 				}
@@ -6513,17 +6414,23 @@ $output .= '</table></div>';
 								return '';
 						}
 
-						$atts = shortcode_atts(
-								array(
-										'layout'    => 'table',
-										'limit'     => 10,
-										'affiliate' => 0,
-										'year'      => 0,
-										'empty'     => '',
-								),
-								$atts,
-								'bhg_jackpot_winners'
-						);
+                                                $atts = shortcode_atts(
+                                                                array(
+                                                                                'layout'    => 'table',
+                                                                                'limit'     => 10,
+                                                                                'affiliate' => 0,
+                                                                                'year'      => 0,
+                                                                                'empty'     => '',
+                                                                                'show_title'     => 'show',
+                                                                                'show_amount'    => 'show',
+                                                                                'show_username'  => 'show',
+                                                                                'show_affiliate' => 'show',
+                                                                                'show_date'      => 'show',
+                                                                                'strong'         => '',
+                                                                ),
+                                                                $atts,
+                                                                'bhg_jackpot_winners'
+                                                );
 
 						$args = array( 'limit' => max( 1, absint( $atts['limit'] ) ) );
 
@@ -6535,87 +6442,124 @@ $output .= '</table></div>';
 								$args['year'] = absint( $atts['year'] );
 						}
 
-						$rows = BHG_Jackpots::instance()->get_winner_rows( $args );
+                                                $rows = BHG_Jackpots::instance()->get_winner_rows( $args );
 
 						if ( empty( $rows ) ) {
 								return $atts['empty'] ? '<div class="bhg-jackpot-winners-empty">' . esc_html( $atts['empty'] ) . '</div>' : '';
 						}
 
-						$layout         = sanitize_key( $atts['layout'] );
-						$format_amount  = static function ( $amount ) {
-								if ( function_exists( 'bhg_format_money' ) ) {
-										return bhg_format_money( $amount );
-								}
+                                                $layout         = sanitize_key( $atts['layout'] );
+                                                $visibility     = static function ( $value ) {
+                                                                $value = strtolower( (string) $value );
+
+                                                                return ! in_array( $value, array( 'hide', '0', 'false', 'no' ), true );
+                                                };
+                                                $strong_fields  = array_filter( array_map( 'sanitize_key', array_map( 'trim', explode( ',', (string) $atts['strong'] ) ) ) );
+                                                $maybe_strong   = static function ( $field, $text ) use ( $strong_fields ) {
+                                                                if ( '' === $text ) {
+                                                                                return '';
+                                                                }
+
+                                                                $escaped = esc_html( $text );
+
+                                                                return in_array( $field, $strong_fields, true ) ? '<strong>' . $escaped . '</strong>' : $escaped;
+                                                };
+                                                $format_amount  = static function ( $amount ) {
+                                                                if ( function_exists( 'bhg_format_money' ) ) {
+                                                                                return bhg_format_money( $amount );
+                                                                }
 
 								return number_format_i18n( (float) $amount, 2 );
 						};
 
-						if ( 'list' === $layout ) {
-								ob_start();
-								echo '<ul class="bhg-jackpot-winners">';
-								foreach ( $rows as $row ) {
+                                                if ( 'list' === $layout ) {
+                                                                ob_start();
+                                                                echo '<ul class="bhg-jackpot-winners">';
+                                                                foreach ( $rows as $row ) {
 										$title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
 										$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
 										$created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
 										$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-										$hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
-										$user_name  = '';
-										if ( $user_id ) {
-												$user = get_userdata( $user_id );
+                                                                                $affiliate  = isset( $row['affiliate_site_name'] ) ? $row['affiliate_site_name'] : '';
+                                                                                $user_name  = '';
+                                                                                if ( $user_id ) {
+                                                                                                $user = get_userdata( $user_id );
 												if ( $user ) {
 														$user_name = $user->display_name;
 												}
 										}
-										echo '<li class="bhg-jackpot-winner">';
-										if ( $title ) {
-												echo '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span> ';
-										}
-										echo '<span class="bhg-jackpot-amount">' . esc_html( $format_amount( $amount ) ) . '</span>';
-										if ( $user_name ) {
-												echo ' <span class="bhg-jackpot-winner-name">' . esc_html( $user_name ) . '</span>';
-										}
-										if ( $hunt_title ) {
-												echo ' <span class="bhg-jackpot-hunt">' . esc_html( $hunt_title ) . '</span>';
-										}
-										if ( $created_at ) {
-												echo ' <time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>';
-										}
-										echo '</li>';
-								}
-								echo '</ul>';
-								return ob_get_clean();
-						}
+                                                                                echo '<li class="bhg-jackpot-winner">';
+                                                                                if ( $visibility( $atts['show_username'] ) && $user_name ) {
+                                                                                                echo '<span class="bhg-jackpot-winner-name">' . $maybe_strong( 'username', $user_name ) . '</span> ';
+                                                                                }
+                                                                                if ( $visibility( $atts['show_amount'] ) ) {
+                                                                                                echo '<span class="bhg-jackpot-amount">' . $maybe_strong( 'amount', $format_amount( $amount ) ) . '</span> ';
+                                                                                }
+                                                                                if ( $visibility( $atts['show_title'] ) && $title ) {
+                                                                                                echo '<span class="bhg-jackpot-name">' . $maybe_strong( 'title', $title ) . '</span> ';
+                                                                                }
+                                                                                if ( $visibility( $atts['show_affiliate'] ) && $affiliate ) {
+                                                                                                echo '<span class="bhg-jackpot-affiliate">' . $maybe_strong( 'affiliate', $affiliate ) . '</span> ';
+                                                                                }
+                                                                                if ( $visibility( $atts['show_date'] ) && $created_at ) {
+                                                                                                echo '<time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>';
+                                                                                }
+                                                                                echo '</li>';
+                                                                }
+                                                                echo '</ul>';
+                                                                return ob_get_clean();
+                                                }
 
 ob_start();
 echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-jackpot-winners-table"><thead><tr>';
-						echo '<th>' . esc_html( bhg_t( 'label_title', 'Title' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'label_amount', 'Amount' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'label_winner', 'Winner' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'label_date', 'Date' ) ) . '</th>';
-						echo '<th>' . esc_html( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '</th>';
+                                                if ( $visibility( $atts['show_username'] ) ) {
+                                                                echo '<th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th>';
+                                                }
+                                                if ( $visibility( $atts['show_amount'] ) ) {
+                                                                echo '<th>' . esc_html( bhg_t( 'label_amount', 'Amount' ) ) . '</th>';
+                                                }
+                                                if ( $visibility( $atts['show_title'] ) ) {
+                                                                echo '<th>' . esc_html( bhg_t( 'label_title', 'Title' ) ) . '</th>';
+                                                }
+                                                if ( $visibility( $atts['show_affiliate'] ) ) {
+                                                                echo '<th>' . esc_html( bhg_t( 'label_affiliate_website', 'Affiliate Website' ) ) . '</th>';
+                                                }
+                                                if ( $visibility( $atts['show_date'] ) ) {
+                                                                echo '<th>' . esc_html( bhg_t( 'label_date', 'Date' ) ) . '</th>';
+                                                }
 echo '</tr></thead><tbody>';
-						foreach ( $rows as $row ) {
-								$title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-								$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-								$created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
-								$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-								$hunt_title = isset( $row['hunt_title'] ) ? $row['hunt_title'] : '';
-								$user_name  = '';
-								if ( $user_id ) {
-										$user = get_userdata( $user_id );
+                                                foreach ( $rows as $row ) {
+                                                                $title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
+                                                                $amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+                                                                $created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
+                                                                $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+                                                                $affiliate  = isset( $row['affiliate_site_name'] ) ? $row['affiliate_site_name'] : '';
+                                                                $user_name  = '';
+                                                                if ( $user_id ) {
+                                                                                $user = get_userdata( $user_id );
 										if ( $user ) {
 												$user_name = $user->display_name;
 										}
 								}
             echo '<tr>';
-            echo '<td data-label="' . esc_attr( bhg_t( 'label_title', 'Title' ) ) . '">' . esc_html( $title ) . '</td>';
-            echo '<td data-label="' . esc_attr( bhg_t( 'label_amount', 'Amount' ) ) . '">' . esc_html( $format_amount( $amount ) ) . '</td>';
-            echo '<td data-label="' . esc_attr( bhg_t( 'label_winner', 'Winner' ) ) . '">' . esc_html( $user_name ) . '</td>';
-            echo '<td data-label="' . esc_attr( bhg_t( 'label_date', 'Date' ) ) . '">' . esc_html( $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '' ) . '</td>';
-            echo '<td data-label="' . esc_attr( bhg_t( 'label_bonus_hunt', 'Bonus Hunt' ) ) . '">' . esc_html( $hunt_title ) . '</td>';
+            if ( $visibility( $atts['show_username'] ) ) {
+                    echo '<td data-label="' . esc_attr( bhg_t( 'sc_user', 'Username' ) ) . '">' . $maybe_strong( 'username', $user_name ) . '</td>';
+            }
+            if ( $visibility( $atts['show_amount'] ) ) {
+                    echo '<td data-label="' . esc_attr( bhg_t( 'label_amount', 'Amount' ) ) . '">' . $maybe_strong( 'amount', $format_amount( $amount ) ) . '</td>';
+            }
+            if ( $visibility( $atts['show_title'] ) ) {
+                    echo '<td data-label="' . esc_attr( bhg_t( 'label_title', 'Title' ) ) . '">' . $maybe_strong( 'title', $title ) . '</td>';
+            }
+            if ( $visibility( $atts['show_affiliate'] ) ) {
+                    echo '<td data-label="' . esc_attr( bhg_t( 'label_affiliate_website', 'Affiliate Website' ) ) . '">' . $maybe_strong( 'affiliate', $affiliate ) . '</td>';
+            }
+            if ( $visibility( $atts['show_date'] ) ) {
+                    echo '<td data-label="' . esc_attr( bhg_t( 'label_date', 'Date' ) ) . '">' . esc_html( $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '' ) . '</td>';
+            }
             echo '</tr>';
-						}
+                                                }
 echo '</tbody></table>';
 echo '</div>';
 
