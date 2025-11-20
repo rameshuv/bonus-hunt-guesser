@@ -150,28 +150,26 @@ add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
                                                return null;
                                }
 
-$aliases = array(
-'day'          => 'day',
-'today'        => 'day',
-'this_day'     => 'day',
-'week'         => 'week',
-'this_week'    => 'week',
-'weekly'       => 'week',
-'month'        => 'month',
-'this_month'   => 'month',
-'monthly'      => 'month',
-'year'         => 'year',
-'this_year'    => 'year',
-'yearly'       => 'year',
-'quarter'      => 'quarter',
-'quarterly'    => 'quarter',
-'this_quarter' => 'quarter',
-'last_year'    => 'last_year',
-'all_time'     => 'all_time',
-'alltime'      => 'all_time',
-);
+                               $aliases = array(
+                                               'day'          => 'day',
+                                               'today'        => 'day',
+                                               'week'         => 'week',
+                                               'this_week'    => 'week',
+                                               'month'        => 'month',
+                                               'this_month'   => 'month',
+                                               'quarter'      => 'quarter',
+                                               'this_quarter' => 'quarter',
+                                               'year'         => 'year',
+                                               'this_year'    => 'year',
+                                               'last_year'    => 'last_year',
+                                               'all_time'     => 'all_time',
+                               );
 
-                               $canonical = isset( $aliases[ $timeline ] ) ? $aliases[ $timeline ] : $timeline;
+                               if ( ! isset( $aliases[ $timeline ] ) ) {
+                                               return null;
+                               }
+
+                               $canonical = $aliases[ $timeline ];
 
                                $site_timezone = wp_timezone();
                                $now           = new DateTimeImmutable( 'now', $site_timezone );
@@ -3115,36 +3113,17 @@ $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ?
 		  echo '<span>' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . '</span> ';
   echo '<select name="bhg_timeline">';
   $timeline_options = array(
-                  'all_time'  => bhg_t( 'label_all_time', 'Alltime' ),
-                  'day'       => bhg_t( 'label_today', 'Today' ),
-                  'week'      => bhg_t( 'label_this_week', 'This Week' ),
-                  'month'     => bhg_t( 'label_this_month', 'This Month' ),
-                  'quarter'   => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
-                  'year'      => bhg_t( 'label_this_year', 'This Year' ),
-                  'last_year' => bhg_t( 'label_last_year', 'Last Year' ),
+                  'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
+                  'today'        => bhg_t( 'label_today', 'Today' ),
+                  'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
+                  'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
+                  'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+                  'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
+                  'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
   );
   $selected_timeline = $timeline;
-  if ( '' === $selected_timeline ) {
-                  $selected_timeline = 'all_time';
-  }
   if ( ! array_key_exists( $selected_timeline, $timeline_options ) ) {
-                  $alias_map = array(
-                                  'today'        => 'day',
-                                  'this_day'     => 'day',
-                                  'this_week'    => 'week',
-                                  'weekly'       => 'week',
-                                  'this_month'   => 'month',
-                                  'monthly'      => 'month',
-                                  'this_quarter' => 'quarter',
-                                  'quarterly'    => 'quarter',
-                                  'quarter'      => 'quarter',
-                                  'this_year'    => 'year',
-                                  'yearly'       => 'year',
-                                  'alltime'      => 'all_time',
-                  );
-                  if ( isset( $alias_map[ $selected_timeline ] ) ) {
-                                  $selected_timeline = $alias_map[ $selected_timeline ];
-                  }
+                  $selected_timeline = 'all_time';
   }
   foreach ( $timeline_options as $key => $label ) {
                   echo '<option value="' . esc_attr( $key ) . '"' . selected( $selected_timeline, $key, false ) . '>' . esc_html( $label ) . '</option>';
@@ -3523,20 +3502,21 @@ $atts,
                                                $show_avg_hunt       = in_array( 'avg_hunt', $fields, true );
                                                $show_avg_tournament = in_array( 'avg_tournament', $fields, true );
 
-                                               $timeline = sanitize_key( (string) $atts['timeline'] );
-                                               $timeline_aliases = array(
+                                               $timeline_key      = sanitize_key( (string) $atts['timeline'] );
+                                               $allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
+                                               if ( ! in_array( $timeline_key, $allowed_timelines, true ) ) {
+                                                               $timeline_key = 'all_time';
+                                               }
+                                               $timeline_map = array(
+                                                               'all_time'     => 'all_time',
                                                                'today'        => 'day',
                                                                'this_week'    => 'week',
                                                                'this_month'   => 'month',
                                                                'this_quarter' => 'quarter',
                                                                'this_year'    => 'year',
                                                                'last_year'    => 'last_year',
-                                                               'alltime'      => 'all_time',
-                                                               'all_time'     => 'all_time',
                                                );
-                                               if ( isset( $timeline_aliases[ $timeline ] ) ) {
-                                                               $timeline = $timeline_aliases[ $timeline ];
-                                               }
+                                               $timeline = $timeline_map[ $timeline_key ];
 
                                                $tournament_id = isset( $atts['tournament'] ) ? (int) $atts['tournament'] : 0;
                                                $hunt_id       = isset( $atts['bonushunt'] ) ? (int) $atts['bonushunt'] : 0;
@@ -3707,20 +3687,21 @@ $atts,
                                                                $status_filter = 'active';
                                                }
 
-                                               $timeline = sanitize_key( (string) $atts['timeline'] );
-                                               $timeline_aliases = array(
+                                               $timeline_key      = sanitize_key( (string) $atts['timeline'] );
+                                               $allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
+                                               if ( ! in_array( $timeline_key, $allowed_timelines, true ) ) {
+                                                               $timeline_key = 'all_time';
+                                               }
+                                               $timeline_map = array(
+                                                               'all_time'     => 'all_time',
                                                                'today'        => 'day',
                                                                'this_week'    => 'week',
                                                                'this_month'   => 'month',
                                                                'this_quarter' => 'quarter',
                                                                'this_year'    => 'year',
                                                                'last_year'    => 'last_year',
-                                                               'alltime'      => 'all_time',
-                                                               'all_time'     => 'all_time',
                                                );
-                                               if ( isset( $timeline_aliases[ $timeline ] ) ) {
-                                                               $timeline = $timeline_aliases[ $timeline ];
-                                               }
+                                               $timeline = $timeline_map[ $timeline_key ];
 
                                                $table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
                                                if ( ! $table ) {
@@ -3860,20 +3841,21 @@ $atts,
                                                                $status_filter = 'open';
                                                }
 
-                                               $timeline = sanitize_key( (string) $atts['timeline'] );
-                                               $timeline_aliases = array(
+                                               $timeline_key      = sanitize_key( (string) $atts['timeline'] );
+                                               $allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
+                                               if ( ! in_array( $timeline_key, $allowed_timelines, true ) ) {
+                                                               $timeline_key = 'all_time';
+                                               }
+                                               $timeline_map = array(
+                                                               'all_time'     => 'all_time',
                                                                'today'        => 'day',
                                                                'this_week'    => 'week',
                                                                'this_month'   => 'month',
                                                                'this_quarter' => 'quarter',
                                                                'this_year'    => 'year',
                                                                'last_year'    => 'last_year',
-                                                               'alltime'      => 'all_time',
-                                                               'all_time'     => 'all_time',
                                                );
-                                               if ( isset( $timeline_aliases[ $timeline ] ) ) {
-                                                               $timeline = $timeline_aliases[ $timeline ];
-                                               }
+                                               $timeline = $timeline_map[ $timeline_key ];
 
                                                $table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
                                                if ( ! $table ) {
@@ -4013,32 +3995,11 @@ $atts,
                                                $status_request = isset( $_GET['bhg_status'] ) ? sanitize_key( wp_unslash( $_GET['bhg_status'] ) ) : '';
                                                $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ? $status_request : $status_attr;
 
-                                               $timeline_ui_aliases = array(
-                                                               ''            => 'all_time',
-                                                               'all_time'    => 'all_time',
-                                                               'alltime'     => 'all_time',
-                                                               'today'       => 'today',
-                                                               'day'         => 'today',
-                                                               'this_day'    => 'today',
-                                                               'this_week'   => 'this_week',
-                                                               'week'        => 'this_week',
-                                                               'weekly'      => 'this_week',
-                                                               'this_month'  => 'this_month',
-                                                               'month'       => 'this_month',
-                                                               'monthly'     => 'this_month',
-                                                               'this_quarter'=> 'this_quarter',
-                                                               'quarter'     => 'this_quarter',
-                                                               'quarterly'   => 'this_quarter',
-                                                               'this_year'   => 'this_year',
-                                                               'year'        => 'this_year',
-                                                               'yearly'      => 'this_year',
-                                                               'last_year'   => 'last_year',
-                                               );
-
-                                               $timeline_attr     = sanitize_key( (string) $a['timeline'] );
-                                               $timeline_default  = isset( $timeline_ui_aliases[ $timeline_attr ] ) ? $timeline_ui_aliases[ $timeline_attr ] : 'all_time';
-                                               $timeline_request  = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
-                                               $timeline_ui_value = isset( $timeline_ui_aliases[ $timeline_request ] ) ? $timeline_ui_aliases[ $timeline_request ] : $timeline_default;
+                                               $allowed_timeline_ui = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
+                                               $timeline_attr       = sanitize_key( (string) $a['timeline'] );
+                                               $timeline_default    = in_array( $timeline_attr, $allowed_timeline_ui, true ) ? $timeline_attr : 'all_time';
+                                               $timeline_request    = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
+                                               $timeline_ui_value   = in_array( $timeline_request, $allowed_timeline_ui, true ) ? $timeline_request : $timeline_default;
 
                                                $timeline_query_map = array(
                                                                'all_time'     => 'all_time',
@@ -4050,7 +4011,7 @@ $atts,
                                                                'last_year'    => 'last_year',
                                                );
 
-                                               $timeline_query_value = isset( $timeline_query_map[ $timeline_ui_value ] ) ? $timeline_query_map[ $timeline_ui_value ] : 'all_time';
+                                               $timeline_query_value = $timeline_query_map[ $timeline_ui_value ];
 
 						$need_site_field = in_array( 'site', $fields_arr, true );
 
@@ -4462,20 +4423,7 @@ $filters_input      = ( is_array( $atts ) && array_key_exists( 'filters', $atts 
 			$timeline_request = ( $filter_timeline_enabled && isset( $_GET['bhg_timeline'] ) ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : '';
 			$timeline         = '' !== $timeline_request ? $timeline_request : $attr_timeline;
 
-$timeline_aliases = array(
-'today'        => 'today',
-'this_week'    => 'this_week',
-'this_month'   => 'this_month',
-'this_quarter' => 'this_quarter',
-'this_year'    => 'this_year',
-'last_year'    => 'last_year',
-'all_time'     => 'all_time',
-'alltime'      => 'all_time',
-);
-if ( isset( $timeline_aliases[ $timeline ] ) ) {
-$timeline = $timeline_aliases[ $timeline ];
-}
-$allowed_timelines = array_keys( $timeline_aliases );
+$allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
 if ( ! in_array( $timeline, $allowed_timelines, true ) ) {
 $timeline = 'all_time';
 }
@@ -4855,10 +4803,6 @@ $timeline_options = array(
 'this_year'    => bhg_t( 'option_timeline_this_year', 'This Year' ),
 'last_year'    => bhg_t( 'option_timeline_last_year', 'Last Year' ),
 );
-
-if ( '' !== $timeline && ! isset( $timeline_options[ $timeline ] ) ) {
-$timeline_options[ $timeline ] = ucwords( str_replace( '_', ' ', $timeline ) );
-}
 
 echo '<label class="bhg-filter-label">' . esc_html( bhg_t( 'label_filter_timeline', 'Timeline' ) );
 echo '<select name="bhg_timeline" class="bhg-filter-select">';
@@ -5503,19 +5447,21 @@ return ob_get_clean();
 							   $params[] = $status;
 					   }
 
-                                           $timeline_aliases = array(
+                                           $timeline_ui        = $timeline;
+                                           $timeline_map       = array(
+                                                           'all_time'     => 'all_time',
                                                            'today'        => 'day',
                                                            'this_week'    => 'week',
                                                            'this_month'   => 'month',
                                                            'this_quarter' => 'quarter',
                                                            'this_year'    => 'year',
                                                            'last_year'    => 'last_year',
-                                                           'alltime'      => 'all_time',
-                                                           'all_time'     => 'all_time',
                                            );
-                                           if ( isset( $timeline_aliases[ $timeline ] ) ) {
-                                                           $timeline = $timeline_aliases[ $timeline ];
+                                           $allowed_timelines = array_keys( $timeline_map );
+                                           if ( ! in_array( $timeline_ui, $allowed_timelines, true ) ) {
+                                                           $timeline_ui = 'all_time';
                                            }
+                                           $timeline = $timeline_map[ $timeline_ui ];
 
                                            // Accept explicit time window or derive range from timeline keyword.
                                            $range = $this->get_timeline_range( $timeline );
@@ -5576,17 +5522,17 @@ return ob_get_clean();
                                            echo '<label class="bhg-tournament-label">' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . ' ';
                                            echo '<select name="bhg_timeline">';
                                                $timeline_options = array(
-                                               'all_time'  => bhg_t( 'label_all_time', 'Alltime' ),
-                                               'day'       => bhg_t( 'label_today', 'Today' ),
-                                               'week'      => bhg_t( 'label_this_week', 'This Week' ),
-                                               'month'     => bhg_t( 'label_this_month', 'This Month' ),
-                                               'quarter'   => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
-                                               'year'      => bhg_t( 'label_this_year', 'This Year' ),
-                                               'last_year' => bhg_t( 'label_last_year', 'Last Year' ),
+                                                               'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
+                                                               'today'        => bhg_t( 'label_today', 'Today' ),
+                                                               'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
+                                                               'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
+                                                               'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+                                                               'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
+                                                               'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
                                                );
-                        $timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline;
-                        if ( isset( $timeline_aliases[ $timeline_key ] ) ) {
-                                $timeline_key = $timeline_aliases[ $timeline_key ];
+                        $timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline_ui;
+                        if ( ! array_key_exists( $timeline_key, $timeline_options ) ) {
+                                $timeline_key = 'all_time';
                         }
                         foreach ( $timeline_options as $key => $label ) {
                                 echo '<option value="' . esc_attr( $key ) . '"' . selected( $timeline_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
