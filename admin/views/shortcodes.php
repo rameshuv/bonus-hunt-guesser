@@ -50,7 +50,7 @@ $shortcodes = array(
 			'status'   => bhg_t( 'shortcode_attr_user_guesses_status', 'Hunt status filter: open or closed.' ),
 			'timeline' => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'fields'   => bhg_t( 'shortcode_attr_user_guesses_fields', 'Columns to display (hunt,user,guess,final,site).' ),
 			'orderby'  => bhg_t( 'shortcode_attr_orderby', 'Default sort column (hunt, guess, final, difference).' ),
@@ -69,7 +69,7 @@ $shortcodes = array(
 			'status'      => bhg_t( 'shortcode_attr_hunts_status', 'Filter by hunt status: open or closed.' ),
 			'timeline'    => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'fields'      => bhg_t( 'shortcode_attr_hunts_fields', 'Columns to display (title,start,final,winners,status,site).' ),
 			'orderby'     => bhg_t( 'shortcode_attr_orderby', 'Default sort column (title,start,final,winners,status,created).' ),
@@ -88,7 +88,7 @@ $shortcodes = array(
 			'ranking'     => bhg_t( 'shortcode_attr_leaderboards_ranking', 'Ranking scope ID or slug to load (defaults to 1).' ),
 			'timeline'    => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'orderby'     => bhg_t( 'shortcode_attr_orderby', 'Default sort column (wins, avg, user, etc.).' ),
 			'order'       => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
@@ -109,7 +109,7 @@ $shortcodes = array(
 			'website'     => bhg_t( 'shortcode_attr_tournaments_site', 'Affiliate website ID filter.' ),
 			'timeline'    => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'orderby'     => bhg_t( 'shortcode_attr_orderby', 'Default sort column (start_date,end_date,title,status).' ),
 			'order'       => bhg_t( 'shortcode_attr_order', 'Sort direction: ASC or DESC.' ),
@@ -137,7 +137,7 @@ $shortcodes = array(
 			'fields'     => bhg_t( 'shortcode_attr_leaderboard_list_fields', 'Comma list of metrics: position,username,times_won,avg_hunt,avg_tournament.' ),
 			'timeline'   => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'tournament' => bhg_t( 'shortcode_attr_leaderboards_tournament', 'Limit rankings to a specific tournament ID.' ),
 			'bonushunt'  => bhg_t( 'shortcode_attr_leaderboards_hunt', 'Limit rankings to a specific hunt ID.' ),
@@ -156,7 +156,7 @@ $shortcodes = array(
 			'status'   => bhg_t( 'shortcode_attr_tournaments_status', 'Filter by tournament status: active, closed, or all.' ),
 			'timeline' => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'limit'    => bhg_t( 'shortcode_attr_tournament_list_limit', 'Maximum number of tournaments to list (1-100).' ),
 			'orderby'  => bhg_t( 'shortcode_attr_tournament_list_orderby', 'Sort column: start_date,end_date,title,status.' ),
@@ -173,7 +173,7 @@ $shortcodes = array(
 			'status'   => bhg_t( 'shortcode_attr_bonushunt_list_status', 'Filter hunts by status: open, closed, or all.' ),
 			'timeline' => bhg_t(
 				'shortcode_attr_timeline',
-				'Accepted keywords: all_time (Alltime), day (Today), week (This Week), month (This Month), quarter (This Quarter), year (This Year), last_year (Last Year).'
+				'Accepted keywords: all_time (Alltime), today (Today), this_week (This Week), this_month (This Month), this_quarter (This Quarter), this_year (This Year), last_year (Last Year).'
 			),
 			'limit'    => bhg_t( 'shortcode_attr_bonushunt_list_limit', 'Maximum number of hunts to list (1-100).' ),
 			'orderby'  => bhg_t( 'shortcode_attr_bonushunt_list_orderby', 'Sort column: created_at,title,start_balance,final_balance,status.' ),
@@ -272,34 +272,26 @@ $shortcodes = array(
 		'description' => bhg_t( 'shortcode_bonus_hunt_login_desc', 'Displays a login prompt with redirect for guests.' ),
 		'attributes'  => array(),
 	),
-	array(
-		'tag'         => 'bhg_jackpot_current',
-		'description' => bhg_t( 'shortcode_jackpot_current_desc', 'Displays the current amount for a specific jackpot.' ),
-		'attributes'  => array(
-			'id' => bhg_t( 'shortcode_attr_jackpot_id', 'Numeric jackpot ID to display.' ),
-		),
-	),
-	array(
-		'tag'         => 'bhg_jackpot_latest',
-		'description' => bhg_t( 'shortcode_jackpot_latest_desc', 'List of the most recent jackpot wins.' ),
-		'attributes'  => array(
-			'limit'     => bhg_t( 'shortcode_attr_limit', 'Number of results to show.' ),
-			'affiliate' => bhg_t( 'shortcode_attr_jackpot_affiliate', 'Optional affiliate website ID filter.' ),
-			'year'      => bhg_t( 'shortcode_attr_jackpot_year', 'Filter wins by calendar year.' ),
-			'empty'     => bhg_t( 'shortcode_attr_empty_text', 'Fallback message when no wins are available.' ),
-		),
-	),
-	array(
-		'tag'         => 'bhg_jackpot_ticker',
-		'description' => bhg_t( 'shortcode_jackpot_ticker_desc', 'Ticker of live jackpot totals or recent winners.' ),
-		'attributes'  => array(
-			'mode' => bhg_t( 'shortcode_attr_jackpot_mode', 'Display mode: amount (default) or winners.' ),
-		),
-	),
-	array(
-		'tag'         => 'bhg_jackpot_winners',
-		'description' => bhg_t( 'shortcode_jackpot_winners_desc', 'Formatted table or list of jackpot winners.' ),
-		'attributes'  => array(
+        array(
+                'tag'         => 'bhg_jackpot_current',
+                'description' => bhg_t( 'shortcode_jackpot_current_desc', 'Displays the current amount for a specific jackpot.' ),
+                'attributes'  => array(
+                        'id' => bhg_t( 'shortcode_attr_jackpot_id', 'Numeric jackpot ID to display.' ),
+                ),
+        ),
+        array(
+                'tag'         => 'bhg_jackpot_ticker',
+                'description' => bhg_t( 'shortcode_jackpot_ticker_desc', 'Ticker of live jackpot totals or recent winners.' ),
+                'attributes'  => array(
+                        'mode'   => bhg_t( 'shortcode_attr_jackpot_mode', 'Display mode: amount (default) or winners.' ),
+                        'status' => bhg_t( 'shortcode_attr_jackpot_status', 'Filter jackpots by status (active, closed, all).' ),
+                        'design' => bhg_t( 'shortcode_attr_jackpot_design', 'Visual style: fade or scroll.' ),
+                ),
+        ),
+        array(
+                'tag'         => 'bhg_jackpot_winners',
+                'description' => bhg_t( 'shortcode_jackpot_winners_desc', 'Formatted table or list of jackpot winners.' ),
+                'attributes'  => array(
 			'layout'    => bhg_t( 'shortcode_attr_jackpot_layout', 'Layout style: table or list.' ),
 			'limit'     => bhg_t( 'shortcode_attr_limit', 'Number of rows to display.' ),
 			'affiliate' => bhg_t( 'shortcode_attr_jackpot_affiliate', 'Affiliate website ID filter.' ),
