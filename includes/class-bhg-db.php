@@ -107,8 +107,9 @@ class BHG_DB {
 	affiliate_id BIGINT UNSIGNED NULL,
 	tournament_id BIGINT UNSIGNED NULL,
 	winners_count INT UNSIGNED NOT NULL DEFAULT 3,
-	guessing_enabled TINYINT(1) NOT NULL DEFAULT 1,
-	final_balance DECIMAL(12,2) NULL,
+        guessing_enabled TINYINT(1) NOT NULL DEFAULT 1,
+        jackpot_increase_enabled TINYINT(1) NOT NULL DEFAULT 1,
+        final_balance DECIMAL(12,2) NULL,
 	status VARCHAR(20) NOT NULL DEFAULT 'open',
 	created_at DATETIME NULL,
 	updated_at DATETIME NULL,
@@ -369,13 +370,14 @@ css_background VARCHAR(40) NULL,
 				// Hunts: winners_count, affiliate_site_id, tournament_id.
 				$need = array(
 					'winners_count'     => 'ADD COLUMN winners_count INT UNSIGNED NOT NULL DEFAULT 3',
-					'affiliate_site_id' => 'ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL',
-					'affiliate_id'      => 'ADD COLUMN affiliate_id BIGINT UNSIGNED NULL',
-					'tournament_id'     => 'ADD COLUMN tournament_id BIGINT UNSIGNED NULL',
-					'guessing_enabled'  => 'ADD COLUMN guessing_enabled TINYINT(1) NOT NULL DEFAULT 1',
-					'final_balance'     => 'ADD COLUMN final_balance DECIMAL(12,2) NULL',
-					'status'            => "ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'open'",
-				);
+                                        'affiliate_site_id' => 'ADD COLUMN affiliate_site_id BIGINT UNSIGNED NULL',
+                                        'affiliate_id'      => 'ADD COLUMN affiliate_id BIGINT UNSIGNED NULL',
+                                        'tournament_id'     => 'ADD COLUMN tournament_id BIGINT UNSIGNED NULL',
+                                        'guessing_enabled'  => 'ADD COLUMN guessing_enabled TINYINT(1) NOT NULL DEFAULT 1',
+                                        'jackpot_increase_enabled' => 'ADD COLUMN jackpot_increase_enabled TINYINT(1) NOT NULL DEFAULT 1',
+                                        'final_balance'     => 'ADD COLUMN final_balance DECIMAL(12,2) NULL',
+                                        'status'            => "ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'open'",
+                                );
 
 				foreach ( $need as $column => $alter ) {
 					if ( ! $this->column_exists( $hunts_table, $column ) ) {
