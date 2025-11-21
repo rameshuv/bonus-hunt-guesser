@@ -41,3 +41,11 @@
 
 ## Outstanding Tooling (local environment)
 - [ ] Re-run `composer install` to fetch PHPUnit/PHPCS once network credentials are available; previous attempts in this environment could not reach GitHub-hosted packages.【F:composer.json†L1-L96】
+
+## Testing Matrix (manual + automated)
+- [ ] **Static analysis**: run `php -d memory_limit=-1 vendor/bin/phpcs -ps` to confirm WordPress ruleset compliance and capture any new violations introduced by shortcode or admin changes.【F:phpcs.xml.dist†L1-L20】
+- [ ] **Unit/integration**: execute `php -d memory_limit=-1 vendor/bin/phpunit` against the bundled wp-phpunit scaffold once credentials are configured; record failures by shortcode area (leaderboard, tournament, list shortcodes, prizes).【F:phpunit.xml.dist†L1-L39】
+- [ ] **Sample data seeding**: generate at least 30 users and 3 tournaments/bonushunts with wins across timelines to validate pagination, sorting, and timeline filters end-to-end; ensure tournament ID 3 has ≥26 participants for leaderboard cross-checks.【F:includes/class-bhg-shortcodes.php†L257-L360】
+- [ ] **Filter persistence**: while paginating and sorting, confirm query strings keep `bhg_orderby`, `bhg_order`, `bhg_timeline`, `bhg_tournament`, `bhg_aff`, `bhg_site`, and search terms intact between requests.【F:includes/class-bhg-shortcodes.php†L4957-L4994】
+- [ ] **Prize visibility toggles**: test combinations of `show_prizes`, `show_prize_summary`, and `show_search` attributes (yes/no) on leaderboard and tournament shortcodes to ensure prize boxes, summaries, and search bars appear or hide as configured, including prize tabs for regular vs premium rewards.【F:includes/class-bhg-shortcodes.php†L2250-L2319】【F:includes/class-bhg-shortcodes.php†L4497-L4874】
+- [ ] **Rendering regression sweep**: load each shortcode (`leaderboard`, `tournament`, `latest-winners-list`, `leaderboard-list`, `tournament-list`, `bonushunt-list`) with and without timeline/status filters to confirm username capitalization, integer averages, affiliate indicators, and header labels render consistently with the checklist expectations.【F:includes/class-bhg-shortcodes.php†L3215-L3960】【F:includes/class-bhg-shortcodes.php†L4719-L4941】
