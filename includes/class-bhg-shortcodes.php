@@ -621,6 +621,13 @@ array(
                                $select_sql .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
 
                                $query = $wpdb->prepare( $select_sql, $limit, $offset );
+                               bhg_log(
+                                               array(
+                                                               'leaderboard_query_sql' => $query,
+                                                               'leaderboard_limit'     => $limit,
+                                                               'leaderboard_offset'    => $offset,
+                                               )
+                               );
                                $rows  = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
                                if ( empty( $rows ) ) {
@@ -946,6 +953,13 @@ $select_parts[] = 't_main.title AS tournament_title';
                                 $select_params[] = $offset;
 
                                 $query = $wpdb->prepare( $select_sql, ...$select_params );
+                                bhg_log(
+                                                array(
+                                                                'tournament_leaderboard_sql' => $query,
+                                                                'leaderboard_limit'          => $limit,
+                                                                'leaderboard_offset'         => $offset,
+                                                )
+                                );
                                 $rows  = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
                                 if ( empty( $rows ) ) {
@@ -4361,27 +4375,29 @@ $atts = array();
 }
 
 $atts = (array) $atts;
+                                               $leaderboard_defaults = array(
+                                                               'fields'             => 'pos,user,wins,avg_hunt,avg_tournament,aff',
+                                                               'ranking'            => 0,
+                                                               'timeline'           => '',
+                                                               'orderby'            => 'wins',
+                                                               'order'              => 'DESC',
+                                                               'search'             => '',
+                                                               'tournament'         => '',
+                                                               'bonushunt'          => '',
+                                                               'website'            => '',
+                                                               'aff'                => '',
+                                                               'filters'            => 'timeline,tournament,affiliate_site,affiliate_status',
+                                                               'per_page'           => 0,
+                                                               'paged'              => 1,
+                                                               'show_search'        => 'yes',
+                                                               'show_prize_summary' => 'auto',
+                                               );
+
                                                $a = shortcode_atts(
-array(
-'fields'     => 'pos,user,wins,avg_hunt,avg_tournament,aff',
-'ranking'    => 0,
-'timeline'   => '',
-'orderby'    => 'wins',
-'order'      => 'DESC',
-'search'     => '',
-'tournament' => '',
-'bonushunt'  => '',
-'website'    => '',
-'aff'        => '',
-'filters'    => 'timeline,tournament,affiliate_site,affiliate_status',
-'per_page'   => 0,
-'paged'      => 1,
-'show_search'=> 'yes',
-'show_prize_summary' => 'auto',
-),
-$atts,
-'bhg_leaderboards'
-);
+                                                               $leaderboard_defaults,
+                                                               $atts,
+                                                               'bhg_leaderboards'
+                                               );
 
                                                $summary_preference = strtolower( trim( (string) $a['show_prize_summary'] ) );
 
@@ -4674,6 +4690,26 @@ $tournament_limits = array();
                                                $need_tournament_name = in_array( 'tournament', $fields_arr, true );
                                                $need_hunt_name       = in_array( 'hunt', $fields_arr, true );
                                                $need_aff             = in_array( 'aff', $fields_arr, true );
+
+                                               $attr_overrides = array_diff_assoc( $a, $leaderboard_defaults );
+                                               bhg_log(
+                                                               array(
+                                                                               'leaderboards_shortcode_atts' => array(
+                                                                                               'provided'  => $atts,
+                                                                                               'overrides' => $attr_overrides,
+                                                                                               'resolved'  => $a,
+                                                                               ),
+                                                               )
+                                               );
+
+                                               bhg_log(
+                                                               sprintf(
+                                                                               'Leaderboards pagination vars per_page=%d paged=%d ranking_limit=%d',
+                                                                               $per_page,
+                                                                               $paged,
+                                                                               $ranking_limit
+                                                               )
+                                               );
 
 $query_result = $this->run_leaderboard_query(
 array(
