@@ -145,9 +145,21 @@ if ( ! function_exists( 'wp_specialchars_decode' ) ) {
 }
 
 if ( ! function_exists( 'get_locale' ) ) {
-	function get_locale() {
-		return 'en_US';
-	}
+        function get_locale() {
+                return 'en_US';
+        }
+}
+
+if ( ! function_exists( 'wp_timezone' ) ) {
+        function wp_timezone() {
+                return new DateTimeZone( 'UTC' );
+        }
+}
+
+if ( ! function_exists( 'wp_timezone_string' ) ) {
+        function wp_timezone_string() {
+                return 'UTC';
+        }
 }
 
 if ( ! function_exists( 'get_available_languages' ) ) {
