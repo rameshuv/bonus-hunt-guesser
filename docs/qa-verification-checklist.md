@@ -8,9 +8,13 @@ This checklist maps the requested leaderboard, tournament, prize, and frontpage 
 - For automated tests, install dependencies and run PHPUnit after ensuring GitHub API access (`composer install`, then `./vendor/bin/phpunit`).
 
 ## Automated checks
+- Install dependencies: `composer install`
+  - If GitHub throttling blocks dist downloads, provide a read-only GitHub token (public scope) or configure a mirror, then rerun.
 - Run unit tests: `./vendor/bin/phpunit`
   - Confirms core services and shortcode rendering helpers compile and execute.
-  - If dependencies fail to download (GitHub API restrictions), supply a token or mirror the packages, then rerun.
+
+### Automation run log (latest)
+- `composer install` (PHP 7.4) — **failed** due to GitHub API 403 while downloading `squizlabs/php_codesniffer`; rerun with a GitHub token or mirror to complete setup before executing PHPUnit.
 
 ## Leaderboard shortcode
 - **Query correctness**: Load `/leaderboards/leaderboards-all-participants-2025/` and confirm participant count matches `/tournaments/all-tournaments/?bhg_tournament_id=3` (expected 26 users in the example).
