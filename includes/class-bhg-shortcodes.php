@@ -4534,11 +4534,13 @@ $tournament_id = max( 0, absint( $raw_tournament ) );
 $bonushunt_id  = max( 0, absint( $raw_bonushunt ) );
 $website_id    = max( 0, absint( $raw_site ) );
 
+                                                $tournament_filter_active = $tournament_id > 0;
+
                                                 $show_prize_summary = false;
                                                 if ( in_array( $summary_preference, array( 'yes', 'true', '1' ), true ) ) {
                                                                 $show_prize_summary = true;
                                                 } elseif ( in_array( $summary_preference, array( 'auto', '' ), true ) ) {
-                                                                $show_prize_summary = $tournament_id > 0;
+                                                                $show_prize_summary = $tournament_filter_active;
                                                 }
 
                                                 $aff_filter = sanitize_key( (string) $raw_aff );
@@ -4582,7 +4584,7 @@ $tournament_limits = array();
 										$tournaments = $wpdb->get_results( $sql );
 								}
 
-                                                               if ( $tournament_id > 0 ) {
+                                                                if ( $tournament_filter_active ) {
                                                                                $has_selected = false;
                                                                                foreach ( $tournaments as $tournament ) {
                                                                                                if ( (int) $tournament->id === $tournament_id ) {
@@ -4599,7 +4601,7 @@ $tournament_limits = array();
                                                                                                                $selected_tournament_row = $selected_row;
                                                                                                }
                                                                                }
-                                                                               if ( class_exists( 'BHG_Prizes' ) && method_exists( 'BHG_Prizes', 'get_prizes_by_ids' ) ) {
+                                                                                 if ( $tournament_filter_active && class_exists( 'BHG_Prizes' ) && method_exists( 'BHG_Prizes', 'get_prizes_by_ids' ) ) {
                                                                                                $tournament_meta = $wpdb->get_row(
                                                                                                                $wpdb->prepare(
                                                                                                                                "SELECT status, prizes FROM {$tournaments_table} WHERE id = %d",
@@ -4929,7 +4931,7 @@ if ( ! empty( $heading_parts ) ) {
 echo '<div class="bhg-leaderboard-headings">' . implode( '', $heading_parts ) . '</div>';
 }
 
-                                                if ( '' !== $leaderboard_prizes_markup ) {
+                                                if ( $tournament_filter_active && '' !== $leaderboard_prizes_markup ) {
                                                                 echo $leaderboard_prizes_markup;
                                                 }
 
