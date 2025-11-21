@@ -16,7 +16,7 @@ This checklist maps the requested leaderboard, tournament, prize, and frontpage 
   - Confirms core services and shortcode rendering helpers compile and execute.
 
 ### Automation run log (latest)
-- `composer install` (PHP 7.4) — **failed** due to GitHub API 403 (CONNECT tunnel blocked while fetching `sebastian/resource-operations`); aborted at GitHub token prompt. Configure a GitHub token or mirror, then rerun before executing PHPUnit.
+- `composer install` (PHP 7.4) — **failed**: GitHub API 403 (CONNECT tunnel blocked while fetching `sebastian/version`), then Composer prompted for a GitHub token; aborted with Ctrl+C. Configure a GitHub token or mirror, then rerun before executing PHPUnit.
 
 ## Fast automated test sequence (post-dependency install)
 1) `composer install`
