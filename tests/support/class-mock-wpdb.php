@@ -21,6 +21,8 @@ class MockWPDB {
                 'wp_users'    => true,
         );
 
+        private $date_range_regex = "/BETWEEN\\s+'([^']+)'\\s+AND\\s+'([^']+)'/i";
+
 	private $winner_auto_increment     = 0;
 	private $tournament_auto_increment = 0;
 
@@ -169,6 +171,7 @@ class MockWPDB {
                         $offset        = $this->match_int( '/OFFSET\s+(\d+)/', $query );
                         $order_field   = 'wins';
                         $direction     = 'DESC';
+                        $date_range    = $this->match_date_range( $query );
 
                         if ( preg_match( '/ORDER BY\s+([a-zA-Z_\.]+)\s+(ASC|DESC)/i', $query, $order_matches ) ) {
                                 $order_field = $order_matches[1];
@@ -179,7 +182,7 @@ class MockWPDB {
 
                         $filtered = array_filter(
                                 $this->tournament_results,
-                                function ( $row ) use ( $tournament_id, $search_term ) {
+                                function ( $row ) use ( $tournament_id, $search_term, $date_range ) {
                                         if ( $tournament_id > 0 && (int) $row['tournament_id'] !== $tournament_id ) {
                                                 return false;
                                         }
@@ -189,6 +192,13 @@ class MockWPDB {
                                                 $user_login = $this->users_data[ $user_id ]['user_login'] ?? '';
 
                                                 return false !== stripos( $user_login, $search_term );
+                                        }
+
+                                        if ( null !== $date_range ) {
+                                                $last_win = isset( $row['last_win_date'] ) ? (string) $row['last_win_date'] : '';
+                                                if ( '' === $last_win || $last_win < $date_range['start'] || $last_win > $date_range['end'] ) {
+                                                        return false;
+                                                }
                                         }
 
                                         return true;
@@ -312,15 +322,19 @@ class MockWPDB {
 				if ( ! $event_date && isset( $hunt['closed_at'] ) ) {
 					$event_date = $hunt['closed_at'];
 				}
-				if ( ! $event_date && isset( $hunt['updated_at'] ) ) {
-					$event_date = $hunt['updated_at'];
-				}
-				if ( ! $event_date && isset( $hunt['created_at'] ) ) {
-					$event_date = $hunt['created_at'];
-				}
-				if ( ! $event_date ) {
-					$event_date = '2024-01-01 00:00:00';
-				}
+                                if ( ! $event_date && isset( $hunt['updated_at'] ) ) {
+                                        $event_date = $hunt['updated_at'];
+                                }
+                                if ( ! $event_date && isset( $hunt['created_at'] ) ) {
+                                        $event_date = $hunt['created_at'];
+                                }
+                                $date_range = $this->match_date_range( $query );
+                                if ( null !== $date_range && ( ! $event_date || $event_date < $date_range['start'] || $event_date > $date_range['end'] ) ) {
+                                        continue;
+                                }
+                                if ( ! $event_date ) {
+                                        $event_date = '2024-01-01 00:00:00';
+                                }
 
 				$results[] = (object) array(
 					'hw_id'             => isset( $winner['id'] ) ? (int) $winner['id'] : 0,
@@ -566,10 +580,11 @@ class MockWPDB {
                 if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournament_results' ) ) {
                         $tournament_id = $this->match_int( '/tournament_id\s*=\s*(\d+)/', $query );
                         $search_term   = $this->match_string( "/user_login\s+LIKE\s+'%([^%]+)%'/", $query );
+                        $date_range    = $this->match_date_range( $query );
 
                         $matches = array_filter(
                                 $this->tournament_results,
-                                function ( $row ) use ( $tournament_id, $search_term ) {
+                                function ( $row ) use ( $tournament_id, $search_term, $date_range ) {
                                         if ( $tournament_id > 0 && (int) $row['tournament_id'] !== $tournament_id ) {
                                                 return false;
                                         }
@@ -579,6 +594,13 @@ class MockWPDB {
                                                 $user_login = $this->users_data[ $user_id ]['user_login'] ?? '';
 
                                                 return false !== stripos( $user_login, $search_term );
+                                        }
+
+                                        if ( null !== $date_range ) {
+                                                $last_win = isset( $row['last_win_date'] ) ? (string) $row['last_win_date'] : '';
+                                                if ( '' === $last_win || $last_win < $date_range['start'] || $last_win > $date_range['end'] ) {
+                                                        return false;
+                                                }
                                         }
 
                                         return true;
@@ -633,11 +655,22 @@ class MockWPDB {
 		return '';
 	}
 
-	private function match_float( $pattern, $subject ) {
-		if ( preg_match( $pattern, $subject, $matches ) ) {
-			return (float) $matches[1];
-		}
+        private function match_float( $pattern, $subject ) {
+                if ( preg_match( $pattern, $subject, $matches ) ) {
+                        return (float) $matches[1];
+                }
 
-		return 0.0;
-	}
+                return 0.0;
+        }
+
+        private function match_date_range( $subject ) {
+                if ( preg_match( $this->date_range_regex, $subject, $matches ) ) {
+                        return array(
+                                'start' => $matches[1],
+                                'end'   => $matches[2],
+                        );
+                }
+
+                return null;
+        }
 }
