@@ -5,6 +5,7 @@ This checklist maps the requested leaderboard, tournament, prize, and frontpage 
 ## Environment prerequisites
 - WordPress 6.3.5 with PHP 7.4 and MySQL 5.5.5+.
 - Plugin activated and sample tournaments/bonushunts with prizes populated for at least one active tournament (e.g., tournament ID 3).
+- Admin user capable of editing tournaments/bonushunts to validate form fields and prize setup.
 - For automated tests, install dependencies and run PHPUnit after ensuring GitHub API access (`composer install`, then `./vendor/bin/phpunit`).
 
 ## Automated checks
@@ -15,28 +16,35 @@ This checklist maps the requested leaderboard, tournament, prize, and frontpage 
   - Confirms core services and shortcode rendering helpers compile and execute.
 
 ### Automation run log (latest)
-- `composer install` (PHP 7.4) — **failed** due to GitHub API 403 (CONNECT tunnel blocked when fetching `squizlabs/php_codesniffer`); aborted at GitHub token prompt. Configure a GitHub token or mirror, then rerun before executing PHPUnit.
+- `composer install` (PHP 7.4) — **failed** due to GitHub API 403 (CONNECT tunnel blocked while fetching `sebastian/resource-operations`); aborted at GitHub token prompt. Configure a GitHub token or mirror, then rerun before executing PHPUnit.
 
-## Leaderboard shortcode
-- **Query correctness**: Load `/leaderboards/leaderboards-all-participants-2025/` and confirm participant count matches `/tournaments/all-tournaments/?bhg_tournament_id=3` (expected 26 users in the example).
-- **Rounding**: Avg Rank and Avg Tournament Pos render as whole numbers (no decimal suffix).
-- **Username formatting**: First letter of each username is capitalized across all shortcode outputs; table header reads **Username**.
-- **Prize visibility**: When a specific active tournament is selected, a prize box appears above the table.
-- **Affiliate indicator**: Column after Avg Tournament Pos shows green/red indicator values.
-- **Position sorting**: Position column header provides sorting control.
-- **Titles**: H2 headings appear above the results table reflecting selected tournament and/or bonushunt (tournament first, then bonushunt when both are present).
-- **Filters**: Bonushunt dropdown removed; shortcode attributes allow hiding/showing filters individually (`timeline`, `tournament`, `affiliate site`, `affiliate status`) or entirely via `filters=""`.
-- **Times won scope**: Counts wins only from bonushunts inside the timeline filter or from the specified tournament.
-- **Search block**: Confirm hide/show option functions if surfaced for leaderboard.
+## Fast automated test sequence (post-dependency install)
+1) `composer install`
+2) `./vendor/bin/phpunit`
+3) *(optional)* `./vendor/bin/phpcs` to ensure coding standards still pass after shortcode changes.
 
-## Tournament shortcode
-- **Admin field**: “Number of Winners” field is present when adding/editing a tournament.
-- **Closing notice**: Active tournaments display a yellow box above the table: “This tournament will close in X days,” based on end date.
-- **Headers**: Column titles show **Position** (instead of #) and **Times Won** (instead of Wins).
-- **Sorting**: Position column supports sorting with an icon.
-- **Last Win**: Each row’s “Last Win” reflects the last prize in bonushunts linked to the tournament (not last tournament win).
-- **Pagination**: Tables paginate according to the general setting (e.g., 25 rows per page).
-- **Search block**: Validate hide/show option when applicable.
+> Note: If Composer prompts for a GitHub token, abort with Ctrl+C, add the token to `~/.composer/auth.json`, then rerun step 1.
+
+## Leaderboard shortcode manual checks
+1) **Query correctness**: Load `/leaderboards/leaderboards-all-participants-2025/`; participant count should equal `/tournaments/all-tournaments/?bhg_tournament_id=3` (26 users in the example). Cross-check pagination is not truncating results.
+2) **Rounding**: Avg Rank and Avg Tournament Pos show whole numbers (no decimals) across all rows.
+3) **Username formatting**: First letter of each username capitalized everywhere; column header reads **Username**.
+4) **Prize visibility**: Selecting an active tournament shows a prize box above the table (hidden when no tournament or inactive tournament is selected).
+5) **Affiliate indicator**: Column after Avg Tournament Pos appears with green/red indicator per row; header present after Avg Tournament Pos.
+6) **Position sorting**: Position header offers sorting; toggling adjusts row order accordingly.
+7) **Titles**: H2 headings above the table display tournament title (if selected) and bonushunt title beneath when both are set.
+8) **Filters**: Bonushunt dropdown removed. Shortcode attributes support hiding filters (`timeline`, `tournament`, `affiliate site`, `affiliate status`) individually or all via `filters=""`; verify UI hides as configured.
+9) **Times won scope**: Counts wins only for bonushunts inside the timeline filter or for the specified tournament; change filters to ensure the value responds.
+10) **Search block**: Hide/show option works if exposed for the leaderboard.
+
+## Tournament shortcode manual checks
+1) **Admin field**: Add/Edit tournament shows a “Number of Winners” input; saving persists the value.
+2) **Closing notice**: Active tournaments display a yellow banner above the table: “This tournament will close in X days,” computed from end date.
+3) **Headers**: Columns show **Position** (replacing #) and **Times Won** (replacing Wins).
+4) **Sorting**: Position column supports clickable sorting with icon feedback.
+5) **Last Win**: Each row’s “Last Win” matches the user’s most recent prize in linked bonushunts (not the last tournament win); verify by comparing bonushunt history.
+6) **Pagination**: Table paginates according to the general setting (e.g., 25 rows per page) with controls visible when threshold exceeded.
+7) **Search block**: Hide/show option works when configured.
 
 ## Prize management and display
 - **Per-place prizes**: Add/Edit bonushunt and tournament forms allow setting regular and premium prizes for each winner based on the configured number of winners.
