@@ -8,13 +8,18 @@ class MockWPDB {
 	public $bonus_hunts        = array();
 	public $guesses            = array();
 	public $hunt_winners       = array();
-	public $tournament_results = array();
-	public $tournaments_hunts  = array();
-	public $tournaments        = array();
-	public $translations       = array();
-	public $usermeta           = 'wp_usermeta';
-	public $usermeta_data      = array();
-	public $tables             = array( 'wp_usermeta' => true );
+        public $tournament_results = array();
+        public $tournaments_hunts  = array();
+        public $tournaments        = array();
+        public $translations       = array();
+        public $users              = 'wp_users';
+        public $users_data         = array();
+        public $usermeta           = 'wp_usermeta';
+        public $usermeta_data      = array();
+        public $tables             = array(
+                'wp_usermeta' => true,
+                'wp_users'    => true,
+        );
 
 	private $winner_auto_increment     = 0;
 	private $tournament_auto_increment = 0;
@@ -151,15 +156,87 @@ class MockWPDB {
 				$filtered = array_slice( $filtered, 0, $limit );
 			}
 
-			foreach ( $filtered as $row ) {
-				unset( $row->id, $row->abs_diff );
-			}
+                        foreach ( $filtered as $row ) {
+                                unset( $row->id, $row->abs_diff );
+                        }
 
-			return $this->format_results_objects( $filtered, $output );
-		}
+                        return $this->format_results_objects( $filtered, $output );
+                }
 
-		if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournaments' ) ) {
-			$ids = array();
+                if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournament_results' ) ) {
+                        $tournament_id = $this->match_int( '/tournament_id\s*=\s*(\d+)/', $query );
+                        $limit         = $this->match_int( '/LIMIT\s+(\d+)/', $query );
+                        $offset        = $this->match_int( '/OFFSET\s+(\d+)/', $query );
+                        $order_field   = 'wins';
+                        $direction     = 'DESC';
+
+                        if ( preg_match( '/ORDER BY\s+([a-zA-Z_\.]+)\s+(ASC|DESC)/i', $query, $order_matches ) ) {
+                                $order_field = $order_matches[1];
+                                $direction   = strtoupper( $order_matches[2] );
+                        }
+
+                        $search_term = $this->match_string( "/user_login\s+LIKE\s+'%([^%]+)%'/", $query );
+
+                        $filtered = array_filter(
+                                $this->tournament_results,
+                                function ( $row ) use ( $tournament_id, $search_term ) {
+                                        if ( $tournament_id > 0 && (int) $row['tournament_id'] !== $tournament_id ) {
+                                                return false;
+                                        }
+
+                                        if ( '' !== $search_term ) {
+                                                $user_id    = (int) $row['user_id'];
+                                                $user_login = $this->users_data[ $user_id ]['user_login'] ?? '';
+
+                                                return false !== stripos( $user_login, $search_term );
+                                        }
+
+                                        return true;
+                                }
+                        );
+
+                        $mapped = array_map(
+                                function ( $row ) {
+                                        $user_id = (int) $row['user_id'];
+
+                                        return (object) array(
+                                                'user_id'    => $user_id,
+                                                'user_login' => $this->users_data[ $user_id ]['user_login'] ?? 'user-' . $user_id,
+                                                'total_wins' => (int) ( $row['wins'] ?? 0 ),
+                                        );
+                                },
+                                $filtered
+                        );
+
+                        usort(
+                                $mapped,
+                                function ( $a, $b ) use ( $order_field, $direction ) {
+                                        $field = 'tr.wins' === $order_field ? 'total_wins' : $order_field;
+                                        if ( ! property_exists( $a, $field ) || ! property_exists( $b, $field ) ) {
+                                                return 0;
+                                        }
+
+                                        if ( $a->{$field} === $b->{$field} ) {
+                                                return $direction === 'ASC' ? $a->user_id <=> $b->user_id : $b->user_id <=> $a->user_id;
+                                        }
+
+                                        return $direction === 'ASC' ? ( $a->{$field} <=> $b->{$field} ) : ( $b->{$field} <=> $a->{$field} );
+                                }
+                        );
+
+                        if ( $offset > 0 ) {
+                                $mapped = array_slice( $mapped, $offset );
+                        }
+
+                        if ( $limit > 0 ) {
+                                $mapped = array_slice( $mapped, 0, $limit );
+                        }
+
+                        return $this->format_results_objects( $mapped, $output );
+                }
+
+                if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournaments' ) ) {
+                        $ids = array();
 			if ( preg_match( '/WHERE id IN \(([^\)]+)\)/', $query, $matches ) ) {
 				$ids = array_map( 'intval', preg_split( '/,\s*/', $matches[1] ) );
 			} elseif ( preg_match( '/WHERE id = (\d+)/', $query, $match ) ) {
@@ -473,18 +550,43 @@ class MockWPDB {
 			return isset( $this->tables[ $table ] ) ? $table : null;
 		}
 
-		if ( false !== strpos( $query, 'SELECT COUNT(*) FROM ' . $this->prefix . 'bhg_translations' ) ) {
-			$slug   = $this->match_string( "/slug\s*=\s*'([^']+)'/", $query );
-			$locale = $this->match_string( "/locale\s*=\s*'([^']+)'/", $query );
+                if ( false !== strpos( $query, 'SELECT COUNT(*) FROM ' . $this->prefix . 'bhg_translations' ) ) {
+                        $slug   = $this->match_string( "/slug\s*=\s*'([^']+)'/", $query );
+                        $locale = $this->match_string( "/locale\s*=\s*'([^']+)'/", $query );
 
-			foreach ( $this->translations as $row ) {
-				if ( $row['slug'] === $slug && $row['locale'] === $locale ) {
-					return 1;
-				}
-			}
+                        foreach ( $this->translations as $row ) {
+                                if ( $row['slug'] === $slug && $row['locale'] === $locale ) {
+                                        return 1;
+                                }
+                        }
 
-			return 0;
-		}
+                        return 0;
+                }
+
+                if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournament_results' ) ) {
+                        $tournament_id = $this->match_int( '/tournament_id\s*=\s*(\d+)/', $query );
+                        $search_term   = $this->match_string( "/user_login\s+LIKE\s+'%([^%]+)%'/", $query );
+
+                        $matches = array_filter(
+                                $this->tournament_results,
+                                function ( $row ) use ( $tournament_id, $search_term ) {
+                                        if ( $tournament_id > 0 && (int) $row['tournament_id'] !== $tournament_id ) {
+                                                return false;
+                                        }
+
+                                        if ( '' !== $search_term ) {
+                                                $user_id    = (int) $row['user_id'];
+                                                $user_login = $this->users_data[ $user_id ]['user_login'] ?? '';
+
+                                                return false !== stripos( $user_login, $search_term );
+                                        }
+
+                                        return true;
+                                }
+                        );
+
+                        return count( $matches );
+                }
 
 		return null;
 	}
