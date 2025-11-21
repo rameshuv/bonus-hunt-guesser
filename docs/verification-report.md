@@ -1,33 +1,20 @@
-# Bonus Hunt Guesser – Feature Verification
+# Verification Report (PHP 7.4 / WordPress 6.3.5)
 
-This document captures code-level evidence that the current plugin implementation satisfies the
-customer requirements enumerated in Robin's latest checklist.
+## Environment & Versioning
+- Plugin header declares compatibility with WordPress 6.3.5+, PHP 7.4, and MySQL 5.5.5 alongside version 8.0.18, matching the requested stack for verification.【F:bonus-hunt-guesser.php†L3-L13】
+- Global setting **Shortcode rows per page** remains available in the admin Settings screen to control pagination defaults for leaderboard and tournament tables.【F:admin/views/settings.php†L102-L107】
 
-## Sorting, Search, and Pagination (30 per page)
-- `[bhg_user_guesses]` enforces a `LIMIT 30` window, honors `bhg_search`, and flips ordering via
-  `bhg_orderby` / `bhg_order` query arguments.
-- `[bhg_hunts]` uses identical pagination, search, and sortable headings with 30-row pages.
-- `[bhg_tournaments]` exposes the same controls, retaining search filters while paginating at 30
-  items per page.
-- `[bhg_leaderboards]` supports sortable headers, search boxes, and query-string pagination.
+## Leaderboards & Tournaments
+- The shared leaderboard query aggregates all eligible participants (including tournament-specific union rows) with timeline, tournament, affiliate-site/status, and pagination handling; it exposes `per_page`/`paged` arguments for slicing while keeping totals for pagination controls.【F:includes/class-bhg-shortcodes.php†L257-L520】
+- Leaderboard output supports sortable Position/Username/Times Won/Avg columns, heading blocks for selected tournament/bonushunt, affiliate indicator cells, integer-only averages, and capitalized usernames to meet display expectations.【F:includes/class-bhg-shortcodes.php†L4862-L4950】
+- Prize sections for selected tournaments can auto-render above the leaderboard table, with `show_prize_summary` controlling whether the summary list appears when a tournament context exists.【F:includes/class-bhg-shortcodes.php†L4497-L4600】
+- Leaderboard filters are attribute-driven (`filters="timeline,tournament,affiliate_site,affiliate_status"`) with normalization of the allowed keys and support for disabling all filters via empty/none values.【F:includes/class-bhg-shortcodes.php†L1092-L1168】
 
-## Timeline Filters
-- `BHG_Shortcodes::get_timeline_range()` resolves keywords such as _this week_, _this month_,
-  _last year_, and _all time_ to concrete date ranges.
-- Each shortcode pulls the chosen timeline from shortcode attributes or `$_GET` parameters and
-  constrains the SQL WHERE clause accordingly.
+## Shortcodes & Frontend Lists
+- Compact/alternative views exist for the requested lists: latest winners (`latest-winners-list`), leaderboard list, tournament list, and bonushunt list shortcodes all include attribute-controlled field visibility, ordering, and limits consistent with the specification.【F:includes/class-bhg-shortcodes.php†L3215-L3953】
 
-## Affiliate Indicators & Websites
-- `bhg_render_affiliate_dot()` renders a green (affiliate) or red (non-affiliate) status badge.
-- Hunt, leaderboard, and tournament tables append the indicator beside usernames and can show the
-  associated affiliate site name when requested.
+## Pagination & Search Controls
+- Leaderboard shortcode attributes include `per_page`, `paged`, and `show_search`, with default rows-per-page derived from the global setting and filter-aware query args preserved when paginating or sorting.【F:includes/class-bhg-shortcodes.php†L4358-L4680】
 
-## Profile Output
-- `[bhg_user_profile]` renders a table with the logged-in user's real name, username, email,
-  affiliate status badge, and any linked affiliate websites, plus an edit link when permitted.
-
-## Shortcode Inventory
-- `BHG_Shortcodes::__construct()` registers every shortcode mentioned in the requirements, including
-  `bhg_user_guesses`, `bhg_hunts`, `bhg_leaderboards`, and legacy aliases for backwards
-  compatibility.
-
+## Testing & Tooling Notes
+- Composer install (to fetch PHPUnit/PHPCS tooling) could not complete because GitHub downloads require credentials through the restricted network tunnel; the process halted before dependencies were installed.【a4e2a7†L1-L51】
