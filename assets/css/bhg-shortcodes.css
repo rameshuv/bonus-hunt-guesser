@@ -9,14 +9,15 @@
     border-radius: 50%;
     vertical-align: middle;
     margin-left: 6px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 .bhg-aff-green {
-    background: #1f9d55;
+    background: #22c55e;
 }
 
 .bhg-aff-red {
-    background: #e3342f;
+    background: #ef4444;
 }
 
 .bhg-tabs {
