@@ -9,17 +9,20 @@ This checklist maps the requested leaderboard, tournament, prize, and frontpage 
 - For automated tests, install dependencies and run PHPUnit after ensuring GitHub API access (`composer install`, then `./vendor/bin/phpunit`).
 
 ## Automated checks
-- Install dependencies: `composer install`
+- Install dependencies (dev + tests): `composer install`
   - If GitHub throttling blocks dist downloads, provide a read-only GitHub token (public scope) or configure a mirror, then rerun.
   - When prompted for a GitHub token, press Ctrl+C to abort if you cannot provide one, then rerun later with credentials configured in `~/.composer/auth.json`.
+- Fallback dependency install (no dev tools/tests): `composer install --no-dev`
+  - Succeeds without GitHub, but PHPUnit/PHPCS will not be available.
 - Run unit tests: `./vendor/bin/phpunit`
-  - Confirms core services and shortcode rendering helpers compile and execute.
+  - Confirms core services and shortcode rendering helpers compile and execute (requires dev dependencies from full install).
 
 ### Automation run log (latest)
-- `composer install` (PHP 7.4) — **failed**: GitHub API 403 (CONNECT tunnel blocked while fetching `sebastian/version`), then Composer prompted for a GitHub token; aborted with Ctrl+C. Configure a GitHub token or mirror, then rerun before executing PHPUnit.
+- `composer install` (PHP 7.4) — **failed**: GitHub API 403 (CONNECT tunnel blocked while fetching `sebastian/recursion-context`); Composer prompted for a GitHub token and was aborted with Ctrl+C. Provide a GitHub token or mirror to install dev dependencies.
+- `composer install --no-dev` (PHP 7.4) — **passed**: Completed with no downloads needed; dev tooling (PHPUnit/PHPCS) unavailable until full install succeeds.
 
 ## Fast automated test sequence (post-dependency install)
-1) `composer install`
+1) `composer install` *(or `composer install --no-dev` if GitHub access is unavailable — skip steps 2–3 in that case)*
 2) `./vendor/bin/phpunit`
 3) *(optional)* `./vendor/bin/phpcs` to ensure coding standards still pass after shortcode changes.
 
