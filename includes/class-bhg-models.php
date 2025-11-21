@@ -51,12 +51,12 @@ class BHG_Models {
 		$tours_tbl   = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 
 		// Determine number of winners and tournament association for this hunt.
-		$hunt_row      = $wpdb->get_row(
-			$wpdb->prepare(
-				' SELECT winners_count, tournament_id, affiliate_id, affiliate_site_id FROM ' . $hunts_tbl . ' WHERE id = %d ',
-				$hunt_id
-			)
-		);
+               $hunt_row      = $wpdb->get_row(
+                       $wpdb->prepare(
+                               ' SELECT winners_count, tournament_id, affiliate_id, affiliate_site_id, jackpot_increase_enabled FROM ' . $hunts_tbl . ' WHERE id = %d ',
+                               $hunt_id
+                       )
+               );
 		$winners_count = $hunt_row ? (int) $hunt_row->winners_count : 0;
 		if ( $winners_count <= 0 ) {
 			$winners_count = 1;
@@ -355,11 +355,12 @@ class BHG_Models {
 				}
 
 				if ( class_exists( 'BHG_Jackpots' ) ) {
-						$jackpot_context = array(
-							'affiliate_id'      => ( $hunt_row && isset( $hunt_row->affiliate_id ) ) ? (int) $hunt_row->affiliate_id : 0,
-							'affiliate_site_id' => ( $hunt_row && isset( $hunt_row->affiliate_site_id ) ) ? (int) $hunt_row->affiliate_site_id : 0,
-							'closed_at'         => $now,
-						);
+                                                $jackpot_context = array(
+                                                        'affiliate_id'              => ( $hunt_row && isset( $hunt_row->affiliate_id ) ) ? (int) $hunt_row->affiliate_id : 0,
+                                                        'affiliate_site_id'         => ( $hunt_row && isset( $hunt_row->affiliate_site_id ) ) ? (int) $hunt_row->affiliate_site_id : 0,
+                                                        'closed_at'                 => $now,
+                                                        'jackpot_increase_enabled'  => ( $hunt_row && isset( $hunt_row->jackpot_increase_enabled ) ) ? (int) $hunt_row->jackpot_increase_enabled : 1,
+                                                );
 
 						BHG_Jackpots::instance()->handle_hunt_closure( $hunt_id, $final_balance, (array) $rows, $jackpot_context );
 				}

@@ -92,24 +92,24 @@ composer install
 ### `[bhg_user_guesses]`
 Display guesses submitted for a specific bonus hunt. Pass `id` to target a hunt; omit it to use the most recent active hunt.
 
-- `timeline`: limit results to `day`, `week`, `month`, `year`, or the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`.
+- `timeline`: limit results to the allowed keywords: `today`, `this_week`, `this_month`, `this_quarter`, `this_year`, `last_year`, or `all_time`.
 
 ### `[bhg_hunts]`
 List bonus hunts.
 
-- `timeline`: filter hunts created within `day`, `week`, `month`, `year`, or the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`.
+- `timeline`: filter hunts created within the allowed ranges: `today`, `this_week`, `this_month`, `this_quarter`, `this_year`, `last_year`, or `all_time`.
 
 ### `[bhg_leaderboards]`
 Display overall wins leaderboard.
 
 - `fields`: comma-separated list of columns to render. Allowed values: `pos`, `user`, `wins`, `avg_hunt`, `avg_tournament`, `aff`, `site`, `hunt`, `tournament`. Defaults to `pos`, `user`, `wins`, `avg_hunt`, `avg_tournament`.
 - `ranking`: number of top rows to display. Accepts values from `1` to `10` (default `1`).
-- `timeline`: limit results to `day`, `week`, `month`, `year`, or the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`.
+- `timeline`: limit results to the allowed keywords: `today`, `this_week`, `this_month`, `this_quarter`, `this_year`, `last_year`, or `all_time`.
 
 ### `[bhg_tournaments]`
 List tournaments or show details.
 
-- `timeline`: limit tournaments by `day`, `week`, `month`, `year`, the legacy aliases `this_week`, `this_month`, `this_year`, `last_year`, or by type keywords `all_time`, `weekly`, `monthly`, `yearly`, `quarterly`, `alltime`.
+- `timeline`: limit tournaments by the allowed keywords: `today`, `this_week`, `this_month`, `this_quarter`, `this_year`, `last_year`, or `all_time`.
 
 ### `[my_bonushunts]`
 Displays the logged-in user's guesses across recent bonus hunts. Results highlight winning placements, show the recorded guess, and display the final balance once a hunt closes. Output honours the My Profile visibility toggles defined under **Settings → Bonus Hunt Guesser → My Profile Blocks**.
