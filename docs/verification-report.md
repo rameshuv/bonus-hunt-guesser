@@ -49,3 +49,7 @@
 - [ ] **Filter persistence**: while paginating and sorting, confirm query strings keep `bhg_orderby`, `bhg_order`, `bhg_timeline`, `bhg_tournament`, `bhg_aff`, `bhg_site`, and search terms intact between requests.【F:includes/class-bhg-shortcodes.php†L4957-L4994】
 - [ ] **Prize visibility toggles**: test combinations of `show_prizes`, `show_prize_summary`, and `show_search` attributes (yes/no) on leaderboard and tournament shortcodes to ensure prize boxes, summaries, and search bars appear or hide as configured, including prize tabs for regular vs premium rewards.【F:includes/class-bhg-shortcodes.php†L2250-L2319】【F:includes/class-bhg-shortcodes.php†L4497-L4874】
 - [ ] **Rendering regression sweep**: load each shortcode (`leaderboard`, `tournament`, `latest-winners-list`, `leaderboard-list`, `tournament-list`, `bonushunt-list`) with and without timeline/status filters to confirm username capitalization, integer averages, affiliate indicators, and header labels render consistently with the checklist expectations.【F:includes/class-bhg-shortcodes.php†L3215-L3960】【F:includes/class-bhg-shortcodes.php†L4719-L4941】
+
+## Test Execution Log (this run)
+- Composer install failed to download dependencies because GitHub API access requires credentials in this environment; PHPCS and PHPUnit binaries are unavailable until install succeeds.【bee29c†L1-L36】
+- PHPUnit invocation (`php -d memory_limit=-1 vendor/bin/phpunit`) could not run because the binary is missing from `vendor/bin` due to the installation failure.【c188b8†L1-L3】
