@@ -4939,55 +4939,7 @@ echo '<div class="bhg-leaderboard-headings">' . implode( '', $heading_parts ) . 
                                                 }
                                                 echo '</tr></thead><tbody>';
 
-                                               $pos      = $offset + 1;
-                                               $charset  = get_bloginfo( 'charset' );
-                                               $charset  = $charset ? $charset : 'UTF-8';
-                                               foreach ( $rows as $row ) {
-                                                               if ( $need_aff ) {
-                                                                               $site_id = isset( $row->site_id ) ? (int) $row->site_id : 0;
-                                                                               $aff     = bhg_render_affiliate_dot( (int) $row->user_id, $site_id );
-                                                               }
-                                                                               /* translators: %d: user ID. */
-                                                                               if ( ! empty( $row->user_login ) ) {
-                                                                                               $user_label = (string) $row->user_login;
-                                                                                               if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
-                                                                                                               $first_char = mb_substr( $user_label, 0, 1, $charset );
-                                                                                                               $rest       = mb_substr( $user_label, 1, null, $charset );
-                                                                                                               $user_label = mb_strtoupper( $first_char, $charset ) . $rest;
-                                                                                               } else {
-                                                                                                               $user_label = ucfirst( $user_label );
-                                                                                               }
-                                                                               } else {
-                                                                                               $user_label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-                                                                               }
-                                                                               echo '<tr>';
-				foreach ( $fields_arr as $field ) {
-					if ( 'pos' === $field ) {
-						echo '<td>' . (int) $pos . '</td>';
-					} elseif ( 'user' === $field ) {
-						echo '<td>' . esc_html( $user_label ) . '</td>';
-										} elseif ( 'wins' === $field ) {
-												echo '<td>' . (int) $row->total_wins . '</td>';
-										} elseif ( 'avg_hunt' === $field ) {
-                                                                                                echo '<td>' . ( isset( $row->avg_hunt_pos ) ? esc_html( number_format_i18n( (float) $row->avg_hunt_pos, 0 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-										} elseif ( 'avg_tournament' === $field ) {
-                                                                                                echo '<td>' . ( isset( $row->avg_tournament_pos ) ? esc_html( number_format_i18n( (float) $row->avg_tournament_pos, 0 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-										} elseif ( 'aff' === $field ) {
-														echo '<td>' . wp_kses_post( $aff ) . '</td>';
-                                       } elseif ( 'site' === $field ) {
-                                               $site_label = ! empty( $row->site_name ) ? $row->site_name : bhg_t( 'label_emdash', '—' );
-                                               echo '<td>' . esc_html( $site_label ) . '</td>';
-                                       } elseif ( 'hunt' === $field ) {
-                                               $hunt_label = ! empty( $row->hunt_title ) ? $row->hunt_title : bhg_t( 'label_emdash', '—' );
-                                               echo '<td>' . esc_html( $hunt_label ) . '</td>';
-                                       } elseif ( 'tournament' === $field ) {
-                                               $tournament_label = ! empty( $row->tournament_title ) ? $row->tournament_title : bhg_t( 'label_emdash', '—' );
-                                               echo '<td>' . esc_html( $tournament_label ) . '</td>';
-                                       }
-                               }
-                                        echo '</tr>';
-                                        ++$pos;
-                        }
+                                                echo $this->render_leaderboard_rows( $rows, $fields_arr, $offset, $need_aff );
                                                 echo '</tbody></table>';
 
                                                 if ( $total_pages > 1 ) {
@@ -5024,18 +4976,89 @@ $add_args['bhg_aff'] = $aff_filter;
                                                                                 )
                                                                 );
 
-                                                                if ( $pagination ) {
+                                                if ( $pagination ) {
                                                                                 echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
-                                                                }
+                                                }
                                                 }
 
                                                 return ob_get_clean();
                                 }
 
-					/**
-					 * Lists tournaments or shows tournament details.
-					 *
-					 * @param array $atts Shortcode attributes.
+               /**
+                * Render leaderboard rows for the main leaderboard shortcode.
+                *
+                * @param array $rows       Result rows.
+                * @param array $fields_arr Ordered list of fields to render.
+                * @param int   $offset     Pagination offset used for position numbering.
+                * @param bool  $need_aff   Whether to render affiliate indicators.
+                *
+                * @return string HTML table rows.
+                */
+               private function render_leaderboard_rows( $rows, $fields_arr, $offset, $need_aff ) {
+                               $pos     = $offset + 1;
+                               $charset = get_bloginfo( 'charset' );
+                               $charset = $charset ? $charset : 'UTF-8';
+
+                               ob_start();
+
+                               foreach ( $rows as $row ) {
+                                               $aff = '';
+
+                                               if ( $need_aff ) {
+                                                               $site_id = isset( $row->site_id ) ? (int) $row->site_id : 0;
+                                                               $aff     = bhg_render_affiliate_dot( (int) $row->user_id, $site_id );
+                                               }
+
+                                               /* translators: %d: user ID. */
+                                               if ( ! empty( $row->user_login ) ) {
+                                                               $user_label = (string) $row->user_login;
+                                                               if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
+                                                                               $first_char = mb_substr( $user_label, 0, 1, $charset );
+                                                                               $rest       = mb_substr( $user_label, 1, null, $charset );
+                                                                               $user_label = mb_strtoupper( $first_char, $charset ) . $rest;
+                                                               } else {
+                                                                               $user_label = ucfirst( $user_label );
+                                                               }
+                                               } else {
+                                                               $user_label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+                                               }
+
+                                               echo '<tr>';
+                                               foreach ( $fields_arr as $field ) {
+                                                               if ( 'pos' === $field ) {
+                                                                               echo '<td>' . (int) $pos . '</td>';
+                                                               } elseif ( 'user' === $field ) {
+                                                                               echo '<td>' . esc_html( $user_label ) . '</td>';
+                                                               } elseif ( 'wins' === $field ) {
+                                                                               echo '<td>' . (int) $row->total_wins . '</td>';
+                                                               } elseif ( 'avg_hunt' === $field ) {
+                                                                               echo '<td>' . ( isset( $row->avg_hunt_pos ) ? esc_html( number_format_i18n( (float) $row->avg_hunt_pos, 0 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                                               } elseif ( 'avg_tournament' === $field ) {
+                                                                               echo '<td>' . ( isset( $row->avg_tournament_pos ) ? esc_html( number_format_i18n( (float) $row->avg_tournament_pos, 0 ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                                               } elseif ( 'aff' === $field ) {
+                                                                               echo '<td>' . wp_kses_post( $aff ) . '</td>';
+                                                               } elseif ( 'site' === $field ) {
+                                                                               $site_label = ! empty( $row->site_name ) ? $row->site_name : bhg_t( 'label_emdash', '—' );
+                                                                               echo '<td>' . esc_html( $site_label ) . '</td>';
+                                                               } elseif ( 'hunt' === $field ) {
+                                                                               $hunt_label = ! empty( $row->hunt_title ) ? $row->hunt_title : bhg_t( 'label_emdash', '—' );
+                                                                               echo '<td>' . esc_html( $hunt_label ) . '</td>';
+                                                               } elseif ( 'tournament' === $field ) {
+                                                                               $tournament_label = ! empty( $row->tournament_title ) ? $row->tournament_title : bhg_t( 'label_emdash', '—' );
+                                                                               echo '<td>' . esc_html( $tournament_label ) . '</td>';
+                                                               }
+                                               }
+                                               echo '</tr>';
+                                               ++$pos;
+                               }
+
+                               return ob_get_clean();
+               }
+
+                                        /**
+                                         * Lists tournaments or shows tournament details.
+                                         *
+                                         * @param array $atts Shortcode attributes.
 					 * @return string HTML output.
 					 */
                 public function tournaments_shortcode( $atts ) {
