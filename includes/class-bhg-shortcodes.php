@@ -621,13 +621,6 @@ array(
                                $select_sql .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
 
                                $query = $wpdb->prepare( $select_sql, $limit, $offset );
-                               bhg_log(
-                                               array(
-                                                               'leaderboard_query_sql' => $query,
-                                                               'leaderboard_limit'     => $limit,
-                                                               'leaderboard_offset'    => $offset,
-                                               )
-                               );
                                $rows  = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
                                if ( empty( $rows ) ) {
@@ -4717,25 +4710,6 @@ $tournament_limits = array();
                                                $need_hunt_name       = in_array( 'hunt', $fields_arr, true );
                                                $need_aff             = in_array( 'aff', $fields_arr, true );
 
-                                               $attr_overrides = array_diff_assoc( $a, $leaderboard_defaults );
-                                               bhg_log(
-                                                               array(
-                                                                               'leaderboards_shortcode_atts' => array(
-                                                                                               'provided'  => $atts,
-                                                                                               'overrides' => $attr_overrides,
-                                                                                               'resolved'  => $a,
-                                                                               ),
-                                                               )
-                                               );
-
-                                               bhg_log(
-                                                               sprintf(
-                                                                               'Leaderboards pagination vars per_page=%d paged=%d ranking_limit=%d',
-                                                                               $per_page,
-                                                                               $paged,
-                                                                               $ranking_limit
-                                                               )
-                                               );
 
 $query_result = $this->run_leaderboard_query(
 array(
