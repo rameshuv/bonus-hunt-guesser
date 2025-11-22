@@ -6418,9 +6418,6 @@ $output .= '</table></div>';
                                                                                 if ( $title ) {
                                                                                                 echo '<span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span>';
                                                                                 }
-                                                                                if ( $user_label ) {
-                                                                                                echo ' <span class="bhg-ticker-winner">' . esc_html( $user_label ) . '</span>';
-                                                                                }
                                                                                 if ( 'scroll' === $design && $separator && $index < $total ) {
                                                                                                 echo '<span class="bhg-ticker-separator" aria-hidden="true">' . esc_html( $separator ) . '</span>';
                                                                                 }
