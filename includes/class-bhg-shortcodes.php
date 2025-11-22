@@ -4399,23 +4399,23 @@ $atts = array();
 }
 
 $atts = (array) $atts;
-                                               $leaderboard_defaults = array(
-                                                               'fields'             => 'pos,user,wins,avg_hunt,avg_tournament,aff',
-                                                               'ranking'            => 0,
-                                                               'timeline'           => '',
-                                                               'orderby'            => 'wins',
-                                                               'order'              => 'DESC',
-                                                               'search'             => '',
-                                                               'tournament'         => '',
-                                                               'bonushunt'          => '',
-                                                               'website'            => '',
-                                                               'aff'                => '',
-                                                               'filters'            => 'timeline,tournament,affiliate_site,affiliate_status',
-                                                               'per_page'           => 0,
-                                                               'paged'              => 1,
-                                                               'show_search'        => 'yes',
-                                                               'show_prize_summary' => 'auto',
-                                               );
+$leaderboard_defaults = array(
+'fields'             => 'pos,user,wins,avg_hunt,avg_tournament,aff',
+'ranking'            => 0,
+'timeline'           => '',
+'orderby'            => 'wins',
+'order'              => 'DESC',
+'search'             => '',
+'tournament'         => '',
+'bonushunt'          => '',
+'website'            => '',
+'aff'                => '',
+'filters'            => 'timeline,tournament,site,affiliate',
+'per_page'           => 25,
+'paged'              => 1,
+'show_search'        => 'yes',
+'show_prize_summary' => 'auto',
+);
 
                                                $a = shortcode_atts(
                                                                $leaderboard_defaults,
