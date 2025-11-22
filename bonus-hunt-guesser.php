@@ -980,9 +980,9 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	if ( isset( $submitted_styles['body_text'] ) && is_array( $submitted_styles['body_text'] ) ) {
-		$block = $submitted_styles['body_text'];
-		$row   = array();
+        if ( isset( $submitted_styles['body_text'] ) && is_array( $submitted_styles['body_text'] ) ) {
+                $block = $submitted_styles['body_text'];
+                $row   = array();
 
 		if ( isset( $block['size'] ) ) {
 			$size = bhg_sanitize_css_dimension_value( $block['size'] );
@@ -1008,12 +1008,35 @@ function bhg_handle_settings_save() {
 		if ( ! empty( $row ) ) {
 			$clean_styles['body_text'] = $row;
 		}
-	}
+        }
 
-	$settings['global_styles'] = $clean_styles;
+        $settings['global_styles'] = $clean_styles;
 
-	$remove_data_flag                     = filter_input( INPUT_POST, 'bhg_remove_data_on_uninstall', FILTER_SANITIZE_STRING );
-	$settings['remove_data_on_uninstall'] = '1' === $remove_data_flag ? 1 : 0;
+        $ticker_interval_input = filter_input( INPUT_POST, 'bhg_jackpot_ticker_interval', FILTER_SANITIZE_NUMBER_INT );
+        if ( null !== $ticker_interval_input ) {
+                $ticker_interval_value = max( 1, (int) $ticker_interval_input );
+                update_option( 'bhg_jackpot_ticker_interval', $ticker_interval_value );
+        }
+
+        $ticker_speed_input = filter_input( INPUT_POST, 'bhg_jackpot_ticker_scroll_speed', FILTER_SANITIZE_NUMBER_INT );
+        if ( null !== $ticker_speed_input ) {
+                $ticker_speed_value = max( 1, (int) $ticker_speed_input );
+                update_option( 'bhg_jackpot_ticker_scroll_speed', $ticker_speed_value );
+        }
+
+        $ticker_padding_input = filter_input( INPUT_POST, 'bhg_jackpot_ticker_padding', FILTER_SANITIZE_NUMBER_INT );
+        if ( null !== $ticker_padding_input ) {
+                $ticker_padding_value = max( 0, (int) $ticker_padding_input );
+                update_option( 'bhg_jackpot_ticker_padding', $ticker_padding_value );
+        }
+
+        if ( isset( $_POST['bhg_jackpot_ticker_separator'] ) ) {
+                $ticker_separator_value = sanitize_text_field( wp_unslash( $_POST['bhg_jackpot_ticker_separator'] ) );
+                update_option( 'bhg_jackpot_ticker_separator', $ticker_separator_value );
+        }
+
+        $remove_data_flag                     = filter_input( INPUT_POST, 'bhg_remove_data_on_uninstall', FILTER_SANITIZE_STRING );
+        $settings['remove_data_on_uninstall'] = '1' === $remove_data_flag ? 1 : 0;
 
 	// Save settings.
 	$existing = get_option( 'bhg_plugin_settings', array() );

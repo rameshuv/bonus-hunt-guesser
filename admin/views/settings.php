@@ -24,6 +24,10 @@ $hunt_limit_period       = isset( $hunt_limit['period'] ) ? sanitize_key( $hunt_
 $tour_limit_count        = isset( $tournament_limit['count'] ) ? (int) $tournament_limit['count'] : 0;
 $tour_limit_period       = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
 $shortcode_rows_per_page = isset( $settings['shortcode_rows_per_page'] ) ? max( 1, (int) $settings['shortcode_rows_per_page'] ) : 25;
+$ticker_interval         = max( 1, (int) get_option( 'bhg_jackpot_ticker_interval', 5 ) );
+$ticker_scroll_speed     = max( 1, (int) get_option( 'bhg_jackpot_ticker_scroll_speed', 25 ) );
+$ticker_separator        = (string) get_option( 'bhg_jackpot_ticker_separator', '-' );
+$ticker_padding          = max( 0, (int) get_option( 'bhg_jackpot_ticker_padding', 10 ) );
 
 $period_options = array(
 	'none'    => bhg_t( 'limit_period_none', 'No limit' ),
@@ -103,6 +107,34 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="number" class="small-text" id="bhg_shortcode_rows_per_page" name="bhg_shortcode_rows_per_page" value="<?php echo esc_attr( $shortcode_rows_per_page ); ?>" min="1" step="1">
 <p class="description"><?php echo esc_html( bhg_t( 'shortcode_rows_per_page_help', 'Sets the default number of rows for public leaderboards, tournaments, and other paginated tables.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_jackpot_ticker_interval"><?php echo esc_html( bhg_t( 'jackpot_ticker_interval', 'Jackpot ticker fade time (seconds)' ) ); ?></label></th>
+<td>
+<input type="number" class="small-text" id="bhg_jackpot_ticker_interval" name="bhg_jackpot_ticker_interval" value="<?php echo esc_attr( $ticker_interval ); ?>" min="1" step="1">
+<p class="description"><?php echo esc_html( bhg_t( 'jackpot_ticker_interval_help', 'Delay between fade transitions when using the fade design.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_jackpot_ticker_scroll_speed"><?php echo esc_html( bhg_t( 'jackpot_ticker_scroll_speed', 'Jackpot ticker scroll speed (px/sec)' ) ); ?></label></th>
+<td>
+<input type="number" class="small-text" id="bhg_jackpot_ticker_scroll_speed" name="bhg_jackpot_ticker_scroll_speed" value="<?php echo esc_attr( $ticker_scroll_speed ); ?>" min="1" step="1">
+<p class="description"><?php echo esc_html( bhg_t( 'jackpot_ticker_scroll_speed_help', 'Controls how quickly items slide left when using the scroll design.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_jackpot_ticker_separator"><?php echo esc_html( bhg_t( 'jackpot_ticker_separator', 'Jackpot ticker separator' ) ); ?></label></th>
+<td>
+<input type="text" class="regular-text" id="bhg_jackpot_ticker_separator" name="bhg_jackpot_ticker_separator" value="<?php echo esc_attr( $ticker_separator ); ?>" maxlength="10">
+<p class="description"><?php echo esc_html( bhg_t( 'jackpot_ticker_separator_help', 'Symbol shown between items in scroll mode (e.g. dash or pipe).' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_jackpot_ticker_padding"><?php echo esc_html( bhg_t( 'jackpot_ticker_padding', 'Jackpot ticker item padding (px)' ) ); ?></label></th>
+<td>
+<input type="number" class="small-text" id="bhg_jackpot_ticker_padding" name="bhg_jackpot_ticker_padding" value="<?php echo esc_attr( $ticker_padding ); ?>" min="0" step="1">
+<p class="description"><?php echo esc_html( bhg_t( 'jackpot_ticker_padding_help', 'Left and right padding applied to each ticker item.' ) ); ?></p>
 </td>
 </tr>
 <tr>

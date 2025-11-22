@@ -26,9 +26,12 @@ jQuery(document).ready(function($) {
 
         // Login redirect handling
         handleLoginRedirects();
-        
+
         // Affiliate status indicators
         initAffiliateIndicators();
+
+        // Jackpot ticker animations
+        initJackpotTicker();
     }
 
     // Validate and submit the guess form
@@ -277,8 +280,8 @@ jQuery(document).ready(function($) {
     function initAffiliateIndicators() {
         // Add tooltips to affiliate status indicators
         $('.bhg-affiliate-status').hover(function() {
-            var status = $(this).hasClass('affiliate') ? 
-                bhg_public_ajax.i18n.affiliate_user : 
+            var status = $(this).hasClass('affiliate') ?
+                bhg_public_ajax.i18n.affiliate_user :
                 bhg_public_ajax.i18n.non_affiliate_user;
             
             // Show tooltip
@@ -287,6 +290,106 @@ jQuery(document).ready(function($) {
             // Remove tooltip
             $(this).find('.bhg-tooltip').remove();
         });
+    }
+
+    // Animate jackpot ticker blocks
+    function initJackpotTicker() {
+        var tickers = $('.bhg-jackpot-ticker');
+
+        if (!tickers.length) {
+            return;
+        }
+
+        tickers.each(function() {
+            var ticker = $(this);
+            var design = ticker.hasClass('bhg-jackpot-ticker--design-scroll') ? 'scroll' : 'fade';
+            var intervalSeconds = parseInt(ticker.data('interval'), 10) || 5;
+            var speed = parseInt(ticker.data('speed'), 10) || 25;
+            var padding = parseInt(ticker.data('padding'), 10) || 0;
+            var list = ticker.find('ul');
+            var items = list.children('li');
+
+            if (!items.length) {
+                return;
+            }
+
+            // Normalize spacing
+            items.css({
+                'padding-left': padding + 'px',
+                'padding-right': padding + 'px'
+            });
+
+            if ('scroll' === design) {
+                startScrollTicker(ticker, list, speed);
+            } else {
+                startFadeTicker(items, Math.max(1000, intervalSeconds * 1000));
+            }
+        });
+    }
+
+    function startFadeTicker(items, interval) {
+        items.hide();
+        var index = 0;
+
+        var showNext = function() {
+            var current = items.eq(index);
+            current.fadeIn(400, function() {
+                setTimeout(function() {
+                    current.fadeOut(400, function() {
+                        index = (index + 1) % items.length;
+                        showNext();
+                    });
+                }, interval);
+            });
+        };
+
+        showNext();
+    }
+
+    function startScrollTicker(ticker, list, speed) {
+        list.css({
+            display: 'flex',
+            'flex-wrap': 'nowrap',
+            gap: 0,
+            transform: 'translateX(0)'
+        });
+
+        // Duplicate content for seamless looping
+        var originalItems = list.children().clone();
+        list.append(originalItems);
+
+        var totalWidth = 0;
+        list.children().each(function() {
+            totalWidth += $(this).outerWidth(true);
+        });
+
+        if (!totalWidth) {
+            return;
+        }
+
+        var position = 0;
+        var lastTimestamp = null;
+        ticker.css('overflow', 'hidden');
+
+        var step = function(timestamp) {
+            if (null === lastTimestamp) {
+                lastTimestamp = timestamp;
+            }
+
+            var delta = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+
+            position += (speed * delta) / 1000;
+
+            if (position >= totalWidth / 2) {
+                position = 0;
+            }
+
+            list.css('transform', 'translateX(' + (-position) + 'px)');
+            window.requestAnimationFrame(step);
+        };
+
+        window.requestAnimationFrame(step);
     }
 
     // Show error message
