@@ -1454,40 +1454,6 @@ include $view;
 return ob_get_clean();
 }
 
-       /**
-        * Normalize username labels with consistent capitalization.
-        *
-        * @param string $label   Raw username label.
-        * @param int    $user_id Optional user ID for fallback labels.
-        *
-        * @return string
-        */
-       private function format_username_label( $label, $user_id = 0 ) {
-               $label = (string) $label;
-
-               if ( '' === $label && $user_id > 0 ) {
-                       /* translators: %d: user ID. */
-                       $label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), $user_id );
-               }
-
-               if ( '' === $label ) {
-                       return $label;
-               }
-
-               $charset = get_bloginfo( 'charset' );
-               $charset = $charset ? $charset : 'UTF-8';
-
-               if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
-                       $first = mb_substr( $label, 0, 1, $charset );
-                       $rest  = mb_substr( $label, 1, null, $charset );
-                       $label = mb_strtoupper( $first, $charset ) . $rest;
-               } else {
-                       $label = ucfirst( $label );
-               }
-
-               return $label;
-       }
-
 ob_start();
 echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
 if ( ! $hide_heading && '' !== $heading_text ) {
@@ -1573,10 +1539,44 @@ $tab_index++;
 return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-prize-tabs" role="tablist">' . $nav_markup . '</div><div class="bhg-prize-tab-panels">' . $panel_markup . '</div></div>';
 }
 
+       /**
+        * Normalize username labels with consistent capitalization.
+        *
+        * @param string $label   Raw username label.
+        * @param int    $user_id Optional user ID for fallback labels.
+        *
+        * @return string
+        */
+       private function format_username_label( $label, $user_id = 0 ) {
+               $label = (string) $label;
+
+               if ( '' === $label && $user_id > 0 ) {
+                       /* translators: %d: user ID. */
+                       $label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), $user_id );
+               }
+
+               if ( '' === $label ) {
+                       return $label;
+               }
+
+               $charset = get_bloginfo( 'charset' );
+               $charset = $charset ? $charset : 'UTF-8';
+
+               if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
+                       $first = mb_substr( $label, 0, 1, $charset );
+                       $rest  = mb_substr( $label, 1, null, $charset );
+                       $label = mb_strtoupper( $first, $charset ) . $rest;
+               } else {
+                       $label = ucfirst( $label );
+               }
+
+               return $label;
+       }
+
         /**
         * Retrieve bonus hunts the current user has participated in.
-	*
-	* @param int $user_id User identifier.
+        *
+        * @param int $user_id User identifier.
 	* @param int $limit   Maximum number of hunts to return.
 	* @return array[]
 	*/
@@ -4399,23 +4399,23 @@ $atts = array();
 }
 
 $atts = (array) $atts;
-                                               $leaderboard_defaults = array(
-                                                               'fields'             => 'pos,user,wins,avg_hunt,avg_tournament,aff',
-                                                               'ranking'            => 0,
-                                                               'timeline'           => '',
-                                                               'orderby'            => 'wins',
-                                                               'order'              => 'DESC',
-                                                               'search'             => '',
-                                                               'tournament'         => '',
-                                                               'bonushunt'          => '',
-                                                               'website'            => '',
-                                                               'aff'                => '',
-                                                               'filters'            => 'timeline,tournament,affiliate_site,affiliate_status',
-                                                               'per_page'           => 0,
-                                                               'paged'              => 1,
-                                                               'show_search'        => 'yes',
-                                                               'show_prize_summary' => 'auto',
-                                               );
+$leaderboard_defaults = array(
+'fields'             => 'pos,user,wins,avg_hunt,avg_tournament,aff',
+'ranking'            => 0,
+'timeline'           => '',
+'orderby'            => 'wins',
+'order'              => 'DESC',
+'search'             => '',
+'tournament'         => '',
+'bonushunt'          => '',
+'website'            => '',
+'aff'                => '',
+'filters'            => 'timeline,tournament,affiliate_site,affiliate_status',
+'per_page'           => 25,
+'paged'              => 1,
+'show_search'        => 'yes',
+'show_prize_summary' => 'auto',
+);
 
                                                $a = shortcode_atts(
                                                                $leaderboard_defaults,
