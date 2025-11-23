@@ -319,8 +319,8 @@ $website_id           = max( 0, (int) $args['website_id'] );
                 $need_aff             = ! empty( $args['need_aff'] );
                 $need_site_details    = $need_site || $need_aff;
 
-if ( $tournament_id > 0 && $hunt_id <= 0 ) {
-$tournament_rows = $this->run_tournament_results_leaderboard(
+               if ( $tournament_id > 0 && $hunt_id <= 0 ) {
+               $tournament_rows = $this->run_tournament_results_leaderboard(
 array(
 'tournament_id'        => $tournament_id,
 'timeline'             => $timeline,
@@ -337,15 +337,15 @@ array(
                                                                 'need_site'            => $need_site,
                                                                 'need_tournament_name' => $need_tournament_name,
                                                                 'need_hunt_name'       => $need_hunt_name,
-                                                                'need_aff'             => $need_aff,
-                                                                'fields'               => $fields,
-                                                )
-                                );
+'need_aff'             => $need_aff,
+'fields'               => $fields,
+                                               )
+                               );
 
-                                if ( is_array( $tournament_rows ) ) {
+                                if ( is_array( $tournament_rows ) && empty( $tournament_rows['error'] ) && isset( $tournament_rows['total'] ) && $tournament_rows['total'] > 1 ) {
                                                 return $tournament_rows;
                                 }
-                }
+               }
 
                                if ( ! in_array( $direction_key, array( 'asc', 'desc' ), true ) ) {
                                                $direction_key = 'desc';
@@ -618,7 +618,16 @@ array(
                                $direction = isset( $direction_map[ $direction_key ] ) ? $direction_map[ $direction_key ] : $direction_map['desc'];
                                $orderby   = isset( $orderby_map[ $orderby_request ] ) ? $orderby_map[ $orderby_request ] : $orderby_map['wins'];
 
-                               $select_sql .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
+                               $order_clauses = array( sprintf( '%s %s', $orderby, $direction ) );
+                               if ( 'wins.total_wins' !== $orderby ) {
+                                               $order_clauses[] = 'wins.total_wins DESC';
+                               }
+                               if ( 'u.user_login' !== $orderby ) {
+                                               $order_clauses[] = 'u.user_login ASC';
+                               }
+                               $order_clauses[] = 'wins.user_id ASC';
+
+                               $select_sql .= ' ORDER BY ' . implode( ', ', $order_clauses ) . ' LIMIT %d OFFSET %d';
 
                                $query = $wpdb->prepare( $select_sql, $limit, $offset );
                                $rows  = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -808,7 +817,7 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                 $params[] = $range['end'];
                                 }
 
-                                $count_sql = 'SELECT COUNT(*) FROM ' . $r . ' tr ' . implode( ' ', $count_joins );
+                                $count_sql = 'SELECT COUNT(DISTINCT tr.user_id) FROM ' . $r . ' tr ' . implode( ' ', $count_joins );
                                 if ( ! empty( $where ) ) {
                                                 $count_sql .= ' WHERE ' . implode( ' AND ', $where );
                                 }
