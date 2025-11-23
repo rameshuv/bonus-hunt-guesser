@@ -470,13 +470,15 @@ css_background VARCHAR(40) NULL,
 					}
 				}
 
-				if ( $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-					$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
-				}
+						if ( $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
+								// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
+						}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-				$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD UNIQUE KEY hunt_prize (hunt_id, prize_id, prize_type)" );
+						if ( ! $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
+								// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+								$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD UNIQUE KEY hunt_prize (hunt_id, prize_id, prize_type)" );
+						}
 
 				if ( ! $this->index_exists( $hunt_prizes_table, 'prize_type' ) ) {
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -915,7 +917,7 @@ WHERE tournament_id IS NOT NULL AND tournament_id > 0",
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		$exists = $wpdb->get_var( $sql );
 
-		if ( $wpdb->last_error ) {
+		if ( $wpdb->last_error || empty( $exists ) ) {
 			$wpdb->last_error = '';
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 			$exists = $wpdb->get_var( $wpdb->prepare( "SHOW INDEX FROM `{$table}` WHERE Key_name=%s", $index ) );
