@@ -352,7 +352,10 @@ class BHG_Admin {
 				$num_bonuses                    = isset( $_POST['num_bonuses'] ) ? absint( wp_unslash( $_POST['num_bonuses'] ) ) : 0;
 								$affiliate_site = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 				$tournament_ids_input           = isset( $_POST['tournament_ids'] ) ? (array) wp_unslash( $_POST['tournament_ids'] ) : array();
-				$tournament_ids                 = bhg_sanitize_tournament_ids( $tournament_ids_input );
+                $tournament_ids                 = bhg_sanitize_tournament_ids( $tournament_ids_input );
+                $primary_tournament_id          = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
+                $winners_count                  = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
+                $winners_count                  = min( 25, max( 1, $winners_count ) );
 $extract_prize_map              = static function ( $field ) {
 $raw = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : array();
 $map = array();
@@ -379,14 +382,28 @@ $prize_sets = array(
 if ( empty( $prize_sets['regular'] ) && empty( $prize_sets['premium'] ) ) {
 $prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
 }
-				if ( empty( $tournament_ids ) && isset( $_POST['tournament_id'] ) ) {
-								$legacy = bhg_sanitize_tournament_id( sanitize_text_field( wp_unslash( $_POST['tournament_id'] ) ) );
-					if ( $legacy > 0 ) {
-							$tournament_ids = array( $legacy );
-					}
-				}
-                                $primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
-                                $winners_count         = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
+
+                                foreach ( $prize_sets as $type => $map ) {
+                                                                if ( ! is_array( $map ) ) {
+                                                                                $prize_sets[ $type ] = array();
+                                                                                continue;
+                                                                }
+
+                                                                ksort( $map );
+
+                                                                if ( $winners_count > 0 ) {
+                                                                                $map = array_slice( $map, 0, $winners_count, true );
+                                                                }
+
+                                                                $prize_sets[ $type ] = $map;
+                                }
+                                if ( empty( $tournament_ids ) && isset( $_POST['tournament_id'] ) ) {
+                                                                $legacy = bhg_sanitize_tournament_id( sanitize_text_field( wp_unslash( $_POST['tournament_id'] ) ) );
+                                        if ( $legacy > 0 ) {
+                                                        $tournament_ids = array( $legacy );
+                                        }
+                                }
+                                $primary_tournament_id = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : $primary_tournament_id;
                                 $guessing_enabled      = isset( $_POST['guessing_enabled'] ) ? 1 : 0;
                                 $jackpot_increase      = isset( $_POST['jackpot_increase_enabled'] ) ? 1 : 0;
                                 $final_balance_raw     = isset( $_POST['final_balance'] ) ? sanitize_text_field( wp_unslash( $_POST['final_balance'] ) ) : '';
