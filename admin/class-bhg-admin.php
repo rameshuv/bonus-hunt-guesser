@@ -353,35 +353,32 @@ class BHG_Admin {
 								$affiliate_site = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 				$tournament_ids_input           = isset( $_POST['tournament_ids'] ) ? (array) wp_unslash( $_POST['tournament_ids'] ) : array();
 				$tournament_ids                 = bhg_sanitize_tournament_ids( $tournament_ids_input );
-				$extract_prize_ids              = static function ( $field ) {
-						$raw = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : array();
-						$ids = array();
+$extract_prize_map              = static function ( $field ) {
+$raw = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : array();
+$map = array();
 
-					if ( is_array( $raw ) ) {
-						foreach ( $raw as $maybe_id ) {
-								$pid = absint( $maybe_id );
-							if ( $pid > 0 ) {
-								$ids[ $pid ] = $pid;
-							}
-						}
-					} elseif ( '' !== $raw ) {
-							$pid = absint( $raw );
-						if ( $pid > 0 ) {
-								$ids[ $pid ] = $pid;
-						}
-					}
+if ( is_array( $raw ) ) {
+foreach ( $raw as $position => $maybe_id ) {
+$pid       = absint( $maybe_id );
+$position  = is_numeric( $position ) ? max( 1, absint( $position ) ) : 0;
 
-						return array_values( $ids );
-				};
+if ( $pid > 0 && $position > 0 ) {
+$map[ $position ] = $pid;
+}
+}
+}
 
-                                $prize_sets = array(
-                                        'regular' => $extract_prize_ids( 'regular_prize_ids' ),
-                                        'premium' => $extract_prize_ids( 'premium_prize_ids' ),
-                                );
+return $map;
+};
 
-				if ( empty( $prize_sets['regular'] ) && empty( $prize_sets['premium'] ) ) {
-						$prize_sets['regular'] = $extract_prize_ids( 'prize_ids' );
-				}
+$prize_sets = array(
+'regular' => $extract_prize_map( 'regular_prize_map' ),
+'premium' => $extract_prize_map( 'premium_prize_map' ),
+);
+
+if ( empty( $prize_sets['regular'] ) && empty( $prize_sets['premium'] ) ) {
+$prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
+}
 				if ( empty( $tournament_ids ) && isset( $_POST['tournament_id'] ) ) {
 								$legacy = bhg_sanitize_tournament_id( sanitize_text_field( wp_unslash( $_POST['tournament_id'] ) ) );
 					if ( $legacy > 0 ) {
