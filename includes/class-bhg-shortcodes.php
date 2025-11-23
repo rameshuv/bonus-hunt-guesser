@@ -342,7 +342,7 @@ array(
                                                )
                                );
 
-                                if ( is_array( $tournament_rows ) && empty( $tournament_rows['error'] ) && isset( $tournament_rows['total'] ) && $tournament_rows['total'] > 1 ) {
+                                if ( is_array( $tournament_rows ) && empty( $tournament_rows['error'] ) && isset( $tournament_rows['total'] ) && $tournament_rows['total'] >= 1 ) {
                                                 return $tournament_rows;
                                 }
                }

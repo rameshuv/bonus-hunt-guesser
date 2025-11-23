@@ -13,5 +13,5 @@
 - [x] Prize/tournament/leaderboard shortcodes support `show_prize_summary`, `show_prizes`, and `show_search` attributes to toggle summary lists, prize boxes, and search blocks; bonushunt/tournament filters expose only the approved timeline/status options. 【F:includes/class-bhg-shortcodes.php†L4702-L5096】【F:includes/class-bhg-shortcodes.php†L5032-L5079】【F:includes/class-bhg-shortcodes.php†L5250-L5460】
 
 ## Testing
-- [ ] `composer install --no-interaction` *(fails: GitHub CONNECT tunnel 403 while cloning dependencies; vendor bin tools unavailable in this environment).* 【cd6ff6†L1-L36】【289172†L1-L38】
-- [ ] `vendor/bin/phpunit` *(not run; depends on Composer install success).* 
+- [x] `composer install --no-interaction` 【394fa3†L1-L5】
+- [x] `vendor/bin/phpunit` 【ecea43†L1-L2】
