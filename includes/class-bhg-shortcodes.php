@@ -1067,8 +1067,13 @@ private function normalize_prize_layout( $layout ) {
                                                $title = $default_label;
                                        }
 
+                                       $entry_position = $position;
+                                       if ( isset( $prize->bhg_prize_position ) ) {
+                                               $entry_position = max( 1, (int) $prize->bhg_prize_position );
+                                       }
+
                                        $entries[] = array(
-                                               'position' => $position,
+                                               'position' => $entry_position,
                                                'text'     => $title,
                                        );
 
@@ -1083,6 +1088,181 @@ private function normalize_prize_layout( $layout ) {
                                 * @param array $section_options Section rendering options.
                                 */
                                return apply_filters( 'bhg_prize_summary_entries', $entries, $prizes, $section_option );
+                       }
+
+                       /**
+                        * Normalize stored prize data into per-position maps.
+                        *
+                        * @param mixed $raw_prizes    Stored prizes payload.
+                        * @param int   $winners_count Optional winners limit.
+                        * @return array<string,array<int,int>> Map of prize type => position => prize ID.
+                        */
+                       private function normalize_prize_maps_from_storage( $raw_prizes, $winners_count = 0 ) {
+                               $maps = array(
+                                       'regular' => array(),
+                                       'premium' => array(),
+                               );
+
+                               $decoded = $raw_prizes;
+                               if ( is_string( $raw_prizes ) ) {
+                                       $decoded = json_decode( $raw_prizes, true );
+                               }
+
+                               if ( is_array( $decoded ) ) {
+                                       if ( isset( $decoded['regular'] ) || isset( $decoded['premium'] ) ) {
+                                               foreach ( array( 'regular', 'premium' ) as $type ) {
+                                                       if ( empty( $decoded[ $type ] ) || ! is_array( $decoded[ $type ] ) ) {
+                                                               continue;
+                                                       }
+
+                                                       foreach ( $decoded[ $type ] as $position => $maybe_id ) {
+                                                               $pid       = absint( $maybe_id );
+                                                               $position  = is_numeric( $position ) ? max( 1, absint( $position ) ) : 0;
+                                                               if ( $pid > 0 && $position > 0 ) {
+                                                                       $maps[ $type ][ $position ] = $pid;
+                                                               }
+                                                       }
+                                               }
+                                       } else {
+                                               $pos = 1;
+                                               foreach ( $decoded as $maybe_id ) {
+                                                       $pid = absint( $maybe_id );
+                                                       if ( $pid > 0 ) {
+                                                               $maps['regular'][ $pos ] = $pid;
+                                                               $pos++;
+                                                       }
+                                               }
+                                       }
+                               }
+
+                               if ( $winners_count > 0 ) {
+                                       foreach ( array( 'regular', 'premium' ) as $type ) {
+                                               $maps[ $type ] = array_slice( $maps[ $type ], 0, $winners_count, true );
+                                       }
+                               }
+
+                               foreach ( $maps as $type => $map ) {
+                                       ksort( $map );
+                                       $maps[ $type ] = $map;
+                               }
+
+                               return $maps;
+                       }
+
+                       /**
+                        * Load prize rows keyed by type while preserving position order.
+                        *
+                        * @param array<string,array<int,int>> $prize_maps Position => prize ID map.
+                        * @return array<string,array<int,object>>
+                        */
+                       private function load_prize_sets_from_maps( $prize_maps ) {
+                               $results = array(
+                                       'regular' => array(),
+                                       'premium' => array(),
+                               );
+
+                               if ( empty( $prize_maps ) || ! class_exists( 'BHG_Prizes' ) || ! method_exists( 'BHG_Prizes', 'get_prizes_by_ids' ) ) {
+                                       return $results;
+                               }
+
+                               foreach ( $prize_maps as $type => $map ) {
+                                       if ( empty( $map ) || ! is_array( $map ) ) {
+                                               continue;
+                                       }
+
+                                       $ids       = array_values( $map );
+                                       $prize_rows = BHG_Prizes::get_prizes_by_ids( $ids );
+                                       if ( empty( $prize_rows ) || ! is_array( $prize_rows ) ) {
+                                               continue;
+                                       }
+
+                                       $indexed = array();
+                                       foreach ( $prize_rows as $row ) {
+                                               if ( isset( $row->active ) && (int) $row->active === 0 ) {
+                                                       continue;
+                                               }
+
+                                               if ( isset( $row->id ) ) {
+                                                       $indexed[ (int) $row->id ] = $row;
+                                               }
+                                       }
+
+                                       ksort( $map );
+                                       foreach ( $map as $position => $prize_id ) {
+                                               if ( isset( $indexed[ $prize_id ] ) ) {
+                                                       $row                        = $indexed[ $prize_id ];
+                                                       $row->bhg_prize_position    = (int) $position;
+                                                       $results[ $type ][] = $row;
+                                               }
+                                       }
+                               }
+
+                               return $results;
+                       }
+
+                       /**
+                        * Render tabbed prize layout for regular and premium sets.
+                        *
+                        * @param array<string,array<int,object>> $prize_sets Prize rows keyed by type.
+                        * @param array                           $section_options Display options passed to render_prize_section.
+                        * @param array                           $display_overrides Card display overrides.
+                        * @param string                          $layout Layout keyword.
+                        * @param string                          $size Image size keyword.
+                        * @return string
+                        */
+                       private function render_prize_sets_tabs( $prize_sets, $section_options = array(), $display_overrides = array(), $layout = 'carousel', $size = 'medium' ) {
+                               $available = array();
+                               foreach ( array( 'regular', 'premium' ) as $type ) {
+                                       if ( ! empty( $prize_sets[ $type ] ) ) {
+                                               $available[] = $type;
+                                       }
+                               }
+
+                               if ( empty( $available ) ) {
+                                       return '';
+                               }
+
+                               if ( 1 === count( $available ) ) {
+                                       $type          = $available[0];
+                                       $heading       = isset( $section_options['heading_text'] ) ? $section_options['heading_text'] : ( 'premium' === $type ? bhg_t( 'label_premium_prize_set', 'Premium Prize Set' ) : bhg_t( 'label_regular_prize_set', 'Regular Prize Set' ) );
+                                       $options       = $section_options;
+                                       $options['heading_text'] = $heading;
+                                       return $this->render_prize_section( $prize_sets[ $type ], $layout, $size, $display_overrides, $options );
+                               }
+
+                               $tab_id    = uniqid( 'bhg-prize-tabs-', false );
+                               $tab_index = 0;
+
+                               ob_start();
+                               echo '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1">';
+                               echo '<div class="bhg-prize-tabs" role="tablist">';
+                               foreach ( $available as $type ) {
+                                       $tab_index++;
+                                       $is_active = ( 1 === $tab_index );
+                                       $tab_label = 'premium' === $type ? bhg_t( 'label_premium_prizes', 'Premium Prizes' ) : bhg_t( 'label_regular_prizes', 'Regular Prizes' );
+                                       $tab_target = $tab_id . '-' . $type;
+                                       echo '<button type="button" class="bhg-prize-tab' . ( $is_active ? ' is-active' : '' ) . '" role="tab" id="' . esc_attr( $tab_target ) . '" aria-selected="' . ( $is_active ? 'true' : 'false' ) . '" aria-controls="' . esc_attr( $tab_target ) . '-panel" tabindex="' . ( $is_active ? '0' : '-1' ) . '">' . esc_html( $tab_label ) . '</button>';
+                               }
+                               echo '</div>';
+
+                               $tab_index = 0;
+                               foreach ( $available as $type ) {
+                                       $tab_index++;
+                                       $is_active = ( 1 === $tab_index );
+                                       $panel_id  = $tab_id . '-' . $type . '-panel';
+                                       $tab_ref   = $tab_id . '-' . $type;
+                                       $heading   = 'premium' === $type ? bhg_t( 'label_premium_prize_set', 'Premium Prize Set' ) : bhg_t( 'label_regular_prize_set', 'Regular Prize Set' );
+                                       $options   = $section_options;
+                                       $options['heading_text'] = $heading;
+
+                                       echo '<div class="bhg-prize-tab-panel' . ( $is_active ? ' is-active' : '' ) . '" role="tabpanel" id="' . esc_attr( $panel_id ) . '" aria-labelledby="' . esc_attr( $tab_ref ) . '"' . ( $is_active ? '' : ' hidden' ) . '>';
+                                       echo wp_kses_post( $this->render_prize_section( $prize_sets[ $type ], $layout, $size, $display_overrides, $options ) );
+                                       echo '</div>';
+                               }
+
+                               echo '</div>';
+
+                               return ob_get_clean();
                        }
 
                        /**
@@ -3251,12 +3431,14 @@ echo '<table class="bhg-user-guesses"><thead><tr>';
 						  ),
 				  )
 		  );
-                                               if ( $pagination ) {
-                                                               echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
-                                               }
+                                                   if ( $pagination ) {
+                                                                                   echo '<div class="bhg-pagination">' . wp_kses_post( $pagination ) . '</div>';
+                                                   }
 
-                                               return ob_get_clean();
-                               }
+                                                   return ob_get_clean();
+                                    }
+
+
 
                                /**
                                 * Render a condensed text list of the latest winners.
@@ -4417,6 +4599,7 @@ $leaderboard_defaults = array(
 'paged'              => 1,
 'show_search'        => 'yes',
 'show_prize_summary' => 'auto',
+'show_prizes'        => 'yes',
 );
 
                                                $a = shortcode_atts(
@@ -4426,6 +4609,8 @@ $leaderboard_defaults = array(
                                                );
 
                                                $summary_preference = strtolower( trim( (string) $a['show_prize_summary'] ) );
+                                               $show_prizes_attr   = isset( $a['show_prizes'] ) ? $a['show_prizes'] : 'yes';
+                                               $show_prizes        = $this->attribute_to_bool( $show_prizes_attr, true );
 
                                                $raw_fields     = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
 						$allowed_fields = array( 'pos', 'user', 'wins', 'avg', 'avg_hunt', 'avg_tournament', 'aff', 'site', 'hunt', 'tournament' );
@@ -4603,56 +4788,48 @@ $tournament_limits = array();
                                                                                                                $selected_tournament_row = $selected_row;
                                                                                                }
                                                                                }
-                                                                                 if ( $tournament_filter_active && class_exists( 'BHG_Prizes' ) && method_exists( 'BHG_Prizes', 'get_prizes_by_ids' ) ) {
+                                                                                 if ( $tournament_filter_active && $show_prizes && class_exists( 'BHG_Prizes' ) && method_exists( 'BHG_Prizes', 'get_prizes_by_ids' ) ) {
                                                                                                $tournament_meta = $wpdb->get_row(
                                                                                                                $wpdb->prepare(
-                                                                                                                               "SELECT status, prizes FROM {$tournaments_table} WHERE id = %d",
+                                                                                                                               "SELECT status, prizes, winners_count FROM {$tournaments_table} WHERE id = %d",
                                                                                                                                $tournament_id
                                                                                                                )
                                                                                                );
                                                                                                if ( $tournament_meta && ! empty( $tournament_meta->prizes ) ) {
                                                                                                                $status = strtolower( (string) $tournament_meta->status );
                                                                                                                if ( 'active' === $status ) {
-                                                                                                                               $decoded_prizes = json_decode( $tournament_meta->prizes, true );
-                                                                                                                               if ( is_array( $decoded_prizes ) ) {
-                                                                                                                                               $prize_ids = array_values( array_filter( array_map( 'absint', $decoded_prizes ) ) );
-                                                                                                                                               if ( ! empty( $prize_ids ) ) {
-                                                                                                                                                               $prizes = BHG_Prizes::get_prizes_by_ids( $prize_ids );
-                                                                                                                                                               if ( ! empty( $prizes ) && is_array( $prizes ) ) {
-                                                                                                                                                                               $prizes = array_values(
-                                                                                                                                                                                               array_filter(
-                                                                                                                                                                                                               $prizes,
-                                                                                                                                                                                                               static function ( $prize ) {
-                                                                                                                                                                                                                               return ! isset( $prize->active ) || (int) $prize->active === 1;
-                                                                                                                                                                                                               }
-                                                                                                                                                                                               )
-                                                                                                                                                                               );
-                                                                                                                                                                               if ( ! empty( $prizes ) ) {
-                                                               $section_html = $this->render_prize_section(
-                                                                       $prizes,
-                                                                       'grid',
-                                                                       'medium',
-                                                                       array(),
-                                                                       array(
-                                                                               'show_summary' => $show_prize_summary,
-                                                                       )
-                                                               );
-                                                                                                                                                                                               if ( '' !== $section_html ) {
-                                                                                                                                                                                                               $leaderboard_prizes_markup  = '<div class="bhg-tournament-prizes bhg-tournament-prizes--leaderboard">';
-                                                                                                                                                                                                               $leaderboard_prizes_markup .= wp_kses_post( $section_html );
-                                                                                                                                                                                                               $leaderboard_prizes_markup .= '</div>';
-                                                                                                                                                                                               }
-                                                                                                                                                                               }
-                                                                                                                                                               }
+                                                                                                                               $prize_maps = $this->normalize_prize_maps_from_storage( $tournament_meta->prizes, isset( $tournament_meta->winners_count ) ? (int) $tournament_meta->winners_count : 0 );
+                                                                                                                               $prizes     = $this->load_prize_sets_from_maps( $prize_maps );
+
+                                                                                                                               if ( ! empty( $prizes['regular'] ) || ! empty( $prizes['premium'] ) ) {
+                                                                                                                                               $section_html = $this->render_prize_sets_tabs(
+                                                                                                                                                       $prizes,
+                                                                                                                                                       array(
+                                                                                                                                                               'show_summary' => $show_prize_summary,
+                                                                                                                                                       ),
+                                                                                                                                                       array(),
+                                                                                                                                                       'carousel',
+                                                                                                                                                       'medium'
+                                                                                                                                               );
+
+                                                                                                                                               if ( '' !== $section_html ) {
+
+                                                                                                                                                               $leaderboard_prizes_markup  = '<div class="bhg-tournament-prizes bhg-tournament-prizes--leaderboard">';
+
+                                                                                                                                                               $leaderboard_prizes_markup .= wp_kses_post( $section_html );
+
+                                                                                                                                                               $leaderboard_prizes_markup .= '</div>';
+
                                                                                                                                                }
+
                                                                                                                                }
+
                                                                                                                }
                                                                                                }
                                                                                }
                                                                }
-}
 
-                                               if ( $hunts_table && $bonushunt_id > 0 ) {
+if ( $hunts_table && $bonushunt_id > 0 ) {
                                                                $selected_bonushunt_row = $wpdb->get_row(
                                                                                $wpdb->prepare(
                                                                                                "SELECT id, title FROM {$hunts_table} WHERE id = %d",
@@ -4993,6 +5170,8 @@ $add_args['bhg_aff'] = $aff_filter;
                                                 return ob_get_clean();
                                 }
 
+                }
+
                /**
                 * Render leaderboard rows for the main leaderboard shortcode.
                 *
@@ -5069,6 +5248,8 @@ $add_args['bhg_aff'] = $aff_filter;
 
                         $show_prize_summary_attr    = isset( $atts['show_prize_summary'] ) ? $atts['show_prize_summary'] : 'yes';
                         $show_prize_summary_detail = $this->attribute_to_bool( $show_prize_summary_attr, true );
+                        $show_prizes_attr           = isset( $atts['show_prizes'] ) ? $atts['show_prizes'] : 'yes';
+                        $show_prizes                = $this->attribute_to_bool( $show_prizes_attr, true );
 
                         // Details screen.
                         $details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
@@ -5088,7 +5269,8 @@ $add_args['bhg_aff'] = $aff_filter;
 										't.start_date',
 										't.end_date',
 										't.status',
-										't.prizes',
+                                                                                't.prizes',
+                                                                                't.winners_count',
 										't.affiliate_site_id',
 										't.affiliate_website',
 										't.affiliate_url_visible',
@@ -5108,33 +5290,8 @@ $add_args['bhg_aff'] = $aff_filter;
 										return '<p>' . esc_html( bhg_t( 'notice_tournament_not_found', 'Tournament not found.' ) ) . '</p>';
 								}
 
-								$prize_ids = array();
-								if ( ! empty( $tournament->prizes ) ) {
-										$decoded_prizes = json_decode( $tournament->prizes, true );
-										if ( is_array( $decoded_prizes ) ) {
-												foreach ( $decoded_prizes as $maybe_prize ) {
-														$prize_id = absint( $maybe_prize );
-														if ( $prize_id > 0 ) {
-																$prize_ids[] = $prize_id;
-														}
-												}
-										}
-								}
-
-								$prizes = array();
-								if ( ! empty( $prize_ids ) && class_exists( 'BHG_Prizes' ) && method_exists( 'BHG_Prizes', 'get_prizes_by_ids' ) ) {
-										$prizes = BHG_Prizes::get_prizes_by_ids( $prize_ids );
-										if ( ! empty( $prizes ) ) {
-												$prizes = array_values(
-														array_filter(
-																$prizes,
-																static function ( $prize ) {
-																		return ! isset( $prize->active ) || (int) $prize->active === 1;
-																}
-														)
-												);
-										}
-								}
+                                                                $prize_maps = $this->normalize_prize_maps_from_storage( $tournament->prizes, isset( $tournament->winners_count ) ? (int) $tournament->winners_count : 0 );
+                                                                $prizes     = $this->load_prize_sets_from_maps( $prize_maps );
 
 $orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'position';
 $allowed_orders = array( 'asc', 'desc' );
@@ -5299,9 +5456,12 @@ $base
 										echo '</p>';
 								}
 
-                                if ( ! empty( $prizes ) ) {
-echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $this->render_prize_section( $prizes, 'grid', 'medium', array(), array( 'show_summary' => $show_prize_summary_detail ) ) ) . '</div>';
-}
+                                if ( $show_prizes ) {
+                                                $prize_markup = $this->render_prize_sets_tabs( $prizes, array( 'show_summary' => $show_prize_summary_detail ), array(), 'carousel', 'medium' );
+                                                if ( '' !== $prize_markup ) {
+                                                                echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $prize_markup ) . '</div>';
+                                                }
+                                }
 
 $default_rows = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 25 ) : 25;
 $per_page     = (int) apply_filters( 'bhg_tournament_results_per_page', $default_rows, $tournament );
@@ -6775,11 +6935,12 @@ echo '</div>';
 			}
 
 				return ob_get_clean();
-		}
-	}
+                }
+
+        }
 }
 
-// Register once on init even if no other bootstrap instantiates the class.
+  // Register once on init even if no other bootstrap instantiates the class.
 if ( ! function_exists( 'bhg_register_shortcodes_once' ) ) {
 		/**
 		 * Register shortcodes once on init.
