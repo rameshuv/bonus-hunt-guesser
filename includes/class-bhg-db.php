@@ -268,20 +268,26 @@ css_background VARCHAR(40) NULL,
 ) {$charset_collate};";
 
 		// Hunt prize map.
-                $sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        hunt_id BIGINT UNSIGNED NOT NULL,
-        prize_id BIGINT UNSIGNED NOT NULL,
-        prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
-        position INT UNSIGNED NOT NULL DEFAULT 1,
-        created_at DATETIME NULL,
-        PRIMARY KEY  (id),
-        UNIQUE KEY hunt_prize (hunt_id, prize_type, position, prize_id),
-        KEY hunt_id (hunt_id),
-        KEY prize_id (prize_id),
-        KEY prize_type (prize_type),
-        KEY position (position)
-) {$charset_collate};";
+		if ( $this->table_exists( $hunt_prizes_table ) && $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
+			// Ensure dbDelta can recreate the expected unique index definition.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
+		}
+
+		$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
+		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+		hunt_id BIGINT UNSIGNED NOT NULL,
+		prize_id BIGINT UNSIGNED NOT NULL,
+		prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
+		position INT UNSIGNED NOT NULL DEFAULT 1,
+		created_at DATETIME NULL,
+		PRIMARY KEY  (id),
+		UNIQUE KEY hunt_prize (hunt_id, prize_type, position, prize_id),
+		KEY hunt_id (hunt_id),
+		KEY prize_id (prize_id),
+		KEY prize_type (prize_type),
+		KEY position (position)
+		) {$charset_collate};";
 
 		// Jackpots.
 		$jackpots_table       = $wpdb->prefix . 'bhg_jackpots';
@@ -470,15 +476,15 @@ css_background VARCHAR(40) NULL,
 					}
 				}
 
-						if ( $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
-								// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-								$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
-						}
+			if ( $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
+			}
 
-						if ( ! $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
-								// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-								$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD UNIQUE KEY hunt_prize (hunt_id, prize_id, prize_type)" );
-						}
+			if ( ! $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD UNIQUE KEY hunt_prize (hunt_id, prize_type, position, prize_id)" );
+			}
 
 				if ( ! $this->index_exists( $hunt_prizes_table, 'prize_type' ) ) {
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
