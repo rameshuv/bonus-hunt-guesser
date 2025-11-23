@@ -70,11 +70,15 @@ $base     = remove_query_arg( 'ppaged' );
 				<input type="hidden" name="id" value="<?php echo (int) $hunt->id; ?>" />
 
 				<?php
-				$prize_rows      = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
-				$selected_prizes = array(
-					'regular' => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( $hunt->id, 'regular' ) : array(),
-					'premium' => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_ids( $hunt->id, 'premium' ) : array(),
-				);
+                                $prize_rows      = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_prizes() : array();
+                                $selected_prizes = array(
+                                        'regular' => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_map( $hunt->id, 'regular' ) : array(),
+                                        'premium' => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_hunt_prize_map( $hunt->id, 'premium' ) : array(),
+                                );
+                                $winners_count   = $hunt->winners_count ? (int) $hunt->winners_count : 3;
+                                if ( $winners_count <= 0 ) {
+                                        $winners_count = 3;
+                                }
 				?>
 
 		<table class="form-table" role="presentation">
@@ -115,28 +119,46 @@ $base     = remove_query_arg( 'ppaged' );
 												<p class="description"><?php echo esc_html( bhg_t( 'select_multiple_tournaments_hint', 'Hold Ctrl (Windows) or Command (Mac) to select multiple tournaments.' ) ); ?></p>
 										</td>
 								</tr>
-								<tr>
-										<th scope="row"><label for="bhg_prize_ids_edit_regular"><?php echo esc_html( bhg_t( 'label_regular_prize_set', 'Regular Prize Set' ) ); ?></label></th>
-										<td>
-																								<select id="bhg_prize_ids_edit_regular" name="regular_prize_ids[]" multiple="multiple" size="5">
-																												<?php foreach ( $prize_rows as $prize_row ) : ?>
-																																<option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( in_array( (int) $prize_row->id, $selected_prizes['regular'], true ) ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
-																												<?php endforeach; ?>
-																								</select>
-																								<p class="description"><?php echo esc_html( bhg_t( 'regular_prize_set_help', 'Select prizes awarded to non-affiliate winners.' ) ); ?></p>
-																				</td>
-																</tr>
-								<tr>
-										<th scope="row"><label for="bhg_prize_ids_edit_premium"><?php echo esc_html( bhg_t( 'label_premium_prize_set', 'Premium Prize Set' ) ); ?></label></th>
-										<td>
-																								<select id="bhg_prize_ids_edit_premium" name="premium_prize_ids[]" multiple="multiple" size="5">
-																												<?php foreach ( $prize_rows as $prize_row ) : ?>
-																																<option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( in_array( (int) $prize_row->id, $selected_prizes['premium'], true ) ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
-																												<?php endforeach; ?>
-																								</select>
-																								<p class="description"><?php echo esc_html( bhg_t( 'premium_prize_set_help', 'Select additional prizes shown to affiliate winners.' ) ); ?></p>
-																				</td>
-																</tr>
+                                                                <tr>
+                                                                                <th scope="row"><?php echo esc_html( bhg_t( 'label_regular_prize_set', 'Regular Prize Set' ) ); ?></th>
+                                                                                <td>
+                                                                                                <div class="bhg-prize-position-grid">
+                                                                                                                <?php for ( $i = 1; $i <= $winners_count; $i++ ) : ?>
+                                                                                                                                <label for="bhg_regular_prize_<?php echo esc_attr( $i ); ?>">
+                                                                                                                                                <?php echo esc_html( sprintf( bhg_t( 'prize_position_label', 'Place %d' ), $i ) ); ?>
+                                                                                                                                </label>
+                                                                                                                                <select id="bhg_regular_prize_<?php echo esc_attr( $i ); ?>" name="regular_prize_map[<?php echo esc_attr( $i ); ?>]" class="regular-text">
+                                                                                                                                                <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                                                                                                                                <?php foreach ( $prize_rows as $prize_row ) : ?>
+                                                                                                                                                                <?php $selected_val = isset( $selected_prizes['regular'][ $i ] ) ? (int) $selected_prizes['regular'][ $i ] : 0; ?>
+                                                                                                                                                                <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( $selected_val, (int) $prize_row->id ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
+                                                                                                                                                <?php endforeach; ?>
+                                                                                                                                </select>
+                                                                                                                <?php endfor; ?>
+                                                                                                </div>
+                                                                                                <p class="description"><?php echo esc_html( bhg_t( 'regular_prize_set_help', 'Select prizes awarded to non-affiliate winners.' ) ); ?></p>
+                                                                                </td>
+                                                                </tr>
+                                                                <tr>
+                                                                                <th scope="row"><?php echo esc_html( bhg_t( 'label_premium_prize_set', 'Premium Prize Set' ) ); ?></th>
+                                                                                <td>
+                                                                                                <div class="bhg-prize-position-grid">
+                                                                                                                <?php for ( $i = 1; $i <= $winners_count; $i++ ) : ?>
+                                                                                                                                <label for="bhg_premium_prize_<?php echo esc_attr( $i ); ?>">
+                                                                                                                                                <?php echo esc_html( sprintf( bhg_t( 'prize_position_label', 'Place %d' ), $i ) ); ?>
+                                                                                                                                </label>
+                                                                                                                                <select id="bhg_premium_prize_<?php echo esc_attr( $i ); ?>" name="premium_prize_map[<?php echo esc_attr( $i ); ?>]" class="regular-text">
+                                                                                                                                                <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                                                                                                                                <?php foreach ( $prize_rows as $prize_row ) : ?>
+                                                                                                                                                                <?php $selected_val = isset( $selected_prizes['premium'][ $i ] ) ? (int) $selected_prizes['premium'][ $i ] : 0; ?>
+                                                                                                                                                                <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( $selected_val, (int) $prize_row->id ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
+                                                                                                                                                <?php endforeach; ?>
+                                                                                                                                </select>
+                                                                                                                <?php endfor; ?>
+                                                                                                </div>
+                                                                                                <p class="description"><?php echo esc_html( bhg_t( 'premium_prize_set_help', 'Select additional prizes shown to affiliate winners.' ) ); ?></p>
+                                                                                </td>
+                                                                </tr>
 								<tr>
 										<th scope="row"><label for="bhg_winners"><?php echo esc_html( bhg_t( 'number_of_winners', 'Number of Winners' ) ); ?></label></th>
 																		<td><input type="number" min="1" max="25" id="bhg_winners" name="winners_count" value="<?php echo esc_attr( $hunt->winners_count ? $hunt->winners_count : 3 ); ?>"></td>

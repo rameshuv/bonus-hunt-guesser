@@ -268,17 +268,19 @@ css_background VARCHAR(40) NULL,
 ) {$charset_collate};";
 
 		// Hunt prize map.
-		$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
-	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-	hunt_id BIGINT UNSIGNED NOT NULL,
-	prize_id BIGINT UNSIGNED NOT NULL,
-	prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
-	created_at DATETIME NULL,
-	PRIMARY KEY  (id),
-	UNIQUE KEY hunt_prize (hunt_id, prize_id, prize_type),
-	KEY hunt_id (hunt_id),
-	KEY prize_id (prize_id),
-	KEY prize_type (prize_type)
+                $sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        hunt_id BIGINT UNSIGNED NOT NULL,
+        prize_id BIGINT UNSIGNED NOT NULL,
+        prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
+        position INT UNSIGNED NOT NULL DEFAULT 1,
+        created_at DATETIME NULL,
+        PRIMARY KEY  (id),
+        UNIQUE KEY hunt_prize (hunt_id, prize_type, position, prize_id),
+        KEY hunt_id (hunt_id),
+        KEY prize_id (prize_id),
+        KEY prize_type (prize_type),
+        KEY position (position)
 ) {$charset_collate};";
 
 		// Jackpots.
