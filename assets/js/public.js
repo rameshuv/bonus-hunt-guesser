@@ -313,11 +313,9 @@ jQuery(document).ready(function($) {
                 return;
             }
 
-            // Normalize spacing
-            items.css({
-                'padding-left': padding + 'px',
-                'padding-right': padding + 'px'
-            });
+            if (padding > 0) {
+                ticker.css('--bhg-ticker-padding', padding + 'px');
+            }
 
             if ('scroll' === design) {
                 startScrollTicker(ticker, list, speed);
