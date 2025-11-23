@@ -1220,40 +1220,60 @@ $prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
 				$ranking_scope = 'all';
 		}
 
-			$extract_prize_ids = static function ( $field ) {
-					$raw = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : array();
-					$ids = array();
+                        $extract_prize_map = static function ( $field ) {
+                                        $raw = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : array();
+                                        $map = array();
 
-				if ( is_array( $raw ) ) {
-					foreach ( $raw as $maybe_id ) {
-						$maybe_id = absint( $maybe_id );
-						if ( $maybe_id > 0 ) {
-								$ids[ $maybe_id ] = $maybe_id;
-						}
-					}
-				} elseif ( '' !== $raw ) {
-						$maybe_id = absint( $raw );
-					if ( $maybe_id > 0 ) {
-							$ids[ $maybe_id ] = $maybe_id;
-					}
-				}
+                                if ( is_array( $raw ) ) {
+                                        foreach ( $raw as $position => $maybe_id ) {
+                                                $pid      = absint( $maybe_id );
+                                                $position = is_numeric( $position ) ? max( 1, absint( $position ) ) : 0;
 
-					return array_values( $ids );
-			};
+                                                if ( $pid > 0 && $position > 0 ) {
+                                                                $map[ $position ] = $pid;
+                                                }
+                                        }
+                                }
 
-			$prize_sets = array(
-				'regular' => $extract_prize_ids( 'regular_prize_ids' ),
-				'premium' => $extract_prize_ids( 'premium_prize_ids' ),
-			);
+                                        return $map;
+                        };
 
-			if ( empty( $prize_sets['regular'] ) && empty( $prize_sets['premium'] ) ) {
-					$prize_sets['regular'] = $extract_prize_ids( 'prize_ids' );
-			}
+                        $prize_sets = array(
+                                'regular' => $extract_prize_map( 'regular_prize_map' ),
+                                'premium' => $extract_prize_map( 'premium_prize_map' ),
+                        );
 
-			$prizes_json = wp_json_encode( $prize_sets['regular'] );
-			if ( false === $prizes_json ) {
-					$prizes_json = wp_json_encode( array() );
-			}
+                        if ( empty( $prize_sets['regular'] ) && empty( $prize_sets['premium'] ) ) {
+                                        $legacy_ids = $extract_prize_map( 'prize_ids' );
+                                        if ( empty( $legacy_ids ) ) {
+                                                        $legacy_ids = $extract_prize_map( 'regular_prize_ids' );
+                                        }
+
+                                        if ( ! empty( $legacy_ids ) ) {
+                                                        $prize_sets['regular'] = $legacy_ids;
+                                        }
+                        }
+
+                        foreach ( $prize_sets as $type => $map ) {
+                                        if ( ! is_array( $map ) ) {
+                                                        $prize_sets[ $type ] = array();
+                                                        continue;
+                                        }
+
+                                        ksort( $map );
+                                        $prize_sets[ $type ] = $map;
+                        }
+
+                        if ( $winners_count > 0 ) {
+                                        foreach ( array( 'regular', 'premium' ) as $type ) {
+                                                        $prize_sets[ $type ] = array_slice( $prize_sets[ $type ], 0, $winners_count, true );
+                                        }
+                        }
+
+                        $prizes_json = wp_json_encode( $prize_sets );
+                        if ( false === $prizes_json ) {
+                                        $prizes_json = wp_json_encode( array() );
+                        }
 
 			$affiliate_site_id = isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0;
 			$affiliate_site_id = $affiliate_site_id > 0 ? $affiliate_site_id : 0;
