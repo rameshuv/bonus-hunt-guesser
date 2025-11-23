@@ -562,33 +562,49 @@ class BHG_Jackpots {
 	 * @param array $args Arguments.
 	 * @return array
 	 */
-	public function get_latest_hits( $args = array() ) {
-		global $wpdb;
+        public function get_latest_hits( $args = array() ) {
+                global $wpdb;
 
-		$defaults = array(
-			'limit'     => 5,
-			'affiliate' => 0,
-			'year'      => 0,
-		);
-		$args     = wp_parse_args( $args, $defaults );
+                $defaults = array(
+                        'limit'     => 5,
+                        'affiliate' => 0,
+                        'year'      => 0,
+                        'status'    => array(),
+                );
+                $args     = wp_parse_args( $args, $defaults );
 
-               $events_table     = self::events_table();
-               $jackpot_table    = self::table_name();
-               $hunts_table      = $wpdb->prefix . 'bhg_bonus_hunts';
-               $affiliates_table = $wpdb->prefix . 'bhg_affiliate_websites';
+                $events_table     = self::events_table();
+                $jackpot_table    = self::table_name();
+                $hunts_table      = $wpdb->prefix . 'bhg_bonus_hunts';
+                $affiliates_table = $wpdb->prefix . 'bhg_affiliate_websites';
 
-		$where  = array( "e.event_type = 'hit'" );
-		$params = array();
+                $where  = array( "e.event_type = 'hit'" );
+                $params = array();
 
-		if ( ! empty( $args['affiliate'] ) ) {
-			$where[]  = 'h.affiliate_site_id = %d';
-			$params[] = (int) $args['affiliate'];
-		}
+                if ( ! empty( $args['affiliate'] ) ) {
+                        $where[]  = 'h.affiliate_site_id = %d';
+                        $params[] = (int) $args['affiliate'];
+                }
 
-		if ( ! empty( $args['year'] ) ) {
-			$where[]  = 'YEAR(e.created_at) = %d';
-			$params[] = (int) $args['year'];
-		}
+                if ( ! empty( $args['year'] ) ) {
+                        $where[]  = 'YEAR(e.created_at) = %d';
+                        $params[] = (int) $args['year'];
+                }
+
+                if ( ! empty( $args['status'] ) ) {
+                        $statuses = array_filter(
+                                (array) $args['status'],
+                                static function ( $status ) {
+                                        return '' !== sanitize_key( $status );
+                                }
+                        );
+
+                        if ( ! empty( $statuses ) ) {
+                                $placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
+                                $where[]      = 'j.status IN (' . $placeholders . ')';
+                                $params       = array_merge( $params, array_map( 'sanitize_key', $statuses ) );
+                        }
+                }
 
                $sql = "SELECT e.*, j.title AS jackpot_title, j.current_amount, h.title AS hunt_title, a.name AS affiliate_site_name
                FROM {$events_table} e
@@ -613,27 +629,40 @@ class BHG_Jackpots {
 	 * @param string $mode Mode.
 	 * @return array
 	 */
-       public function get_ticker_items( $mode = 'amount', $status = 'active' ) {
-               $mode = sanitize_key( $mode );
+        public function get_ticker_items( $mode = 'amount', $status = 'active' ) {
+                $mode = sanitize_key( $mode );
 
-               if ( 'winners' === $mode ) {
-                       return $this->get_latest_hits( array( 'limit' => 10 ) );
-               }
+                if ( 'winners' === $mode ) {
+                        $status_filter = array( 'active', 'pending' );
 
-               $status_filter = array( 'active', 'pending' );
+                        if ( 'closed' === $status ) {
+                                $status_filter = array( 'hit', 'inactive' );
+                        } elseif ( 'all' === $status ) {
+                                $status_filter = array( 'active', 'pending', 'hit', 'inactive' );
+                        }
 
-               if ( 'closed' === $status ) {
-                       $status_filter = array( 'hit', 'inactive' );
-               } elseif ( 'all' === $status ) {
-                       $status_filter = array( 'active', 'pending', 'hit', 'inactive' );
-               }
+                        return $this->get_latest_hits(
+                                array(
+                                        'limit'  => 10,
+                                        'status' => $status_filter,
+                                )
+                        );
+                }
 
-               return $this->get_jackpots(
-                       array(
-                               'status' => $status_filter,
-                       )
-               );
-       }
+                $status_filter = array( 'active', 'pending' );
+
+                if ( 'closed' === $status ) {
+                        $status_filter = array( 'hit', 'inactive' );
+                } elseif ( 'all' === $status ) {
+                        $status_filter = array( 'active', 'pending', 'hit', 'inactive' );
+                }
+
+                return $this->get_jackpots(
+                        array(
+                                'status' => $status_filter,
+                        )
+                );
+        }
 
 	/**
 	 * Retrieve jackpot winner history rows.

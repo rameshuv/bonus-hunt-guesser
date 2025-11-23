@@ -27,7 +27,7 @@ $shortcode_rows_per_page = isset( $settings['shortcode_rows_per_page'] ) ? max( 
 $ticker_interval         = max( 1, (int) get_option( 'bhg_jackpot_ticker_interval', 5 ) );
 $ticker_scroll_speed     = max( 1, (int) get_option( 'bhg_jackpot_ticker_scroll_speed', 25 ) );
 $ticker_separator        = (string) get_option( 'bhg_jackpot_ticker_separator', '-' );
-$ticker_padding          = max( 0, (int) get_option( 'bhg_jackpot_ticker_padding', 10 ) );
+$ticker_padding          = max( 0, (int) get_option( 'bhg_jackpot_ticker_padding', 0 ) );
 
 $period_options = array(
 	'none'    => bhg_t( 'limit_period_none', 'No limit' ),

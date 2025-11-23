@@ -6545,10 +6545,10 @@ $output .= '</table></div>';
                                                                 return '';
                                                 }
 
-                                                $fade_interval = max( 1, (int) get_option( 'bhg_jackpot_ticker_interval', 5 ) );
-                                                $scroll_speed  = max( 1, (int) get_option( 'bhg_jackpot_ticker_scroll_speed', 25 ) );
-                                                $separator     = (string) get_option( 'bhg_jackpot_ticker_separator', '-' );
-                                                $padding       = max( 0, (int) get_option( 'bhg_jackpot_ticker_padding', 10 ) );
+$fade_interval = max( 1, (int) get_option( 'bhg_jackpot_ticker_interval', 5 ) );
+$scroll_speed  = max( 1, (int) get_option( 'bhg_jackpot_ticker_scroll_speed', 25 ) );
+$separator     = (string) get_option( 'bhg_jackpot_ticker_separator', '-' );
+$padding       = max( 0, (int) get_option( 'bhg_jackpot_ticker_padding', 0 ) );
 
 						$format_amount = static function ( $amount ) {
 								if ( function_exists( 'bhg_format_money' ) ) {
@@ -6559,12 +6559,13 @@ $output .= '</table></div>';
 						};
 
                                                 ob_start();
-                                                $classes = array(
-                                                                'bhg-jackpot-ticker',
-                                                                'bhg-jackpot-ticker--' . $mode,
-                                                                'bhg-jackpot-ticker--design-' . $design,
-                                                );
-                                                echo '<div class="' . esc_attr( implode( ' ', $classes ) ) . '" data-interval="' . esc_attr( $fade_interval ) . '" data-speed="' . esc_attr( $scroll_speed ) . '" data-separator="' . esc_attr( $separator ) . '" data-padding="' . esc_attr( $padding ) . '"><ul style="margin:0;padding:0;list-style:none;">';
+$classes = array(
+'bhg-jackpot-ticker',
+'bhg-jackpot-ticker--' . $mode,
+'bhg-jackpot-ticker--design-' . $design,
+);
+$style_attr = $padding > 0 ? sprintf( ' style="--bhg-ticker-padding:%dpx;"', $padding ) : '';
+echo '<div class="' . esc_attr( implode( ' ', $classes ) ) . '" data-interval="' . esc_attr( $fade_interval ) . '" data-speed="' . esc_attr( $scroll_speed ) . '" data-separator="' . esc_attr( $separator ) . '" data-padding="' . esc_attr( $padding ) . '"' . $style_attr . '><ul class="bhg-jackpot-ticker__list">';
                                                 if ( 'winners' === $mode ) {
                                                                 $total = count( $jackets );
                                                                 $index = 0;
@@ -6581,7 +6582,7 @@ $output .= '</table></div>';
                                                                                 $user_label = $this->format_username_label( $user_label, $user_id );
                                                                                 $amount = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
                                                                                 $title  = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-                                                                                echo '<li style="margin:0;padding:0;">';
+echo '<li class="bhg-jackpot-ticker__item">';
                                                                                 echo '<span class="bhg-ticker-winner-name">' . esc_html( $user_label ) . '</span> ';
                                                                                 echo '<span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span> ';
                                                                                 if ( $title ) {
@@ -6599,7 +6600,7 @@ $output .= '</table></div>';
                                                                                 ++$index;
                                                                                 $title  = isset( $row['title'] ) ? $row['title'] : '';
                                                                                 $amount = isset( $row['current_amount'] ) ? (float) $row['current_amount'] : 0.0;
-                                                                                echo '<li style="margin:0;padding:0;">';
+echo '<li class="bhg-jackpot-ticker__item">';
                                                                                 if ( $title ) {
                                                                                                 echo '<span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span> ';
                                                                                 }

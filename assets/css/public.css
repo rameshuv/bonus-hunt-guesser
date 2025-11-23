@@ -343,6 +343,17 @@
     list-style: none;
 }
 
+.bhg-jackpot-ticker__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bhg-jackpot-ticker__item {
+    padding-left: var(--bhg-ticker-padding, 0px);
+    padding-right: var(--bhg-ticker-padding, 0px);
+}
+
 .bhg-jackpot-ticker--design-fade li {
     display: block;
 }
