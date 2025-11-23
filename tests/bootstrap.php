@@ -738,9 +738,31 @@ if ( ! function_exists( 'remove_shortcode' ) ) {
 }
 
 if ( ! function_exists( 'current_time' ) ) {
-	function current_time( $type ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-		return '2024-01-01 00:00:00';
-	}
+function current_time( $type ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+if ( 'timestamp' === $type || 'U' === $type ) {
+return time();
+}
+
+return gmdate( 'Y-m-d H:i:s' );
+}
+}
+
+if ( ! function_exists( 'wp_parse_list' ) ) {
+function wp_parse_list( $input ) {
+if ( is_array( $input ) ) {
+return array_values( $input );
+}
+
+if ( is_string( $input ) ) {
+$parts = preg_split( '/[\s,]+/', $input );
+
+return array_values( array_filter( array_map( 'trim', $parts ), static function ( $value ) {
+return '' !== $value;
+} ) );
+}
+
+return array();
+}
 }
 
 if ( ! function_exists( 'sanitize_key' ) ) {
