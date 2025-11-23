@@ -51,5 +51,5 @@
 - [ ] **Rendering regression sweep**: load each shortcode (`leaderboard`, `tournament`, `latest-winners-list`, `leaderboard-list`, `tournament-list`, `bonushunt-list`) with and without timeline/status filters to confirm username capitalization, integer averages, affiliate indicators, and header labels render consistently with the checklist expectations.【F:includes/class-bhg-shortcodes.php†L3215-L3960】【F:includes/class-bhg-shortcodes.php†L4719-L4941】
 
 ## Test Execution Log (this run)
-- Composer install failed to download dependencies because GitHub API access requires credentials in this environment; PHPCS and PHPUnit binaries are unavailable until install succeeds.【bee29c†L1-L36】
-- PHPUnit invocation (`php -d memory_limit=-1 vendor/bin/phpunit`) could not run because the binary is missing from `vendor/bin` due to the installation failure.【c188b8†L1-L3】
+- Composer install (dev deps) is still blocked by GitHub CONNECT 403s while cloning PHPCS standards; tooling remains unavailable until credentials are provided.【5831d6†L1-L34】
+- PHPUnit was not executed because the Composer install failure prevented vendor/bin from being created; rerun after resolving the dependency download issue.【5831d6†L1-L34】
