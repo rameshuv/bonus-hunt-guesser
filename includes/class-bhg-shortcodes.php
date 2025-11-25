@@ -570,12 +570,44 @@ array(
 
                                if ( $need_avg_tournament || 'avg_tournament' === $orderby_request ) {
                                                $need_avg_tournament = true;
-                                               $tournament_filter_join = '';
+
+                                               $rank_where     = array();
+                                               $rank_joins     = array();
+                                               $rank_params    = array();
+                                               $rank_where_sql = '';
+
                                                if ( $tournament_id > 0 ) {
-                                                               $tournament_filter_join = $wpdb->prepare( ' WHERE tr.tournament_id = %d', $tournament_id );
+                                                               $rank_where[]  = 'tr.tournament_id = %d';
+                                                               $rank_params[] = $tournament_id;
                                                }
+
+                                               if ( $website_id > 0 ) {
+                                                               $rank_joins[]  = "INNER JOIN {$t} t_rank ON t_rank.id = tr.tournament_id";
+                                                               $rank_where[]  = 't_rank.affiliate_site_id = %d';
+                                                               $rank_params[] = $website_id;
+                                               }
+
+                                               if ( $range ) {
+                                                               $rank_where[]  = "(COALESCE( NULLIF( tr.last_win_date, '0000-00-00 00:00:00' ), tr.last_win_date ) BETWEEN %s AND %s)";
+                                                               $rank_params[] = $range['start'];
+                                                               $rank_params[] = $range['end'];
+                                               }
+
+                                               if ( ! empty( $rank_where ) ) {
+                                                               $rank_where_sql = ' WHERE ' . implode( ' AND ', $rank_where );
+                                               }
+
+                                               $rank_join_sql = $rank_joins ? ' ' . implode( ' ', $rank_joins ) : '';
+
                                                $select_parts[] = 'tour_avg.avg_tournament_pos';
-                                               $tour_join      = "LEFT JOIN (SELECT ranks.user_id, AVG(ranks.rank_position) AS avg_tournament_pos FROM (SELECT tr.user_id, tr.tournament_id, (SELECT 1 + COUNT(*) FROM {$r} tr2 WHERE tr2.tournament_id = tr.tournament_id AND (tr2.wins > tr.wins OR (tr2.wins = tr.wins AND tr2.user_id < tr.user_id))) AS rank_position FROM {$r} tr{$tournament_filter_join}) AS ranks GROUP BY ranks.user_id) AS tour_avg ON tour_avg.user_id = wins.user_id";
+
+                                               $rank_query = 'SELECT tr.user_id, tr.tournament_id, (SELECT 1 + COUNT(*) FROM ' . $r . ' tr2 WHERE tr2.tournament_id = tr.tournament_id AND (tr2.wins > tr.wins OR (tr2.wins = tr.wins AND tr2.user_id < tr.user_id))) AS rank_position FROM ' . $r . ' tr' . $rank_join_sql . $rank_where_sql;
+
+                                               if ( ! empty( $rank_params ) ) {
+                                                               $rank_query = $wpdb->prepare( $rank_query, ...$rank_params );
+                                               }
+
+                                               $tour_join = "LEFT JOIN (SELECT ranks.user_id, AVG(ranks.rank_position) AS avg_tournament_pos FROM ({$rank_query}) AS ranks GROUP BY ranks.user_id) AS tour_avg ON tour_avg.user_id = wins.user_id";
                                } else {
                                                $tour_join = '';
                                }
