@@ -134,10 +134,11 @@
 
 .bhg-search-form {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px 16px;
     margin-bottom: 16px;
-}
+    }
 
 .bhg-filter-controls {
     display: flex;
@@ -173,14 +174,15 @@
 .bhg-search-control {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
+    align-items: flex-end;
 }
 
 .bhg-search-control button {
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
-    padding: 8px 12px;
+    padding: 10px 14px;
     border-radius: 4px;
     cursor: pointer;
 }
@@ -403,6 +405,17 @@
     margin-top: 10px;
 }
 
+.bhg-guess-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.bhg-guess-form input[type="number"] {
+    padding: 8px 12px;
+}
+
 .bhg-error-message {
     color: #dc2626;
     margin-top: 10px;
@@ -414,7 +427,7 @@
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
-    padding: 8px 12px;
+    padding: 10px 16px;
     border-radius: 4px;
     cursor: pointer;
 }
