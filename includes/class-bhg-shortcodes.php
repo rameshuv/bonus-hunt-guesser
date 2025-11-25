@@ -449,7 +449,7 @@ array(
                                                'MIN(hw.position) AS position',
                                                'MAX(' . $win_date_expr . ') AS win_date',
                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
-                                               '1 AS win_count',
+                                               'COUNT(hw.id) AS win_count',
                                );
 
                                $base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
@@ -1008,21 +1008,49 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 $select_sql .= ' WHERE ' . implode( ' AND ', $where );
                                 }
 
-                                $select_sql .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
+                                $select_sql .= sprintf( ' ORDER BY %s %s', $orderby, $direction );
 
-                                $select_params   = $params;
-                                $select_params[] = $limit;
-                                $select_params[] = $offset;
+                                $apply_affiliate_site_filter = $website_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' );
 
-                                $query = $wpdb->prepare( $select_sql, ...$select_params );
-                                bhg_log(
-                                                array(
-                                                                'tournament_leaderboard_sql' => $query,
-                                                                'leaderboard_limit'          => $limit,
-                                                                'leaderboard_offset'         => $offset,
-                                                )
-                                );
-                                $rows  = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                if ( $apply_affiliate_site_filter ) {
+                                                $rows_all = $wpdb->get_results( $select_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+                                                $filtered_rows = array();
+
+                                                foreach ( (array) $rows_all as $row_obj ) {
+                                                                $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
+
+                                                                if ( $uid > 0 && bhg_is_user_affiliate_for_site( $uid, $website_id ) ) {
+                                                                                $filtered_rows[] = $row_obj;
+                                                                }
+                                                }
+
+                                                $total       = count( $filtered_rows );
+                                                $total_pages = max( 1, (int) ceil( $total / $per_page ) );
+
+                                                if ( $paged > $total_pages ) {
+                                                                $paged = $total_pages;
+                                                }
+
+                                                $offset = ( $paged - 1 ) * $per_page;
+                                                $rows   = array_slice( $filtered_rows, $offset, $per_page );
+                                                $limit  = count( $rows );
+                                } else {
+                                                $select_sql    .= ' LIMIT %d OFFSET %d';
+                                                $select_params  = $params;
+                                                $select_params[] = $limit;
+                                                $select_params[] = $offset;
+
+                                                $query = $wpdb->prepare( $select_sql, ...$select_params );
+                                                bhg_log(
+                                                                array(
+                                                                                'tournament_leaderboard_sql' => $query,
+                                                                                'leaderboard_limit'          => $limit,
+                                                                                'leaderboard_offset'         => $offset,
+                                                                )
+                                                );
+                                                $rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                }
 
                                 if ( empty( $rows ) ) {
                                                 return array(
