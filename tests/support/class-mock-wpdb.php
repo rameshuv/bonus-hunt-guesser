@@ -353,21 +353,74 @@ class MockWPDB {
 
                 if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_tournaments' ) ) {
                         $ids = array();
-			if ( preg_match( '/WHERE id IN \(([^\)]+)\)/', $query, $matches ) ) {
-				$ids = array_map( 'intval', preg_split( '/,\s*/', $matches[1] ) );
-			} elseif ( preg_match( '/WHERE id = (\d+)/', $query, $match ) ) {
-				$ids = array( (int) $match[1] );
-			}
+                        if ( preg_match( '/WHERE id IN \(([^\)]+)\)/', $query, $matches ) ) {
+                                $ids = array_map( 'intval', preg_split( '/,\s*/', $matches[1] ) );
+                        } elseif ( preg_match( '/WHERE id = (\d+)/', $query, $match ) ) {
+                                $ids = array( (int) $match[1] );
+                        }
 
-			$results = array();
-			foreach ( $ids as $id ) {
-				if ( isset( $this->tournaments[ $id ] ) ) {
-					$results[] = (object) $this->tournaments[ $id ];
-				}
-			}
+                        if ( ! empty( $ids ) ) {
+                                $results = array();
+                                foreach ( $ids as $id ) {
+                                        if ( isset( $this->tournaments[ $id ] ) ) {
+                                                $results[] = (object) $this->tournaments[ $id ];
+                                        }
+                                }
 
-			return $this->format_results( $results, $output );
-		}
+                                return $this->format_results( $results, $output );
+                        }
+
+                        $status = $this->match_string( "/status\s*=\s*'([^']+)'/", $query );
+                        $limit  = $this->match_int( '/LIMIT\s+(\d+)/', $query );
+                        $end    = $this->match_string( "/start_date\s*<=\s*'([^']+)'/", $query );
+                        $start  = $this->match_string( "/end_date\s*>=\s*'([^']+)'/", $query );
+                        $order  = $this->match_string( '/ORDER BY\s+([a-z_]+)\s+(ASC|DESC)/i', $query, 1 );
+                        $dir    = strtoupper( $this->match_string( '/ORDER BY\s+([a-z_]+)\s+(ASC|DESC)/i', $query, 2 ) ?: 'DESC' );
+
+                        $rows = array_filter(
+                                $this->tournaments,
+                                function ( $row ) use ( $status, $start, $end ) {
+                                        if ( $status && isset( $row['status'] ) && $row['status'] !== $status ) {
+                                                return false;
+                                        }
+
+                                        if ( $start && isset( $row['end_date'] ) && '' !== $row['end_date'] && $row['end_date'] < $start ) {
+                                                return false;
+                                        }
+
+                                        if ( $end && isset( $row['start_date'] ) && '' !== $row['start_date'] && $row['start_date'] > $end ) {
+                                                return false;
+                                        }
+
+                                        return true;
+                                }
+                        );
+
+                        $order_field = $order ?: 'start_date';
+                        usort(
+                                $rows,
+                                function ( $a, $b ) use ( $order_field, $dir ) {
+                                        $a_value = $a[ $order_field ] ?? null;
+                                        $b_value = $b[ $order_field ] ?? null;
+
+                                        if ( $a_value === $b_value ) {
+                                                return 0;
+                                        }
+
+                                        if ( 'ASC' === $dir ) {
+                                                return $a_value <=> $b_value;
+                                        }
+
+                                        return $b_value <=> $a_value;
+                                }
+                        );
+
+                        if ( $limit > 0 ) {
+                                $rows = array_slice( $rows, 0, $limit );
+                        }
+
+                        return $this->format_results( $rows, $output );
+                }
 
                 if (
                         false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_winners' )
@@ -456,25 +509,75 @@ class MockWPDB {
 			return $this->format_results( $results, $output );
 		}
 
-		if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_winners' ) ) {
-			$hunt_id = $this->match_int( '/WHERE hunt_id = (\d+)/', $query );
+                if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_hunt_winners' ) ) {
+                        $hunt_id = $this->match_int( '/WHERE hunt_id = (\d+)/', $query );
 
-			$results = array();
-			foreach ( $this->hunt_winners as $winner ) {
+                        $results = array();
+                        foreach ( $this->hunt_winners as $winner ) {
 				if ( (int) $winner['hunt_id'] === $hunt_id ) {
 					$results[] = array(
 						'user_id'  => (int) $winner['user_id'],
 						'position' => isset( $winner['position'] ) ? (int) $winner['position'] : 0,
 					);
 				}
-			}
+                        }
 
-			return $this->format_results( $results, $output );
-		}
+                        return $this->format_results( $results, $output );
+                }
 
-		if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'usermeta' ) ) {
-			$key     = $this->match_string( "/meta_key\s*=\s*'([^']+)'/", $query );
-			$results = array();
+                if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_bonus_hunts' ) ) {
+                        $status      = $this->match_string( "/status\s*=\s*'([^']+)'/", $query );
+                        $date_range  = $this->match_date_range( $query );
+                        $limit       = $this->match_int( '/LIMIT\s+(\d+)/', $query );
+                        $order_field = $this->match_string( '/ORDER BY\s+([a-z_]+)/i', $query ) ?: 'created_at';
+                        $direction   = strtoupper( $this->match_string( '/ORDER BY\s+[a-z_]+\s+(ASC|DESC)/i', $query ) ?: 'DESC' );
+
+                        $rows = array_filter(
+                                $this->bonus_hunts,
+                                function ( $row ) use ( $status, $date_range ) {
+                                        if ( $status && isset( $row['status'] ) && $row['status'] !== $status ) {
+                                                return false;
+                                        }
+
+                                        if ( $date_range ) {
+                                                $created = $row['created_at'] ?? '';
+                                                if ( '' === $created || $created < $date_range['start'] || $created > $date_range['end'] ) {
+                                                        return false;
+                                                }
+                                        }
+
+                                        return true;
+                                }
+                        );
+
+                        usort(
+                                $rows,
+                                function ( $a, $b ) use ( $order_field, $direction ) {
+                                        $a_value = $a[ $order_field ] ?? null;
+                                        $b_value = $b[ $order_field ] ?? null;
+
+                                        if ( $a_value === $b_value ) {
+                                                return 0;
+                                        }
+
+                                        if ( 'ASC' === $direction ) {
+                                                return $a_value <=> $b_value;
+                                        }
+
+                                        return $b_value <=> $a_value;
+                                }
+                        );
+
+                        if ( $limit > 0 ) {
+                                $rows = array_slice( $rows, 0, $limit );
+                        }
+
+                        return $this->format_results( $rows, $output );
+                }
+
+                if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'usermeta' ) ) {
+                        $key     = $this->match_string( "/meta_key\s*=\s*'([^']+)'/", $query );
+                        $results = array();
 
 			foreach ( $this->usermeta_data as $user_id => $meta ) {
 				if ( $key ) {

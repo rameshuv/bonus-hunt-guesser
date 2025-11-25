@@ -521,11 +521,27 @@ if ( ! function_exists( 'admin_url' ) ) {
 }
 
 if ( ! function_exists( 'home_url' ) ) {
-	function home_url( $path = '' ) {
-		$path = ltrim( (string) $path, '/' );
+        function home_url( $path = '' ) {
+                $path = ltrim( (string) $path, '/' );
 
-		return 'http://example.com' . ( '' !== $path ? '/' . $path : '' );
-	}
+                return 'http://example.com' . ( '' !== $path ? '/' . $path : '' );
+        }
+}
+
+if ( ! function_exists( 'add_query_arg' ) ) {
+        function add_query_arg( $args, $url = '' ) {
+                $base = '' !== $url ? (string) $url : 'http://example.com/';
+
+                if ( is_array( $args ) ) {
+                        $query = http_build_query( $args );
+                } else {
+                        $query = (string) $args;
+                }
+
+                $separator = ( false === strpos( $base, '?' ) ) ? '?' : '&';
+
+                return $base . ( '' !== $query ? $separator . $query : '' );
+        }
 }
 
 if ( ! function_exists( 'mysql2date' ) ) {
