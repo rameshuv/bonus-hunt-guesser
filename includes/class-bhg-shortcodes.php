@@ -5294,7 +5294,16 @@ $add_args['bhg_aff'] = $aff_filter;
                         $show_prizes                = $this->attribute_to_bool( $show_prizes_attr, true );
 
                         // Details screen.
-                        $details_id = isset( $_GET['bhg_tournament_id'] ) ? absint( wp_unslash( $_GET['bhg_tournament_id'] ) ) : 0;
+                        $details_id = 0;
+                        if ( isset( $atts['bhg_tournament_id'] ) ) {
+                                $details_id = absint( $atts['bhg_tournament_id'] );
+                        } elseif ( isset( $atts['tournament_id'] ) ) {
+                                $details_id = absint( $atts['tournament_id'] );
+                        }
+
+                        if ( $details_id <= 0 && isset( $_GET['bhg_tournament_id'] ) ) {
+                                $details_id = absint( wp_unslash( $_GET['bhg_tournament_id'] ) );
+                        }
 						if ( $details_id > 0 ) {
 								$t = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
 								$r = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournament_results' ) );
