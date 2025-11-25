@@ -449,7 +449,7 @@ array(
                                                'MIN(hw.position) AS position',
                                                'MAX(' . $win_date_expr . ') AS win_date',
                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
-                                               '1 AS win_count',
+                                               'COUNT(hw.id) AS win_count',
                                );
 
                                $base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
@@ -918,12 +918,56 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 $limit       = min( $per_page, max( 1, $total - $offset ) );
                                 $total_pages = $pages;
 
+                                $win_count_clause = 'tr.wins';
+                                if ( $can_use_hunt_meta ) {
+                                                $win_date_expr = $this->get_leaderboard_win_date_expression();
+
+                                                $win_where  = array( 'hw_count.eligible = 1' );
+                                                $win_params = array();
+                                                $win_joins  = $has_ht ? ' LEFT JOIN ' . $ht . ' ht_count ON ht_count.hunt_id = hw_count.hunt_id' : '';
+
+                                                if ( $has_ht ) {
+                                                                $win_where[]  = '(ht_count.tournament_id = %d OR (ht_count.hunt_id IS NULL AND h_count.tournament_id = %d))';
+                                                                $win_params[] = $tournament_id;
+                                                                $win_params[] = $tournament_id;
+                                                } else {
+                                                                $win_where[]  = 'h_count.tournament_id = %d';
+                                                                $win_params[] = $tournament_id;
+                                                }
+
+                                                if ( $website_id > 0 ) {
+                                                                $win_where[]  = 'h_count.affiliate_site_id = %d';
+                                                                $win_params[] = $website_id;
+                                                }
+
+                                                if ( $range ) {
+                                                                $win_where[]  = '(' . $win_date_expr . ' BETWEEN %s AND %s)';
+                                                                $win_params[] = $range['start'];
+                                                                $win_params[] = $range['end'];
+                                                }
+
+                                                $win_count_sql = sprintf(
+                                                                'SELECT hw_count.user_id, COUNT(*) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$s WHERE %4$s GROUP BY hw_count.user_id',
+                                                                $hw,
+                                                                $h,
+                                                                $win_joins,
+                                                                implode( ' AND ', $win_where )
+                                                );
+
+                                                if ( ! empty( $win_params ) ) {
+                                                                $win_count_sql = $wpdb->prepare( $win_count_sql, ...$win_params );
+                                                }
+
+                                                $select_joins[]   = 'LEFT JOIN (' . $win_count_sql . ') win_totals ON win_totals.user_id = tr.user_id';
+                                                $win_count_clause = 'COALESCE(win_totals.win_count, tr.wins)';
+                                }
+
                                 $orderby_map = array(
-                                                'wins'           => 'tr.wins',
+                                                'wins'           => 'total_wins',
                                                 'user'           => 'u.user_login',
                                                 'avg_hunt'       => 'hunt_stats.avg_hunt_pos',
                                                 'avg_tournament' => 'tour_rank.avg_tournament_pos',
-                                                'pos'            => 'tr.wins',
+                                                'pos'            => 'total_wins',
                                 );
 
                                 if ( ! isset( $orderby_map[ $orderby_request ] ) ) {
@@ -941,7 +985,7 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 $select_parts = array(
                                                 'tr.user_id',
                                                 'u.user_login',
-                                                'tr.wins AS total_wins',
+                                                $win_count_clause . ' AS total_wins',
                                 );
 
                                if ( $need_avg_hunt ) {
@@ -1008,21 +1052,49 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 $select_sql .= ' WHERE ' . implode( ' AND ', $where );
                                 }
 
-                                $select_sql .= sprintf( ' ORDER BY %s %s LIMIT %%d OFFSET %%d', $orderby, $direction );
+                                $select_sql .= sprintf( ' ORDER BY %s %s', $orderby, $direction );
 
-                                $select_params   = $params;
-                                $select_params[] = $limit;
-                                $select_params[] = $offset;
+                                $apply_affiliate_site_filter = $website_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' );
 
-                                $query = $wpdb->prepare( $select_sql, ...$select_params );
-                                bhg_log(
-                                                array(
-                                                                'tournament_leaderboard_sql' => $query,
-                                                                'leaderboard_limit'          => $limit,
-                                                                'leaderboard_offset'         => $offset,
-                                                )
-                                );
-                                $rows  = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                if ( $apply_affiliate_site_filter ) {
+                                                $rows_all = $wpdb->get_results( $select_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+                                                $filtered_rows = array();
+
+                                                foreach ( (array) $rows_all as $row_obj ) {
+                                                                $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
+
+                                                                if ( $uid > 0 && bhg_is_user_affiliate_for_site( $uid, $website_id ) ) {
+                                                                                $filtered_rows[] = $row_obj;
+                                                                }
+                                                }
+
+                                                $total       = count( $filtered_rows );
+                                                $total_pages = max( 1, (int) ceil( $total / $per_page ) );
+
+                                                if ( $paged > $total_pages ) {
+                                                                $paged = $total_pages;
+                                                }
+
+                                                $offset = ( $paged - 1 ) * $per_page;
+                                                $rows   = array_slice( $filtered_rows, $offset, $per_page );
+                                                $limit  = count( $rows );
+                                } else {
+                                                $select_sql    .= ' LIMIT %d OFFSET %d';
+                                                $select_params  = $params;
+                                                $select_params[] = $limit;
+                                                $select_params[] = $offset;
+
+                                                $query = $wpdb->prepare( $select_sql, ...$select_params );
+                                                bhg_log(
+                                                                array(
+                                                                                'tournament_leaderboard_sql' => $query,
+                                                                                'leaderboard_limit'          => $limit,
+                                                                                'leaderboard_offset'         => $offset,
+                                                                )
+                                                );
+                                                $rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                }
 
                                 if ( empty( $rows ) ) {
                                                 return array(
