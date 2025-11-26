@@ -6626,10 +6626,10 @@ $output .= '</table></div>';
 				 * @param array $atts Shortcode attributes.
 				 * @return string
 				 */
-				public function jackpot_current_shortcode( $atts ) {
-						if ( ! class_exists( 'BHG_Jackpots' ) ) {
-								return '';
-						}
+public function jackpot_current_shortcode( $atts ) {
+if ( ! class_exists( 'BHG_Jackpots' ) ) {
+return '<!-- BHG jackpot current suppressed: jackpots module missing. -->';
+}
 
 						$atts = shortcode_atts(
 								array(
@@ -6639,17 +6639,17 @@ $output .= '</table></div>';
 								'bhg_jackpot_current'
 						);
 
-						$jackpot_id = absint( $atts['id'] );
+$jackpot_id = absint( $atts['id'] );
 
-						if ( $jackpot_id <= 0 ) {
-								return '';
-						}
+if ( $jackpot_id <= 0 ) {
+return '<!-- BHG jackpot current suppressed: provide id="" attribute. -->';
+}
 
-						$amount = BHG_Jackpots::instance()->get_formatted_amount( $jackpot_id );
+$amount = BHG_Jackpots::instance()->get_formatted_amount( $jackpot_id );
 
-						if ( '' === $amount ) {
-								return '';
-						}
+if ( '' === $amount ) {
+return '<!-- BHG jackpot current suppressed: jackpot not found. -->';
+}
 
 						return '<span class="bhg-jackpot-amount" data-jackpot-id="' . esc_attr( $jackpot_id ) . '">' . esc_html( $amount ) . '</span>';
 				}
@@ -6794,11 +6794,15 @@ echo '<li class="bhg-jackpot-ticker__item">';
 								$args['year'] = absint( $atts['year'] );
 						}
 
-                                                $rows = BHG_Jackpots::instance()->get_winner_rows( $args );
+$rows = BHG_Jackpots::instance()->get_winner_rows( $args );
 
-						if ( empty( $rows ) ) {
-								return $atts['empty'] ? '<div class="bhg-jackpot-winners-empty">' . esc_html( $atts['empty'] ) . '</div>' : '';
-						}
+if ( empty( $rows ) ) {
+if ( $atts['empty'] ) {
+return '<div class="bhg-jackpot-winners-empty">' . esc_html( $atts['empty'] ) . '</div>';
+}
+
+return '<!-- BHG jackpot winners suppressed: no winners found for filters. -->';
+}
 
                                                 $layout         = sanitize_key( $atts['layout'] );
                                                 $visibility     = static function ( $value ) {

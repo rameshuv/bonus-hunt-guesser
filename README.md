@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser
 
-**Version:** 8.0.18
+**Version:** 8.0.20
 **Requires:** WordPress 6.3.5+, PHP 7.4+, MySQL 5.5.5+
 
 ## Overview
@@ -41,24 +41,11 @@ integration (Google, Twitch, Kick).
 4. Review **Bonus Hunt → Settings** to confirm currency, winner limits, menu
    assignments, and notification templates.
 
-## Release 8.0.18 highlights
+## Release 8.0.20 highlights
 
-- Dashboard “Latest Hunts” card now lists every winner per hunt, showing
-  guesses and differences alongside starting/final balances.
-- Bonus Hunts admin table exposes final balance, affiliate, configurable
-  winner counts, inline results buttons, and participant rosters with
-  removable guesses.
-- Results view ranks every guess, highlights winners, and supports status and
-  pagination filters for historical hunts.
-- Tournaments admin includes title/description fields, the expanded type
-  selector (weekly/monthly/quarterly/yearly/all time), and functional edit
-  flows.
-- Users admin table gains keyword search, sortable columns, and 30-per-page
-  pagination controls.
-- Advertising list shows edit/remove actions and supports a “None” placement
-  for shortcode-only ads.
-- Jackpot management, prize enhancements, login redirector, translation
-  tooling, and affiliate website management are bundled as agreed add-ons.
+- Bug-fix-only release: aligns plugin metadata with 8.0.20 and adds explicit
+  frontend hints when shortcode prerequisites are missing (e.g., ad ID,
+  jackpot selection, or empty winner feeds).
 
 ## Manual QA checklist (recommended)
 
@@ -76,7 +63,7 @@ integration (Google, Twitch, Kick).
   menus, translations editor) to confirm visibility rules.
 
 Documenting evidence (screenshots or logs) of these flows remains part of the
-customer’s acceptance checklist for v8.0.18.
+customer’s acceptance checklist for v8.0.20.
 
 ## Automated testing
 

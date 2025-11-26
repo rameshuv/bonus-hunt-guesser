@@ -295,10 +295,10 @@ class BHG_Ads {
 	 *
 	 * @return string
 	 */
-	public static function shortcode( $atts = array(), $content = '', $tag = '' ) {
-		if ( ! self::ads_enabled() ) {
-			return '';
-		}
+        public static function shortcode( $atts = array(), $content = '', $tag = '' ) {
+                if ( ! self::ads_enabled() ) {
+                        return '<!-- BHG ad suppressed: ads disabled in settings. -->';
+                }
 
 		$a = shortcode_atts(
 			array(
@@ -310,46 +310,46 @@ class BHG_Ads {
 			$tag
 		);
 
-		$id = $a['id'] ? (int) $a['id'] : (int) $a['ad'];
-		if ( $id <= 0 ) {
-			return '';
-		}
+                $id = $a['id'] ? (int) $a['id'] : (int) $a['ad'];
+                if ( $id <= 0 ) {
+                        return '<!-- BHG ad suppressed: missing ad="" or id="" attribute. -->';
+                }
 
 		$status = strtolower( trim( $a['status'] ) );
 
 		global $wpdb;
 		$table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
 		$allowed_tables = array( $table );
-		if ( ! in_array( $table, $allowed_tables, true ) ) {
-				return '';
-		}
+                if ( ! in_array( $table, $allowed_tables, true ) ) {
+                                return '<!-- BHG ad suppressed: invalid ads table. -->';
+                }
 
-		$row = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT id, content, placement, visible_to, target_pages, active, link_url FROM {$table} WHERE id = %d",
-				$id
-			)
-		);
-		if ( ! $row ) {
-			return '';
-		}
-		if ( ! in_array( $row->placement, self::get_allowed_placements(), true ) ) {
-			return '';
-		}
+                $row = $wpdb->get_row(
+                        $wpdb->prepare(
+                                "SELECT id, content, placement, visible_to, target_pages, active, link_url FROM {$table} WHERE id = %d",
+                                $id
+                        )
+                );
+                if ( ! $row ) {
+                        return '<!-- BHG ad suppressed: ad not found. -->';
+                }
+                if ( ! in_array( $row->placement, self::get_allowed_placements(), true ) ) {
+                        return '<!-- BHG ad suppressed: invalid placement. -->';
+                }
 
-		if ( 'all' !== $status ) {
-			$expected = ( 'inactive' === $status ) ? 0 : 1;
-			if ( (int) $row->active !== $expected ) {
-				return '';
-			}
-		}
+                if ( 'all' !== $status ) {
+                        $expected = ( 'inactive' === $status ) ? 0 : 1;
+                        if ( (int) $row->active !== $expected ) {
+                                return '<!-- BHG ad suppressed: status mismatch. -->';
+                        }
+                }
 
-		if ( ! self::visibility_ok( $row->visible_to ) ) {
-			return '';
-		}
-		if ( ! self::page_target_ok( $row->target_pages ) ) {
-			return '';
-		}
+                if ( ! self::visibility_ok( $row->visible_to ) ) {
+                        return '<!-- BHG ad suppressed: visibility rules not met. -->';
+                }
+                if ( ! self::page_target_ok( $row->target_pages ) ) {
+                        return '<!-- BHG ad suppressed: page targeting not met. -->';
+                }
 
 		return self::render_ad_row( $row );
 	}
