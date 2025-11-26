@@ -412,8 +412,12 @@
     gap: 10px;
 }
 
-.bhg-guess-form input[type="number"] {
-    padding: 8px 10px;
+.bhg-guess-form input[type="number"],
+.bhg-guess-form input[type="text"] {
+    width: 100%;
+    padding: 8px 12px 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
 }
 
 .bhg-error-message {
@@ -425,8 +429,8 @@
 
 .bhg-submit-btn {
     margin-top: 20px;
-    background-color: #0f172a;
-    border: 1px solid #0f172a;
+    background-color: var(--bhg-accent-color);
+    border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 10px 16px;
     border-radius: 4px;
