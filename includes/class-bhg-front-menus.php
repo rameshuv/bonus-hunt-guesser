@@ -67,20 +67,25 @@ class BHG_Front_Menus {
 			$loc = 'bhg_menu_user';
 		}
 
-		$out = wp_nav_menu(
-			array(
-				'theme_location'  => $loc,
-				'container'       => 'nav',
-				'container_class' => self::container_classes( $loc, 'bhg-nav bhg-menu' ),
-				'menu_class'      => 'bhg-menu__list menu',
-				'echo'            => false,
-				'fallback_cb'     => false,
-			)
-		);
+                $out = wp_nav_menu(
+                        array(
+                                'theme_location'  => $loc,
+                                'container'       => 'nav',
+                                'container_class' => self::container_classes( $loc, 'bhg-nav bhg-menu' ),
+                                'menu_class'      => 'bhg-menu__list menu',
+                                'echo'            => false,
+                                'fallback_cb'     => false,
+                        )
+                );
 
-		if ( ! $out ) {
-			return '<!-- BHG menu not assigned: ' . esc_html( $loc ) . ' -->';
-		}
+                if ( ! $out ) {
+                        $message = 'BHG menu not assigned: ' . $loc;
+                        if ( current_user_can( 'manage_options' ) ) {
+                                return '<div class="bhg-shortcode-note bhg-shortcode-note--menus">' . esc_html( $message ) . '</div><!-- ' . esc_html( $message ) . ' -->';
+                        }
+
+                        return '<!-- ' . esc_html( $message ) . ' -->';
+                }
 		return $out;
 	}
 
