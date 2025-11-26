@@ -8,6 +8,13 @@
 
 # Changelog
 
+## 8.0.20 — 2025-02-10
+- Bumped plugin metadata and internal version constant to 8.0.20 for the
+  bug-fix-only release.
+- Added explicit HTML comments when ad and jackpot shortcodes cannot render so
+  editors can diagnose missing IDs, table data, or disabled settings directly
+  from the page output.
+
 ## 8.0.18 — 2025-02-06
 - Bumped plugin metadata and internal version constant to 8.0.18 to match the
   current customer requirement baseline.

@@ -267,12 +267,16 @@ css_background VARCHAR(40) NULL,
 	KEY active (active)
 ) {$charset_collate};";
 
-		// Hunt prize map.
-		if ( $this->table_exists( $hunt_prizes_table ) && $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
-			// Ensure dbDelta can recreate the expected unique index definition.
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
-		}
+                // Hunt prize map.
+                $expected_hunt_prize_index = array( 'hunt_id', 'prize_type', 'position', 'prize_id' );
+                $existing_hunt_prize_index = $this->get_index_columns( $hunt_prizes_table, 'hunt_prize' );
+
+                if ( $this->table_exists( $hunt_prizes_table ) && ! empty( $existing_hunt_prize_index ) && $existing_hunt_prize_index !== $expected_hunt_prize_index ) {
+                        // Ensure dbDelta can recreate the expected unique index definition.
+                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                        $wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
+                        $existing_hunt_prize_index = array();
+                }
 
 		$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -476,15 +480,18 @@ css_background VARCHAR(40) NULL,
 					}
 				}
 
-			if ( $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-				$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
-			}
+                        $existing_hunt_prize_index = $this->get_index_columns( $hunt_prizes_table, 'hunt_prize' );
 
-			if ( ! $this->index_exists( $hunt_prizes_table, 'hunt_prize' ) ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-				$wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD UNIQUE KEY hunt_prize (hunt_id, prize_type, position, prize_id)" );
-			}
+                        if ( ! empty( $existing_hunt_prize_index ) && $existing_hunt_prize_index !== $expected_hunt_prize_index ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` DROP INDEX hunt_prize" );
+                                $existing_hunt_prize_index = array();
+                        }
+
+                        if ( empty( $existing_hunt_prize_index ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                                $wpdb->query( "ALTER TABLE `{$hunt_prizes_table}` ADD UNIQUE KEY hunt_prize (hunt_id, prize_type, position, prize_id)" );
+                        }
 
 				if ( ! $this->index_exists( $hunt_prizes_table, 'prize_type' ) ) {
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -910,8 +917,8 @@ WHERE tournament_id IS NOT NULL AND tournament_id > 0",
 	 * @param string $index Index to check.
 	 * @return bool
 	 */
-	private function index_exists( $table, $index ) {
-		global $wpdb;
+        private function index_exists( $table, $index ) {
+                global $wpdb;
 
 		$wpdb->last_error = '';
 		$sql              = $wpdb->prepare(
@@ -929,8 +936,56 @@ WHERE tournament_id IS NOT NULL AND tournament_id > 0",
 			$exists = $wpdb->get_var( $wpdb->prepare( "SHOW INDEX FROM `{$table}` WHERE Key_name=%s", $index ) );
 		}
 
-		return ! empty( $exists );
-	}
+                return ! empty( $exists );
+        }
+
+
+        /**
+         * Retrieve indexed column names in order for a given key.
+         *
+         * @param string $table Table name.
+         * @param string $index Index name.
+         * @return array Ordered list of column names or empty array when missing/inaccessible.
+         */
+        private function get_index_columns( $table, $index ) {
+                global $wpdb;
+
+               $wpdb->last_error = '';
+
+               // Prefer information_schema because it supports ordering, but fall back when unavailable.
+               $ordered_columns = $wpdb->get_col(
+                               $wpdb->prepare(
+                                               'SELECT COLUMN_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND INDEX_NAME=%s ORDER BY SEQ_IN_INDEX ASC',
+                                               DB_NAME,
+                                               $table,
+                                               $index
+                               )
+               );
+
+               if ( ! empty( $ordered_columns ) && ! $wpdb->last_error ) {
+                               return array_values( array_unique( array_filter( $ordered_columns ) ) );
+               }
+
+               // Clear any errors from the information_schema query before attempting the fallback.
+               $wpdb->last_error = '';
+
+               $wpdb->suppress_errors( true );
+               $rows = $wpdb->get_results( $wpdb->prepare( "SHOW INDEX FROM `{$table}` WHERE Key_name=%s", $index ) );
+               $wpdb->suppress_errors( false );
+
+               if ( $wpdb->last_error || empty( $rows ) ) {
+                               return array();
+               }
+
+               usort(
+                               $rows,
+                               static function ( $a, $b ) {
+                                               return (int) $a->Seq_in_index <=> (int) $b->Seq_in_index;
+                               }
+               );
+
+               return array_values( array_unique( wp_list_pluck( $rows, 'Column_name' ) ) );
+        }
 
 	/**
 	 * Check whether a table exists in the database.
