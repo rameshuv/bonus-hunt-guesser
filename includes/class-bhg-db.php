@@ -950,14 +950,41 @@ WHERE tournament_id IS NOT NULL AND tournament_id > 0",
         private function get_index_columns( $table, $index ) {
                 global $wpdb;
 
-                $sql  = $wpdb->prepare( "SHOW INDEX FROM `{$table}` WHERE Key_name=%s ORDER BY Seq_in_index ASC", $index );
-                $rows = $wpdb->get_results( $sql );
+               $wpdb->last_error = '';
 
-                if ( empty( $rows ) ) {
-                        return array();
-                }
+               // Prefer information_schema because it supports ordering, but fall back when unavailable.
+               $ordered_columns = $wpdb->get_col(
+                               $wpdb->prepare(
+                                               'SELECT COLUMN_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s AND INDEX_NAME=%s ORDER BY SEQ_IN_INDEX ASC',
+                                               DB_NAME,
+                                               $table,
+                                               $index
+                               )
+               );
 
-                return array_values( array_unique( wp_list_pluck( $rows, 'Column_name' ) ) );
+               if ( ! empty( $ordered_columns ) && ! $wpdb->last_error ) {
+                               return array_values( array_unique( array_filter( $ordered_columns ) ) );
+               }
+
+               // Clear any errors from the information_schema query before attempting the fallback.
+               $wpdb->last_error = '';
+
+               $wpdb->suppress_errors( true );
+               $rows = $wpdb->get_results( $wpdb->prepare( "SHOW INDEX FROM `{$table}` WHERE Key_name=%s", $index ) );
+               $wpdb->suppress_errors( false );
+
+               if ( $wpdb->last_error || empty( $rows ) ) {
+                               return array();
+               }
+
+               usort(
+                               $rows,
+                               static function ( $a, $b ) {
+                                               return (int) $a->Seq_in_index <=> (int) $b->Seq_in_index;
+                               }
+               );
+
+               return array_values( array_unique( wp_list_pluck( $rows, 'Column_name' ) ) );
         }
 
 	/**
