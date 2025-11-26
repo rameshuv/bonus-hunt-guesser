@@ -54,11 +54,27 @@ class BHG_Ads {
 	 *
 	 * @return bool
 	 */
-	protected static function ads_enabled() {
-			$settings = get_option( 'bhg_plugin_settings', array() );
-			$enabled  = isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 1;
-			return 1 === $enabled;
-	}
+        protected static function ads_enabled() {
+                        $settings = get_option( 'bhg_plugin_settings', array() );
+                        $enabled  = isset( $settings['ads_enabled'] ) ? (int) $settings['ads_enabled'] : 1;
+                        return 1 === $enabled;
+        }
+
+        /**
+         * Provide an admin-visible notice while keeping output silent for visitors.
+         *
+         * @param string $reason Message explaining why rendering was skipped.
+         * @return string HTML comment with optional admin-only notice markup.
+         */
+        private static function shortcode_notice( $reason ) {
+                $comment = '<!-- ' . esc_html( $reason ) . ' -->';
+
+                if ( current_user_can( 'manage_options' ) ) {
+                        return '<div class="bhg-shortcode-note bhg-shortcode-note--ads">' . esc_html( $reason ) . '</div>' . $comment;
+                }
+
+                return $comment;
+        }
 
 	/**
 	 * Determine current user's affiliate status (global toggle).
@@ -297,7 +313,7 @@ class BHG_Ads {
 	 */
         public static function shortcode( $atts = array(), $content = '', $tag = '' ) {
                 if ( ! self::ads_enabled() ) {
-                        return '<!-- BHG ad suppressed: ads disabled in settings. -->';
+                        return self::shortcode_notice( 'BHG ad suppressed: ads disabled in settings.' );
                 }
 
 		$a = shortcode_atts(
@@ -312,16 +328,16 @@ class BHG_Ads {
 
                 $id = $a['id'] ? (int) $a['id'] : (int) $a['ad'];
                 if ( $id <= 0 ) {
-                        return '<!-- BHG ad suppressed: missing ad="" or id="" attribute. -->';
+                        return self::shortcode_notice( 'BHG ad suppressed: missing ad="" or id="" attribute.' );
                 }
 
 		$status = strtolower( trim( $a['status'] ) );
 
 		global $wpdb;
-		$table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
-		$allowed_tables = array( $table );
+                $table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
+                $allowed_tables = array( $table );
                 if ( ! in_array( $table, $allowed_tables, true ) ) {
-                                return '<!-- BHG ad suppressed: invalid ads table. -->';
+                                return self::shortcode_notice( 'BHG ad suppressed: invalid ads table.' );
                 }
 
                 $row = $wpdb->get_row(
@@ -331,24 +347,24 @@ class BHG_Ads {
                         )
                 );
                 if ( ! $row ) {
-                        return '<!-- BHG ad suppressed: ad not found. -->';
+                        return self::shortcode_notice( 'BHG ad suppressed: ad not found.' );
                 }
                 if ( ! in_array( $row->placement, self::get_allowed_placements(), true ) ) {
-                        return '<!-- BHG ad suppressed: invalid placement. -->';
+                        return self::shortcode_notice( 'BHG ad suppressed: invalid placement.' );
                 }
 
                 if ( 'all' !== $status ) {
                         $expected = ( 'inactive' === $status ) ? 0 : 1;
                         if ( (int) $row->active !== $expected ) {
-                                return '<!-- BHG ad suppressed: status mismatch. -->';
+                                return self::shortcode_notice( 'BHG ad suppressed: status mismatch.' );
                         }
                 }
 
                 if ( ! self::visibility_ok( $row->visible_to ) ) {
-                        return '<!-- BHG ad suppressed: visibility rules not met. -->';
+                        return self::shortcode_notice( 'BHG ad suppressed: visibility rules not met.' );
                 }
                 if ( ! self::page_target_ok( $row->target_pages ) ) {
-                        return '<!-- BHG ad suppressed: page targeting not met. -->';
+                        return self::shortcode_notice( 'BHG ad suppressed: page targeting not met.' );
                 }
 
 		return self::render_ad_row( $row );
