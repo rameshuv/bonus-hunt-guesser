@@ -5736,7 +5736,9 @@ echo '</div>';
 echo '</div>';
 echo '</div>';
 
-$total_pages = $total > 0 ? (int) ceil( $total / $per_page ) : 1;
+ $total = isset( $total ) ? (int) $total : 0;
+
+ $total_pages = $total > 0 ? (int) ceil( $total / $per_page ) : 1;
 if ( $total_pages > 1 ) {
 $preserved_args = array();
 if ( ! empty( $_GET ) ) {
