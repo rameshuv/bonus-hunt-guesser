@@ -3,7 +3,7 @@
  * Plugin Name: Bonus Hunt Guesser
  * Plugin URI: https://yourdomain.com/
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality.
- * Version: 8.0.18
+ * Version: 8.0.20
  * Requires at least: 6.3.5
  * Requires PHP: 7.4
  * Requires MySQL: 5.5.5
@@ -153,7 +153,7 @@ add_action( 'after_setup_theme', 'bhg_register_prize_image_size' );
 require_once __DIR__ . '/includes/class-bhg-db.php';
 
 // Define plugin constants.
-define( 'BHG_VERSION', '8.0.18' );
+define( 'BHG_VERSION', '8.0.20' );
 define( 'BHG_MIN_WP', '6.3.5' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
