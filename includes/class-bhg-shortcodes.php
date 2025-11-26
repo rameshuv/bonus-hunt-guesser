@@ -5472,6 +5472,25 @@ $order = strtoupper( $order );
 $current_page = isset( $_GET['bhg_tr_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_tr_paged'] ) ) ) : 1;
 $offset       = ( $current_page - 1 ) * $per_page;
 
+$total = (int) $wpdb->get_var(
+        $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$r} WHERE tournament_id = %d",
+                $tournament->id
+        )
+); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+if ( $total <= 0 ) {
+        echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
+        echo '</div>';
+        return ob_get_clean();
+}
+
+$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+if ( $current_page > $total_pages ) {
+        $current_page = $total_pages;
+        $offset       = ( $current_page - 1 ) * $per_page;
+}
+
 $order_parts = array();
 switch ( $orderby ) {
 case 'position':
@@ -5717,7 +5736,9 @@ echo '</div>';
 echo '</div>';
 echo '</div>';
 
-$total_pages = $total > 0 ? (int) ceil( $total / $per_page ) : 1;
+ $total = isset( $total ) ? (int) $total : 0;
+
+ $total_pages = $total > 0 ? (int) ceil( $total / $per_page ) : 1;
 if ( $total_pages > 1 ) {
 $preserved_args = array();
 if ( ! empty( $_GET ) ) {
