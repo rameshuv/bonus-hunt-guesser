@@ -500,7 +500,7 @@ array(
                                                'MIN(hw.position) AS position',
                                                'MAX(' . $win_date_expr . ') AS win_date',
                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
-                                               'COUNT(DISTINCT hw.id) AS win_count',
+                                               "COUNT(DISTINCT CONCAT_WS(':', hw.hunt_id, hw.user_id)) AS win_count",
                                );
 
                                $base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
@@ -998,7 +998,7 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                 }
 
                                                 $win_count_sql = sprintf(
-                                                                'SELECT hw_count.user_id, COUNT(DISTINCT hw_count.id) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$s WHERE %4$s GROUP BY hw_count.user_id',
+                                                                "SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS(':', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$s WHERE %4$s GROUP BY hw_count.user_id",
                                                                 $hw,
                                                                 $h,
                                                                 $win_joins,
@@ -3124,7 +3124,7 @@ return ob_get_clean();
 
                 ob_start();
 											   echo '<div class="bhg-leaderboard-wrapper">';
-											   echo '<form method="get" class="bhg-search-form">';
+                                                                                          echo '<form method="get" class="bhg-search-form bhg-filters-row">';
 											   foreach ( $_GET as $raw_key => $v ) {
 													   $key = sanitize_key( wp_unslash( $raw_key ) );
 													   if ( 'bhg_search' === $key ) {
@@ -3524,7 +3524,7 @@ $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ?
                                                 };
 
                                                 ob_start();
-                                                echo '<form method="get" class="bhg-search-form">';
+                                                echo '<form method="get" class="bhg-search-form bhg-filters-row">';
 		  foreach ( $_GET as $raw_key => $v ) {
 				  $key = sanitize_key( wp_unslash( $raw_key ) );
 				  if ( in_array( $key, array( 'bhg_search', 'bhg_timeline' ), true ) ) {
@@ -4611,7 +4611,7 @@ $atts,
                                                 };
 
                                                 ob_start();
-                                                echo '<form method="get" class="bhg-search-form">';
+                                                echo '<form method="get" class="bhg-search-form bhg-filters-row">';
                                                 foreach ( $_GET as $raw_key => $v ) {
                                                                 $key = sanitize_key( wp_unslash( $raw_key ) );
                                                                 if ( in_array( $key, array( 'bhg_search', 'bhg_timeline', 'bhg_status' ), true ) ) {
@@ -4907,6 +4907,12 @@ $raw_aff  = ( $filter_affiliate_enabled && isset( $_GET['bhg_aff'] ) ) ? wp_unsl
 $tournament_id = max( 0, absint( $raw_tournament ) );
 $bonushunt_id  = max( 0, absint( $raw_bonushunt ) );
 $website_id    = max( 0, absint( $raw_site ) );
+if ( $website_id <= 0 && '' !== (string) $raw_site ) {
+        $resolved_site = $this->resolve_affiliate_site_id( $raw_site );
+        if ( $resolved_site > 0 ) {
+                $website_id = $resolved_site;
+        }
+}
 
                                                 $tournament_filter_active = $tournament_id > 0;
 
@@ -5187,7 +5193,7 @@ $args['bhg_aff'] = $aff_filter;
                                                 };
 
                                                 ob_start();
-						echo '<form method="get" class="bhg-search-form">';
+                                          echo '<form method="get" class="bhg-search-form bhg-filters-row">';
                                                foreach ( $_GET as $raw_key => $v ) {
                                                                $key = sanitize_key( wp_unslash( $raw_key ) );
                                                                if ( in_array( $key, array( 'bhg_search', 'bhg_tournament', 'bhg_tournament_id', 'bhg_site', 'bhg_aff', 'bhg_timeline' ), true ) ) {

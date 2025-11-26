@@ -132,6 +132,7 @@
     font-weight: 600;
 }
 
+.bhg-filters-row,
 .bhg-search-form,
 .bhg-tournament-filters,
 .bhg-bonushunt-filters {
@@ -193,14 +194,15 @@
 .bhg-search-control button,
 .bhg-tournament-filters button,
 .bhg-bonushunt-filters button,
-.bhg-filter-button {
+.bhg-filter-button,
+.bhg-submit-btn {
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 10px 14px;
     border-radius: 4px;
     cursor: pointer;
-    margin-top: 0;
+    margin-top: 6px;
 }
 
 .bhg-search-control button:hover,
@@ -210,13 +212,16 @@
 .bhg-bonushunt-filters button:hover,
 .bhg-bonushunt-filters button:focus,
 .bhg-filter-button:hover,
-.bhg-filter-button:focus {
+.bhg-filter-button:focus,
+.bhg-submit-btn:hover,
+.bhg-submit-btn:focus {
     background-color: #0f172a;
     border-color: #0f172a;
     color: #fff;
 }
 
 @media (max-width: 960px) {
+    .bhg-filters-row,
     .bhg-search-form,
     .bhg-filter-controls,
     .bhg-hunt-selector,
@@ -225,6 +230,7 @@
     }
 
     .bhg-filter-controls,
+    .bhg-filters-row,
     .bhg-hunt-selector,
     .bhg-search-control {
         flex-direction: column;
@@ -234,12 +240,14 @@
     .bhg-hunt-select,
     .bhg-search-form input[type="text"],
     .bhg-search-control button,
-    .bhg-filter-button {
+    .bhg-filter-button,
+    .bhg-submit-btn {
         width: 100%;
     }
 
     .bhg-search-control button,
-    .bhg-filter-button {
+    .bhg-filter-button,
+    .bhg-submit-btn {
         text-align: center;
     }
 }
@@ -437,7 +445,7 @@
 .bhg-guess-form input[type="number"],
 .bhg-guess-form input[type="text"] {
     width: 100%;
-    padding: 10px 12px;
+    padding: 8px 10px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
 }
@@ -450,21 +458,7 @@
 
 
 .bhg-submit-btn {
-    margin-top: 20px;
-    background-color: var(--bhg-accent-color);
-    border: 1px solid var(--bhg-accent-color);
-    color: #fff;
-    padding: 10px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.bhg-submit-btn:hover,
-.bhg-submit-btn:focus {
-    background-color: var(--bhg-accent-color);
-    border-color: var(--bhg-accent-color);
-    color: #fff;
-    filter: brightness(0.9);
+    margin-top: 12px;
 }
 
 .bhg-pagination {
