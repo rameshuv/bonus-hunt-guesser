@@ -25,7 +25,42 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
 		 *
 		 * @var string[]
 		 */
-		private const LEADERBOARD_DEFAULT_FILTERS = array( 'timeline', 'tournament', 'site', 'affiliate' );
+        private const LEADERBOARD_DEFAULT_FILTERS = array( 'timeline', 'tournament', 'site', 'affiliate' );
+
+        /**
+         * Resolve an affiliate website identifier from shortcode input.
+         *
+         * @param mixed $raw_site Raw shortcode attribute value.
+         * @return int Affiliate site ID or 0 when not found.
+         */
+        private function resolve_affiliate_site_id( $raw_site ) {
+                global $wpdb;
+
+                $site_id = (int) $raw_site;
+                if ( $site_id > 0 ) {
+                        return $site_id;
+                }
+
+                $slug_or_name = sanitize_text_field( (string) $raw_site );
+                if ( '' === $slug_or_name ) {
+                        return 0;
+                }
+
+                $table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                if ( ! $table ) {
+                        return 0;
+                }
+
+                $query = $wpdb->prepare(
+                        "SELECT id FROM {$table} WHERE slug = %s OR name = %s LIMIT 1",
+                        $slug_or_name,
+                        $slug_or_name
+                );
+
+                $row = $wpdb->get_row( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+                return $row && isset( $row->id ) ? (int) $row->id : 0;
+        }
 
 		/**
 		 * Flag to prevent enqueueing prize assets multiple times per request.
@@ -3336,7 +3371,7 @@ $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ?
                                 $params[] = $status_filter;
                         }
 
-			$website = (int) $a['website'];
+                        $website = $this->resolve_affiliate_site_id( $a['website'] );
 			if ( $website > 0 ) {
 				$where[]  = 'h.affiliate_site_id = %d';
 				$params[] = $website;
@@ -3899,7 +3934,7 @@ $atts,
 
                                                $tournament_id = isset( $atts['tournament'] ) ? (int) $atts['tournament'] : 0;
                                                $hunt_id       = isset( $atts['bonushunt'] ) ? (int) $atts['bonushunt'] : 0;
-                                               $website_id    = isset( $atts['website'] ) ? (int) $atts['website'] : 0;
+                                               $website_id    = isset( $atts['website'] ) ? $this->resolve_affiliate_site_id( $atts['website'] ) : 0;
                                                $aff_filter    = sanitize_key( (string) $atts['aff'] );
                                                if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
                                                                $aff_filter = 'yes';
@@ -4424,7 +4459,7 @@ $atts,
 				$params[] = $status_filter;
 			}
 
-			$website = (int) $a['website'];
+                   $website = $this->resolve_affiliate_site_id( $a['website'] );
 			if ( $website > 0 ) {
 				$where[]  = 'h.affiliate_site_id = %d';
 				$params[] = $website;

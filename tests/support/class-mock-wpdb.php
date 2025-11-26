@@ -12,6 +12,7 @@ class MockWPDB {
         public $tournament_results = array();
         public $tournaments_hunts  = array();
         public $tournaments        = array();
+        public $affiliate_websites = array();
         public $translations       = array();
         public $users              = 'wp_users';
         public $users_data         = array();
@@ -78,6 +79,17 @@ class MockWPDB {
                                 $id = (int) $matches[1];
                                 if ( isset( $this->bonus_hunts[ $id ] ) ) {
                                         return (object) $this->bonus_hunts[ $id ];
+                                }
+                        }
+                }
+
+                if ( false !== strpos( $query, 'FROM ' . $this->prefix . 'bhg_affiliate_websites' ) ) {
+                        $slug = $this->match_string( "/slug\s*=\s*'([^']+)'/", $query );
+                        $name = $this->match_string( "/name\s*=\s*'([^']+)'/", $query );
+
+                        foreach ( $this->affiliate_websites as $row ) {
+                                if ( ( isset( $row['slug'] ) && $row['slug'] === $slug ) || ( isset( $row['name'] ) && $row['name'] === $name ) ) {
+                                        return (object) $row;
                                 }
                         }
                 }
