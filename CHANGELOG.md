@@ -14,6 +14,14 @@
 - Added explicit HTML comments when ad and jackpot shortcodes cannot render so
   editors can diagnose missing IDs, table data, or disabled settings directly
   from the page output.
+- Fixed leaderboard win totals so duplicate tournament mappings no longer
+  double-count "Times Won" and so affiliate website filters resolve site names
+  reliably.
+- Standardized filter layouts and button styling across leaderboards,
+  tournaments, bonus hunts, and the user guess form, ensuring horizontal
+  alignment and matching tournament dropdown visuals.
+- Hardened pagination markup for shortcode listings to restore clickable page
+  navigation links.
 
 ## 8.0.18 — 2025-02-06
 - Bumped plugin metadata and internal version constant to 8.0.18 to match the

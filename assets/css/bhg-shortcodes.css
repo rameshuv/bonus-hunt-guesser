@@ -132,22 +132,28 @@
     font-weight: 600;
 }
 
-.bhg-search-form {
+.bhg-search-form,
+.bhg-tournament-filters,
+.bhg-bonushunt-filters {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 12px 16px;
+    align-items: flex-end;
     margin-bottom: 16px;
-    }
+}
 
-.bhg-filter-controls {
+.bhg-filter-controls,
+.bhg-search-control {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: flex-end;
 }
 
-.bhg-filter-label {
+.bhg-filter-label,
+.bhg-tournament-filters label,
+.bhg-bonushunt-filters label {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -156,6 +162,8 @@
 }
 
 .bhg-filter-select,
+.bhg-tournament-filters select,
+.bhg-bonushunt-filters select,
 .bhg-search-form input[type="text"] {
     min-width: 200px;
     padding: 6px 10px;
@@ -166,7 +174,11 @@
 }
 
 .bhg-filter-select:focus,
-.bhg-search-form input[type="text"]:focus {
+.bhg-tournament-filters select:focus,
+.bhg-bonushunt-filters select:focus,
+.bhg-search-form input[type="text"]:focus,
+.bhg-guess-form input[type="number"]:focus,
+.bhg-guess-form input[type="text"]:focus {
     outline: 2px solid var(--bhg-accent-color);
     outline-offset: 1px;
 }
@@ -178,21 +190,30 @@
     align-items: flex-end;
 }
 
-.bhg-search-control button {
+.bhg-search-control button,
+.bhg-tournament-filters button,
+.bhg-bonushunt-filters button,
+.bhg-filter-button {
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
     padding: 10px 14px;
     border-radius: 4px;
     cursor: pointer;
+    margin-top: 0;
 }
 
 .bhg-search-control button:hover,
-.bhg-search-control button:focus {
-    background-color: var(--bhg-accent-color);
-    border-color: var(--bhg-accent-color);
+.bhg-search-control button:focus,
+.bhg-tournament-filters button:hover,
+.bhg-tournament-filters button:focus,
+.bhg-bonushunt-filters button:hover,
+.bhg-bonushunt-filters button:focus,
+.bhg-filter-button:hover,
+.bhg-filter-button:focus {
+    background-color: #0f172a;
+    border-color: #0f172a;
     color: #fff;
-    filter: brightness(0.9);
 }
 
 @media (max-width: 960px) {
@@ -410,12 +431,13 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    max-width: 420px;
 }
 
 .bhg-guess-form input[type="number"],
 .bhg-guess-form input[type="text"] {
     width: 100%;
-    padding: 8px 12px 8px 10px;
+    padding: 10px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
 }
