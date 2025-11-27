@@ -1157,24 +1157,22 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 $prepared_sql  = $wpdb->prepare( $select_sql, ...$select_params );
 
                                                 $rows_all = $wpdb->get_results( $prepared_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                $rows_all = BHG_Tournaments_Controller::filter_results_by_affiliate( $tournament_id, (array) $rows_all );
 
-                                                $filtered_rows = array();
+                                                if ( $apply_affiliate_site_filter ) {
+                                                                $rows_all = array_values(
+                                                                                array_filter(
+                                                                                                $rows_all,
+                                                                                                static function ( $row_obj ) use ( $website_id ) {
+                                                                                                                $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
 
-                                                foreach ( (array) $rows_all as $row_obj ) {
-                                                                $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
-
-                                                                if ( $uid <= 0 ) {
-                                                                                continue;
-                                                                }
-
-                                                                $user_affiliate = get_user_meta( $uid, 'affiliate_site', true );
-
-                                                                if ( $user_affiliate == $tournament_affiliate_site ) {
-                                                                                $filtered_rows[] = $row_obj;
-                                                                }
+                                                                                                                return ( $uid > 0 && bhg_is_user_affiliate_for_site( $uid, $website_id ) );
+                                                                                                }
+                                                                                )
+                                                                );
                                                 }
 
-                                                $total       = count( $filtered_rows );
+                                                $total       = count( $rows_all );
                                                 $total_pages = max( 1, (int) ceil( $total / $per_page ) );
 
                                                 if ( $paged > $total_pages ) {
@@ -1182,7 +1180,7 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 }
 
                                                 $offset = ( $paged - 1 ) * $per_page;
-                                                $rows   = array_slice( $filtered_rows, $offset, $per_page );
+                                                $rows   = array_slice( $rows_all, $offset, $per_page );
                                                 $limit  = count( $rows );
                                 } elseif ( $apply_affiliate_site_filter ) {
                                                 $select_params = $params;
@@ -5653,39 +5651,32 @@ $tournament_affiliate  = get_post_meta( (int) $tournament->id, 'affiliate_site',
 $manual_filtering       = $apply_site_filter || ! empty( $tournament_affiliate );
 
                if ( $manual_filtering ) {
-$rows_all = $wpdb->get_results( $wpdb->prepare( $select_sql, $tournament->id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                               $rows_all = $wpdb->get_results( $wpdb->prepare( $select_sql, $tournament->id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                               $rows_all = BHG_Tournaments_Controller::filter_results_by_affiliate( (int) $tournament->id, (array) $rows_all );
 
-$filtered_rows = array();
-foreach ( (array) $rows_all as $row_obj ) {
-$uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
+                               $filtered_rows = array();
+                               foreach ( (array) $rows_all as $row_obj ) {
+                                               $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
 
-if ( $uid <= 0 ) {
-continue;
-}
+                                               if ( $uid <= 0 ) {
+                                                               continue;
+                                               }
 
-if ( ! empty( $tournament_affiliate ) ) {
-$user_affiliate = get_user_meta( $uid, 'affiliate_site', true );
+                                               if ( $apply_site_filter && ! bhg_is_user_affiliate_for_site( $uid, $site_filter ) ) {
+                                                               continue;
+                                               }
 
-if ( $user_affiliate != $tournament_affiliate ) {
-continue;
-}
-}
+                                               $filtered_rows[] = $row_obj;
+                               }
 
-if ( $apply_site_filter && ! bhg_is_user_affiliate_for_site( $uid, $site_filter ) ) {
-continue;
-}
-
-$filtered_rows[] = $row_obj;
-}
-
-$total       = count( $filtered_rows );
-$total_pages = max( 1, (int) ceil( $total / $per_page ) );
-if ( $current_page > $total_pages ) {
-$current_page = $total_pages;
-}
-$offset = ( $current_page - 1 ) * $per_page;
-$rows   = array_slice( $filtered_rows, $offset, $per_page );
-} else {
+                               $total       = count( $filtered_rows );
+                               $total_pages = max( 1, (int) ceil( $total / $per_page ) );
+                               if ( $current_page > $total_pages ) {
+                                               $current_page = $total_pages;
+                               }
+                               $offset = ( $current_page - 1 ) * $per_page;
+                               $rows   = array_slice( $filtered_rows, $offset, $per_page );
+               } else {
 $total = (int) $wpdb->get_var(
 $wpdb->prepare(
 "SELECT COUNT(*) FROM {$r} WHERE tournament_id = %d",
