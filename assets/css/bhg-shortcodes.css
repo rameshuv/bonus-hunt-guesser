@@ -265,7 +265,6 @@
 
 .bhg-search-control input[type="text"],
 .bhg-search-control input[type="search"] {
-    flex: 1 1 220px;
     min-width: 180px;
     max-width: 320px;
     height: 32px;
