@@ -293,7 +293,7 @@
     color: #fff;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 768px) {
     .bhg-filters-row,
     .bhg-search-form,
     .bhg-filter-controls,
@@ -639,7 +639,7 @@
     min-width: 720px;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 768px) {
     .bhg-table-wrapper table {
         min-width: 620px;
     }
@@ -872,7 +872,7 @@
     word-break: break-word;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 768px) {
     .bhg-table-wrapper {
         margin-left: -4px;
         margin-right: -4px;
