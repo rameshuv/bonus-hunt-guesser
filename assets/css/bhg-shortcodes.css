@@ -181,10 +181,11 @@
 .bhg-filters input[type="text"],
 .bhg-filter-controls select,
 .bhg-filter-controls input[type="text"] {
-    height: 40px;
+    height: 36px;
     min-width: 180px;
-    padding: 8px 12px;
+    padding: 7px 10px;
     font-size: 14px;
+    line-height: 1.4;
 }
 
 .bhg-searchbar,
@@ -234,14 +235,14 @@
 .bhg-search-form input[type="text"] {
     min-width: 200px;
     flex: 1 1 200px;
-    padding: 8px 12px;
-    height: 40px;
+    padding: 7px 10px;
+    height: 36px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
     background-color: #fff;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
     font-size: 14px;
-    line-height: 1.2;
+    line-height: 1.4;
 }
 
 .bhg-filter-select:focus,
@@ -266,7 +267,7 @@
 .bhg-search-control input[type="search"] {
     flex: 1 1 320px;
     min-width: 260px;
-    height: 40px;
+    height: 38px;
     padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
@@ -281,11 +282,11 @@
     background-color: #0f172a;
     border: 1px solid #0f172a;
     color: #fff;
-    padding: 9px 16px;
+    padding: 8px 14px;
     border-radius: 6px;
     cursor: pointer;
-    height: 40px;
-    line-height: 1.2;
+    height: 36px;
+    line-height: 1.4;
 }
 
 .bhg-search-control button:hover,
@@ -661,12 +662,12 @@
 
 .bhg-table-wrapper table {
     width: 100%;
-    min-width: 720px;
+    min-width: 680px;
 }
 
 @media (max-width: 768px) {
     .bhg-table-wrapper table {
-        min-width: 620px;
+        min-width: 600px;
     }
 }
 
@@ -676,13 +677,13 @@
     }
 
     .bhg-table-wrapper table {
-        min-width: 540px;
+        min-width: 520px;
     }
 }
 
 @media (max-width: 560px) {
     .bhg-table-wrapper table {
-        min-width: 460px;
+        min-width: 440px;
     }
 
     .bhg-leaderboard th,
@@ -719,7 +720,7 @@
     }
 
     .bhg-table-wrapper table {
-        min-width: 420px;
+        min-width: 400px;
     }
 }
 
