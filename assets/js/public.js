@@ -232,9 +232,7 @@ jQuery(document).ready(function($) {
 
     // Handle pagination for leaderboard tables
     function initLeaderboardPagination() {
-        $('.bhg-pagination').on('click', 'a', function(e) {
-            e.preventDefault();
-
+        $('.bhg-pagination').on('click', 'a', function() {
             var url = $(this).attr('href');
             var container = $(this).closest('.bhg-leaderboard-wrapper');
 
