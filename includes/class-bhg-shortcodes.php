@@ -823,8 +823,13 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                 return null;
                                 }
 
-                               $tournament_affiliate_site  = get_post_meta( $tournament_id, 'affiliate_site', true );
-                               $needs_affiliate_site_filter = '' !== $tournament_affiliate_site;
+                               $tournament_affiliate_site     = get_post_meta( $tournament_id, 'affiliate_site', true );
+                               $tournament_affiliate_site_id  = (int) get_post_meta( $tournament_id, 'affiliate_site_id', true );
+                               if ( $tournament_affiliate_site_id <= 0 && $t ) {
+                                               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                               $tournament_affiliate_site_id = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT affiliate_site_id FROM ' . $t . ' WHERE id = %d', $tournament_id ) );
+                               }
+                               $needs_affiliate_site_filter = ( '' !== $tournament_affiliate_site || $tournament_affiliate_site_id > 0 );
 
                                 if ( ! in_array( $direction_key, array( 'asc', 'desc' ), true ) ) {
                                                 $direction_key = 'desc';
@@ -1157,7 +1162,7 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 $prepared_sql  = $wpdb->prepare( $select_sql, ...$select_params );
 
                                                 $rows_all = $wpdb->get_results( $prepared_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                                                $rows_all = BHG_Tournaments_Controller::filter_results_by_affiliate( $tournament_id, (array) $rows_all );
+                                                $rows_all = BHG_Tournaments_Controller::filter_results_by_affiliate( $tournament_id, (array) $rows_all, $tournament_affiliate_site_id, $tournament_affiliate_site );
 
                                                 if ( $apply_affiliate_site_filter ) {
                                                                 $rows_all = array_values(
@@ -5646,13 +5651,19 @@ $order_sql     = implode( ', ', $order_parts );
 
 $select_sql = "SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql}";
 
-$apply_site_filter      = ( $site_filter > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) );
-$tournament_affiliate  = get_post_meta( (int) $tournament->id, 'affiliate_site', true );
-$manual_filtering       = $apply_site_filter || ! empty( $tournament_affiliate );
+$apply_site_filter        = ( $site_filter > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) );
+$tournament_affiliate     = get_post_meta( (int) $tournament->id, 'affiliate_site', true );
+$tournament_affiliate_id  = isset( $tournament->affiliate_site_id ) ? (int) $tournament->affiliate_site_id : 0;
+$manual_filtering         = $apply_site_filter || ! empty( $tournament_affiliate ) || $tournament_affiliate_id > 0;
 
                if ( $manual_filtering ) {
                                $rows_all = $wpdb->get_results( $wpdb->prepare( $select_sql, $tournament->id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                               $rows_all = BHG_Tournaments_Controller::filter_results_by_affiliate( (int) $tournament->id, (array) $rows_all );
+                               $rows_all = BHG_Tournaments_Controller::filter_results_by_affiliate(
+                                       (int) $tournament->id,
+                                       (array) $rows_all,
+                                       $tournament_affiliate_id,
+                                       $tournament_affiliate
+                               );
 
                                $filtered_rows = array();
                                foreach ( (array) $rows_all as $row_obj ) {
