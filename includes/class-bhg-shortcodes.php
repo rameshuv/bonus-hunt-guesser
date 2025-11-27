@@ -5782,22 +5782,6 @@ $base
                                                 echo '<div class="bhg-tournament-countdown">' . esc_html( $days_label ) . '</div>';
                                 }
 
-$default_rows = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 25 ) : 25;
-$per_page     = (int) apply_filters( 'bhg_tournament_results_per_page', $default_rows, $tournament );
-if ( $per_page <= 0 ) {
-$per_page = $default_rows;
-}
-$per_page = max( 1, $per_page );
-
-$current_page = isset( $_GET['bhg_tr_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_tr_paged'] ) ) ) : 1;
-$offset       = ( $current_page - 1 ) * $per_page;
-
-								if ( ! $rows ) {
-										echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
-										echo '</div>';
-										return ob_get_clean();
-								}
-
                                                                 $sort_icon_markup = static function ( $field, $label_text ) use ( $orderby, $order ) {
                                                                                 $state = '';
                                                                                 if ( $orderby === $field ) {
