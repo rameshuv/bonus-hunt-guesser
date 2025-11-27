@@ -181,9 +181,9 @@
 .bhg-filters input[type="text"],
 .bhg-filter-controls select,
 .bhg-filter-controls input[type="text"] {
-    height: 36px;
+    height: 34px;
     min-width: 180px;
-    padding: 7px 10px;
+    padding: 6px 10px;
     font-size: 14px;
     line-height: 1.4;
 }
@@ -235,8 +235,8 @@
 .bhg-search-form input[type="text"] {
     min-width: 200px;
     flex: 1 1 200px;
-    padding: 7px 10px;
-    height: 36px;
+    padding: 6px 10px;
+    height: 34px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
     background-color: #fff;
@@ -267,8 +267,8 @@
 .bhg-search-control input[type="search"] {
     flex: 1 1 320px;
     min-width: 260px;
-    height: 38px;
-    padding: 8px 12px;
+    height: 34px;
+    padding: 7px 12px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
@@ -282,10 +282,10 @@
     background-color: #0f172a;
     border: 1px solid #0f172a;
     color: #fff;
-    padding: 8px 14px;
+    padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
-    height: 36px;
+    height: 34px;
     line-height: 1.4;
 }
 
@@ -650,10 +650,9 @@
 }
 
 .bhg-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
     margin: 0 0 16px;
-    padding: 0 6px 10px;
+    padding: 0 0 12px;
     max-width: 100%;
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     border-radius: 10px;
@@ -662,12 +661,19 @@
 
 .bhg-table-wrapper table {
     width: 100%;
-    min-width: 680px;
+    min-width: 100%;
+    table-layout: auto;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+    .bhg-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0 6px 12px;
+    }
+
     .bhg-table-wrapper table {
-        min-width: 600px;
+        min-width: 680px;
     }
 }
 
