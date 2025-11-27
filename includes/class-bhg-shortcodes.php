@@ -5649,12 +5649,12 @@ break;
 $order_parts[] = 'r.user_id ASC';
 $order_sql     = implode( ', ', $order_parts );
 
-$select_sql = "SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql}";
+                $select_sql = "SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql}";
 
 $apply_site_filter        = ( $site_filter > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) );
-$tournament_affiliate     = get_post_meta( (int) $tournament->id, 'affiliate_site', true );
-$tournament_affiliate_id  = isset( $tournament->affiliate_site_id ) ? (int) $tournament->affiliate_site_id : 0;
-$manual_filtering         = $apply_site_filter || ! empty( $tournament_affiliate ) || $tournament_affiliate_id > 0;
+                $tournament_affiliate     = get_post_meta( (int) $tournament->id, 'affiliate_site', true );
+                $tournament_affiliate_id  = isset( $tournament->affiliate_site_id ) ? (int) $tournament->affiliate_site_id : 0;
+                $manual_filtering         = $apply_site_filter || '' !== $tournament_affiliate || $tournament_affiliate_id > 0;
 
                if ( $manual_filtering ) {
                                $rows_all = $wpdb->get_results( $wpdb->prepare( $select_sql, $tournament->id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -5688,27 +5688,36 @@ $manual_filtering         = $apply_site_filter || ! empty( $tournament_affiliate
                                $offset = ( $current_page - 1 ) * $per_page;
                                $rows   = array_slice( $filtered_rows, $offset, $per_page );
                } else {
-$total = (int) $wpdb->get_var(
-$wpdb->prepare(
-"SELECT COUNT(*) FROM {$r} WHERE tournament_id = %d",
-$tournament->id
-)
-); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                               $total = (int) $wpdb->get_var(
+                                               $wpdb->prepare(
+                                                               "SELECT COUNT(*) FROM {$r} WHERE tournament_id = %d",
+                                                               $tournament->id
+                                               )
+                               ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
-if ( $total <= 0 ) {
-echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
-echo '</div>';
-return ob_get_clean();
-}
+                               if ( $total <= 0 ) {
+                                               echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
+                                               echo '</div>';
+                                               return ob_get_clean();
+                               }
 
-$total_pages = max( 1, (int) ceil( $total / $per_page ) );
-if ( $current_page > $total_pages ) {
-$current_page = $total_pages;
-$offset       = ( $current_page - 1 ) * $per_page;
-}
+                               $total_pages = max( 1, (int) ceil( $total / $per_page ) );
+                               if ( $current_page > $total_pages ) {
+                                               $current_page = $total_pages;
+                                               $offset       = ( $current_page - 1 ) * $per_page;
+                               }
 
-$rows = $wpdb->get_results( $wpdb->prepare( $select_sql . ' LIMIT %d OFFSET %d', $tournament->id, $per_page, $offset ) );
-}
+                               $rows = $wpdb->get_results( $wpdb->prepare( $select_sql . ' LIMIT %d OFFSET %d', $tournament->id, $per_page, $offset ) );
+               }
+
+               if ( ! $manual_filtering ) {
+                               $rows = BHG_Tournaments_Controller::filter_results_by_affiliate(
+                                               (int) $tournament->id,
+                                               (array) $rows,
+                                               $tournament_affiliate_id,
+                                               $tournament_affiliate
+                               );
+               }
 
 if ( empty( $rows ) ) {
         echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
@@ -5760,6 +5769,7 @@ $base
 );
 };
 ob_start();
+                echo '<div class="bhg-tournament-view">';
                 echo '<div class="bhg-tournament-details">';
 echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
 $heading = $tournament->title ? $tournament->title : bhg_t( 'label_tournament', 'Tournament' );
@@ -5816,14 +5826,15 @@ echo esc_html( $affiliate_url );
 echo '</p>';
 }
 
+                echo '</div>';
+                echo '</div>';
+
                 if ( $show_prizes ) {
                         $prize_markup = $this->render_prize_sets_tabs( $prizes, array( 'show_summary' => $show_prize_summary_detail ), array(), 'carousel', 'medium' );
                         if ( '' !== $prize_markup ) {
                                 echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $prize_markup ) . '</div>';
                         }
                 }
-
-                echo '</div>';
 
                 if ( $days_remaining > 0 ) {
                         $days_label = 1 === $days_remaining
@@ -5863,7 +5874,7 @@ echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-leaderboard bhg-leaderboard--tournament">';
 echo '<thead><tr>';
 $position_label = bhg_t( 'label_position', 'Position' );
-$username_label = bhg_t( 'sc_user', 'User' );
+$username_label = bhg_t( 'label_user', 'User' );
 $wins_label     = bhg_t( 'sc_wins', 'Times Won' );
 $last_win_label = bhg_t( 'label_last_win', 'Last win' );
 echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'position' ) ) . '">' . esc_html( $position_label ) . $sort_icon_markup( 'position', $position_label ) . '</a></th>';
@@ -5872,8 +5883,15 @@ echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'wins' ) )
 echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'last_win_at' ) ) . '">' . esc_html( $last_win_label ) . $sort_icon_markup( 'last_win_at', $last_win_label ) . '</a></th>';
 echo '</tr></thead><tbody>';
 
-$winner_limit_meta = get_post_meta( (int) $tournament->id, 'number_of_winners', true );
-$winner_limit      = intval( $winner_limit_meta ) ?: 3;
+$winner_limit_meta  = get_post_meta( (int) $tournament->id, 'number_of_winners', true );
+$winner_limit_value = isset( $tournament->winners_count ) ? (int) $tournament->winners_count : 0;
+$winner_limit       = intval( $winner_limit_meta );
+
+if ( $winner_limit <= 0 && $winner_limit_value > 0 ) {
+        $winner_limit = $winner_limit_value;
+}
+
+$winner_limit = $winner_limit > 0 ? $winner_limit : 3;
 
 foreach ( $rows as $index => $row ) {
         $position_number = $offset + $index + 1;
@@ -5915,9 +5933,6 @@ echo '</td>';
 echo '</tr>';
 }
 echo '</tbody></table>';
-echo '</div>';
-echo '</div>';
-echo '</div>';
 echo '</div>';
 echo '</div>';
 

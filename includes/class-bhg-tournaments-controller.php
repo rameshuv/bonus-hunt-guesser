@@ -79,7 +79,7 @@ class BHG_Tournaments_Controller {
             if ( '' !== $affiliate_meta ) {
                 $user_affiliate = get_user_meta( $user_id, 'affiliate_site', true );
 
-                if ( $user_affiliate == $affiliate_meta ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+                if ( $user_affiliate === $affiliate_meta ) {
                     $filtered_results[] = $row;
                 }
             }
