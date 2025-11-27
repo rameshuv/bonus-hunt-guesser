@@ -288,7 +288,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_submit_guess'                           => 'Submit Guess',
 			'label_guess'                                  => 'Guess',
 			'label_unknown_user'                           => 'Unknown user',
-			'label_username'                               => 'Username',
+                    'label_username'                               => 'User',
 			'images'                                       => 'Images',
 			'css_settings'                                 => 'CSS Settings',
 			'border'                                       => 'Border',
@@ -426,7 +426,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_search'                                 => 'Search',
 			'search_hunts'                                 => 'Search Hunts',
 			/* translators: Column header used in tables that list usernames. */
-			'label_user'                                   => 'Username',
+'label_user'                                   => 'User',
 			'label_users'                                  => 'Users',
 			'label_role'                                   => 'Role',
 			'label_guesses'                                => 'Guesses',
@@ -707,7 +707,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'sc_affiliate'                                 => 'Affiliate',
 			'sc_position'                                  => 'Position',
 			/* translators: Column header label for username fields. */
-			'sc_user'                                      => 'Username',
+'sc_user'                                      => 'User',
 			'sc_wins'                                      => 'Times Won',
 			'label_times_won'                              => 'Times Won',
 			'sc_avg_rank'                                  => 'Avg Hunt Pos',
