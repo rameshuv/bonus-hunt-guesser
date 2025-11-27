@@ -1150,7 +1150,10 @@ $select_parts[] = 't_main.title AS tournament_title';
                                 $apply_affiliate_site_filter = $website_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' );
 
                                 if ( $apply_affiliate_site_filter ) {
-                                                $rows_all = $wpdb->get_results( $select_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                $select_params = $params;
+                                                $prepared_sql  = $wpdb->prepare( $select_sql, ...$select_params );
+
+                                                $rows_all = $wpdb->get_results( $prepared_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
                                                 $filtered_rows = array();
 
