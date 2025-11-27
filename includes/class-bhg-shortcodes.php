@@ -801,10 +801,10 @@ array(
 
                                 $args = wp_parse_args( $args, $defaults );
 
-                                $tournament_id        = max( 0, (int) $args['tournament_id'] );
-                                $timeline             = sanitize_key( (string) $args['timeline'] );
-                                $search               = sanitize_text_field( (string) $args['search'] );
-                                $aff_filter           = sanitize_key( (string) $args['aff_filter'] );
+                               $tournament_id        = max( 0, (int) $args['tournament_id'] );
+                               $timeline             = sanitize_key( (string) $args['timeline'] );
+                               $search               = sanitize_text_field( (string) $args['search'] );
+                               $aff_filter           = sanitize_key( (string) $args['aff_filter'] );
 $ranking_limit        = max( 0, (int) $args['ranking_limit'] );
 $paged                = max( 1, (int) $args['paged'] );
 $per_page             = max( 1, (int) $args['per_page'] );
@@ -822,6 +822,14 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 if ( $tournament_id <= 0 ) {
                                                 return null;
                                 }
+
+                               $tournament_affiliate_site     = get_post_meta( $tournament_id, 'affiliate_site', true );
+                               $tournament_affiliate_site_id  = (int) get_post_meta( $tournament_id, 'affiliate_site_id', true );
+                               if ( $tournament_affiliate_site_id <= 0 && $t ) {
+                                               // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                               $tournament_affiliate_site_id = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT affiliate_site_id FROM ' . $t . ' WHERE id = %d', $tournament_id ) );
+                               }
+                               $needs_affiliate_site_filter = ( '' !== $tournament_affiliate_site || $tournament_affiliate_site_id > 0 );
 
                                 if ( ! in_array( $direction_key, array( 'asc', 'desc' ), true ) ) {
                                                 $direction_key = 'desc';
@@ -1149,8 +1157,41 @@ $select_parts[] = 't_main.title AS tournament_title';
 
                                 $apply_affiliate_site_filter = $website_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' );
 
-                                if ( $apply_affiliate_site_filter ) {
-                                                $rows_all = $wpdb->get_results( $select_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                if ( $needs_affiliate_site_filter ) {
+                                                $select_params = $params;
+                                                $prepared_sql  = $wpdb->prepare( $select_sql, ...$select_params );
+
+                                                $rows_all = $wpdb->get_results( $prepared_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                $rows_all = BHG_Tournaments_Controller::filter_results_by_affiliate( $tournament_id, (array) $rows_all, $tournament_affiliate_site_id, $tournament_affiliate_site );
+
+                                                if ( $apply_affiliate_site_filter ) {
+                                                                $rows_all = array_values(
+                                                                                array_filter(
+                                                                                                $rows_all,
+                                                                                                static function ( $row_obj ) use ( $website_id ) {
+                                                                                                                $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
+
+                                                                                                                return ( $uid > 0 && bhg_is_user_affiliate_for_site( $uid, $website_id ) );
+                                                                                                }
+                                                                                )
+                                                                );
+                                                }
+
+                                                $total       = count( $rows_all );
+                                                $total_pages = max( 1, (int) ceil( $total / $per_page ) );
+
+                                                if ( $paged > $total_pages ) {
+                                                                $paged = $total_pages;
+                                                }
+
+                                                $offset = ( $paged - 1 ) * $per_page;
+                                                $rows   = array_slice( $rows_all, $offset, $per_page );
+                                                $limit  = count( $rows );
+                                } elseif ( $apply_affiliate_site_filter ) {
+                                                $select_params = $params;
+                                                $prepared_sql  = $wpdb->prepare( $select_sql, ...$select_params );
+
+                                                $rows_all = $wpdb->get_results( $prepared_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
                                                 $filtered_rows = array();
 
@@ -2788,7 +2829,7 @@ return ob_get_clean();
 				   echo '<table class="bhg-leaderboard bhg-active-hunt-table">';
 				   echo '<thead><tr>';
 				   echo '<th scope="col">' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
-				   echo '<th scope="col">' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th>';
+                              echo '<th scope="col">' . esc_html( bhg_t( 'label_username', 'User' ) ) . '</th>';
 				   echo '<th scope="col">' . esc_html( bhg_t( 'label_guess', 'Guess' ) ) . '</th>';
 				   if ( $has_final ) {
 					   echo '<th scope="col">' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
@@ -2802,7 +2843,7 @@ return ob_get_clean();
 
 					   echo '<tr>';
 					   echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
-					   echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'Username' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
+                                      echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'User' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 					   echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
 					   if ( $has_final ) {
 						   $diff = isset( $row->diff ) ? (float) $row->diff : 0.0;
@@ -3193,7 +3234,7 @@ echo '<table class="bhg-leaderboard">';
                                                                                 if ( 'user' === $orderby_key ) {
                                                                                                 $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
                                                                                 }
-                                                                                $label = bhg_t( 'sc_user', 'Username' );
+                                                                                $label = bhg_t( 'sc_user', 'User' );
                                                                                 echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="user"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'user', $label ) . '</a></th>';
                                                                 } elseif ( 'guess' === $field ) {
                                                                                 $classes = array( 'sortable' );
@@ -3604,7 +3645,7 @@ echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-user-guesses"><thead><tr>';
                 echo '<th class="' . esc_attr( $header_class( 'hunt' ) ) . '"><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
                 if ( $need_users ) {
-                                echo '<th>' . esc_html( bhg_t( 'label_user', 'Username' ) ) . '</th>';
+                                echo '<th>' . esc_html( bhg_t( 'label_user', 'User' ) ) . '</th>';
                 }
                 echo '<th class="' . esc_attr( $header_class( 'guess' ) ) . '"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
                 if ( $need_site ) {
@@ -5333,7 +5374,7 @@ echo '<div class="bhg-leaderboard-headings">' . implode( '', $heading_parts ) . 
                                                                                $label = bhg_t( 'sc_position', 'Position' );
                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'pos' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'pos', $label ) . '</a></th>';
                                                                } elseif ( 'user' === $field ) {
-                                                                               $label = bhg_t( 'sc_user', 'Username' );
+                                                                               $label = bhg_t( 'sc_user', 'User' );
                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'user', $label ) . '</a></th>';
                                                                } elseif ( 'wins' === $field ) {
                                                                                 $label = bhg_t( 'label_times_won', 'Times Won' );
@@ -5550,10 +5591,12 @@ $add_args['bhg_aff'] = $aff_filter;
                                                                                                 $per_page = $per_page_override;
                                                                                 }
                                                                 }
-                                                                $per_page = (int) apply_filters( 'bhg_tournament_leaderboard_per_page', $per_page, $tournament );
-                                                                if ( $per_page <= 0 ) {
-                                                                                $per_page = $default_per_page;
-                                                                }
+$per_page = (int) apply_filters( 'bhg_tournament_leaderboard_per_page', $per_page, $tournament );
+if ( $per_page <= 0 ) {
+$per_page = $default_per_page;
+}
+
+$site_filter = isset( $_GET['bhg_site'] ) ? $this->resolve_affiliate_site_id( wp_unslash( $_GET['bhg_site'] ) ) : 0;
 
 $orderby        = isset( $_GET['orderby'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) : 'position';
 $allowed_orders = array( 'asc', 'desc' );
@@ -5575,25 +5618,6 @@ $order = strtoupper( $order );
 
 $current_page = isset( $_GET['bhg_tr_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_tr_paged'] ) ) ) : 1;
 $offset       = ( $current_page - 1 ) * $per_page;
-
-$total = (int) $wpdb->get_var(
-        $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$r} WHERE tournament_id = %d",
-                $tournament->id
-        )
-); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-
-if ( $total <= 0 ) {
-        echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
-        echo '</div>';
-        return ob_get_clean();
-}
-
-$total_pages = max( 1, (int) ceil( $total / $per_page ) );
-if ( $current_page > $total_pages ) {
-        $current_page = $total_pages;
-        $offset       = ( $current_page - 1 ) * $per_page;
-}
 
 $order_parts = array();
 switch ( $orderby ) {
@@ -5625,13 +5649,72 @@ break;
 $order_parts[] = 'r.user_id ASC';
 $order_sql     = implode( ', ', $order_parts );
 
-$query = $wpdb->prepare(
-"SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql} LIMIT %d OFFSET %d",
-$tournament->id,
-$per_page,
-$offset
-);
-$rows = $wpdb->get_results( $query );
+$select_sql = "SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql}";
+
+$apply_site_filter        = ( $site_filter > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) );
+$tournament_affiliate     = get_post_meta( (int) $tournament->id, 'affiliate_site', true );
+$tournament_affiliate_id  = isset( $tournament->affiliate_site_id ) ? (int) $tournament->affiliate_site_id : 0;
+$manual_filtering         = $apply_site_filter || ! empty( $tournament_affiliate ) || $tournament_affiliate_id > 0;
+
+               if ( $manual_filtering ) {
+                               $rows_all = $wpdb->get_results( $wpdb->prepare( $select_sql, $tournament->id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                               $rows_all = BHG_Tournaments_Controller::filter_results_by_affiliate(
+                                       (int) $tournament->id,
+                                       (array) $rows_all,
+                                       $tournament_affiliate_id,
+                                       $tournament_affiliate
+                               );
+
+                               $filtered_rows = array();
+                               foreach ( (array) $rows_all as $row_obj ) {
+                                               $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
+
+                                               if ( $uid <= 0 ) {
+                                                               continue;
+                                               }
+
+                                               if ( $apply_site_filter && ! bhg_is_user_affiliate_for_site( $uid, $site_filter ) ) {
+                                                               continue;
+                                               }
+
+                                               $filtered_rows[] = $row_obj;
+                               }
+
+                               $total       = count( $filtered_rows );
+                               $total_pages = max( 1, (int) ceil( $total / $per_page ) );
+                               if ( $current_page > $total_pages ) {
+                                               $current_page = $total_pages;
+                               }
+                               $offset = ( $current_page - 1 ) * $per_page;
+                               $rows   = array_slice( $filtered_rows, $offset, $per_page );
+               } else {
+$total = (int) $wpdb->get_var(
+$wpdb->prepare(
+"SELECT COUNT(*) FROM {$r} WHERE tournament_id = %d",
+$tournament->id
+)
+); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+if ( $total <= 0 ) {
+echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
+echo '</div>';
+return ob_get_clean();
+}
+
+$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+if ( $current_page > $total_pages ) {
+$current_page = $total_pages;
+$offset       = ( $current_page - 1 ) * $per_page;
+}
+
+$rows = $wpdb->get_results( $wpdb->prepare( $select_sql . ' LIMIT %d OFFSET %d', $tournament->id, $per_page, $offset ) );
+}
+
+if ( empty( $rows ) ) {
+        echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
+        echo '</div>';
+        return ob_get_clean();
+}
 
 $last_win_map = array();
 if ( $rows ) {
@@ -5676,18 +5759,13 @@ array(
 $base
 );
 };
-
-                                                                ob_start();
-								echo '<div class="bhg-tournament-details">';
-								echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
-								$heading = $tournament->title ? $tournament->title : bhg_t( 'label_tournament', 'Tournament' );
-								echo '<h3>' . esc_html( $heading ) . '</h3>';
-                                                                echo '<p><strong>' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . ' &nbsp; ';
-                                                                echo '<strong>' . esc_html( bhg_t( 'sc_end', 'End' ) ) . ':</strong> ' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . ' &nbsp; ';
-                                                                $status_key = strtolower( (string) $tournament->status );
-                                                                echo '<strong>' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . ':</strong> ' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</p>';
+ob_start();
+                echo '<div class="bhg-tournament-details">';
+echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
+$heading = $tournament->title ? $tournament->title : bhg_t( 'label_tournament', 'Tournament' );
 
                                                                 $days_remaining = 0;
+                                                                $status_key     = strtolower( (string) $tournament->status );
                                                                 if ( 'active' === $status_key && ! empty( $tournament->end_date ) ) {
                                                                                 try {
                                                                                                 $tz            = function_exists( 'wp_timezone' ) ? wp_timezone() : new DateTimeZone( 'UTC' );
@@ -5703,65 +5781,61 @@ $base
                                                                                 }
                                                                 }
 
-                                                                if ( $days_remaining > 0 ) {
-                                                                                $days_label = 1 === $days_remaining
-                                                                                                ? bhg_t( 'tournament_closes_in_one_day', 'This tournament will close in 1 day.' )
-                                                                                                : sprintf(
-                                                                                                                bhg_t( 'tournament_closes_in_days', 'This tournament will close in %s days.' ),
-                                                                                                                number_format_i18n( $days_remaining )
-                                                                                                );
-                                                                                echo '<div class="bhg-tournament-countdown">' . esc_html( $days_label ) . '</div>';
-                                                                }
+                                                                echo '<div class="bhg-tournament-header">';
+                                                                echo '<h3 class="bhg-tournament-title">' . esc_html( $heading ) . '</h3>';
+                                                                echo '<div class="bhg-tournament-meta">';
+                                                                echo '<div class="bhg-tournament-meta__item"><span class="bhg-tournament-meta__label">' . esc_html( bhg_t( 'sc_start', 'Start' ) ) . '</span><span class="bhg-tournament-meta__value">' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->start_date ) ) . '</span></div>';
+                                                                echo '<div class="bhg-tournament-meta__item"><span class="bhg-tournament-meta__label">' . esc_html( bhg_t( 'sc_end', 'End' ) ) . '</span><span class="bhg-tournament-meta__value">' . esc_html( mysql2date( get_option( 'date_format' ), $tournament->end_date ) ) . '</span></div>';
+                                                                echo '<div class="bhg-tournament-meta__item"><span class="bhg-tournament-meta__label">' . esc_html( bhg_t( 'sc_status', 'Status' ) ) . '</span><span class="bhg-tournament-meta__value">' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</span></div>';
+echo '</div>';
 
-                                                                if ( ! empty( $tournament->description ) ) {
-                                                                                echo '<div class="bhg-tournament-description">' . wp_kses_post( wpautop( $tournament->description ) ) . '</div>';
-								}
-
-								$affiliate_name = isset( $tournament->affiliate_site_name ) ? (string) $tournament->affiliate_site_name : '';
-								$affiliate_url  = isset( $tournament->affiliate_website ) ? (string) $tournament->affiliate_website : '';
-								if ( '' === $affiliate_url && isset( $tournament->affiliate_site_url ) ) {
-										$affiliate_url = (string) $tournament->affiliate_site_url;
-								}
-								$show_affiliate_url = isset( $tournament->affiliate_url_visible ) ? (int) $tournament->affiliate_url_visible : 0;
-
-								if ( '' !== $affiliate_name || '' !== $affiliate_url ) {
-										echo '<p class="bhg-tournament-affiliate"><strong>' . esc_html( bhg_t( 'label_affiliate', 'Affiliate' ) ) . ':</strong> ';
-										if ( $show_affiliate_url && '' !== $affiliate_url ) {
-												$link_text = '' !== $affiliate_name ? $affiliate_name : $affiliate_url;
-												echo '<a href="' . esc_url( $affiliate_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $link_text ) . '</a>';
-												if ( '' !== $affiliate_name && $link_text !== $affiliate_name ) {
-														echo ' (' . esc_html( $affiliate_name ) . ')';
-												}
-										} elseif ( '' !== $affiliate_name ) {
-												echo esc_html( $affiliate_name );
-										} else {
-												echo esc_html( $affiliate_url );
-										}
-										echo '</p>';
-								}
-
-                                if ( $show_prizes ) {
-                                                $prize_markup = $this->render_prize_sets_tabs( $prizes, array( 'show_summary' => $show_prize_summary_detail ), array(), 'carousel', 'medium' );
-                                                if ( '' !== $prize_markup ) {
-                                                                echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $prize_markup ) . '</div>';
-                                                }
-                                }
-
-$default_rows = function_exists( 'bhg_get_shortcode_rows_per_page' ) ? bhg_get_shortcode_rows_per_page( 25 ) : 25;
-$per_page     = (int) apply_filters( 'bhg_tournament_results_per_page', $default_rows, $tournament );
-if ( $per_page <= 0 ) {
-$per_page = $default_rows;
+if ( ! empty( $tournament->description ) ) {
+echo '<div class="bhg-tournament-description">' . wp_kses_post( wpautop( $tournament->description ) ) . '</div>';
 }
-$per_page = max( 1, $per_page );
 
-$current_page = isset( $_GET['bhg_tr_paged'] ) ? max( 1, absint( wp_unslash( $_GET['bhg_tr_paged'] ) ) ) : 1;
-$offset       = ( $current_page - 1 ) * $per_page;
+$affiliate_name = isset( $tournament->affiliate_site_name ) ? (string) $tournament->affiliate_site_name : '';
+$affiliate_url  = isset( $tournament->affiliate_website ) ? (string) $tournament->affiliate_website : '';
+if ( '' === $affiliate_url && isset( $tournament->affiliate_site_url ) ) {
+$affiliate_url = (string) $tournament->affiliate_site_url;
+}
+$show_affiliate_url = isset( $tournament->affiliate_url_visible ) ? (int) $tournament->affiliate_url_visible : 0;
 
-								if ( ! $rows ) {
-										echo '<p>' . esc_html( bhg_t( 'notice_no_results_yet', 'No results yet.' ) ) . '</p>';
-										echo '</div>';
-										return ob_get_clean();
-								}
+if ( '' !== $affiliate_name || '' !== $affiliate_url ) {
+echo '<p class="bhg-tournament-affiliate"><strong>' . esc_html( bhg_t( 'label_affiliate', 'Affiliate' ) ) . ':</strong> ';
+if ( $show_affiliate_url && '' !== $affiliate_url ) {
+$link_text = '' !== $affiliate_name ? $affiliate_name : $affiliate_url;
+echo '<a href="' . esc_url( $affiliate_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $link_text ) . '</a>';
+if ( '' !== $affiliate_name && $link_text !== $affiliate_name ) {
+echo ' (' . esc_html( $affiliate_name ) . ')';
+}
+} elseif ( '' !== $affiliate_name ) {
+echo esc_html( $affiliate_name );
+} else {
+echo esc_html( $affiliate_url );
+}
+echo '</p>';
+}
+
+                if ( $show_prizes ) {
+                        $prize_markup = $this->render_prize_sets_tabs( $prizes, array( 'show_summary' => $show_prize_summary_detail ), array(), 'carousel', 'medium' );
+                        if ( '' !== $prize_markup ) {
+                                echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $prize_markup ) . '</div>';
+                        }
+                }
+
+                echo '</div>';
+
+                if ( $days_remaining > 0 ) {
+                        $days_label = 1 === $days_remaining
+                                ? bhg_t( 'tournament_closes_in_one_day', 'This tournament will close in 1 day.' )
+                                : sprintf(
+                                        bhg_t( 'tournament_closes_in_days', 'This tournament will close in %s days.' ),
+                                        number_format_i18n( $days_remaining )
+                                );
+                        echo '<div class="bhg-tournament-details bhg-countdown">';
+                        echo '<div class="bhg-tournament-countdown">' . esc_html( $days_label ) . '</div>';
+                        echo '</div>';
+                }
 
                                                                 $sort_icon_markup = static function ( $field, $label_text ) use ( $orderby, $order ) {
                                                                                 $state = '';
@@ -5789,7 +5863,7 @@ echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-leaderboard bhg-leaderboard--tournament">';
 echo '<thead><tr>';
 $position_label = bhg_t( 'label_position', 'Position' );
-$username_label = bhg_t( 'label_username', 'Username' );
+$username_label = bhg_t( 'sc_user', 'User' );
 $wins_label     = bhg_t( 'sc_wins', 'Times Won' );
 $last_win_label = bhg_t( 'label_last_win', 'Last win' );
 echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'position' ) ) . '">' . esc_html( $position_label ) . $sort_icon_markup( 'position', $position_label ) . '</a></th>';
@@ -5798,18 +5872,25 @@ echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'wins' ) )
 echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'last_win_at' ) ) . '">' . esc_html( $last_win_label ) . $sort_icon_markup( 'last_win_at', $last_win_label ) . '</a></th>';
 echo '</tr></thead><tbody>';
 
-                                               foreach ( $rows as $index => $row ) {
-                                                               $position_number = $offset + $index + 1;
-                                                               $row_classes     = array( 'bhg-tournament-row' );
-                                                               if ( isset( $row->wins ) && (int) $row->wins > 0 ) {
-                                                                               $row_classes[] = 'bhg-tournament-row--winner';
-                                                               }
-                                                               if ( $position_number <= 3 ) {
-                                                                               $row_classes[] = 'bhg-tournament-row--top-three';
-                                                               }
-                                                               if ( 1 === $position_number ) {
-                                                                               $row_classes[] = 'bhg-tournament-row--first';
-                                                               }
+$winner_limit_meta = get_post_meta( (int) $tournament->id, 'number_of_winners', true );
+$winner_limit      = intval( $winner_limit_meta ) ?: 3;
+
+foreach ( $rows as $index => $row ) {
+        $position_number = $offset + $index + 1;
+        $row_classes     = array( 'bhg-tournament-row' );
+
+        if ( $position_number <= $winner_limit ) {
+                $row_classes[] = 'bhg-tournament-row--winner';
+                $row_classes[] = 'bhg-winner';
+        }
+
+        if ( $position_number <= $winner_limit && $position_number <= 3 ) {
+                $row_classes[] = 'bhg-tournament-row--top-three';
+        }
+
+        if ( 1 === $position_number && $position_number <= $winner_limit ) {
+                $row_classes[] = 'bhg-tournament-row--first';
+        }
                                                                $class_attr = ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
 
                                                                $user_label = $this->format_username_label(
@@ -6024,45 +6105,51 @@ return ob_get_clean();
                                                            echo '<input type="hidden" name="bhg_search" value="' . esc_attr( $search ) . '">';
                                            }
 
-                                           echo '<label class="bhg-tournament-label">' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . ' ';
-                                           echo '<select name="bhg_timeline">';
+                                           echo '<div class="bhg-filter-controls">';
+                                           echo '<label class="bhg-filter-label">' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . ' ';
+                                           echo '<select name="bhg_timeline" class="bhg-filter-select">';
                                                $timeline_options = array(
-                                                               'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
-                                                               'today'        => bhg_t( 'label_today', 'Today' ),
-                                                               'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
-                                                               'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
-                                                               'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
-                                                               'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
-                                                               'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
+                                                                 'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
+                                                                 'today'        => bhg_t( 'label_today', 'Today' ),
+                                                                 'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
+                                                                 'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
+                                                                 'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+                                                                 'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
+                                                                 'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
                                                );
-                        $timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline_ui;
-                        if ( ! array_key_exists( $timeline_key, $timeline_options ) ) {
-                                $timeline_key = 'all_time';
-                        }
-                        foreach ( $timeline_options as $key => $label ) {
-                                echo '<option value="' . esc_attr( $key ) . '"' . selected( $timeline_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
-                        }
-                        echo '</select></label>';
+                         $timeline_key = isset( $_GET['bhg_timeline'] ) ? sanitize_key( wp_unslash( $_GET['bhg_timeline'] ) ) : $timeline_ui;
+                         if ( ! array_key_exists( $timeline_key, $timeline_options ) ) {
+                                 $timeline_key = 'all_time';
+                         }
+                         foreach ( $timeline_options as $key => $label ) {
+                                 echo '<option value="' . esc_attr( $key ) . '"' . selected( $timeline_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
+                         }
+                         echo '</select></label>';
 
-			echo '<label>' . esc_html( bhg_t( 'status', 'Status:' ) ) . ' ';
-			echo '<select name="bhg_status">';
-			$statuses   = array(
-				'active' => bhg_t( 'label_active', 'Active' ),
-				'closed' => bhg_t( 'label_closed', 'Closed' ),
-				'all'    => bhg_t( 'label_all', 'All' ),
-			);
-			$status_key = isset( $_GET['bhg_status'] ) ? sanitize_key( wp_unslash( $_GET['bhg_status'] ) ) : $status;
-			foreach ( $statuses as $key => $label ) {
-				echo '<option value="' . esc_attr( $key ) . '"' . selected( $status_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
-			}
-					   echo '</select></label> ';
+                        echo '<label class="bhg-filter-label">' . esc_html( bhg_t( 'status', 'Status:' ) ) . ' ';
+                        echo '<select name="bhg_status" class="bhg-filter-select">';
+                        $statuses   = array(
+                                'active' => bhg_t( 'label_active', 'Active' ),
+                                'closed' => bhg_t( 'label_closed', 'Closed' ),
+                                'all'    => bhg_t( 'label_all', 'All' ),
+                        );
+                        $status_key = isset( $_GET['bhg_status'] ) ? sanitize_key( wp_unslash( $_GET['bhg_status'] ) ) : $status;
+                        foreach ( $statuses as $key => $label ) {
+                                echo '<option value="' . esc_attr( $key ) . '"' . selected( $status_key, $key, false ) . '>' . esc_html( $label ) . '</option>';
+                        }
+                                           echo '</select></label>';
+
+                                           echo '<button class="bhg-filter-button" type="submit">' . esc_html( bhg_t( 'button_filter', 'Filter' ) ) . '</button>';
+                                           echo '</div>';
 
                                            if ( $show_search_control ) {
-                                                           echo '<label>' . esc_html( bhg_t( 'label_search', 'Search' ) ) . ' <input type="text" name="bhg_search" value="' . esc_attr( $search ) . '"></label> ';
+                                                           echo '<div class="bhg-search-control">';
+                                                           echo '<label class="bhg-filter-label">' . esc_html( bhg_t( 'label_search', 'Search' ) ) . ' <input type="text" name="bhg_search" value="' . esc_attr( $search ) . '"></label>';
+                                                           echo '<button class="bhg-filter-button" type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
+                                                           echo '</div>';
                                            }
 
-					   echo '<button class="button bhg-filter-button" type="submit">' . esc_html( bhg_t( 'button_filter', 'Filter' ) ) . '</button>';
-					   echo '</form>';
+                                           echo '</form>';
 
 					   $toggle = function ( $key ) use ( $orderby_param, $order_param, $base_url, $search ) {
 							   $next = ( $orderby_param === $key && 'ASC' === $order_param ) ? 'desc' : 'asc';
@@ -6732,7 +6819,7 @@ return ob_get_clean();
 					   }
 $output  = '<div class="bhg-user-profile"><div class="bhg-table-wrapper"><table class="bhg-user-profile-table">';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th><td>' . esc_html( $real_name ) . '</td></tr>';
-					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
+                                     $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'User' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_email', 'Email' ) ) . '</th><td>' . esc_html( $email ) . '</td></tr>';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_affiliate_status', 'Affiliate Status' ) ) . '</th><td>' . wp_kses_post( $badge ) . ' ' . esc_html( $aff_text ) . '</td></tr>';
 
@@ -7019,7 +7106,7 @@ ob_start();
 echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-jackpot-winners-table"><thead><tr>';
                                                 if ( $visibility( $atts['show_username'] ) ) {
-                                                                echo '<th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th>';
+                                                                echo '<th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
                                                 }
                                                 if ( $visibility( $atts['show_amount'] ) ) {
                                                                 echo '<th>' . esc_html( bhg_t( 'label_amount', 'Amount' ) ) . '</th>';
@@ -7049,7 +7136,7 @@ echo '</tr></thead><tbody>';
 								}
             echo '<tr>';
             if ( $visibility( $atts['show_username'] ) ) {
-                    echo '<td data-label="' . esc_attr( bhg_t( 'sc_user', 'Username' ) ) . '">' . $maybe_strong( 'username', $user_name ) . '</td>';
+                    echo '<td data-label="' . esc_attr( bhg_t( 'sc_user', 'User' ) ) . '">' . $maybe_strong( 'username', $user_name ) . '</td>';
             }
             if ( $visibility( $atts['show_amount'] ) ) {
                     echo '<td data-label="' . esc_attr( bhg_t( 'label_amount', 'Amount' ) ) . '">' . $maybe_strong( 'amount', $format_amount( $amount ) ) . '</td>';
@@ -7200,7 +7287,7 @@ if ( ! $rows ) {
 echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 } else {
 echo '<div class="bhg-table-wrapper">';
-echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
+echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
 					foreach ( $rows as $r ) {
                                                        /* translators: %d: user ID. */
