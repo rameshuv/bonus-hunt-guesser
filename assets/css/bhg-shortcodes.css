@@ -87,6 +87,46 @@
     line-height: 1.6;
 }
 
+.bhg-tournament-header {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bhg-tournament-title {
+    margin: 0;
+    color: #0f172a;
+}
+
+.bhg-tournament-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+}
+
+.bhg-tournament-meta__item {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    color: #1e293b;
+}
+
+.bhg-tournament-meta__label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #475569;
+}
+
+.bhg-tournament-meta__value {
+    font-weight: 700;
+}
+
 .bhg-tournament-affiliate {
     margin: 8px 0 16px;
     font-weight: 600;
@@ -128,28 +168,55 @@
     flex-wrap: wrap;
 }
 
+.bhg-filters,
+.bhg-filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.bhg-filters select,
+.bhg-filters input[type="text"],
+.bhg-filter-controls select,
+.bhg-filter-controls input[type="text"] {
+    height: 34px;
+    min-width: 170px;
+    padding: 7px 12px;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.bhg-searchbar,
+.bhg-search-control {
+    width: 100%;
+    margin-top: 10px;
+}
+
 .bhg-hunt-selector label {
     font-weight: 600;
 }
 
 .bhg-filters-row,
-.bhg-search-form,
-.bhg-tournament-filters,
-.bhg-bonushunt-filters {
+.bhg-bonushunt-filters,
+.bhg-filter-controls,
+.bhg-tournament-filters {
     display: flex;
-    flex-direction: row;
     flex-wrap: wrap;
     gap: 12px 16px;
-    align-items: flex-end;
+    align-items: center;
     margin-bottom: 16px;
 }
 
-.bhg-filter-controls,
+.bhg-search-form,
 .bhg-search-control {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-end;
+    gap: 10px 12px;
+    align-items: center;
+    width: 100%;
+    margin-top: 8px;
 }
 
 .bhg-filter-label,
@@ -166,12 +233,16 @@
 .bhg-tournament-filters select,
 .bhg-bonushunt-filters select,
 .bhg-search-form input[type="text"] {
-    min-width: 200px;
-    padding: 6px 10px;
+    min-width: 170px;
+    flex: 0 0 auto;
+    padding: 7px 12px;
+    height: 34px;
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: #fff;
-    box-shadow: 0 1px 1px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
+    font-size: 14px;
+    line-height: 1.35;
 }
 
 .bhg-filter-select:focus,
@@ -187,8 +258,21 @@
 .bhg-search-control {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    align-items: flex-end;
+    gap: 10px 12px;
+    align-items: center;
+    width: 100%;
+}
+
+.bhg-search-control input[type="text"],
+.bhg-search-control input[type="search"] {
+    flex: 1 0 220px;
+    min-width: 200px;
+    max-width: 360px;
+    height: 34px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
 }
 
 .bhg-search-control button,
@@ -196,13 +280,14 @@
 .bhg-bonushunt-filters button,
 .bhg-filter-button,
 .bhg-submit-btn {
-    background-color: var(--bhg-accent-color);
-    border: 1px solid var(--bhg-accent-color);
+    background-color: #0f172a;
+    border: 1px solid #0f172a;
     color: #fff;
-    padding: 10px 14px;
-    border-radius: 4px;
+    padding: 7px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    margin-top: 6px;
+    height: 34px;
+    line-height: 1.35;
 }
 
 .bhg-search-control button:hover,
@@ -220,7 +305,22 @@
     color: #fff;
 }
 
-@media (max-width: 960px) {
+.bhg-filters-row,
+.bhg-filter-controls,
+.bhg-search-form,
+.bhg-search-control,
+.bhg-tournament-filters,
+.bhg-bonushunt-filters {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    gap: 10px 12px;
+    margin-bottom: 14px;
+}
+
+@media (max-width: 768px) {
     .bhg-filters-row,
     .bhg-search-form,
     .bhg-filter-controls,
@@ -445,7 +545,7 @@
 .bhg-guess-form input[type="number"],
 .bhg-guess-form input[type="text"] {
     width: 100%;
-    padding: 8px 10px;
+    padding: 10px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
 }
@@ -537,8 +637,8 @@
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
-    padding: 6px 10px;
-    border-radius: 4px;
+    padding: 8px 12px;
+    border-radius: 6px;
     cursor: pointer;
 }
 
@@ -551,10 +651,9 @@
 }
 
 .bhg-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
     margin: 0 0 16px;
-    padding: 0 6px 10px;
+    padding: 0 0 12px;
     max-width: 100%;
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     border-radius: 10px;
@@ -563,28 +662,35 @@
 
 .bhg-table-wrapper table {
     width: 100%;
-    min-width: 720px;
+    table-layout: auto;
+    min-width: 0;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 768px) {
+    .bhg-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0 6px 12px;
+    }
+
     .bhg-table-wrapper table {
-        min-width: 620px;
+        min-width: 600px;
     }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 640px) {
     .bhg-table-wrapper {
         padding: 0 4px 12px;
     }
 
     .bhg-table-wrapper table {
-        min-width: 540px;
+        min-width: 520px;
     }
 }
 
 @media (max-width: 560px) {
     .bhg-table-wrapper table {
-        min-width: 460px;
+        min-width: 440px;
     }
 
     .bhg-leaderboard th,
@@ -621,7 +727,7 @@
     }
 
     .bhg-table-wrapper table {
-        min-width: 420px;
+        min-width: 400px;
     }
 }
 
@@ -799,7 +905,7 @@
     word-break: break-word;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 768px) {
     .bhg-table-wrapper {
         margin-left: -4px;
         margin-right: -4px;
@@ -829,9 +935,10 @@
     }
 }
 
+tr.bhg-winner,
 .bhg-leaderboard--tournament tr.bhg-tournament-row--winner {
-    background-color: #f0fdf4;
-    font-weight: 600;
+    background-color: #e6ffe6 !important;
+    border-left: 4px solid #22c55e !important;
 }
 
 .bhg-leaderboard--tournament tr.bhg-tournament-row--top-three {
@@ -1013,7 +1120,7 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+/* Reserved for potential winner-specific overrides. */
 .bhg-winner {
-    margin-bottom: 15px;
 }
 
