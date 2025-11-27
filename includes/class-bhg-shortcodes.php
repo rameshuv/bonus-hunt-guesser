@@ -5608,15 +5608,12 @@ break;
 $order_parts[] = 'r.user_id ASC';
 $order_sql     = implode( ', ', $order_parts );
 
-$select_sql = $wpdb->prepare(
-"SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql}",
-$tournament->id
-);
+$select_sql = "SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql}";
 
 $apply_site_filter = ( $site_filter > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) );
 
 if ( $apply_site_filter ) {
-        $rows_all = $wpdb->get_results( $select_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+       $rows_all = $wpdb->get_results( $wpdb->prepare( $select_sql, $tournament->id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
         $filtered_rows = array();
         foreach ( (array) $rows_all as $row_obj ) {
@@ -5654,7 +5651,7 @@ if ( $apply_site_filter ) {
                 $offset       = ( $current_page - 1 ) * $per_page;
         }
 
-        $rows = $wpdb->get_results( $wpdb->prepare( $select_sql . $wpdb->prepare( ' LIMIT %d OFFSET %d', $per_page, $offset ) ) );
+       $rows = $wpdb->get_results( $wpdb->prepare( $select_sql . ' LIMIT %d OFFSET %d', $tournament->id, $per_page, $offset ) );
 }
 
 if ( empty( $rows ) ) {
