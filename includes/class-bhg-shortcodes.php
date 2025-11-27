@@ -877,10 +877,10 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                 $need_tournament_name = false;
                                 }
 
-                                $count_joins = array( "INNER JOIN {$u} u ON u.ID = tr.user_id" );
-                                $select_joins = $count_joins;
-                                $where        = array( 'tr.tournament_id = %d' );
-                                $params       = array( $tournament_id );
+                               $count_joins = array( "INNER JOIN {$u} u ON u.ID = tr.user_id" );
+                               $select_joins = $count_joins;
+                               $where        = array( 'tr.tournament_id = %d' );
+                               $params       = array( $tournament_id );
 
                                 if ( $needs_tournament_table ) {
                                                 if ( ! $has_t_table ) {
@@ -902,10 +902,49 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                 $params[] = $search_like;
                                 }
 
-                                if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
-                                                if ( ! $um ) {
-                                                                return null;
-                                                }
+                               $site_filter_active = ( $website_id > 0 && $can_use_hunt_meta );
+
+                               if ( $site_filter_active ) {
+                                               $site_where  = array( 'hw_scope.eligible = 1', 'h_scope.affiliate_site_id = %d' );
+                                               $site_params = array( $website_id );
+                                               $site_joins  = $has_ht ? ' LEFT JOIN ' . $ht . ' ht_scope ON ht_scope.hunt_id = hw_scope.hunt_id' : '';
+
+                                               if ( $has_ht ) {
+                                                               $site_where[]  = '(ht_scope.tournament_id = %d OR (ht_scope.hunt_id IS NULL AND h_scope.tournament_id = %d))';
+                                                               $site_params[] = $tournament_id;
+                                                               $site_params[] = $tournament_id;
+                                               } else {
+                                                               $site_where[]  = 'h_scope.tournament_id = %d';
+                                                               $site_params[] = $tournament_id;
+                                               }
+
+                                               if ( $range ) {
+                                                               $site_where[]  = "(COALESCE( NULLIF( h_scope.closed_at, '0000-00-00 00:00:00' ), NULLIF( hw_scope.created_at, '0000-00-00 00:00:00' ), NULLIF( h_scope.created_at, '0000-00-00 00:00:00' ) ) BETWEEN %s AND %s)";
+                                                               $site_params[] = $range['start'];
+                                                               $site_params[] = $range['end'];
+                                               }
+
+                                               $site_scope_query = sprintf(
+                                                               'SELECT hw_scope.user_id, COUNT(DISTINCT CONCAT_WS(":", hw_scope.hunt_id, hw_scope.user_id)) AS win_count FROM %1$s hw_scope INNER JOIN %2$s h_scope ON h_scope.id = hw_scope.hunt_id%3$s WHERE %4$s GROUP BY hw_scope.user_id',
+                                                               $hw,
+                                                               $h,
+                                                               $site_joins,
+                                                               implode( ' AND ', $site_where )
+                                               );
+
+                                               if ( ! empty( $site_params ) ) {
+                                                               $site_scope_query = $wpdb->prepare( $site_scope_query, ...$site_params );
+                                               }
+
+                                               $count_joins[]  = 'INNER JOIN (' . $site_scope_query . ') site_scope ON site_scope.user_id = tr.user_id';
+                                               $select_joins[] = 'INNER JOIN (' . $site_scope_query . ') site_scope ON site_scope.user_id = tr.user_id';
+                                               $win_count_clause = 'site_scope.win_count';
+                               }
+
+                               if ( in_array( $aff_filter, array( 'yes', 'true', '1' ), true ) ) {
+                                               if ( ! $um ) {
+                                                               return null;
+                                               }
                                                 $join_clause   = "INNER JOIN {$um} um_aff_filter ON um_aff_filter.user_id = tr.user_id AND um_aff_filter.meta_key = '" . esc_sql( 'bhg_is_affiliate' ) . "'";
                                                 $count_joins[] = $join_clause;
                                                 $select_joins[] = $join_clause;
@@ -969,8 +1008,11 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 $limit       = min( $per_page, max( 1, $total - $offset ) );
                                 $total_pages = $pages;
 
-                                $win_count_clause = 'tr.wins';
-                                if ( $can_use_hunt_meta ) {
+                               if ( ! isset( $win_count_clause ) ) {
+                                               $win_count_clause = 'tr.wins';
+                               }
+
+                               if ( $can_use_hunt_meta && ! $site_filter_active ) {
                                                 $win_date_expr = $this->get_leaderboard_win_date_expression();
 
                                                 $win_where  = array( 'hw_count.eligible = 1' );
@@ -5825,9 +5867,9 @@ array(
 )
 );
 
-$pagination_links = paginate_links(
-array(
-'base'      => esc_url_raw( add_query_arg( array( 'bhg_tr_paged' => '%#%' ), $base ) ),
+                                $pagination_links = paginate_links(
+                                        array(
+                                                'base'      => add_query_arg( array( 'bhg_tr_paged' => '%#%' ), $base ),
 'format'    => '',
 'current'   => $current_page,
 'total'     => $total_pages,
