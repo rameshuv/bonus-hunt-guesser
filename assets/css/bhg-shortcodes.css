@@ -174,6 +174,7 @@
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
+    margin-bottom: 12px;
 }
 
 .bhg-filters select,
@@ -181,12 +182,13 @@
 .bhg-filter-controls select,
 .bhg-filter-controls input[type="text"] {
     height: 40px;
+    min-width: 180px;
 }
 
 .bhg-searchbar,
 .bhg-search-control {
     width: 100%;
-    margin-top: 12px;
+    margin-top: 10px;
 }
 
 .bhg-hunt-selector label {
@@ -907,7 +909,7 @@
     }
 }
 
-.bhg-leaderboard--tournament tr.bhg-winner,
+tr.bhg-winner,
 .bhg-leaderboard--tournament tr.bhg-tournament-row--winner {
     background-color: #e6ffe6 !important;
     border-left: 4px solid #22c55e !important;
@@ -1092,7 +1094,7 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+/* Reserved for potential winner-specific overrides. */
 .bhg-winner {
-    margin-bottom: 15px;
 }
 

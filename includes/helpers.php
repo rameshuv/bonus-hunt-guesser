@@ -288,7 +288,7 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'label_submit_guess'                           => 'Submit Guess',
 			'label_guess'                                  => 'Guess',
 			'label_unknown_user'                           => 'Unknown user',
-			'label_username'                               => 'Username',
+                    'label_username'                               => 'User',
 			'images'                                       => 'Images',
 			'css_settings'                                 => 'CSS Settings',
 			'border'                                       => 'Border',

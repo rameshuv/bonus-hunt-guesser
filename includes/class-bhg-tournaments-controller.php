@@ -24,36 +24,37 @@ class BHG_Tournaments_Controller {
      * @return array Filtered results honoring affiliate assignment.
      */
     public static function filter_results_by_affiliate( $tournament_id, $results ) {
-        $tournament_id  = (int) $tournament_id;
-        $results        = is_array( $results ) ? $results : array();
-        $tournament_aff = get_post_meta( $tournament_id, 'affiliate_site', true );
+        $tournament_id        = (int) $tournament_id;
+        $results              = is_array( $results ) ? $results : array();
+        $tournament_affiliate = get_post_meta( $tournament_id, 'affiliate_site', true );
 
-        if ( '' === $tournament_aff ) {
+        if ( '' === $tournament_affiliate ) {
             return $results;
         }
 
-        $filtered = array_filter(
-            $results,
-            function ( $row ) use ( $tournament_aff ) {
-                $user_id = 0;
+        $filtered_results = array();
 
-                if ( is_object( $row ) && isset( $row->user_id ) ) {
-                    $user_id = (int) $row->user_id;
-                } elseif ( is_array( $row ) && isset( $row['user_id'] ) ) {
-                    $user_id = (int) $row['user_id'];
-                }
+        foreach ( $results as $row ) {
+            $user_id = 0;
 
-                if ( $user_id <= 0 ) {
-                    return false;
-                }
-
-                $user_aff = get_user_meta( $user_id, 'affiliate_site', true );
-
-                return $user_aff === $tournament_aff;
+            if ( is_object( $row ) && isset( $row->user_id ) ) {
+                $user_id = (int) $row->user_id;
+            } elseif ( is_array( $row ) && isset( $row['user_id'] ) ) {
+                $user_id = (int) $row['user_id'];
             }
-        );
 
-        return array_values( $filtered );
+            if ( $user_id <= 0 ) {
+                continue;
+            }
+
+            $user_affiliate = get_user_meta( $user_id, 'affiliate_site', true );
+
+            if ( $user_affiliate === $tournament_affiliate ) {
+                $filtered_results[] = $row;
+            }
+        }
+
+        return $filtered_results;
     }
 
     /**

@@ -2824,7 +2824,7 @@ return ob_get_clean();
 				   echo '<table class="bhg-leaderboard bhg-active-hunt-table">';
 				   echo '<thead><tr>';
 				   echo '<th scope="col">' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
-				   echo '<th scope="col">' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th>';
+                              echo '<th scope="col">' . esc_html( bhg_t( 'label_username', 'User' ) ) . '</th>';
 				   echo '<th scope="col">' . esc_html( bhg_t( 'label_guess', 'Guess' ) ) . '</th>';
 				   if ( $has_final ) {
 					   echo '<th scope="col">' . esc_html( bhg_t( 'label_difference', 'Difference' ) ) . '</th>';
@@ -2838,7 +2838,7 @@ return ob_get_clean();
 
 					   echo '<tr>';
 					   echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
-					   echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'Username' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
+                                      echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'User' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
 					   echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
 					   if ( $has_final ) {
 						   $diff = isset( $row->diff ) ? (float) $row->diff : 0.0;
@@ -3229,7 +3229,7 @@ echo '<table class="bhg-leaderboard">';
                                                                                 if ( 'user' === $orderby_key ) {
                                                                                                 $classes[] = ( 'desc' === strtolower( $direction_key ) ) ? 'desc' : 'asc';
                                                                                 }
-                                                                                $label = bhg_t( 'sc_user', 'Username' );
+                                                                                $label = bhg_t( 'sc_user', 'User' );
                                                                                 echo '<th class="' . esc_attr( implode( ' ', $classes ) ) . '" data-column="user"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'user', $label ) . '</a></th>';
                                                                 } elseif ( 'guess' === $field ) {
                                                                                 $classes = array( 'sortable' );
@@ -3640,7 +3640,7 @@ echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-user-guesses"><thead><tr>';
                 echo '<th class="' . esc_attr( $header_class( 'hunt' ) ) . '"><a href="' . esc_url( $toggle( 'hunt' ) ) . '">' . esc_html( bhg_t( 'sc_hunt', 'Hunt' ) ) . '</a></th>';
                 if ( $need_users ) {
-                                echo '<th>' . esc_html( bhg_t( 'label_user', 'Username' ) ) . '</th>';
+                                echo '<th>' . esc_html( bhg_t( 'label_user', 'User' ) ) . '</th>';
                 }
                 echo '<th class="' . esc_attr( $header_class( 'guess' ) ) . '"><a href="' . esc_url( $toggle( 'guess' ) ) . '">' . esc_html( bhg_t( 'sc_guess', 'Guess' ) ) . '</a></th>';
                 if ( $need_site ) {
@@ -5369,7 +5369,7 @@ echo '<div class="bhg-leaderboard-headings">' . implode( '', $heading_parts ) . 
                                                                                $label = bhg_t( 'sc_position', 'Position' );
                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'pos' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'pos', $label ) . '</a></th>';
                                                                } elseif ( 'user' === $field ) {
-                                                                               $label = bhg_t( 'sc_user', 'Username' );
+                                                                               $label = bhg_t( 'sc_user', 'User' );
                                                                                echo '<th class="sortable"><a href="' . esc_url( $toggle( 'user' ) ) . '">' . esc_html( $label ) . $sort_icon_markup( 'user', $label ) . '</a></th>';
                                                                } elseif ( 'wins' === $field ) {
                                                                                 $label = bhg_t( 'label_times_won', 'Times Won' );
@@ -5749,7 +5749,7 @@ $base
 );
 };
 ob_start();
-echo '<div class="bhg-tournament-details">';
+                echo '<div class="bhg-tournament-details">';
 echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
 $heading = $tournament->title ? $tournament->title : bhg_t( 'label_tournament', 'Tournament' );
 
@@ -5805,24 +5805,26 @@ echo esc_html( $affiliate_url );
 echo '</p>';
 }
 
-if ( $show_prizes ) {
-$prize_markup = $this->render_prize_sets_tabs( $prizes, array( 'show_summary' => $show_prize_summary_detail ), array(), 'carousel', 'medium' );
-if ( '' !== $prize_markup ) {
-echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $prize_markup ) . '</div>';
-}
-}
+                if ( $show_prizes ) {
+                        $prize_markup = $this->render_prize_sets_tabs( $prizes, array( 'show_summary' => $show_prize_summary_detail ), array(), 'carousel', 'medium' );
+                        if ( '' !== $prize_markup ) {
+                                echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $prize_markup ) . '</div>';
+                        }
+                }
 
-if ( $days_remaining > 0 ) {
-$days_label = 1 === $days_remaining
-? bhg_t( 'tournament_closes_in_one_day', 'This tournament will close in 1 day.' )
-: sprintf(
-bhg_t( 'tournament_closes_in_days', 'This tournament will close in %s days.' ),
-number_format_i18n( $days_remaining )
-);
-echo '<div class="bhg-tournament-countdown">' . esc_html( $days_label ) . '</div>';
-}
+                echo '</div>';
 
-echo '</div>';
+                if ( $days_remaining > 0 ) {
+                        $days_label = 1 === $days_remaining
+                                ? bhg_t( 'tournament_closes_in_one_day', 'This tournament will close in 1 day.' )
+                                : sprintf(
+                                        bhg_t( 'tournament_closes_in_days', 'This tournament will close in %s days.' ),
+                                        number_format_i18n( $days_remaining )
+                                );
+                        echo '<div class="bhg-tournament-details bhg-countdown">';
+                        echo '<div class="bhg-tournament-countdown">' . esc_html( $days_label ) . '</div>';
+                        echo '</div>';
+                }
 
                                                                 $sort_icon_markup = static function ( $field, $label_text ) use ( $orderby, $order ) {
                                                                                 $state = '';
@@ -5860,23 +5862,24 @@ echo '<th scope="col" class="sortable"><a href="' . esc_url( $toggle( 'last_win_
 echo '</tr></thead><tbody>';
 
 $winner_limit_meta = get_post_meta( (int) $tournament->id, 'number_of_winners', true );
-$winner_limit      = (int) $winner_limit_meta;
-if ( $winner_limit <= 0 ) {
-$winner_limit = 3;
-}
+$winner_limit      = intval( $winner_limit_meta ) ?: 3;
+
 foreach ( $rows as $index => $row ) {
-$position_number = $offset + $index + 1;
-$row_classes     = array( 'bhg-tournament-row' );
-if ( $winner_limit > 0 && $position_number <= $winner_limit ) {
-$row_classes[] = 'bhg-tournament-row--winner';
-$row_classes[] = 'bhg-winner';
-}
-if ( $winner_limit > 0 && $position_number <= $winner_limit && $position_number <= 3 ) {
-$row_classes[] = 'bhg-tournament-row--top-three';
-}
-if ( $winner_limit > 0 && 1 === $position_number && $position_number <= $winner_limit ) {
-$row_classes[] = 'bhg-tournament-row--first';
-}
+        $position_number = $offset + $index + 1;
+        $row_classes     = array( 'bhg-tournament-row' );
+
+        if ( $position_number <= $winner_limit ) {
+                $row_classes[] = 'bhg-tournament-row--winner';
+                $row_classes[] = 'bhg-winner';
+        }
+
+        if ( $position_number <= $winner_limit && $position_number <= 3 ) {
+                $row_classes[] = 'bhg-tournament-row--top-three';
+        }
+
+        if ( 1 === $position_number && $position_number <= $winner_limit ) {
+                $row_classes[] = 'bhg-tournament-row--first';
+        }
                                                                $class_attr = ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
 
                                                                $user_label = $this->format_username_label(
@@ -6805,7 +6808,7 @@ return ob_get_clean();
 					   }
 $output  = '<div class="bhg-user-profile"><div class="bhg-table-wrapper"><table class="bhg-user-profile-table">';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th><td>' . esc_html( $real_name ) . '</td></tr>';
-					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'Username' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
+                                     $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'User' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_email', 'Email' ) ) . '</th><td>' . esc_html( $email ) . '</td></tr>';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_affiliate_status', 'Affiliate Status' ) ) . '</th><td>' . wp_kses_post( $badge ) . ' ' . esc_html( $aff_text ) . '</td></tr>';
 
@@ -7092,7 +7095,7 @@ ob_start();
 echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-jackpot-winners-table"><thead><tr>';
                                                 if ( $visibility( $atts['show_username'] ) ) {
-                                                                echo '<th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th>';
+                                                                echo '<th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
                                                 }
                                                 if ( $visibility( $atts['show_amount'] ) ) {
                                                                 echo '<th>' . esc_html( bhg_t( 'label_amount', 'Amount' ) ) . '</th>';
@@ -7122,7 +7125,7 @@ echo '</tr></thead><tbody>';
 								}
             echo '<tr>';
             if ( $visibility( $atts['show_username'] ) ) {
-                    echo '<td data-label="' . esc_attr( bhg_t( 'sc_user', 'Username' ) ) . '">' . $maybe_strong( 'username', $user_name ) . '</td>';
+                    echo '<td data-label="' . esc_attr( bhg_t( 'sc_user', 'User' ) ) . '">' . $maybe_strong( 'username', $user_name ) . '</td>';
             }
             if ( $visibility( $atts['show_amount'] ) ) {
                     echo '<td data-label="' . esc_attr( bhg_t( 'label_amount', 'Amount' ) ) . '">' . $maybe_strong( 'amount', $format_amount( $amount ) ) . '</td>';
@@ -7273,7 +7276,7 @@ if ( ! $rows ) {
 echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 } else {
 echo '<div class="bhg-table-wrapper">';
-echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'Username' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
+echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
 					foreach ( $rows as $r ) {
                                                        /* translators: %d: user ID. */
