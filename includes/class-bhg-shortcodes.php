@@ -801,10 +801,10 @@ array(
 
                                 $args = wp_parse_args( $args, $defaults );
 
-                                $tournament_id        = max( 0, (int) $args['tournament_id'] );
-                                $timeline             = sanitize_key( (string) $args['timeline'] );
-                                $search               = sanitize_text_field( (string) $args['search'] );
-                                $aff_filter           = sanitize_key( (string) $args['aff_filter'] );
+                               $tournament_id        = max( 0, (int) $args['tournament_id'] );
+                               $timeline             = sanitize_key( (string) $args['timeline'] );
+                               $search               = sanitize_text_field( (string) $args['search'] );
+                               $aff_filter           = sanitize_key( (string) $args['aff_filter'] );
 $ranking_limit        = max( 0, (int) $args['ranking_limit'] );
 $paged                = max( 1, (int) $args['paged'] );
 $per_page             = max( 1, (int) $args['per_page'] );
@@ -822,6 +822,9 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 if ( $tournament_id <= 0 ) {
                                                 return null;
                                 }
+
+                               $tournament_affiliate_site  = get_post_meta( $tournament_id, 'affiliate_site', true );
+                               $needs_affiliate_site_filter = '' !== $tournament_affiliate_site;
 
                                 if ( ! in_array( $direction_key, array( 'asc', 'desc' ), true ) ) {
                                                 $direction_key = 'desc';
@@ -1149,7 +1152,39 @@ $select_parts[] = 't_main.title AS tournament_title';
 
                                 $apply_affiliate_site_filter = $website_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' );
 
-                                if ( $apply_affiliate_site_filter ) {
+                                if ( $needs_affiliate_site_filter ) {
+                                                $select_params = $params;
+                                                $prepared_sql  = $wpdb->prepare( $select_sql, ...$select_params );
+
+                                                $rows_all = $wpdb->get_results( $prepared_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+                                                $filtered_rows = array();
+
+                                                foreach ( (array) $rows_all as $row_obj ) {
+                                                                $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
+
+                                                                if ( $uid <= 0 ) {
+                                                                                continue;
+                                                                }
+
+                                                                $user_affiliate = get_user_meta( $uid, 'affiliate_site', true );
+
+                                                                if ( $user_affiliate == $tournament_affiliate_site ) {
+                                                                                $filtered_rows[] = $row_obj;
+                                                                }
+                                                }
+
+                                                $total       = count( $filtered_rows );
+                                                $total_pages = max( 1, (int) ceil( $total / $per_page ) );
+
+                                                if ( $paged > $total_pages ) {
+                                                                $paged = $total_pages;
+                                                }
+
+                                                $offset = ( $paged - 1 ) * $per_page;
+                                                $rows   = array_slice( $filtered_rows, $offset, $per_page );
+                                                $limit  = count( $rows );
+                                } elseif ( $apply_affiliate_site_filter ) {
                                                 $select_params = $params;
                                                 $prepared_sql  = $wpdb->prepare( $select_sql, ...$select_params );
 
@@ -5617,7 +5652,7 @@ $apply_site_filter      = ( $site_filter > 0 && function_exists( 'bhg_is_user_af
 $tournament_affiliate  = get_post_meta( (int) $tournament->id, 'affiliate_site', true );
 $manual_filtering       = $apply_site_filter || ! empty( $tournament_affiliate );
 
-if ( $manual_filtering ) {
+               if ( $manual_filtering ) {
 $rows_all = $wpdb->get_results( $wpdb->prepare( $select_sql, $tournament->id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 $filtered_rows = array();
@@ -5631,7 +5666,7 @@ continue;
 if ( ! empty( $tournament_affiliate ) ) {
 $user_affiliate = get_user_meta( $uid, 'affiliate_site', true );
 
-if ( $user_affiliate !== $tournament_affiliate ) {
+if ( $user_affiliate != $tournament_affiliate ) {
 continue;
 }
 }
