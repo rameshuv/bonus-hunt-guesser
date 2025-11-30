@@ -7326,7 +7326,7 @@ echo '</div>';
 					$sql = $wpdb->prepare( $sql, ...$params );
 				}
 
-				$sql               .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+$sql               .= ' ORDER BY total_wins DESC, u.user_login ASC, u.ID ASC LIMIT 50';
 				$results[ $key ] = $wpdb->get_results( $sql );
 			}
 
