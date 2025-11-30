@@ -586,14 +586,14 @@ array(
 
                                $allow_union = $tournament_id > 0 && $r && $t && $hunt_id <= 0 && $website_id <= 0;
                                if ( $allow_union ) {
-                                               $participant_select = array(
-                                                               'tr.user_id',
-                                                               '-1 * ABS(tr.user_id) AS hunt_id',
-                                                               'NULL AS position',
-                                                               "COALESCE( NULLIF( tr.last_win_date, '0000-00-00 00:00:00' ), tr.last_win_date ) AS win_date",
-                                                               't_union.affiliate_site_id AS affiliate_site_id',
-                                                               '0 AS win_count',
-                                               );
+                                                $participant_select = array(
+                                                                'tr.user_id',
+                                                                '0 AS hunt_id',
+                                                                'NULL AS position',
+                                                                "COALESCE( NULLIF( tr.last_win_date, '0000-00-00 00:00:00' ), tr.last_win_date ) AS win_date",
+                                                                't_union.affiliate_site_id AS affiliate_site_id',
+                                                                '0 AS win_count',
+                                                );
 
                                                $participant_joins = array( "LEFT JOIN {$t} t_union ON t_union.id = tr.tournament_id" );
                                                $participant_where = array( 'tr.tournament_id = %d' );
@@ -885,8 +885,10 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                 return null;
                                 }
 
-                               $tournament_affiliate_site     = get_post_meta( $tournament_id, 'affiliate_site', true );
-                               $tournament_affiliate_site_id  = (int) get_post_meta( $tournament_id, 'affiliate_site_id', true );
+                               $t                           = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+
+                               $tournament_affiliate_site    = get_post_meta( $tournament_id, 'affiliate_site', true );
+                               $tournament_affiliate_site_id = (int) get_post_meta( $tournament_id, 'affiliate_site_id', true );
                                if ( $tournament_affiliate_site_id <= 0 && $t ) {
                                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                                                $tournament_affiliate_site_id = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT affiliate_site_id FROM ' . $t . ' WHERE id = %d', $tournament_id ) );
@@ -913,7 +915,7 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
                                 $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
                                 $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
-                                $t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+                                // $t already set above for tournament meta lookups.
                                 $w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 
                                 if ( ! $r || ! $u ) {
@@ -994,13 +996,15 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                                $site_params[] = $range['end'];
                                                }
 
-                                               $site_scope_query = sprintf(
-                                                               'SELECT hw_scope.user_id, COUNT(DISTINCT CONCAT_WS(":", hw_scope.hunt_id, hw_scope.user_id)) AS win_count FROM %1$s hw_scope INNER JOIN %2$s h_scope ON h_scope.id = hw_scope.hunt_id%3$s WHERE %4$s GROUP BY hw_scope.user_id',
-                                                               $hw,
-                                                               $h,
-                                                               $site_joins,
-                                                               implode( ' AND ', $site_where )
-                                               );
+                                                $site_join_segment = $site_joins ? $site_joins . ' ' : ' ';
+
+                                                $site_scope_query = sprintf(
+                                                                'SELECT hw_scope.user_id, COUNT(DISTINCT CONCAT_WS(":", hw_scope.hunt_id, hw_scope.user_id)) AS win_count FROM %1$s hw_scope INNER JOIN %2$s h_scope ON h_scope.id = hw_scope.hunt_id%3$sWHERE %4$s GROUP BY hw_scope.user_id',
+                                                                $hw,
+                                                                $h,
+                                                                $site_join_segment,
+                                                                implode( ' AND ', $site_where )
+                                                );
 
                                                if ( ! empty( $site_params ) ) {
                                                                $site_scope_query = $wpdb->prepare( $site_scope_query, ...$site_params );
@@ -1109,11 +1113,13 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                                 $win_params[] = $range['end'];
                                                 }
 
+                                                $win_join_segment = $win_joins ? $win_joins . ' ' : ' ';
+
                                                 $win_count_sql = sprintf(
-                                                                "SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS(':', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$s WHERE %4$s GROUP BY hw_count.user_id",
+                                                                "SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS(':', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$sWHERE %4$s GROUP BY hw_count.user_id",
                                                                 $hw,
                                                                 $h,
-                                                                $win_joins,
+                                                                $win_join_segment,
                                                                 implode( ' AND ', $win_where )
                                                 );
 
