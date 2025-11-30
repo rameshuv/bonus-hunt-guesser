@@ -8,6 +8,11 @@
 
 # Changelog
 
+## 8.0.22 — 2025-02-20
+- Updated plugin metadata and internal version constant to 8.0.22.
+- Allowed desktop table wrappers to show horizontal overflow while retaining
+  mobile scroll behaviour for leaderboard, tournament, and bonus hunt tables.
+
 ## 8.0.20 — 2025-02-10
 - Bumped plugin metadata and internal version constant to 8.0.20 for the
   bug-fix-only release.
