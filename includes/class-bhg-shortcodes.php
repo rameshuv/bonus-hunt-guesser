@@ -3677,40 +3677,48 @@ $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ?
                                                         return implode( ' ', $classes );
                                                 };
 
-                                                ob_start();
-                                                echo '<form method="get" class="bhg-search-form bhg-filters-row">';
-		  foreach ( $_GET as $raw_key => $v ) {
-				  $key = sanitize_key( wp_unslash( $raw_key ) );
-				  if ( in_array( $key, array( 'bhg_search', 'bhg_timeline' ), true ) ) {
-						  continue;
-				  }
-				  $value = is_array( $v ) ? reset( $v ) : $v;
-				  echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( sanitize_text_field( wp_unslash( $value ) ) ) . '">';
-		  }
-		  echo '<label class="bhg-timeline-filter">';
-		  echo '<span>' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . '</span> ';
-  echo '<select name="bhg_timeline">';
-  $timeline_options = array(
-                  'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
-                  'today'        => bhg_t( 'label_today', 'Today' ),
-                  'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
-                  'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
-                  'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
-                  'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
-                  'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
-  );
-  $selected_timeline = $timeline;
-  if ( ! array_key_exists( $selected_timeline, $timeline_options ) ) {
-                  $selected_timeline = 'all_time';
-  }
-  foreach ( $timeline_options as $key => $label ) {
-                  echo '<option value="' . esc_attr( $key ) . '"' . selected( $selected_timeline, $key, false ) . '>' . esc_html( $label ) . '</option>';
-  }
-		  echo '</select>';
-		  echo '</label>';
-		  echo '<input type="text" name="bhg_search" value="' . esc_attr( $search ) . '">';
-		  echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
-		  echo '</form>';
+                                                				ob_start();
+				echo '<form method="get" class="bhg-search-form bhg-filters-row">';
+				foreach ( $_GET as $raw_key => $v ) {
+					$key = sanitize_key( wp_unslash( $raw_key ) );
+					if ( in_array( $key, array( 'bhg_search', 'bhg_timeline' ), true ) ) {
+						continue;
+					}
+					$value = is_array( $v ) ? reset( $v ) : $v;
+					echo '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( sanitize_text_field( wp_unslash( $value ) ) ) . '">';
+				}
+
+				echo '<div class="bhg-filter-controls">';
+				echo '<label class="bhg-filter-label">';
+				echo '<span>' . esc_html( bhg_t( 'label_timeline_colon', 'Timeline:' ) ) . '</span>';
+				echo '<select name="bhg_timeline" class="bhg-filter-select">';
+				$timeline_options = array(
+					'all_time'     => bhg_t( 'label_all_time', 'Alltime' ),
+					'today'        => bhg_t( 'label_today', 'Today' ),
+					'this_week'    => bhg_t( 'label_this_week', 'This Week' ),
+					'this_month'   => bhg_t( 'label_this_month', 'This Month' ),
+					'this_quarter' => bhg_t( 'option_timeline_this_quarter', 'This Quarter' ),
+					'this_year'    => bhg_t( 'label_this_year', 'This Year' ),
+					'last_year'    => bhg_t( 'label_last_year', 'Last Year' ),
+				);
+				$selected_timeline = $timeline;
+				if ( ! array_key_exists( $selected_timeline, $timeline_options ) ) {
+					$selected_timeline = 'all_time';
+				}
+				foreach ( $timeline_options as $key => $label ) {
+					echo '<option value="' . esc_attr( $key ) . '"' . selected( $selected_timeline, $key, false ) . '>' . esc_html( $label ) . '</option>';
+				}
+				echo '</select>';
+				echo '</label>';
+				echo '</div>';
+
+				echo '<div class="bhg-search-control">';
+				echo '<label for="bhg_user_guesses_search" class="screen-reader-text">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</label>';
+				echo '<input type="text" id="bhg_user_guesses_search" name="bhg_search" value="' . esc_attr( $search ) . '">';
+				echo '<button type="submit">' . esc_html( bhg_t( 'button_search', 'Search' ) ) . '</button>';
+				echo '</div>';
+
+				echo '</form>';
 
 echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-user-guesses"><thead><tr>';
