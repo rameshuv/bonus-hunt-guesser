@@ -1330,10 +1330,27 @@ $select_parts[] = 't_main.title AS tournament_title';
                                 );
                 }
 private function normalize_prize_layout( $layout ) {
-				$layout = strtolower( (string) $layout );
+                                $layout = strtolower( (string) $layout );
 
-				return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
-		}
+                                return in_array( $layout, array( 'grid', 'carousel' ), true ) ? $layout : 'grid';
+                }
+
+               /**
+                * Retrieve the default prize layout from saved settings.
+                *
+                * @return string
+                */
+               private function get_default_prize_layout() {
+                               if ( class_exists( 'BHG_Prizes' ) && method_exists( 'BHG_Prizes', 'get_display_settings' ) ) {
+                                               $settings = BHG_Prizes::get_display_settings();
+
+                                               if ( isset( $settings['layout'] ) ) {
+                                                               return $this->normalize_prize_layout( $settings['layout'] );
+                                               }
+                               }
+
+                               return 'grid';
+               }
 
 			/**
 			 * Normalize prize card size keyword.
@@ -1922,6 +1939,7 @@ return '';
 }
 
 $count             = count( $prizes );
+$grid_columns      = isset( $section_options['grid_columns'] ) ? max( 1, (int) $section_options['grid_columns'] ) : 3;
 $heading_text      = isset( $section_options['heading_text'] ) ? $section_options['heading_text'] : '';
 $hide_heading      = ! empty( $section_options['hide_heading'] );
 $carousel_visible  = isset( $section_options['carousel_visible'] ) ? max( 1, (int) $section_options['carousel_visible'] ) : 1;
@@ -1929,7 +1947,7 @@ $carousel_autoplay = ! empty( $section_options['carousel_autoplay'] );
 $carousel_interval = isset( $section_options['carousel_interval'] ) ? max( 1000, (int) $section_options['carousel_interval'] ) : 5000;
 $carousel_pages    = max( 1, (int) ceil( $count / max( 1, $carousel_visible ) ) );
 
-$visible_for_sizing = 'carousel' === $layout ? min( $carousel_visible, $count ) : ( $limit > 0 ? min( $limit, $count ) : $count );
+$visible_for_sizing = 'carousel' === $layout ? min( $carousel_visible, $count ) : min( $grid_columns, ( $limit > 0 ? min( $limit, $count ) : $count ) );
 $size               = $this->resolve_responsive_prize_size( $size, $layout, $visible_for_sizing, $count, $section_options );
 
 $summary_enabled = ! empty( $section_options['show_summary'] );
@@ -1949,6 +1967,7 @@ $context       = array(
 'carousel_visible'  => $carousel_visible,
 'carousel_autoplay' => $carousel_autoplay,
 'carousel_interval' => $carousel_interval,
+'grid_columns'      => $grid_columns,
 'display_defaults'  => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_display_defaults() : array(),
 );
 
@@ -1999,7 +2018,7 @@ echo '</div>';
 }
 echo '</div>';
 } else {
-echo '<div class="bhg-prizes-grid">';
+echo '<div class="bhg-prizes-grid" data-columns="' . esc_attr( $grid_columns ) . '" style="--bhg-prize-grid-columns:' . esc_attr( $grid_columns ) . ';">';
 foreach ( $prizes as $prize ) {
 echo $this->render_prize_card( $prize, $size, $display_options, $context );
 }
@@ -2587,18 +2606,19 @@ return ob_get_clean();
 			 * @param array $atts Shortcode attributes.
 			 * @return string HTML output.
 			 */
-			   public function active_hunt_shortcode( $atts ) {
-						$atts = shortcode_atts(
-								array(
-										'prize_layout' => 'grid',
-										'prize_size'   => 'medium',
-								),
-								$atts,
-								'bhg_active_hunt'
-						);
+                           public function active_hunt_shortcode( $atts ) {
+                                                $default_layout = $this->get_default_prize_layout();
+                                                $atts           = shortcode_atts(
+                                                                array(
+                                                                                'prize_layout' => $default_layout,
+                                                                                'prize_size'   => 'medium',
+                                                                ),
+                                                                $atts,
+                                                                'bhg_active_hunt'
+                                                );
 
-						$prize_layout = $this->normalize_prize_layout( isset( $atts['prize_layout'] ) ? $atts['prize_layout'] : 'grid' );
-						$prize_size   = $this->normalize_prize_size( isset( $atts['prize_size'] ) ? $atts['prize_size'] : 'medium' );
+                                                $prize_layout = $this->normalize_prize_layout( isset( $atts['prize_layout'] ) ? $atts['prize_layout'] : $default_layout );
+                                                $prize_size   = $this->normalize_prize_size( isset( $atts['prize_size'] ) ? $atts['prize_size'] : 'medium' );
 
 				   global $wpdb;
 				   $hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
@@ -2851,9 +2871,13 @@ return ob_get_clean();
 							   }
 					   }
 
-                                           $prize_section_options = array(
+                                           $prize_section_options = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::prepare_section_options( array(
+                                                           'layout'       => $prize_layout,
                                                            'show_summary' => true,
-                                           );
+                                                   ) ) : array(
+                                                           'layout'       => $prize_layout,
+                                                           'show_summary' => true,
+                                                   );
 
                                            if ( $show_premium && ! empty( $premium_prizes ) ) {
                                                            $premium_options = $prize_section_options;
@@ -5104,6 +5128,7 @@ $sites                      = array();
 $leaderboard_prizes_markup = '';
 $selected_tournament_row    = null;
 $selected_bonushunt_row     = null;
+$default_prize_layout       = $this->get_default_prize_layout();
 
 $tournaments_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
 $sites_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
@@ -5141,19 +5166,23 @@ if ( $tournaments_table ) {
                                                                                                if ( $tournament_meta && ! empty( $tournament_meta->prizes ) ) {
                                                                                                                $status = strtolower( (string) $tournament_meta->status );
                                                                                                                if ( 'active' === $status ) {
-                                                                                                                               $prize_maps = $this->normalize_prize_maps_from_storage( $tournament_meta->prizes, isset( $tournament_meta->winners_count ) ? (int) $tournament_meta->winners_count : 0 );
-                                                                                                                               $prizes     = $this->load_prize_sets_from_maps( $prize_maps );
+                      $prize_maps = $this->normalize_prize_maps_from_storage( $tournament_meta->prizes, isset( $tournament_meta->winners_count ) ? (int) $tournament_meta->winners_count : 0 );
+                      $prizes     = $this->load_prize_sets_from_maps( $prize_maps );
 
-                                                                                                                               if ( ! empty( $prizes['regular'] ) || ! empty( $prizes['premium'] ) ) {
-                                                                                                                                               $section_html = $this->render_prize_sets_tabs(
-                                                                                                                                                       $prizes,
-                                                                                                                                                       array(
-                                                                                                                                                               'show_summary' => $show_prize_summary,
-                                                                                                                                                       ),
-                                                                                                                                                       array(),
-                                                                                                                                                       'carousel',
-                                                                                                                                                       'medium'
-                                                                                                                                               );
+                      if ( ! empty( $prizes['regular'] ) || ! empty( $prizes['premium'] ) ) {
+                                      $section_html = $this->render_prize_sets_tabs(
+                                                      $prizes,
+                                                      class_exists( 'BHG_Prizes' ) ? BHG_Prizes::prepare_section_options( array(
+                                                                      'layout'       => $default_prize_layout,
+                                                                      'show_summary' => $show_prize_summary,
+                                                      ) ) : array(
+                                                                      'layout'       => $default_prize_layout,
+                                                                      'show_summary' => $show_prize_summary,
+                                                      ),
+                                                      array(),
+                                                      $default_prize_layout,
+                                                      'medium'
+                                      );
 
                                                                                                                                                if ( '' !== $section_html ) {
 
@@ -5607,6 +5636,7 @@ $add_args['bhg_aff'] = $aff_filter;
                         $show_prize_summary_detail = $this->attribute_to_bool( $show_prize_summary_attr, true );
                         $show_prizes_attr           = isset( $atts['show_prizes'] ) ? $atts['show_prizes'] : 'yes';
                         $show_prizes                = $this->attribute_to_bool( $show_prizes_attr, true );
+                        $default_prize_layout       = $this->get_default_prize_layout();
 
                         // Details screen.
                         $details_id = 0;
@@ -5917,7 +5947,19 @@ echo '</p>';
                 echo '</div>';
 
                 if ( $show_prizes ) {
-                        $prize_markup = $this->render_prize_sets_tabs( $prizes, array( 'show_summary' => $show_prize_summary_detail ), array(), 'carousel', 'medium' );
+                        $prize_markup = $this->render_prize_sets_tabs(
+                                $prizes,
+                                class_exists( 'BHG_Prizes' ) ? BHG_Prizes::prepare_section_options( array(
+                                        'layout'       => $default_prize_layout,
+                                        'show_summary' => $show_prize_summary_detail,
+                                ) ) : array(
+                                        'layout'       => $default_prize_layout,
+                                        'show_summary' => $show_prize_summary_detail,
+                                ),
+                                array(),
+                                $default_prize_layout,
+                                'medium'
+                        );
                         if ( '' !== $prize_markup ) {
                                 echo '<div class="bhg-tournament-prizes">' . wp_kses_post( $prize_markup ) . '</div>';
                         }
@@ -6365,7 +6407,7 @@ echo '<table class="bhg-tournaments">';
 $atts = shortcode_atts(
 array(
 'category'         => '',
-'design'           => 'grid',
+'design'           => $this->get_default_prize_layout(),
 'size'             => 'medium',
 'active'           => 'yes',
 'visible'          => '',
@@ -6403,8 +6445,8 @@ $atts,
 								$args['active'] = in_array( $active, array( 'yes', '1' ), true ) ? 1 : 0;
 						}
 
-						$layout = $this->normalize_prize_layout( isset( $atts['design'] ) ? $atts['design'] : 'grid' );
-						$size   = $this->normalize_prize_size( isset( $atts['size'] ) ? $atts['size'] : 'medium' );
+$layout = $this->normalize_prize_layout( isset( $atts['design'] ) ? $atts['design'] : $this->get_default_prize_layout() );
+$size   = $this->normalize_prize_size( isset( $atts['size'] ) ? $atts['size'] : 'medium' );
 
 $prizes = BHG_Prizes::get_prizes( $args );
 
@@ -6419,7 +6461,7 @@ array(),
 defined( 'BHG_VERSION' ) ? BHG_VERSION : null
 );
 
-$section_options = array();
+$section_options = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::prepare_section_options( array( 'layout' => $layout ) ) : array( 'layout' => $layout );
 $display_overrides = array();
 
 if ( '' !== $atts['visible'] ) {

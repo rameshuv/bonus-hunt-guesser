@@ -116,6 +116,24 @@ $notices = array(
 
 <div class="bhg-prize-settings-grid">
 <div class="bhg-field">
+<label for="bhg_prize_layout_default"><?php echo esc_html( bhg_t( 'prize_layout_default', 'Default prize layout' ) ); ?></label>
+<select id="bhg_prize_layout_default" name="layout">
+        <option value="grid" <?php selected( $display_settings['layout'], 'grid' ); ?>><?php echo esc_html( bhg_t( 'layout_grid', 'Grid' ) ); ?></option>
+        <option value="carousel" <?php selected( $display_settings['layout'], 'carousel' ); ?>><?php echo esc_html( bhg_t( 'layout_carousel', 'Carousel' ) ); ?></option>
+</select>
+<p class="description"><?php echo esc_html( bhg_t( 'prize_layout_default_help', 'Choose whether prizes render in a grid or carousel by default across shortcodes.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<label for="bhg_grid_columns"><?php echo esc_html( bhg_t( 'prize_grid_visible', 'Grid items per row' ) ); ?></label>
+<input type="number" min="1" step="1" id="bhg_grid_columns" name="grid_columns" value="<?php echo esc_attr( $display_settings['grid_columns'] ); ?>" />
+<p class="description"><?php echo esc_html( bhg_t( 'prize_grid_visible_help', 'How many prizes should appear per row on larger screens in grid mode.' ) ); ?></p>
+</div>
+<div class="bhg-field">
+<label for="bhg_grid_total"><?php echo esc_html( bhg_t( 'prize_grid_total', 'Maximum prizes in grid' ) ); ?></label>
+<input type="number" min="0" step="1" id="bhg_grid_total" name="grid_total" value="<?php echo esc_attr( $display_settings['grid_total'] ); ?>" />
+<p class="description"><?php echo esc_html( bhg_t( 'prize_grid_total_help', 'Set to 0 to load all prizes when using grid layout.' ) ); ?></p>
+</div>
+<div class="bhg-field">
 <label for="bhg_carousel_visible"><?php echo esc_html( bhg_t( 'prize_visible_count', 'Carousel visible count' ) ); ?></label>
 <input type="number" min="1" step="1" id="bhg_carousel_visible" name="carousel_visible" value="<?php echo esc_attr( $display_settings['carousel_visible'] ); ?>" />
 <p class="description"><?php echo esc_html( bhg_t( 'prize_visible_help', 'Number of prize cards visible at once on larger screens.' ) ); ?></p>

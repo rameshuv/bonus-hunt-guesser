@@ -408,10 +408,20 @@
 }
 
 .bhg-prizes-grid {
+    --bhg-prize-grid-gap: 16px;
+    --bhg-prize-grid-columns: 3;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+    gap: var(--bhg-prize-grid-gap);
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(
+            calc((100% - (var(--bhg-prize-grid-columns) - 1) * var(--bhg-prize-grid-gap)) / var(--bhg-prize-grid-columns)),
+            1fr
+        )
+    );
 }
+
+
 
 .bhg-prize-card {
     background: #fff;

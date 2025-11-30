@@ -634,11 +634,14 @@ class BHG_Prizes {
 	 *
 	 * @return array
 	 */
-	public static function default_display_settings() {
-		return array(
-			'carousel_visible'  => 1,
-			'carousel_total'    => 0,
-			'carousel_autoplay' => 0,
+        public static function default_display_settings() {
+                return array(
+                        'layout'            => 'grid',
+                        'grid_columns'      => 3,
+                        'grid_total'        => 0,
+                        'carousel_visible'  => 1,
+                        'carousel_total'    => 0,
+                        'carousel_autoplay' => 0,
 			'carousel_interval' => 5000,
 			'hide_heading'      => 0,
 			'heading_text'      => '',
@@ -675,15 +678,20 @@ class BHG_Prizes {
 	 * @param array $input Raw settings array.
 	 * @return array
 	 */
-	public static function sanitize_display_settings( $input ) {
-		$input    = is_array( $input ) ? $input : array();
-		$defaults = self::default_display_settings();
+        public static function sanitize_display_settings( $input ) {
+                $input    = is_array( $input ) ? $input : array();
+                $defaults = self::default_display_settings();
 
-		$visible  = isset( $input['carousel_visible'] ) ? absint( $input['carousel_visible'] ) : (int) $defaults['carousel_visible'];
-		$total    = isset( $input['carousel_total'] ) ? absint( $input['carousel_total'] ) : (int) $defaults['carousel_total'];
-		$autoplay = ! empty( $input['carousel_autoplay'] ) ? 1 : (int) $defaults['carousel_autoplay'];
-		$interval = isset( $input['carousel_interval'] ) ? absint( $input['carousel_interval'] ) : (int) $defaults['carousel_interval'];
-		$interval = $interval < 1000 ? 1000 : $interval;
+                $layout = isset( $input['layout'] ) ? self::sanitize_layout( $input['layout'], $defaults['layout'] ) : $defaults['layout'];
+
+                $grid_columns = isset( $input['grid_columns'] ) ? absint( $input['grid_columns'] ) : (int) $defaults['grid_columns'];
+                $grid_total   = isset( $input['grid_total'] ) ? absint( $input['grid_total'] ) : (int) $defaults['grid_total'];
+
+                $visible  = isset( $input['carousel_visible'] ) ? absint( $input['carousel_visible'] ) : (int) $defaults['carousel_visible'];
+                $total    = isset( $input['carousel_total'] ) ? absint( $input['carousel_total'] ) : (int) $defaults['carousel_total'];
+                $autoplay = ! empty( $input['carousel_autoplay'] ) ? 1 : (int) $defaults['carousel_autoplay'];
+                $interval = isset( $input['carousel_interval'] ) ? absint( $input['carousel_interval'] ) : (int) $defaults['carousel_interval'];
+                $interval = $interval < 1000 ? 1000 : $interval;
 		$hide     = ! empty( $input['hide_heading'] ) ? 1 : (int) $defaults['hide_heading'];
 		$heading  = isset( $input['heading_text'] ) ? sanitize_text_field( wp_unslash( $input['heading_text'] ) ) : (string) $defaults['heading_text'];
 
@@ -691,17 +699,20 @@ class BHG_Prizes {
 		$show_description = isset( $input['show_description'] ) ? (int) (bool) $input['show_description'] : (int) $defaults['show_description'];
 		$show_category    = isset( $input['show_category'] ) ? (int) (bool) $input['show_category'] : (int) $defaults['show_category'];
 		$show_image       = isset( $input['show_image'] ) ? (int) (bool) $input['show_image'] : (int) $defaults['show_image'];
-		$category_links   = isset( $input['category_links'] ) ? (int) (bool) $input['category_links'] : (int) $defaults['category_links'];
-		$click_action     = isset( $input['click_action'] ) ? self::sanitize_click_default( $input['click_action'] ) : $defaults['click_action'];
-		$link_target      = isset( $input['link_target'] ) ? self::sanitize_link_default( $input['link_target'] ) : $defaults['link_target'];
-		$category_target  = isset( $input['category_target'] ) ? self::sanitize_link_default( $input['category_target'] ) : $defaults['category_target'];
+                $category_links   = isset( $input['category_links'] ) ? (int) (bool) $input['category_links'] : (int) $defaults['category_links'];
+                $click_action     = isset( $input['click_action'] ) ? self::sanitize_click_default( $input['click_action'] ) : $defaults['click_action'];
+                $link_target      = isset( $input['link_target'] ) ? self::sanitize_link_default( $input['link_target'] ) : $defaults['link_target'];
+                $category_target  = isset( $input['category_target'] ) ? self::sanitize_link_default( $input['category_target'] ) : $defaults['category_target'];
 
-		return array(
-			'carousel_visible'  => max( 1, $visible ),
-			'carousel_total'    => $total,
-			'carousel_autoplay' => $autoplay,
-			'carousel_interval' => $interval,
-			'hide_heading'      => $hide,
+                return array(
+                        'layout'            => $layout,
+                        'grid_columns'      => max( 1, $grid_columns ),
+                        'grid_total'        => $grid_total,
+                        'carousel_visible'  => max( 1, $visible ),
+                        'carousel_total'    => $total,
+                        'carousel_autoplay' => $autoplay,
+                        'carousel_interval' => $interval,
+                        'hide_heading'      => $hide,
 			'heading_text'      => $heading,
 			'show_title'        => $show_title,
 			'show_description'  => $show_description,
@@ -857,29 +868,57 @@ class BHG_Prizes {
 	 * @param array $overrides Raw overrides.
 	 * @return array
 	 */
-	public static function prepare_section_options( $overrides = array() ) {
-		$settings  = self::get_display_settings();
-		$options   = array();
-		$overrides = is_array( $overrides ) ? $overrides : array();
+        public static function prepare_section_options( $overrides = array() ) {
+                $settings  = self::get_display_settings();
+                $options   = array();
+                $overrides = is_array( $overrides ) ? $overrides : array();
 
-		$options['carousel_visible']  = max( 1, isset( $overrides['carousel_visible'] ) ? absint( $overrides['carousel_visible'] ) : (int) $settings['carousel_visible'] );
-		$options['carousel_total']    = isset( $overrides['carousel_total'] ) ? absint( $overrides['carousel_total'] ) : (int) $settings['carousel_total'];
-		$options['limit']             = isset( $overrides['limit'] ) ? absint( $overrides['limit'] ) : $options['carousel_total'];
-		$options['carousel_autoplay'] = isset( $overrides['carousel_autoplay'] ) ? ( ! empty( $overrides['carousel_autoplay'] ) ) : ( ! empty( $settings['carousel_autoplay'] ) );
-		$options['carousel_interval'] = isset( $overrides['carousel_interval'] ) ? max( 1000, absint( $overrides['carousel_interval'] ) ) : (int) max( 1000, $settings['carousel_interval'] );
-		$options['hide_heading']      = isset( $overrides['hide_heading'] ) ? ( ! empty( $overrides['hide_heading'] ) ) : ( ! empty( $settings['hide_heading'] ) );
+                $options['layout']       = isset( $overrides['layout'] ) ? self::sanitize_layout( $overrides['layout'], $settings['layout'] ) : $settings['layout'];
+                $options['grid_columns'] = isset( $overrides['grid_columns'] ) ? max( 1, absint( $overrides['grid_columns'] ) ) : (int) $settings['grid_columns'];
+                $options['grid_total']   = isset( $overrides['grid_total'] ) ? absint( $overrides['grid_total'] ) : (int) $settings['grid_total'];
+                $options['carousel_visible']  = max( 1, isset( $overrides['carousel_visible'] ) ? absint( $overrides['carousel_visible'] ) : (int) $settings['carousel_visible'] );
+                $options['carousel_total']    = isset( $overrides['carousel_total'] ) ? absint( $overrides['carousel_total'] ) : (int) $settings['carousel_total'];
+                $options['limit']             = isset( $overrides['limit'] ) ? absint( $overrides['limit'] ) : ( 'carousel' === $options['layout'] ? $options['carousel_total'] : $options['grid_total'] );
+                $options['carousel_autoplay'] = isset( $overrides['carousel_autoplay'] ) ? ( ! empty( $overrides['carousel_autoplay'] ) ) : ( ! empty( $settings['carousel_autoplay'] ) );
+                $options['carousel_interval'] = isset( $overrides['carousel_interval'] ) ? max( 1000, absint( $overrides['carousel_interval'] ) ) : (int) max( 1000, $settings['carousel_interval'] );
+                $options['hide_heading']      = isset( $overrides['hide_heading'] ) ? ( ! empty( $overrides['hide_heading'] ) ) : ( ! empty( $settings['hide_heading'] ) );
 
-		$heading = '';
+                $heading = '';
 		if ( isset( $overrides['heading_text'] ) ) {
 			$heading = sanitize_text_field( wp_unslash( $overrides['heading_text'] ) );
 		} elseif ( ! empty( $settings['heading_text'] ) ) {
 			$heading = sanitize_text_field( $settings['heading_text'] );
-		}
+                }
 
-		$options['heading_text'] = $heading;
+                $options['heading_text'] = $heading;
 
-		return $options;
-	}
+                if ( isset( $overrides['show_summary'] ) ) {
+                        $options['show_summary'] = (bool) $overrides['show_summary'];
+                }
+
+                if ( isset( $overrides['summary_heading'] ) ) {
+                        $options['summary_heading'] = sanitize_text_field( wp_unslash( $overrides['summary_heading'] ) );
+                }
+
+                return $options;
+        }
+
+        /**
+         * Sanitize a layout keyword.
+         *
+         * @param string $value   Layout keyword.
+         * @param string $default Default when value invalid.
+         * @return string
+         */
+        public static function sanitize_layout( $value, $default = 'grid' ) {
+                $value = strtolower( (string) $value );
+
+                if ( in_array( $value, array( 'grid', 'carousel' ), true ) ) {
+                        return $value;
+                }
+
+                return in_array( $default, array( 'grid', 'carousel' ), true ) ? $default : 'grid';
+        }
 
 	/**
 	 * Resolve a tri-state flag.
