@@ -1113,10 +1113,10 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                                 $win_params[] = $range['end'];
                                                 }
 
-                                                $win_join_segment = $win_joins ? $win_joins . ' ' : ' ';
+                                                $win_join_segment = $win_joins ? ' ' . trim( $win_joins ) . ' ' : ' ';
 
                                                 $win_count_sql = strtr(
-'SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS(\':\', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM {hw} hw_count INNER JOIN {h} h_count ON h_count.id = hw_count.hunt_id{joins}WHERE {where} GROUP BY hw_count.user_id',
+"SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS('\\':\\', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM {hw} hw_count INNER JOIN {h} h_count ON h_count.id = hw_count.hunt_id{joins}WHERE {where} GROUP BY hw_count.user_id",
 array(
 '{hw}'    => $hw,
 '{h}'     => $h,
