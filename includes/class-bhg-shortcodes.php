@@ -1223,7 +1223,13 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 $select_sql .= ' WHERE ' . implode( ' AND ', $where );
                                 }
 
-                                $select_sql .= sprintf( ' ORDER BY %s %s', $orderby, $direction );
+                                $order_sql = sprintf( ' ORDER BY %s %s', $orderby, $direction );
+
+                                if ( 'total_wins' === $orderby ) {
+                                                $order_sql .= ', tr.user_id ASC';
+                                }
+
+                                $select_sql .= $order_sql;
 
                                 $apply_affiliate_site_filter = $website_id > 0;
 
