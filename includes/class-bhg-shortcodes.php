@@ -1223,7 +1223,15 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 $select_sql .= ' WHERE ' . implode( ' AND ', $where );
                                 }
 
-                                $select_sql .= sprintf( ' ORDER BY %s %s', $orderby, $direction );
+                                $order_clauses = array( sprintf( '%s %s', $orderby, $direction ) );
+
+                                if ( 'u.user_login' !== $orderby ) {
+                                                $order_clauses[] = 'u.user_login ASC';
+                                }
+
+                                $order_clauses[] = 'tr.user_id ASC';
+
+                                $select_sql .= ' ORDER BY ' . implode( ', ', $order_clauses );
 
                                 $apply_affiliate_site_filter = $website_id > 0;
 
@@ -5716,6 +5724,10 @@ $order_parts[] = 'r.points DESC';
 $order_parts[] = 'r.wins DESC';
 break;
 }
+
+if ( 'username' !== $orderby ) {
+$order_parts[] = 'u.user_login ASC';
+}
 $order_parts[] = 'r.user_id ASC';
 $order_sql     = implode( ', ', $order_parts );
 
@@ -7318,7 +7330,7 @@ echo '</div>';
 					$sql = $wpdb->prepare( $sql, ...$params );
 				}
 
-				$sql               .= ' ORDER BY total_wins DESC, u.user_login ASC LIMIT 50';
+$sql               .= ' ORDER BY total_wins DESC, u.user_login ASC, u.ID ASC LIMIT 50';
 				$results[ $key ] = $wpdb->get_results( $sql );
 			}
 
