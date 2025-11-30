@@ -17,7 +17,7 @@ global $wpdb;
 $t = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 
 $paged    = max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 );
-$per_page = 20;
+$per_page = 30;
 $offset   = ( $paged - 1 ) * $per_page;
 
 $rows  = $wpdb->get_results(

@@ -503,14 +503,28 @@ if ( 'edit' === $view ) :
 	if ( ! in_array( $users_table_local, $allowed_tables, true ) ) {
 			wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 	}
-		$users_table_local = esc_sql( $users_table_local );
-								// db call ok; no-cache ok.
-								$guesses = $wpdb->get_results(
-									$wpdb->prepare(
-										"SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table_local} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC",
-										$id
-									)
-								);
+                $users_table_local = esc_sql( $users_table_local );
+
+                $participants_page     = max( 1, isset( $_GET['participants_paged'] ) ? absint( wp_unslash( $_GET['participants_paged'] ) ) : 1 );
+                $participants_per_page = 30;
+                $participants_offset   = ( $participants_page - 1 ) * $participants_per_page;
+
+                $total_guesses = (int) $wpdb->get_var(
+                        $wpdb->prepare(
+                                "SELECT COUNT(*) FROM {$guesses_table} WHERE hunt_id = %d",
+                                $id
+                        )
+                );
+
+                // db call ok; no-cache ok.
+                $guesses = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT g.*, u.display_name FROM {$guesses_table} g LEFT JOIN {$users_table_local} u ON u.ID = g.user_id WHERE g.hunt_id = %d ORDER BY g.id ASC LIMIT %d OFFSET %d",
+                                $id,
+                                $participants_per_page,
+                                $participants_offset
+                        )
+                );
 	?>
 <div class="wrap bhg-wrap">
 	<h1 class="wp-heading-inline"><?php echo esc_html( bhg_t( 'edit_bonus_hunt', 'Edit Bonus Hunt' ) ); ?> <?php echo esc_html( bhg_t( 'label_emdash', '—' ) ); ?> <?php echo esc_html( $hunt->title ); ?></h1>
@@ -695,12 +709,12 @@ if ( 'edit' === $view ) :
 		</tr>
 	</thead>
 	<tbody>
-		<?php if ( empty( $guesses ) ) : ?>
-		<tr><td colspan="3"><?php echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) ); ?></td></tr>
-			<?php
-		else :
-			foreach ( $guesses as $g ) :
-				?>
+        <?php if ( empty( $guesses ) ) : ?>
+        <tr><td colspan="3"><?php echo esc_html( bhg_t( 'no_participants_yet', 'No participants yet.' ) ); ?></td></tr>
+                        <?php
+        else :
+                foreach ( $guesses as $g ) :
+                                ?>
 		<tr>
 			<td>
 							<?php
@@ -720,11 +734,37 @@ if ( 'edit' === $view ) :
 			</form>
 			</td>
 		</tr>
-					<?php
-		endforeach;
+                                        <?php
+                endforeach;
 endif;
-		?>
-	</tbody>
-	</table>
+                ?>
+        </tbody>
+        </table>
+
+        <?php
+        $participants_total_pages = (int) ceil( $total_guesses / $participants_per_page );
+        if ( $participants_total_pages > 1 ) :
+                $participants_base = remove_query_arg( 'participants_paged' );
+                $pagination_links  = paginate_links(
+                        array(
+                                'base'      => add_query_arg( 'participants_paged', '%#%', $participants_base ),
+                                'format'    => '',
+                                'current'   => $participants_page,
+                                'total'     => $participants_total_pages,
+                                'prev_text' => '&laquo;',
+                                'next_text' => '&raquo;',
+                                'type'      => 'list',
+                        )
+                );
+
+                if ( $pagination_links ) :
+                        ?>
+                        <div class="tablenav">
+                                <div class="tablenav-pages"><?php echo wp_kses_post( $pagination_links ); ?></div>
+                        </div>
+                        <?php
+                endif;
+        endif;
+        ?>
 </div>
 <?php endif; ?>
