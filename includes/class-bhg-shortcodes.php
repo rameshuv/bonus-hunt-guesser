@@ -1298,14 +1298,7 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 $select_params[] = $offset;
 
                                                 $query = $wpdb->prepare( $select_sql, ...$select_params );
-                                                bhg_log(
-                                                                array(
-                                                                                'tournament_leaderboard_sql' => $query,
-                                                                                'leaderboard_limit'          => $limit,
-                                                                                'leaderboard_offset'         => $offset,
-                                                                )
-                                                );
-                                                $rows = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                $rows  = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                                 }
 
                                 if ( empty( $rows ) ) {
