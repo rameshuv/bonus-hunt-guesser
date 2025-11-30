@@ -998,12 +998,12 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
 
                                                 $site_join_segment = $site_joins ? $site_joins . ' ' : ' ';
 
-                                                $site_scope_query = sprintf(
-                                                                'SELECT hw_scope.user_id, COUNT(DISTINCT CONCAT_WS(":", hw_scope.hunt_id, hw_scope.user_id)) AS win_count FROM %1$s hw_scope INNER JOIN %2$s h_scope ON h_scope.id = hw_scope.hunt_id%3$sWHERE %4$s GROUP BY hw_scope.user_id',
+                                               $site_scope_query = sprintf(
+                                                               'SELECT hw_scope.user_id, COUNT(DISTINCT CONCAT_WS(":", hw_scope.hunt_id, hw_scope.user_id)) AS win_count FROM %1$s hw_scope INNER JOIN %2$s h_scope ON h_scope.id = hw_scope.hunt_id%3$s WHERE %4$s GROUP BY hw_scope.user_id',
                                                                 $hw,
                                                                 $h,
                                                                 $site_join_segment,
-                                                                implode( ' AND ', $site_where )
+                                                                str_replace( '%', '%%', implode( ' AND ', $site_where ) )
                                                 );
 
                                                if ( ! empty( $site_params ) ) {
@@ -1115,13 +1115,13 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
 
                                                 $win_join_segment = $win_joins ? $win_joins . ' ' : ' ';
 
-                                                $win_count_sql = sprintf(
-                                                                "SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS(':', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$sWHERE %4$s GROUP BY hw_count.user_id",
+                                               $win_count_sql = sprintf(
+                                                               'SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS(\':\', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$s WHERE %4$s GROUP BY hw_count.user_id',
                                                                 $hw,
                                                                 $h,
                                                                 $win_join_segment,
-                                                                implode( ' AND ', $win_where )
-                                                );
+                                                                str_replace( '%', '%%', implode( ' AND ', $win_where ) )
+                                               );
 
                                                 if ( ! empty( $win_params ) ) {
                                                                 $win_count_sql = $wpdb->prepare( $win_count_sql, ...$win_params );
