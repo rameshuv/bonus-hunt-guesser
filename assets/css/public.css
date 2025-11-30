@@ -768,3 +768,640 @@ button[type="submit"]:focus {
     opacity: 0.7;
     margin: 0 4px;
 }
+/* ===========================
+   GLOBAL BUTTON STYLE (PLUGIN ONLY)
+   =========================== */
+
+.bhg-search-form button,
+.bhg-tournament-filters button,
+.bhg-filter-button,
+.bhg-submit-btn,
+.bhg-hunt-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0.45rem 1.1rem;
+
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+
+    background-color: #2271b1;
+    color: #ffffff;
+
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+}
+
+.bhg-search-form button:hover,
+.bhg-tournament-filters button:hover,
+.bhg-filter-button:hover,
+.bhg-submit-btn:hover,
+.bhg-hunt-link:hover {
+    background-color: #2271b1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    text-decoration: none;
+}
+
+.bhg-search-form button:active,
+.bhg-tournament-filters button:active,
+.bhg-filter-button:active,
+.bhg-submit-btn:active,
+.bhg-hunt-link:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+}
+
+/* ===========================
+   FILTERS & DROPDOWNS
+   =========================== */
+
+.bhg-search-form,
+.bhg-tournament-filters {
+    margin-bottom: 1.25rem;
+}
+
+/* Row containing dropdowns (Timeline, Status, Tournament, etc.) */
+.bhg-filter-controls {
+
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem; /* gap between dropdown row and search row */
+}
+
+/* Label + select alignment */
+.bhg-filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 14px;
+    color: #374151;
+}
+
+/* All dropdowns share same visual style */
+.bhg-filter-select,
+.bhg-filter-label select {
+    min-width: 150px;
+    min-height: 40px;
+
+    padding: 0.35rem 2.0rem 0.35rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #d0d5dd;
+    background-color: #ffffff;
+    color: #111827;
+    font-size: 14px;
+    font-family: inherit;
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    background-image:
+        linear-gradient(45deg, transparent 50%, #6b7280 50%),
+        linear-gradient(135deg, #6b7280 50%, transparent 50%);
+    background-position:
+        calc(100% - 14px) 50%,
+        calc(100% - 9px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.bhg-filter-select:hover,
+.bhg-filter-label select:hover {
+    border-color: #9ca3af;
+}
+
+.bhg-filter-select:focus,
+.bhg-filter-label select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
+    outline: none;
+}
+/* Search row container (full width) */
+.bhg-search-controls,
+.bhg-search-control {
+
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem; /* separation from table below */
+}
+
+/* Text part of search (input) should stretch */
+.bhg-search-control--text {
+
+}
+
+/* Search input styles (inside all plugin search blocks) */
+.bhg-search-controls input[type="text"],
+.bhg-search-control input[type="text"],
+.bhg-search-form input[type="text"][name="bhg_search"] {
+    min-height: 40px;
+    padding: 0.4rem 0.75rem;
+
+    border-radius: 4px;
+    border: 1px solid #d0d5dd;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.bhg-search-controls input[type="text"]:focus,
+.bhg-search-control input[type="text"]:focus,
+.bhg-search-form input[type="text"][name="bhg_search"]:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
+    outline: none;
+}
+
+/* The search button in these rows automatically gets the global button style
+   from section 1 because it's inside .bhg-search-form or has .bhg-filter-button */
+
+
+/* Leaderboard search form (shortcode 3 – input + button only) */
+.bhg-search-form.bhg-filters-row > input[type="text"],
+.bhg-search-form.bhg-filters-row > button {
+    vertical-align: middle;
+}
+
+.bhg-search-form.bhg-filters-row > input[type="text"] {
+    display: inline-block;
+    width: 100%;
+    max-width: 260px;
+    min-height: 40px;
+    padding: 0.4rem 0.75rem;
+    margin-right: 0.5rem;
+
+    border-radius: 4px;
+    border: 1px solid #d0d5dd;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.bhg-search-form.bhg-filters-row > input[type="text"]:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
+    outline: none;
+}
+
+@media (max-width: 640px) {
+    .bhg-filter-controls,
+    .bhg-search-controls,
+    .bhg-search-control {
+        flex-direction: row;
+    }
+
+    .bhg-search-controls input[type="text"],
+    .bhg-search-control input[type="text"],
+    .bhg-search-form input[type="text"][name="bhg_search"] {
+        width: 100%;
+    }
+
+    .bhg-search-form button,
+    .bhg-filter-button {
+        width: auto;
+    }
+}
+
+/* ===========================
+   USER GUESS FORM
+   =========================== */
+
+.bhg-guess-form {
+    margin: 1.25rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Label */
+.bhg-guess-label {
+    flex: 0 0 auto;
+    font-weight: 600;
+    font-size: 14px;
+    margin-right: 0.25rem;
+}
+
+/* Input – balanced padding left/right, aligned with button */
+#bhg-guess {
+
+    min-height: 40px;
+    padding: 0.4rem 0.75rem; /* smaller left, symmetric right */
+    border-radius: 4px;
+    border: 1px solid #d0d5dd;
+    font-size: 14px;
+    font-family: inherit;
+    max-width: 220px;
+}
+
+#bhg-guess:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
+    outline: none;
+}
+
+/* Button already gets global dark blue style from section 1 (.bhg-submit-btn) */
+/* ===========================
+   TABLES
+   =========================== */
+
+.bhg-table-wrapper {
+    margin-top: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.bhg-table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background-color: #ffffff;
+}
+
+.bhg-table-wrapper th,
+.bhg-table-wrapper td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.bhg-table-wrapper thead {
+    background-color: #f3f4f6;
+}
+
+.bhg-table-wrapper th {
+    font-weight: 600;
+    color: #4b5563;
+}
+
+/* Zebra rows for non-winners */
+.bhg-table-wrapper tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+.bhg-table-wrapper tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+/* WINNER HIGHLIGHT – profile table already uses .bhg-profile-row--winner */
+.bhg-profile-row--winner {
+    position: relative;
+    background-color: #ecfdf3; /* light green */
+}
+
+.bhg-profile-row--winner td {
+    border-bottom-color: #bbf7d0;
+}
+
+.bhg-profile-row--winner::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: -1px;
+    width: 4px;
+    background-color: #16a34a;
+}
+/* ===========================
+   PRIZE GRID (SHORTCODE 12)
+   =========================== */
+
+.bhg-prizes-shortcode {
+    margin: 1.5rem 0;
+}
+
+/* Grid layout for .bhg-prizes-grid */
+.bhg-prizes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+/* Individual prize card */
+.bhg-prize-card {
+
+    flex-direction: column;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+}
+
+.bhg-prize-card--linked:hover {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
+    transform: translateY(-1px);
+}
+
+.bhg-prize-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.bhg-prize-body {
+    padding: 0.75rem 0.9rem;
+}
+
+.bhg-prize-title {
+    margin: 0 0 0.25rem;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.bhg-prize-category {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 0.4rem;
+}
+
+.bhg-prize-description {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.4;
+}
+.bhg-table-wrapper th {
+    font-weight: 600;
+
+}
+
+.wp-block-post-content a:where(:not(.wp-element-button)) {
+
+}
+/* ===========================
+   ONE-LINE SEARCH + BUTTON + FILTERS
+   FOR ALL BHG SEARCH/FILTER FORMS
+   =========================== */
+
+.bhg-search-form.bhg-filters-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+    width: 100%;
+}
+
+/* Search input + button group */
+.bhg-search-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  
+}
+
+/* Input container */
+.bhg-search-control--text {
+  
+}
+
+/* Search input */
+.bhg-search-control--text input[type="text"] {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.45rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #d0d5dd;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.bhg-search-control--text input[type="text"]:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+    outline: none;
+}
+
+/* Search button */
+.bhg-search-control--submit button {
+    min-height: 42px;
+    padding: 0.45rem 1.1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+
+    background-color: #2271b1;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: all 0.15s ease;
+}
+
+.bhg-search-control--submit button:hover {
+    background-color: #2271b1;
+}
+
+/* FILTERS BLOCK (dropdown selectors) */
+.bhg-filter-controls {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 0.75rem;
+}
+
+/* Label text */
+.bhg-filter-label {
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+    margin-right: 0.35rem;
+}
+
+/* Dropdowns */
+.bhg-filter-select {
+    min-height: 42px;
+    padding: 0.35rem 2rem 0.35rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #d0d5dd;
+    font-size: 14px;
+    color: #111827;
+    font-family: inherit;
+
+    background-color: #fff;
+    appearance: none;
+
+    background-image:
+        linear-gradient(45deg, transparent 50%, #6b7280 50%),
+        linear-gradient(135deg, #6b7280 50%, transparent 50%);
+    background-position:
+        calc(100% - 14px) 50%,
+        calc(100% - 9px) 50%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+
+    transition: all 0.15s ease;
+}
+
+.bhg-filter-select:hover {
+    border-color: #9ca3af;
+}
+
+.bhg-filter-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+    outline: none;
+}
+
+/* RESPONSIVE (mobile) */
+@media (max-width: 680px) {
+    .bhg-search-form.bhg-filters-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .bhg-search-controls,
+    .bhg-filter-controls {
+        width: 100%;
+    }
+
+    .bhg-filter-controls {
+        flex-wrap: wrap;
+    }
+
+    .bhg-filter-select {
+        width: 100%;
+    }
+}
+
+/* Make the filter bar a single horizontal row */
+.bhg-filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* spacing between filters */
+    flex-wrap: nowrap; /* force single line */
+}
+
+/* Label styling */
+.bhg-filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Reduce dropdown width + standard height */
+.bhg-filter-select {
+    min-height: 38px;
+    width: 140px;         /* <<< reduced width */
+    max-width: 140px;     /* <<< keeps it compact */
+    padding: 0.35rem 2rem 0.35rem 0.6rem;
+
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    background-color: #ffffff;
+    font-size: 14px;
+    color: #111827;
+    font-family: inherit;
+
+    appearance: none;
+    background-image:
+        linear-gradient(45deg, transparent 50%, #6b7280 50%),
+        linear-gradient(135deg, #6b7280 50%, transparent 50%);
+    background-position:
+        calc(100% - 14px) 50%,
+        calc(100% - 9px) 50%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+
+    transition: border-color 0.15s ease;
+}
+
+.bhg-filter-select:hover {
+    border-color: #9ca3af;
+}
+
+.bhg-filter-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+}
+
+/* Optional: make this mobile responsive */
+@media (max-width: 600px) {
+    .bhg-filter-controls {
+        flex-wrap: wrap;
+    }
+}
+
+/* Container: keep items in one clean row */
+.bhg-search-control {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
+}
+
+/* Label text alignment */
+.bhg-search-control .bhg-filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 14px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Compact search input width */
+.bhg-search-control input[type="text"] {
+    width: 180px;          /* <<< standard compact width */
+    min-height: 38px;
+    padding: 0.4rem 0.6rem;
+
+    border-radius: 4px;
+    border: 1px solid #d0d5dd;
+    font-size: 14px;
+    font-family: inherit;
+
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bhg-search-control input[type="text"]:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+    outline: none;
+}
+
+/* Compact Search Button */
+.bhg-search-control .bhg-filter-button {
+    min-width: 180px;       /* <<< reduced button width */
+    min-height: 38px;
+    padding: 0.4rem 0.8rem;
+
+    background-color: #083c74;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+}
+
+.bhg-search-control .bhg-filter-button:hover {
+    background-color: #0b4d93;
+}
+
+.bhg-search-control .bhg-filter-button:active {
+    transform: translateY(1px);
+}
+button[type="submit"] {
+
+    margin-top: 25px;
+}
+
+.bhg-tournament-countdown {
+    background-color: #888888;
+
+}
