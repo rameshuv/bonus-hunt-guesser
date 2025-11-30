@@ -62,6 +62,67 @@ if ( ! class_exists( 'BHG_Shortcodes' ) ) {
                 return $row && isset( $row->id ) ? (int) $row->id : 0;
         }
 
+                /**
+                 * Determine whether a user belongs to a given affiliate site.
+                 *
+                 * Falls back to user meta checks when the global helper is not
+                 * available so affiliate filters keep working in limited
+                 * environments (e.g. missing helper functions during unit
+                 * tests or partial installs).
+                 *
+                 * @param int $user_id    User ID.
+                 * @param int $site_id    Affiliate site ID.
+                 * @return bool Whether the user matches the affiliate site.
+                 */
+                private function user_matches_affiliate_site( $user_id, $site_id ) {
+                        if ( $user_id <= 0 || $site_id <= 0 ) {
+                                return false;
+                        }
+
+                        if ( function_exists( 'bhg_is_user_affiliate_for_site' ) ) {
+                                return (bool) bhg_is_user_affiliate_for_site( $user_id, $site_id );
+                        }
+
+                        $user_site_id = (int) get_user_meta( $user_id, 'affiliate_site_id', true );
+                        if ( $user_site_id > 0 ) {
+                                return ( $user_site_id === (int) $site_id );
+                        }
+
+                        $user_site = (string) get_user_meta( $user_id, 'affiliate_site', true );
+                        if ( '' === $user_site ) {
+                                return false;
+                        }
+
+                        static $site_lookup = array();
+                        if ( ! isset( $site_lookup[ $site_id ] ) ) {
+                                global $wpdb;
+
+                                $table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                                if ( $table ) {
+                                        $site_lookup[ $site_id ] = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                $wpdb->prepare(
+                                                        "SELECT slug, name FROM {$table} WHERE id = %d",
+                                                        $site_id
+                                                )
+                                        );
+                                } else {
+                                        $site_lookup[ $site_id ] = null;
+                                }
+                        }
+
+                        $site_row = $site_lookup[ $site_id ];
+                        if ( $site_row ) {
+                                $slug_matches = isset( $site_row->slug ) && strtolower( (string) $site_row->slug ) === strtolower( $user_site );
+                                $name_matches = isset( $site_row->name ) && strtolower( (string) $site_row->name ) === strtolower( $user_site );
+
+                                if ( $slug_matches || $name_matches ) {
+                                        return true;
+                                }
+                        }
+
+                        return (string) $site_id === $user_site;
+                }
+
 		/**
 		 * Flag to prevent enqueueing prize assets multiple times per request.
 		 *
@@ -500,7 +561,7 @@ array(
                                                'MIN(hw.position) AS position',
                                                'MAX(' . $win_date_expr . ') AS win_date',
                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
-                                               "COUNT(DISTINCT CONCAT_WS(':', hw.hunt_id, hw.user_id)) AS win_count",
+                                               'COUNT(DISTINCT hw.id) AS win_count',
                                );
 
                                $base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
@@ -525,14 +586,14 @@ array(
 
                                $allow_union = $tournament_id > 0 && $r && $t && $hunt_id <= 0 && $website_id <= 0;
                                if ( $allow_union ) {
-                                               $participant_select = array(
-                                                               'tr.user_id',
-                                                               '-1 * ABS(tr.user_id) AS hunt_id',
-                                                               'NULL AS position',
-                                                               "COALESCE( NULLIF( tr.last_win_date, '0000-00-00 00:00:00' ), tr.last_win_date ) AS win_date",
-                                                               't_union.affiliate_site_id AS affiliate_site_id',
-                                                               '0 AS win_count',
-                                               );
+                                                $participant_select = array(
+                                                                'tr.user_id',
+                                                                '0 AS hunt_id',
+                                                                'NULL AS position',
+                                                                "COALESCE( NULLIF( tr.last_win_date, '0000-00-00 00:00:00' ), tr.last_win_date ) AS win_date",
+                                                                't_union.affiliate_site_id AS affiliate_site_id',
+                                                                '0 AS win_count',
+                                                );
 
                                                $participant_joins = array( "LEFT JOIN {$t} t_union ON t_union.id = tr.tournament_id" );
                                                $participant_where = array( 'tr.tournament_id = %d' );
@@ -713,19 +774,20 @@ array(
                                $order_sql   = ' ORDER BY ' . implode( ', ', $order_clauses );
                                $select_sql .= $order_sql;
 
-                               $apply_affiliate_site_filter = $website_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' );
+                               $apply_affiliate_site_filter = $website_id > 0;
 
                                if ( $apply_affiliate_site_filter ) {
                                                // Load all rows for the filtered site so we can drop users without the site enabled.
                                                $rows_all = $wpdb->get_results( $select_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                                                $filtered_rows = array();
 
-                                               foreach ( (array) $rows_all as $row_obj ) {
-                                                               $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
-                                                               if ( $uid > 0 && bhg_is_user_affiliate_for_site( $uid, $website_id ) ) {
-                                                                               $filtered_rows[] = $row_obj;
+                                                               foreach ( (array) $rows_all as $row_obj ) {
+                                                                               $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
+
+                                                                               if ( $this->user_matches_affiliate_site( $uid, $website_id ) ) {
+                                                                                               $filtered_rows[] = $row_obj;
+                                                                               }
                                                                }
-                                               }
 
                                                $total       = count( $filtered_rows );
                                                $total_pages = max( 1, (int) ceil( $total / $per_page ) );
@@ -823,8 +885,10 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                 return null;
                                 }
 
-                               $tournament_affiliate_site     = get_post_meta( $tournament_id, 'affiliate_site', true );
-                               $tournament_affiliate_site_id  = (int) get_post_meta( $tournament_id, 'affiliate_site_id', true );
+                               $t                           = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+
+                               $tournament_affiliate_site    = get_post_meta( $tournament_id, 'affiliate_site', true );
+                               $tournament_affiliate_site_id = (int) get_post_meta( $tournament_id, 'affiliate_site_id', true );
                                if ( $tournament_affiliate_site_id <= 0 && $t ) {
                                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                                                $tournament_affiliate_site_id = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT affiliate_site_id FROM ' . $t . ' WHERE id = %d', $tournament_id ) );
@@ -851,7 +915,7 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 $hw = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_hunt_winners' ) );
                                 $h  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
                                 $ht = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments_hunts' ) );
-                                $t  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+                                // $t already set above for tournament meta lookups.
                                 $w  = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
 
                                 if ( ! $r || ! $u ) {
@@ -932,13 +996,15 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                                $site_params[] = $range['end'];
                                                }
 
+                                                $site_join_segment = $site_joins ? $site_joins . ' ' : ' ';
+
                                                $site_scope_query = sprintf(
                                                                'SELECT hw_scope.user_id, COUNT(DISTINCT CONCAT_WS(":", hw_scope.hunt_id, hw_scope.user_id)) AS win_count FROM %1$s hw_scope INNER JOIN %2$s h_scope ON h_scope.id = hw_scope.hunt_id%3$s WHERE %4$s GROUP BY hw_scope.user_id',
-                                                               $hw,
-                                                               $h,
-                                                               $site_joins,
-                                                               implode( ' AND ', $site_where )
-                                               );
+                                                                $hw,
+                                                                $h,
+                                                                $site_join_segment,
+                                                                str_replace( '%', '%%', implode( ' AND ', $site_where ) )
+                                                );
 
                                                if ( ! empty( $site_params ) ) {
                                                                $site_scope_query = $wpdb->prepare( $site_scope_query, ...$site_params );
@@ -1047,13 +1113,15 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                                 $win_params[] = $range['end'];
                                                 }
 
-                                                $win_count_sql = sprintf(
-                                                                "SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS(':', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$s WHERE %4$s GROUP BY hw_count.user_id",
+                                                $win_join_segment = $win_joins ? $win_joins . ' ' : ' ';
+
+                                               $win_count_sql = sprintf(
+                                                               'SELECT hw_count.user_id, COUNT(DISTINCT CONCAT_WS(\':\', hw_count.hunt_id, hw_count.user_id)) AS win_count FROM %1$s hw_count INNER JOIN %2$s h_count ON h_count.id = hw_count.hunt_id%3$s WHERE %4$s GROUP BY hw_count.user_id',
                                                                 $hw,
                                                                 $h,
-                                                                $win_joins,
-                                                                implode( ' AND ', $win_where )
-                                                );
+                                                                $win_join_segment,
+                                                                str_replace( '%', '%%', implode( ' AND ', $win_where ) )
+                                               );
 
                                                 if ( ! empty( $win_params ) ) {
                                                                 $win_count_sql = $wpdb->prepare( $win_count_sql, ...$win_params );
@@ -1155,7 +1223,7 @@ $select_parts[] = 't_main.title AS tournament_title';
 
                                 $select_sql .= sprintf( ' ORDER BY %s %s', $orderby, $direction );
 
-                                $apply_affiliate_site_filter = $website_id > 0 && function_exists( 'bhg_is_user_affiliate_for_site' );
+                                $apply_affiliate_site_filter = $website_id > 0;
 
                                 if ( $needs_affiliate_site_filter ) {
                                                 $select_params = $params;
@@ -1168,10 +1236,10 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                                 $rows_all = array_values(
                                                                                 array_filter(
                                                                                                 $rows_all,
-                                                                                                static function ( $row_obj ) use ( $website_id ) {
+                                                                                                function ( $row_obj ) use ( $website_id ) {
                                                                                                                 $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
 
-                                                                                                                return ( $uid > 0 && bhg_is_user_affiliate_for_site( $uid, $website_id ) );
+                                                                                                                return $this->user_matches_affiliate_site( $uid, $website_id );
                                                                                                 }
                                                                                 )
                                                                 );
@@ -1198,7 +1266,7 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 foreach ( (array) $rows_all as $row_obj ) {
                                                                 $uid = isset( $row_obj->user_id ) ? (int) $row_obj->user_id : 0;
 
-                                                                if ( $uid > 0 && bhg_is_user_affiliate_for_site( $uid, $website_id ) ) {
+                                                                if ( $this->user_matches_affiliate_site( $uid, $website_id ) ) {
                                                                                 $filtered_rows[] = $row_obj;
                                                                 }
                                                 }
@@ -5651,7 +5719,7 @@ $order_sql     = implode( ', ', $order_parts );
 
                 $select_sql = "SELECT r.user_id, r.wins, r.points, r.last_win_date, u.user_login FROM {$r} r INNER JOIN {$u} u ON u.ID = r.user_id WHERE r.tournament_id = %d ORDER BY {$order_sql}";
 
-$apply_site_filter        = ( $site_filter > 0 && function_exists( 'bhg_is_user_affiliate_for_site' ) );
+$apply_site_filter        = ( $site_filter > 0 );
                 $tournament_affiliate     = get_post_meta( (int) $tournament->id, 'affiliate_site', true );
                 $tournament_affiliate_id  = isset( $tournament->affiliate_site_id ) ? (int) $tournament->affiliate_site_id : 0;
                 $manual_filtering         = $apply_site_filter || '' !== $tournament_affiliate || $tournament_affiliate_id > 0;
@@ -5673,7 +5741,7 @@ $apply_site_filter        = ( $site_filter > 0 && function_exists( 'bhg_is_user_
                                                                continue;
                                                }
 
-                                               if ( $apply_site_filter && ! bhg_is_user_affiliate_for_site( $uid, $site_filter ) ) {
+                                               if ( $apply_site_filter && ! $this->user_matches_affiliate_site( $uid, $site_filter ) ) {
                                                                continue;
                                                }
 
