@@ -561,7 +561,7 @@ array(
                                                'MIN(hw.position) AS position',
                                                'MAX(' . $win_date_expr . ') AS win_date',
                                                'MAX(h.affiliate_site_id) AS affiliate_site_id',
-                                               'COUNT(DISTINCT hw.id) AS win_count',
+                                               'COUNT(DISTINCT hw.hunt_id) AS win_count',
                                );
 
                                $base_sql = 'SELECT ' . implode( ', ', $base_select_parts ) . " FROM {$hw} hw {$joins_sql}{$where_sql} GROUP BY hw.user_id, hw.hunt_id";
@@ -999,7 +999,7 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                                 $site_join_segment = $site_joins ? $site_joins . ' ' : ' ';
 
                                                $site_scope_query = sprintf(
-                                                               'SELECT hw_scope.user_id, COUNT(DISTINCT CONCAT_WS(":", hw_scope.hunt_id, hw_scope.user_id)) AS win_count FROM %1$s hw_scope INNER JOIN %2$s h_scope ON h_scope.id = hw_scope.hunt_id%3$s WHERE %4$s GROUP BY hw_scope.user_id',
+                                                               'SELECT hw_scope.user_id, COUNT(DISTINCT hw_scope.hunt_id) AS win_count FROM %1$s hw_scope INNER JOIN %2$s h_scope ON h_scope.id = hw_scope.hunt_id%3$s WHERE %4$s GROUP BY hw_scope.user_id',
                                                                 $hw,
                                                                 $h,
                                                                 $site_join_segment,
