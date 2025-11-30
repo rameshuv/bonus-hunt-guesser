@@ -1,186 +1,38 @@
-# Bonus Hunt Guesser v8.0.14 Delivery Checklist
+# Delivery Readiness Checklist (v8.0.22)
 
-> **Environment targets:** PHP 7.4 · WordPress 6.3.0 · MySQL 5.5.5+
-> **Standards:** PHPCS (`WordPress-Extra`, `WordPress-Docs`, `WordPress-Core`)
-> **Text Domain:** `bonus-hunt-guesser`
+## Delivery Verdict
+- **Current status:** Not ready for delivery until functional checks below are executed in a WordPress 6.3.5 / PHP 7.4 / MySQL 5.5.5+ environment.
+- **Version:** Plugin header already set to **8.0.22** in `bonus-hunt-guesser.php`.
 
-This checklist consolidates all customer-approved functionality and QA expectations for the Bonus Hunt Guesser plugin. Use it when preparing a release, performing QA, or validating that custom requirements have been met. Mark each item when the condition has been verified in the stated environment.
+## Runtime and Environment
+- [ ] Confirm runtime matches **PHP 7.4**, **WordPress 6.3.5**, **MySQL 5.5.5+** (staging).
+- [ ] Run smoke test for fatal errors/notices across all shortcodes after enabling WP_DEBUG.
 
----
+## Leaderboard Adjustments
+- [ ] **Times won:** Validate per-user counts across at least two closed bonus hunts with distinct winners (e.g., sample URL provided) and confirm counts differ by user as expected.
+- [ ] **Prize block options:** In general settings, confirm Grid/Carousel options save; verify prizes honor items-per-view and total items in shortcode output.
+- [ ] **Affiliate filter:** Apply affiliate website filter (e.g., moderators) and confirm only matching users render.
+- [ ] **Pagination:** Confirm page links are clickable and change results across leaderboard pages.
+- [ ] **Avg tournament position:** Recompute average using current rankings across open/closed tournaments and verify against manual calculation for at least two users.
+- [ ] **Tournament dropdown:** Ensure dropdown always lists all tournaments plus “All tournaments,” with shortcode-preselected tournament selected by default.
+- [ ] **`bhg_leaderboard_list` stability:** Render shortcode with filters, pagination, prize blocks, dropdowns, and metrics above without PHP warnings/notices.
 
-## 0. Plugin Bootstrap & Tooling
+## Tournament Adjustments
+- [ ] **Tournament detail shortcode:** Confirm frontend renders tournament details (title, info, description, prizes, countdown) at `/tournaments/?bhg_tournament_id=ID`.
+- [ ] **Prize block options:** Validate Grid/Carousel settings save and render correctly with items-per-view and total item limits.
+- [ ] **Pagination:** Verify working pagination for tournament and bonus hunt shortcodes after data loads.
+- [ ] **Affiliate filter:** Confirm tournament participant list respects affiliate website group (e.g., moderators-only tournament shows only moderators).
+- [ ] **Winner highlighting:** Check that number of highlighted rows matches configured winner count; non-winners use default styling.
+- [ ] **Column header:** Table header reads **“User”** (not “Username”).
+- [ ] **Countdown placement:** Tournament title/info/description shown in a cohesive block; countdown positioned below prizes.
 
-- [ ] **Plugin header** in `bonus-hunt-guesser.php` reflects version 8.0.14 and required metadata (URI, description, author, text-domain, domain path, min WP/PHP/MySQL, license).
-- [ ] **Text domain** is loaded with `load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );` and all strings use the matching domain.
-- [ ] **Activation/Deactivation/Uninstall hooks** register and clean up options/tables safely (no fatal errors on activation).
-- [ ] **Composer autoloader** (if used) is dumped and included; third-party libraries are licensed appropriately.
-- [ ] **PHPCS** passes with the configured WordPress standard (warnings acceptable if documented rationale).
-- [ ] **Unit/integration tests** (PHPUnit) pass, or failing tests are documented with remediation steps.
+## Global Filters & UI/UX
+- [ ] **Filter styling:** Filters for bonus hunts, leaderboards, tournaments, and user guess use consistent dropdown styling (matching tournaments style).
+- [ ] **Dropdown layout:** All dropdowns aligned in a single row with even spacing.
+- [ ] **Search/filter alignment:** Search bar on its own row (full width) aligned with table width; buttons equal height with proper padding.
+- [ ] **User guess form:** Input uses reduced left padding and symmetrical right padding; submit button uses global dark blue style.
 
----
-
-## 1. Admin Dashboard (`bhg`)
-
-- [ ] WP Admin menu label is **“Dashboard”** (not “Bonushunt”).
-- [ ] Dashboard shows **Latest Hunts** table (3 most recent hunts).
-- [ ] Table columns: Hunt Title, Winners (all ranked winners with guess + difference), Start Balance, Final Balance, Closed At.
-- [ ] Supports up to **25 winners** per hunt in the dashboard view.
-- [ ] Balances align left and are formatted with the configured currency symbol.
-
----
-
-## 2. Bonus Hunts Admin (`bhg-bonus-hunts`)
-
-- [ ] List table includes sortable columns, search box, pagination (30/page), and affiliate column between Final Balance and Winners.
-- [ ] **Actions column:** Edit, Close/Results, Toggle Guessing, and other relevant actions.
-- [ ] **Admin Action column:** Contains Delete button (with nonce & capability checks) isolated from other actions.
-- [ ] Results button opens ranked guesses view with winners highlighted.
-- [ ] Final Balance column shows numeric value or `-` for open hunts.
-- [ ] Add/Edit screen captures: title, start balance, final balance, bonuses, winners count (configurable), guess toggle, affiliate dropdown, prize multiselect, connected tournaments, and CSS panel settings.
-- [ ] Guessing toggle available both in list actions and edit screen; disabled hunts block frontend submissions.
-- [ ] Edit screen displays participant list with ability to remove guesses; usernames link to user profiles.
-- [ ] Prize associations persist and sync with frontend displays.
-
----
-
-## 3. Bonus Hunt Results (`bhg-bonus-hunts-results`)
-
-- [ ] Defaults to latest hunt results; dropdown allows selecting any hunt or tournament.
-- [ ] Includes timeline filter (This Month, This Year, All Time).
-- [ ] If no winners exist, displays “There are no winners yet” notice and hides table.
-- [ ] Results table shows ranked list (best to worst), highlights winners, and respects configured winner count.
-- [ ] Supports CSV export or print (if promised) and honors search/pagination (30/page).
-
----
-
-## 4. Tournaments Admin (`bhg-tournaments`)
-
-- [ ] List table has sortable columns, search, pagination (30/page), affiliate column, Actions (Edit, Close, Results), and Admin Action (Delete).
-- [ ] Add/Edit form includes title, description, start/end dates, affiliate selection, participants mode (winners only/all guessers), connected hunts (auto/manual options), prizes, CSS settings, and affiliate URL visibility toggle.
-- [ ] “Type” field removed; timeline logic driven by date ranges.
-- [ ] Editing tournaments works (form pre-populated; save updates rows).
-- [ ] Many-to-many relationships between hunts and tournaments persist via junction table.
-
----
-
-## 5. Users Admin (`bhg-users`)
-
-- [ ] Table supports search (name/email), sortable columns, pagination (30/page).
-- [ ] Displays affiliate fields per affiliate site (yes/no toggles) with ability to edit.
-- [ ] Links to standard WP user edit screen and custom profile enhancements.
-- [ ] Data integrity: removing affiliate sites cleans user meta fields.
-
----
-
-## 6. Affiliates (`bhg-affiliates`)
-
-- [ ] CRUD works for affiliate websites; deletion cleans user/profile references.
-- [ ] Adding affiliate auto-creates user profile toggles.
-- [ ] Placement in hunts/tournaments respected; show/hide toggles work on frontend outputs.
-
----
-
-## 7. Prizes Module (`bhg-prizes`)
-
-- [ ] Admin menu exposes Prizes list with Add/Edit/Delete actions.
-- [ ] Fields: title, description, category (cash money, casino money, coupons, merchandise, various), image upload.
-- [ ] Image sizes generated: small, medium, big.
-- [ ] CSS panel options available (border, color, padding, margin, background).
-- [ ] Active toggle (yes/no) controls availability and surfaces in hunts/tournaments selection.
-- [ ] Frontend active hunts can display prizes in grid or carousel layout.
-- [ ] Carousel includes dots and/or left/right navigation; responsive and accessible.
-- [ ] Shortcode `[bhg_prizes]` filters by category, design, size, active state.
-
----
-
-## 8. Shortcodes Overview (`bhg-shortcodes` admin + frontend)
-
-- [ ] Admin Shortcodes page lists each shortcode, attributes, and sample usage under “Info & Help”.
-- [ ] Existing shortcodes functional: `[bhg_user_profile]`, `[bhg_active_hunt]`, `[bhg_guess_form]`, `[bhg_guess_form hunt_id="..."]`, `[bhg_tournaments]`, `[bhg_winner_notifications]`, `[bhg_leaderboard]`.
-- [ ] New shortcodes implemented:
-  - `[bhg_user_guesses id="" aff="" website=""]`
-  - `[bhg_hunts status="" bonushunt="" website="" timeline=""]`
-  - `[bhg_tournaments status="" tournament="" website="" timeline=""]`
-  - `[bhg_leaderboards tournament="" bonushunt="" aff="" website="" ranking="" timeline=""]`
-  - `[bhg_advertising status="" ad=""]`
-  - `[bhg_profile]` (extended profile block with real name, email, affiliate info).
-- [ ] Shortcode tables support sorting, search, pagination (30/page), timeline filters (This Week/Month/Year/Last Year/All-Time).
-- [ ] Affiliate indicators (green/red lights) present where specified, with affiliate website titles shown when available.
-- [ ] Active hunt shortcode provides dropdown when multiple hunts are open, includes hunt details, guesses, pagination, and respects currency symbol.
-- [ ] Guess form shortcode respects multiple active hunts selector, redirect URL setting, and dynamic button text (Submit vs. Edit Guess).
-- [ ] Leaderboards shortcode outputs Times Won, Average Hunt Position, Average Tournament Position metrics with filter controls.
-
----
-
-## 9. Notifications (`bhg-notifications`)
-
-- [ ] Admin tab exists with blocks for Winners, Tournament, and Bonushunt notifications.
-- [ ] Each block includes editable title, HTML description, BCC field, enable/disable checkbox (default off).
-- [ ] Emails send via `wp_mail()` with proper headers/escaping; BCC honored.
-- [ ] Hooks/filters expose overrides for subject/body/headers.
-
----
-
-## 10. Ads Module (`bhg-ads`)
-
-- [ ] List table has Actions (Edit, Remove) plus Admin Action (Delete if separate) and supports pagination/search/sort.
-- [ ] Placement dropdown includes “none” for shortcode-only placements.
-- [ ] Ads respect login/affiliate visibility rules and appear in configured locations/shortcodes.
-
----
-
-## 11. Translations & Tools (`bhg-translations`, `bhg-tools`)
-
-- [ ] Translations page pre-populates front-end display strings for editing.
-- [ ] Tools section lists available data/export/import utilities or indicates intentionally empty state with helper text.
-
----
-
-## 12. Notifications & Points Logic
-
-- [ ] Winner determination based on guess proximity to final balance (ties handled as specified).
-- [ ] Points system editable: defaults 25/15/10/5/4/3/2/1, scope toggles for active/closed/all hunts.
-- [ ] Tournament and Bonus Hunt rankings use points logic, highlighting winners and top 3.
-- [ ] Data recalculates when winners/guesses updated; caches invalidated.
-
----
-
-## 13. Currency & Formatting
-
-- [ ] Settings page offers currency selection (€ / $) stored as option.
-- [ ] All monetary outputs use helper (e.g., `bhg_format_money()`) respecting currency and localization.
-- [ ] Admin and frontend tables align currency values consistently (left alignment per request).
-
----
-
-## 14. Security, Performance, Compatibility
-
-- [ ] Capability checks guard all admin pages/actions (`manage_options` or custom caps).
-- [ ] Nonces verify all state-changing requests; actions validate current user role.
-- [ ] Inputs sanitized/validated (`sanitize_text_field`, `absint`, etc.) and outputs escaped (`esc_html`, `esc_attr`, `wp_kses_post`).
-- [ ] Database schema migrations up to date; indexes added for frequently queried columns.
-- [ ] Avoid N+1 queries; use caching/transients where appropriate.
-- [ ] Compatible with PHP 7.4, WordPress 6.3.0, MySQL 5.5.5+ (no deprecated API usage).
-
----
-
-## 15. Release Management
-
-- [ ] Version bumped to 8.0.14 in plugin header, constants, and documentation.
-- [ ] CHANGELOG/readme updated with new features, fixes, and upgrade notes.
-- [ ] Screenshots/GIFs refreshed for new UI where applicable.
-- [ ] Final sanity checks: activation, upgrade path, uninstall cleanup, no fatal PHP errors.
-
----
-
-### Sign-off
-
-Use the space below to capture final reviewer notes, outstanding issues, or follow-up tasks before shipping the release.
-
-- **Reviewer:** ____________________
-- **Date:** ____________________
-- **Notes:**
-  - ___________________________________________________________
-  - ___________________________________________________________
-  - ___________________________________________________________
-
+## Release Gate
+- [ ] All checks above validated in staging with screenshots where applicable.
+- [ ] No unresolved PHP notices/warnings in logs after exercising all shortcodes.
+- [ ] Sign-off recorded: “Ready for delivery” once every checkbox is confirmed.
