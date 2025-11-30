@@ -261,7 +261,7 @@
     padding: 8px 12px;
     height: 38px;
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
+    border-radius: 8px;
     background-color: #fff;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
     font-size: 14px;
@@ -1022,7 +1022,7 @@ tr.bhg-winner,
 }
 
 /* Responsive tables */
-@media screen and (max-width: 782px) {
+@media screen and (max-width: 640px) {
     .bhg-leaderboard,
     .bhg-leaderboard thead,
     .bhg-leaderboard tbody,
@@ -1134,7 +1134,7 @@ tr.bhg-winner,
     font-weight: 600;
 }
 
-@media screen and (max-width: 782px) {
+@media screen and (max-width: 640px) {
     .bhg-user-profile-table,
     .bhg-user-profile-table tbody,
     .bhg-user-profile-table tr,
