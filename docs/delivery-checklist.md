@@ -1,9 +1,10 @@
 # Delivery Readiness Checklist (v8.0.22)
 
-## Delivery Verdict
-- **Current status:** **NOT READY FOR DELIVERY** — no end-to-end validation has been executed yet in a WordPress 6.3.5 / PHP 7.4 / MySQL 5.5.5+ stack. All checklist items below must be confirmed on staging before greenlighting release.
+## Delivery Verdict (Answer to "Can we deliver now?")
+- **Current status:** **NOT READY FOR DELIVERY** — no end-to-end validation has been executed in a WordPress 6.3.5 / PHP 7.4 / MySQL 5.5.5+ environment. A full test pass is still required.
+- **Blocking reason:** Every item below needs a recorded pass on staging; no functional evidence is logged yet for leaderboards, tournaments, filters, pagination, or UI alignment.
 - **Version:** Plugin header already set to **8.0.22** in `bonus-hunt-guesser.php`.
-- **Verification log:** Record tester, date, environment (PHP/WP/MySQL), and pass/fail for every section. Do not ship without a fully completed log.
+- **Verification log:** Capture tester, date, environment (PHP/WP/MySQL), and pass/fail for every section. Do not ship without a fully completed log with screenshots where relevant.
 
 ## Runtime and Environment
 - [ ] Confirm runtime matches **PHP 7.4**, **WordPress 6.3.5**, **MySQL 5.5.5+** (staging) and that caches/CDN are disabled during validation.
