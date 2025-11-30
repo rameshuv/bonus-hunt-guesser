@@ -650,7 +650,7 @@
 }
 
 .bhg-table-wrapper {
-    overflow-x: hidden;
+    overflow-x: visible;
     margin: 0 0 16px;
     padding: 0 0 12px;
     max-width: 100%;
