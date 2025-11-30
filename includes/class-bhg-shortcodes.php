@@ -5724,6 +5724,10 @@ $order_parts[] = 'r.points DESC';
 $order_parts[] = 'r.wins DESC';
 break;
 }
+
+if ( 'u.user_login' !== $orderby ) {
+$order_parts[] = 'u.user_login ASC';
+}
 $order_parts[] = 'r.user_id ASC';
 $order_sql     = implode( ', ', $order_parts );
 
