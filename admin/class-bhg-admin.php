@@ -909,10 +909,13 @@ $prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
 			exit;
 		}
 
-		$settings = array(
-			'carousel_visible'  => isset( $_POST['carousel_visible'] ) ? absint( wp_unslash( $_POST['carousel_visible'] ) ) : 1,
-			'carousel_total'    => isset( $_POST['carousel_total'] ) ? absint( wp_unslash( $_POST['carousel_total'] ) ) : 0,
-			'carousel_autoplay' => isset( $_POST['carousel_autoplay'] ) ? 1 : 0,
+                $settings = array(
+                        'layout'            => isset( $_POST['layout'] ) ? sanitize_text_field( wp_unslash( $_POST['layout'] ) ) : 'grid',
+                        'grid_columns'      => isset( $_POST['grid_columns'] ) ? absint( wp_unslash( $_POST['grid_columns'] ) ) : 3,
+                        'grid_total'        => isset( $_POST['grid_total'] ) ? absint( wp_unslash( $_POST['grid_total'] ) ) : 0,
+                        'carousel_visible'  => isset( $_POST['carousel_visible'] ) ? absint( wp_unslash( $_POST['carousel_visible'] ) ) : 1,
+                        'carousel_total'    => isset( $_POST['carousel_total'] ) ? absint( wp_unslash( $_POST['carousel_total'] ) ) : 0,
+                        'carousel_autoplay' => isset( $_POST['carousel_autoplay'] ) ? 1 : 0,
 			'carousel_interval' => isset( $_POST['carousel_interval'] ) ? absint( wp_unslash( $_POST['carousel_interval'] ) ) : 5000,
 			'hide_heading'      => isset( $_POST['hide_heading'] ) ? 1 : 0,
 			'heading_text'      => isset( $_POST['heading_text'] ) ? sanitize_text_field( wp_unslash( $_POST['heading_text'] ) ) : '',
