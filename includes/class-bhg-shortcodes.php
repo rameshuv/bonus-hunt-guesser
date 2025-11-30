@@ -1223,7 +1223,15 @@ $select_parts[] = 't_main.title AS tournament_title';
                                                 $select_sql .= ' WHERE ' . implode( ' AND ', $where );
                                 }
 
-                                $select_sql .= sprintf( ' ORDER BY %s %s', $orderby, $direction );
+                                $order_clauses = array( sprintf( '%s %s', $orderby, $direction ) );
+
+                                if ( 'u.user_login' !== $orderby ) {
+                                                $order_clauses[] = 'u.user_login ASC';
+                                }
+
+                                $order_clauses[] = 'tr.user_id ASC';
+
+                                $select_sql .= ' ORDER BY ' . implode( ', ', $order_clauses );
 
                                 $apply_affiliate_site_filter = $website_id > 0;
 
