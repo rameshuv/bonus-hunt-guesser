@@ -1,21 +1,22 @@
 # Delivery Readiness Checklist (v8.0.22)
 
 ## Delivery Verdict
-- **Current status:** Not ready for delivery until functional checks below are executed in a WordPress 6.3.5 / PHP 7.4 / MySQL 5.5.5+ environment.
+- **Current status:** **NOT READY FOR DELIVERY** — no end-to-end validation has been executed yet in a WordPress 6.3.5 / PHP 7.4 / MySQL 5.5.5+ stack. All checklist items below must be confirmed on staging before greenlighting release.
 - **Version:** Plugin header already set to **8.0.22** in `bonus-hunt-guesser.php`.
+- **Verification log:** Record tester, date, environment (PHP/WP/MySQL), and pass/fail for every section. Do not ship without a fully completed log.
 
 ## Runtime and Environment
-- [ ] Confirm runtime matches **PHP 7.4**, **WordPress 6.3.5**, **MySQL 5.5.5+** (staging).
-- [ ] Run smoke test for fatal errors/notices across all shortcodes after enabling WP_DEBUG.
+- [ ] Confirm runtime matches **PHP 7.4**, **WordPress 6.3.5**, **MySQL 5.5.5+** (staging) and that caches/CDN are disabled during validation.
+- [ ] Run smoke test for fatal errors/notices across all shortcodes after enabling `WP_DEBUG` and capture logs/screenshots.
 
 ## Leaderboard Adjustments
-- [ ] **Times won:** Validate per-user counts across at least two closed bonus hunts with distinct winners (e.g., sample URL provided) and confirm counts differ by user as expected.
+- [ ] **Times won:** Validate per-user counts across at least two closed bonus hunts with distinct winners (e.g., sample URL provided) and confirm counts differ by user as expected (no global constant values).
 - [ ] **Prize block options:** In general settings, confirm Grid/Carousel options save; verify prizes honor items-per-view and total items in shortcode output.
 - [ ] **Affiliate filter:** Apply affiliate website filter (e.g., moderators) and confirm only matching users render.
-- [ ] **Pagination:** Confirm page links are clickable and change results across leaderboard pages.
+- [ ] **Pagination:** Confirm page links are clickable and change results across leaderboard pages; verify page-size respects settings and that URL parameters persist filters.
 - [ ] **Avg tournament position:** Recompute average using current rankings across open/closed tournaments and verify against manual calculation for at least two users.
-- [ ] **Tournament dropdown:** Ensure dropdown always lists all tournaments plus “All tournaments,” with shortcode-preselected tournament selected by default.
-- [ ] **`bhg_leaderboard_list` stability:** Render shortcode with filters, pagination, prize blocks, dropdowns, and metrics above without PHP warnings/notices.
+- [ ] **Tournament dropdown:** Ensure dropdown always lists all tournaments plus “All tournaments,” with shortcode-preselected tournament selected by default; confirm keyboard navigation works.
+- [ ] **`bhg_leaderboard_list` stability:** Render shortcode with filters, pagination, prize blocks, dropdowns, and metrics above without PHP warnings/notices; validate template output matches agreed UI.
 
 ## Tournament Adjustments
 - [ ] **Tournament detail shortcode:** Confirm frontend renders tournament details (title, info, description, prizes, countdown) at `/tournaments/?bhg_tournament_id=ID`.
