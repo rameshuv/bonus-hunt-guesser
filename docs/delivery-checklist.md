@@ -1,33 +1,38 @@
 # Delivery Readiness Checklist (v8.0.22)
 
-## Runtime and Version
-- [x] Plugin version set to **8.0.22** in `bonus-hunt-guesser.php` (matches requested version).
-- [ ] Runtime validation (PHP 7.4, WordPress 6.3.5, MySQL 5.5.5+) performed in staging environment.
+## Delivery Verdict
+- **Current status:** Not ready for delivery until functional checks below are executed in a WordPress 6.3.5 / PHP 7.4 / MySQL 5.5.5+ environment.
+- **Version:** Plugin header already set to **8.0.22** in `bonus-hunt-guesser.php`.
+
+## Runtime and Environment
+- [ ] Confirm runtime matches **PHP 7.4**, **WordPress 6.3.5**, **MySQL 5.5.5+** (staging).
+- [ ] Run smoke test for fatal errors/notices across all shortcodes after enabling WP_DEBUG.
 
 ## Leaderboard Adjustments
-- [ ] "Times won" calculation verified against multiple closed hunts with distinct winners.
-- [ ] Prize block display options (Grid/Carousel, items per view, total items) verified in backend settings and shortcode output.
-- [ ] Affiliate website filter confirmed to limit leaderboard results appropriately.
-- [ ] Pagination confirmed clickable and functioning across leaderboard pages.
-- [ ] "Avg tournament position" formula validated against mixed open/closed tournaments.
-- [ ] Tournament dropdown shows full list with correct default selection when preselected via shortcode.
-- [ ] `bhg_leaderboard_list` shortcode renders without PHP errors and supports filters, pagination, prize blocks, dropdowns, and calculations above.
+- [ ] **Times won:** Validate per-user counts across at least two closed bonus hunts with distinct winners (e.g., sample URL provided) and confirm counts differ by user as expected.
+- [ ] **Prize block options:** In general settings, confirm Grid/Carousel options save; verify prizes honor items-per-view and total items in shortcode output.
+- [ ] **Affiliate filter:** Apply affiliate website filter (e.g., moderators) and confirm only matching users render.
+- [ ] **Pagination:** Confirm page links are clickable and change results across leaderboard pages.
+- [ ] **Avg tournament position:** Recompute average using current rankings across open/closed tournaments and verify against manual calculation for at least two users.
+- [ ] **Tournament dropdown:** Ensure dropdown always lists all tournaments plus “All tournaments,” with shortcode-preselected tournament selected by default.
+- [ ] **`bhg_leaderboard_list` stability:** Render shortcode with filters, pagination, prize blocks, dropdowns, and metrics above without PHP warnings/notices.
 
 ## Tournament Adjustments
-- [ ] Tournament detail shortcode outputs correctly on frontend.
-- [ ] Prize block options (Grid/Carousel, items per view, total items) functional in tournament settings and display.
-- [ ] Pagination working for tournament and bonus hunt shortcodes.
-- [ ] Affiliate website filter limits tournament participants correctly.
-- [ ] Table winner highlighting respects configured winner count; non-winners use default styling.
-- [ ] Column header updated to "User" in tournament tables to match leaderboard terminology.
-- [ ] Countdown block positioned below prizes, with title/info/description in consistent content block.
+- [ ] **Tournament detail shortcode:** Confirm frontend renders tournament details (title, info, description, prizes, countdown) at `/tournaments/?bhg_tournament_id=ID`.
+- [ ] **Prize block options:** Validate Grid/Carousel settings save and render correctly with items-per-view and total item limits.
+- [ ] **Pagination:** Verify working pagination for tournament and bonus hunt shortcodes after data loads.
+- [ ] **Affiliate filter:** Confirm tournament participant list respects affiliate website group (e.g., moderators-only tournament shows only moderators).
+- [ ] **Winner highlighting:** Check that number of highlighted rows matches configured winner count; non-winners use default styling.
+- [ ] **Column header:** Table header reads **“User”** (not “Username”).
+- [ ] **Countdown placement:** Tournament title/info/description shown in a cohesive block; countdown positioned below prizes.
 
 ## Global Filters & UI/UX
-- [ ] Filter/search design consistent across bonus hunts, leaderboards, tournaments, and user guess shortcodes.
-- [ ] Dropdown filters aligned in a single row with consistent spacing.
-- [ ] Search/filter buttons aligned, equal height, and properly padded.
-- [ ] User guess form padding symmetrical; submit button uses global dark blue style.
+- [ ] **Filter styling:** Filters for bonus hunts, leaderboards, tournaments, and user guess use consistent dropdown styling (matching tournaments style).
+- [ ] **Dropdown layout:** All dropdowns aligned in a single row with even spacing.
+- [ ] **Search/filter alignment:** Search bar on its own row (full width) aligned with table width; buttons equal height with proper padding.
+- [ ] **User guess form:** Input uses reduced left padding and symmetrical right padding; submit button uses global dark blue style.
 
-## Outstanding Risks / Actions
-- Comprehensive functional testing across the above items is still required in a WordPress environment to confirm readiness for delivery.
-- Align pagination and filter fixes across all shortcodes once core functionality is verified.
+## Release Gate
+- [ ] All checks above validated in staging with screenshots where applicable.
+- [ ] No unresolved PHP notices/warnings in logs after exercising all shortcodes.
+- [ ] Sign-off recorded: “Ready for delivery” once every checkbox is confirmed.
