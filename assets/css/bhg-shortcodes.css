@@ -246,7 +246,7 @@
 .bhg-search-form,
 .bhg-search-control {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
     gap: 10px 12px;
     align-items: flex-start;
     grid-auto-rows: 1fr;
@@ -583,7 +583,7 @@
 .bhg-guess-form input[type="number"],
 .bhg-guess-form input[type="text"] {
     width: 100%;
-    padding: 12px 14px;
+    padding: 10px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 10px;
     box-sizing: border-box;
