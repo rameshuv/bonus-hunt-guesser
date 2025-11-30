@@ -5725,7 +5725,7 @@ $order_parts[] = 'r.wins DESC';
 break;
 }
 
-if ( 'u.user_login' !== $orderby ) {
+if ( 'username' !== $orderby ) {
 $order_parts[] = 'u.user_login ASC';
 }
 $order_parts[] = 'r.user_id ASC';
