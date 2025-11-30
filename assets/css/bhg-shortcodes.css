@@ -182,12 +182,14 @@
 .bhg-filters input[type="text"],
 .bhg-filter-controls select,
 .bhg-filter-controls input[type="text"] {
-    height: 46px;
+    height: 48px;
+    min-height: 48px;
     min-width: 0;
-    padding: 10px 12px;
-    font-size: 14px;
-    line-height: 1.35;
+    padding: 12px 14px;
+    font-size: 15px;
+    line-height: 1.3;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .bhg-searchbar,
@@ -210,10 +212,14 @@
 
 .bhg-search-form input[type="text"] {
     width: 100%;
-    height: 46px;
-    padding: 10px 14px;
+    height: 48px;
+    min-height: 48px;
+    padding: 12px 14px;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 15px;
+    line-height: 1.3;
 }
 
 .bhg-search-control--submit {
@@ -264,14 +270,16 @@
 .bhg-search-form input[type="text"] {
     min-width: 180px;
     flex: 0 0 auto;
-    padding: 11px 12px;
-    height: 46px;
+    padding: 12px 14px;
+    height: 48px;
+    min-height: 48px;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    border-radius: 10px;
     background-color: #fff;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
-    font-size: 14px;
-    line-height: 1.35;
+    font-size: 15px;
+    line-height: 1.3;
+    box-sizing: border-box;
 }
 
 .bhg-filter-select:focus,
@@ -297,11 +305,15 @@
     flex: 1 1 340px;
     min-width: 220px;
     max-width: 520px;
-    height: 46px;
-    padding: 10px 14px;
-    border-radius: 8px;
+    height: 48px;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 10px;
     border: 1px solid #cbd5e1;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
+    box-sizing: border-box;
+    font-size: 15px;
+    line-height: 1.3;
 }
 
 .bhg-search-control button,
@@ -312,11 +324,14 @@
     background-color: #0f172a;
     border: 1px solid #0f172a;
     color: #fff;
-    padding: 10px 14px;
-    border-radius: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
     cursor: pointer;
-    height: 46px;
-    line-height: 1.35;
+    height: 48px;
+    min-height: 48px;
+    line-height: 1.3;
+    box-sizing: border-box;
+    font-size: 15px;
 }
 
 .bhg-search-control button:hover,
