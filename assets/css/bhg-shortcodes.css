@@ -684,8 +684,24 @@
 
 .bhg-table-wrapper table {
     width: 100%;
-    table-layout: fixed;
-    min-width: 100%;
+    table-layout: auto;
+    min-width: 0;
+}
+
+.bhg-leaderboard th,
+.bhg-leaderboard td,
+.bhg-tournaments th,
+.bhg-tournaments td,
+.bhg-hunts th,
+.bhg-hunts td,
+.bhg-user-guesses th,
+.bhg-user-guesses td,
+.bhg-profile-table th,
+.bhg-profile-table td,
+.bhg-jackpot-winners-table th,
+.bhg-jackpot-winners-table td {
+    white-space: normal;
+    word-break: break-word;
 }
 
 .bhg-leaderboard th,
