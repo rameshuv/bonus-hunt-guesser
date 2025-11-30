@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser
 
-**Version:** 8.0.20
+**Version:** 8.0.22
 **Requires:** WordPress 6.3.5+, PHP 7.4+, MySQL 5.5.5+
 
 ## Overview
@@ -41,11 +41,11 @@ integration (Google, Twitch, Kick).
 4. Review **Bonus Hunt → Settings** to confirm currency, winner limits, menu
    assignments, and notification templates.
 
-## Release 8.0.20 highlights
+## Release 8.0.22 highlights
 
-- Bug-fix-only release: aligns plugin metadata with 8.0.20 and adds explicit
-  frontend hints when shortcode prerequisites are missing (e.g., ad ID,
-  jackpot selection, or empty winner feeds).
+- Updated plugin metadata to version 8.0.22 and adjusted table containers to
+  keep horizontal overflow visible on desktop layouts while preserving mobile
+  scrollability.
 
 ## Manual QA checklist (recommended)
 
@@ -63,7 +63,7 @@ integration (Google, Twitch, Kick).
   menus, translations editor) to confirm visibility rules.
 
 Documenting evidence (screenshots or logs) of these flows remains part of the
-customer’s acceptance checklist for v8.0.20.
+customer’s acceptance checklist for v8.0.22.
 
 ## Automated testing
 
