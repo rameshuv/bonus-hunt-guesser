@@ -2,6 +2,10 @@
     --bhg-accent-color: #2271b1;
 }
 
+/* ===========================
+   AFFILIATE DOTS
+   =========================== */
+
 .bhg-aff-dot {
     display: inline-block;
     width: 10px;
@@ -11,14 +15,12 @@
     margin-left: 6px;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
+.bhg-aff-green { background: #22c55e; }
+.bhg-aff-red   { background: #ef4444; }
 
-.bhg-aff-green {
-    background: #22c55e;
-}
-
-.bhg-aff-red {
-    background: #ef4444;
-}
+/* ===========================
+   TABS
+   =========================== */
 
 .bhg-tabs {
     list-style: none;
@@ -27,12 +29,7 @@
     display: flex;
     border-bottom: 1px solid #e2e8f0;
 }
-
-.bhg-tabs li {
-    margin: 0;
-    padding: 0;
-}
-
+.bhg-tabs li { margin: 0; padding: 0; }
 .bhg-tabs a {
     display: block;
     padding: 8px 12px;
@@ -41,35 +38,31 @@
     border-bottom: none;
     margin-right: 4px;
     background-color: var(--bhg-accent-color);
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    border-radius: 4px 4px 0 0;
     color: #fff;
 }
-
 .bhg-tabs a:hover {
     background-color: var(--bhg-accent-color);
     border-color: var(--bhg-accent-color);
     color: #fff;
     filter: brightness(0.9);
 }
-
 .bhg-tabs li.active a {
-    background-color: var(--bhg-accent-color);
-    border-color: var(--bhg-accent-color);
-    color: #fff;
     font-weight: 700;
 }
-
 .bhg-tab-pane {
     display: none;
     border: 1px solid #e2e8f0;
     padding: 12px;
     border-top: none;
 }
-
 .bhg-tab-pane.active {
     display: block;
 }
+
+/* ===========================
+   CARDS / BOXES
+   =========================== */
 
 .bhg-hunt-card,
 .bhg-guess-form,
@@ -81,11 +74,7 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
-.bhg-tournament-description {
-    margin: 12px 0;
-    color: #334155;
-    line-height: 1.6;
-}
+/* Tournament header / meta */
 
 .bhg-tournament-header {
     background: #f8fafc;
@@ -97,183 +86,118 @@
     flex-direction: column;
     gap: 10px;
 }
-
 .bhg-tournament-title {
     margin: 0;
     color: #0f172a;
 }
-
 .bhg-tournament-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 12px 16px;
 }
-
 .bhg-tournament-meta__item {
     display: flex;
     flex-direction: column;
     min-width: 150px;
     color: #1e293b;
 }
-
 .bhg-tournament-meta__label {
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #475569;
 }
-
 .bhg-tournament-meta__value {
     font-weight: 700;
 }
 
+.bhg-tournament-description {
+    margin: 12px 0;
+    color: #334155;
+    line-height: 1.6;
+}
 .bhg-tournament-affiliate {
     margin: 8px 0 16px;
     font-weight: 600;
     color: #1e293b;
 }
-
 .bhg-tournament-affiliate a {
     color: var(--bhg-accent-color);
     text-decoration: underline;
 }
 
-.bhg-tournament-prizes {
-    margin: 16px 0;
-}
-
-.bhg-active-hunt {
-    margin: 12px 0;
-}
-
-.bhg-hunt-prizes {
-    margin: 16px 0;
-}
-
-.bhg-prize-heading {
-    margin: 0 0 8px;
-    font-size: 1.1em;
-    font-weight: 600;
-}
-
-.bhg-prize-heading-premium {
-    color: #d4af37;
-}
+/* ===========================
+   HUNT / FILTER GRIDS
+   =========================== */
 
 .bhg-hunt-selector {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 10px 14px;
     margin-bottom: 12px;
-    align-items: end;
-}
-
-.bhg-filters,
-.bhg-filter-controls {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px 14px;
-    align-items: flex-start;
-    grid-auto-rows: 1fr;
-    margin-bottom: 12px;
-}
-
-.bhg-filters select,
-.bhg-filters input[type="text"],
-.bhg-filter-controls select,
-.bhg-filter-controls input[type="text"] {
-    height: 48px;
-    min-height: 48px;
-    min-width: 0;
-    padding: 12px 14px;
-    font-size: 15px;
-    line-height: 1.3;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.bhg-searchbar,
-.bhg-search-control {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.bhg-search-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px 14px;
-    align-items: flex-start;
-    grid-auto-rows: 1fr;
-}
-
-.bhg-search-control--text {
-    width: 100%;
-}
-
-.bhg-search-form input[type="text"] {
-    width: 100%;
-    height: 50px;
-    min-height: 50px;
-    padding: 12px 16px;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    box-sizing: border-box;
-    font-size: 15px;
-    line-height: 1.3;
-}
-
-.bhg-search-control--submit {
-    width: 100%;
-    max-width: 160px;
-}
-
-.bhg-hunt-selector label {
-    font-weight: 600;
+    align-items: flex-end;
 }
 
 .bhg-filters-row,
-.bhg-bonushunt-filters,
 .bhg-filter-controls,
-.bhg-tournament-filters {
+.bhg-tournament-filters,
+.bhg-bonushunt-filters,
+.bhg-search-form,
+.bhg-search-control {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    gap: 10px 12px;
+    margin-bottom: 14px;
+}
+
+/* Generic filters / search layout */
+
+.bhg-filters-row,
+.bhg-filter-controls,
+.bhg-tournament-filters,
+.bhg-bonushunt-filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px 16px;
-    align-items: stretch;
-    margin-bottom: 16px;
+    align-items: center;
     width: 100%;
 }
 
 .bhg-search-form,
 .bhg-search-control {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px 12px;
-    align-items: flex-start;
-    grid-auto-rows: 1fr;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     width: 100%;
-    margin-top: 8px;
 }
+
+/* Labels */
 
 .bhg-filter-label,
 .bhg-tournament-filters label,
 .bhg-bonushunt-filters label {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
+    align-items: center;
     gap: 4px;
     font-weight: 600;
     color: #1e293b;
-    flex: 1 1 200px;
+    margin: 0;
+    white-space: nowrap;
 }
+
+/* Inputs / selects */
 
 .bhg-filter-select,
 .bhg-tournament-filters select,
 .bhg-bonushunt-filters select,
-.bhg-search-form input[type="text"] {
+.bhg-search-form input[type="text"],
+.bhg-search-control input[type="text"],
+.bhg-search-control input[type="search"] {
     min-width: 180px;
-    flex: 1 1 200px;
     padding: 12px 16px;
-    height: 50px;
-    min-height: 50px;
+    height: 48px;
+    min-height: 48px;
     border: 1px solid #cbd5e1;
     border-radius: 10px;
     background-color: #fff;
@@ -287,35 +211,27 @@
 .bhg-tournament-filters select:focus,
 .bhg-bonushunt-filters select:focus,
 .bhg-search-form input[type="text"]:focus,
+.bhg-search-control input[type="text"]:focus,
 .bhg-guess-form input[type="number"]:focus,
 .bhg-guess-form input[type="text"]:focus {
     outline: 2px solid var(--bhg-accent-color);
     outline-offset: 1px;
 }
 
+/* Search: label + input + button */
+
 .bhg-search-control {
-    display: flex;
-    flex-wrap: wrap;
     gap: 10px 12px;
-    align-items: stretch;
-    width: 100%;
+}
+.bhg-search-control .bhg-filter-label {
+    gap: 6px;
+}
+.bhg-search-control .bhg-filter-label input[type="text"] {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
-.bhg-search-control input[type="text"],
-.bhg-search-control input[type="search"] {
-
-    min-width: 220px;
-    max-width: 520px;
-    height: 50px;
-    min-height: 50px;
-    padding: 12px 16px;
-    border-radius: 10px;
-    border: 1px solid #cbd5e1;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
-    box-sizing: border-box;
-    font-size: 15px;
-    line-height: 1.3;
-}
+/* Buttons */
 
 .bhg-search-control button,
 .bhg-tournament-filters button,
@@ -328,15 +244,16 @@
     padding: 12px 16px;
     border-radius: 10px;
     cursor: pointer;
-    height: 50px;
-    min-height: 50px;
+    height: 48px;
+    min-height: 48px;
     line-height: 1.3;
     box-sizing: border-box;
     font-size: 15px;
-    min-width: 160px;
-    align-self: stretch;
+    min-width: 140px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
-
 .bhg-search-control button:hover,
 .bhg-search-control button:focus,
 .bhg-tournament-filters button:hover,
@@ -349,64 +266,81 @@
 .bhg-submit-btn:focus {
     background-color: #1a5e91;
     border-color: #1a5e91;
-    color: #fff;
     filter: brightness(0.98);
 }
 
-.bhg-filters-row,
-.bhg-filter-controls,
-.bhg-search-form,
-.bhg-search-control,
-.bhg-tournament-filters,
-.bhg-bonushunt-filters {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+/* ---------------------------
+   Tournament filters specific
+   (two rows: filters + search)
+   --------------------------- */
+
+.bhg-tournament-filters {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+.bhg-tournament-filters .bhg-filter-controls {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+}
+.bhg-tournament-filters .bhg-search-control {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+}
+.bhg-tournament-filters .bhg-search-control input[type="text"] {
+    width: 220px;
+}
+
+/* ===========================
+   GUESS FORM
+   =========================== */
+
+.bhg-guess-label {
+    display: block;
+    margin-top: 10px;
+}
+.bhg-guess-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 420px;
+}
+.bhg-guess-form input[type="number"],
+.bhg-guess-form input[type="text"] {
+    width: 100%;
     padding: 10px 12px;
-    gap: 10px 12px;
-    margin-bottom: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+.bhg-error-message {
+    color: #dc2626;
+    margin-top: 10px;
+    display: none;
+}
+.bhg-submit-btn {
+    margin-top: 12px;
 }
 
-@media (max-width: 768px) {
-    .bhg-filters-row,
-    .bhg-filter-controls,
-    .bhg-hunt-selector,
-    .bhg-search-control {
-        flex-direction: column;
-        align-items: stretch;
-    }
+/* ===========================
+   PRIZES / GRID / CAROUSEL
+   =========================== */
 
-    .bhg-filter-select,
-    .bhg-hunt-select,
-    .bhg-search-form input[type="text"],
-    .bhg-search-control button,
-    .bhg-filter-button,
-    .bhg-submit-btn {
-        width: 100%;
-    }
-
-    .bhg-search-control button,
-    .bhg-filter-button,
-    .bhg-submit-btn {
-        text-align: center;
-    }
-}
-
+.bhg-prizes-shortcode,
 .bhg-prizes-block {
-    margin-top: 20px;
-}
-
-.bhg-prizes-shortcode {
     margin: 20px 0;
 }
-
 .bhg-prizes-title {
     margin: 0 0 12px;
     font-size: 20px;
     font-weight: 700;
     color: #1e293b;
 }
-
 .bhg-prizes-grid {
     --bhg-prize-grid-gap: 16px;
     --bhg-prize-grid-columns: 3;
@@ -420,9 +354,6 @@
         )
     );
 }
-
-
-
 .bhg-prize-card {
     background: #fff;
     border: 1px solid #e2e8f0;
@@ -433,12 +364,10 @@
     flex-direction: column;
     height: 100%;
 }
-
 .bhg-prize-image {
     margin-bottom: 12px;
     text-align: center;
 }
-
 .bhg-prize-image img {
     max-width: 100%;
     height: auto;
@@ -446,13 +375,11 @@
     display: block;
     margin: 0 auto;
 }
-
 .bhg-prize-title {
     margin: 0 0 6px;
     font-size: 18px;
     color: #0f172a;
 }
-
 .bhg-prize-category {
     font-size: 12px;
     text-transform: uppercase;
@@ -460,37 +387,30 @@
     color: #475569;
     margin-bottom: 10px;
 }
-
 .bhg-prize-description {
     color: #334155;
     font-size: 14px;
     line-height: 1.5;
 }
+.bhg-prize-description p { margin: 0 0 8px; }
 
-.bhg-prize-description p {
-    margin: 0 0 8px;
-}
-
+/* carousel uses overflow (not overflow-x) intentionally */
 .bhg-prize-carousel {
     position: relative;
     margin-top: 16px;
     padding: 0 28px;
 }
-
 .bhg-prize-track-wrapper {
     overflow: hidden;
 }
-
 .bhg-prize-track {
     display: flex;
     transition: transform 0.4s ease;
 }
-
 .bhg-prize-carousel .bhg-prize-card {
     flex: 0 0 100%;
     box-sizing: border-box;
 }
-
 .bhg-prize-nav {
     position: absolute;
     top: 50%;
@@ -507,20 +427,12 @@
     justify-content: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
-
-.bhg-prize-prev {
-    left: 0;
-}
-
-.bhg-prize-next {
-    right: 0;
-}
-
+.bhg-prize-prev { left: 0; }
+.bhg-prize-next { right: 0; }
 .bhg-prize-dots {
     text-align: center;
     margin-top: 12px;
 }
-
 .bhg-prize-dot {
     width: 10px;
     height: 10px;
@@ -531,22 +443,18 @@
     padding: 0;
     cursor: pointer;
 }
-
 .bhg-prize-dot.active {
     background: var(--bhg-accent-color);
 }
-
 @media (max-width: 640px) {
     .bhg-prize-carousel {
         padding: 0 12px;
     }
-    .bhg-prize-prev {
-        left: -4px;
-    }
-    .bhg-prize-next {
-        right: -4px;
-    }
+    .bhg-prize-prev { left: -4px; }
+    .bhg-prize-next { right: -4px; }
 }
+
+/* Hunt select in dropdowns */
 
 .bhg-hunt-select {
     min-width: 220px;
@@ -556,16 +464,16 @@
     background-color: #fff;
     box-shadow: 0 1px 1px rgba(15, 23, 42, 0.05);
 }
-
 .bhg-hunt-select:focus {
     outline: 2px solid var(--bhg-accent-color);
     outline-offset: 1px;
 }
 
+/* Headers inside cards */
+
 .bhg-hunt-card h3,
 .bhg-tournament-details h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
+    margin: 0 0 8px;
     background-color: var(--bhg-accent-color);
     border: 1px solid var(--bhg-accent-color);
     color: #fff;
@@ -579,44 +487,14 @@
     padding: 0;
 }
 
-.bhg-guess-label {
-    display: block;
-    margin-top: 10px;
-}
-
-.bhg-guess-form {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    max-width: 420px;
-}
-
-.bhg-guess-form input[type="number"],
-.bhg-guess-form input[type="text"] {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    box-sizing: border-box;
-}
-
-.bhg-error-message {
-    color: #dc2626;
-    margin-top: 10px;
-    display: none;
-}
-
-
-.bhg-submit-btn {
-    margin-top: 12px;
-}
+/* ===========================
+   PAGINATION
+   =========================== */
 
 .bhg-pagination {
     margin-top: 15px;
     text-align: center;
 }
-
 .bhg-pagination-list {
     list-style: none;
     margin: 0;
@@ -624,68 +502,37 @@
     display: inline-flex;
     gap: 6px;
     align-items: center;
+    flex-wrap: wrap;
 }
-
-.bhg-pagination-list li {
-    display: inline-flex;
-}
-
+.bhg-pagination-list li { display: inline-flex; }
 .bhg-pagination-list li a,
 .bhg-pagination-list li span {
     display: inline-block;
     padding: 6px 10px;
     border-radius: 4px;
     border: 1px solid transparent;
+    min-width: 36px;
+    text-align: center;
 }
-
 .bhg-pagination-list li a {
     border-color: #cbd5e1;
     color: inherit;
 }
-
 .bhg-pagination-list li a:hover,
 .bhg-pagination-list li a:focus {
     border-color: var(--bhg-accent-color);
     color: var(--bhg-accent-color);
 }
-
 .bhg-pagination-list .bhg-current-page span {
     background-color: var(--bhg-accent-color);
     color: #fff;
 }
+.bhg-pagination a { margin: 0 4px; }
+.bhg-pagination .bhg-current-page { font-weight: 700; }
 
-@media screen and (max-width: 640px) {
-    .bhg-pagination-list {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .bhg-pagination-list li a,
-    .bhg-pagination-list li span {
-        min-width: 42px;
-        text-align: center;
-    }
-}
-
-.bhg-pagination a {
-    margin: 0 4px;
-}
-
-.bhg-pagination .bhg-current-page {
-    font-weight: 700;
-}
-
-.bhg-tournament-filters {
-    margin-bottom: 10px;
-}
-
-.bhg-tournament-label {
-    margin-right: 8px;
-}
-
-.bhg-filter-button {
-    margin-left: 8px;
-}
+/* ===========================
+   TABLE WRAPPER (NO overflow-x)
+   =========================== */
 
 .bhg-table-wrapper {
     margin: 0 0 16px;
@@ -693,124 +540,9 @@
     max-width: 100%;
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     border-radius: 10px;
-    min-height: 0;
-    overflow: visible;
 }
 
-.bhg-table-wrapper table {
-    width: 100%;
-    table-layout: auto;
-    min-width: 0;
-    border-collapse: collapse;
-}
-
-.bhg-leaderboard th,
-.bhg-leaderboard td,
-.bhg-tournaments th,
-.bhg-tournaments td,
-.bhg-hunts th,
-.bhg-hunts td,
-.bhg-user-guesses th,
-.bhg-user-guesses td,
-.bhg-profile-table th,
-.bhg-profile-table td,
-.bhg-jackpot-winners-table th,
-.bhg-jackpot-winners-table td {
-    white-space: normal;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-}
-
-@media (max-width: 768px) {
-    .bhg-table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding: 0 6px 12px;
-    }
-
-    .bhg-table-wrapper table {
-        min-width: 600px;
-    }
-}
-
-@media (max-width: 640px) {
-    .bhg-table-wrapper {
-        padding: 0 4px 12px;
-    }
-
-    .bhg-table-wrapper table {
-        min-width: 520px;
-    }
-}
-
-@media (max-width: 560px) {
-    .bhg-table-wrapper table {
-        min-width: 440px;
-    }
-
-    .bhg-leaderboard th,
-    .bhg-leaderboard td,
-    .bhg-tournaments th,
-    .bhg-tournaments td,
-    .bhg-user-guesses th,
-    .bhg-user-guesses td,
-    .bhg-hunts th,
-    .bhg-hunts td,
-    .bhg-profile-table th,
-    .bhg-profile-table td,
-    .bhg-jackpot-winners-table th,
-    .bhg-jackpot-winners-table td {
-        padding: 8px 6px;
-        font-size: 0.95rem;
-    }
-}
-
-@media (max-width: 460px) {
-    .bhg-filter-controls,
-    .bhg-hunt-selector,
-    .bhg-search-control {
-        gap: 10px;
-    }
-
-    .bhg-filter-select,
-    .bhg-search-form input[type="text"] {
-        min-width: 100%;
-    }
-
-    .bhg-table-wrapper {
-        padding: 0 2px 10px;
-    }
-
-    .bhg-table-wrapper table {
-        min-width: 400px;
-    }
-}
-
-@media (max-width: 400px) {
-    .bhg-table-wrapper {
-        padding: 0 1px 8px;
-    }
-
-    .bhg-table-wrapper table {
-        min-width: 360px;
-    }
-
-    .bhg-leaderboard th,
-    .bhg-leaderboard td,
-    .bhg-tournaments th,
-    .bhg-tournaments td,
-    .bhg-user-guesses th,
-    .bhg-user-guesses td,
-    .bhg-hunts th,
-    .bhg-hunts td,
-    .bhg-profile-table th,
-    .bhg-profile-table td,
-    .bhg-jackpot-winners-table th,
-    .bhg-jackpot-winners-table td {
-        padding: 7px 5px;
-        font-size: 0.9rem;
-    }
-}
+/* Core tables */
 
 .bhg-leaderboard,
 .bhg-tournaments,
@@ -821,54 +553,27 @@
 .bhg-user-profile-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: auto;
 }
 
-.bhg-leaderboard th a,
-.bhg-tournaments th a,
-.bhg-user-guesses th a,
-.bhg-hunts th a,
-.bhg-profile-table th a,
-.bhg-jackpot-winners-table th a,
-.bhg-user-profile-table th a {
-    color: #fff;
+.bhg-leaderboard th,
+.bhg-leaderboard td,
+.bhg-tournaments th,
+.bhg-tournaments td,
+.bhg-user-guesses th,
+.bhg-user-guesses td,
+.bhg-hunts th,
+.bhg-hunts td,
+.bhg-profile-table th,
+.bhg-profile-table td,
+.bhg-jackpot-winners-table th,
+.bhg-jackpot-winners-table td {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
-.bhg-leaderboard th a:focus,
-.bhg-leaderboard th a:hover,
-.bhg-tournaments th a:focus,
-.bhg-tournaments th a:hover,
-.bhg-user-guesses th a:focus,
-.bhg-user-guesses th a:hover,
-.bhg-hunts th a:focus,
-.bhg-hunts th a:hover,
-.bhg-profile-table th a:focus,
-.bhg-profile-table th a:hover,
-.bhg-jackpot-winners-table th a:focus,
-.bhg-jackpot-winners-table th a:hover,
-.bhg-user-profile-table th a:focus,
-.bhg-user-profile-table th a:hover {
-    color: #f8fafc;
-}
-
-.bhg-tournaments th:first-child,
-.bhg-tournaments td:first-child {
-    width: 35%;
-}
-
-.bhg-tournaments td:first-child a {
-    color: inherit;
-    text-decoration: none;
-}
-
-.bhg-tournaments td:first-child a:focus,
-.bhg-tournaments td:first-child a:hover {
-    text-decoration: underline;
-}
-
-.bhg-tournaments th:last-child,
-.bhg-tournaments td:last-child {
-    text-align: right;
-}
+/* Table headers */
 
 .bhg-leaderboard th,
 .bhg-tournaments th,
@@ -883,22 +588,28 @@
     background-color: var(--bhg-accent-color);
     color: #fff;
 }
-
 .bhg-leaderboard th a,
-.bhg-leaderboard th a:visited,
 .bhg-tournaments th a,
-.bhg-tournaments th a:visited,
 .bhg-user-guesses th a,
-.bhg-user-guesses th a:visited,
 .bhg-hunts th a,
-.bhg-hunts th a:visited,
 .bhg-profile-table th a,
-.bhg-profile-table th a:visited,
 .bhg-jackpot-winners-table th a,
-.bhg-jackpot-winners-table th a:visited {
+.bhg-user-profile-table th a {
     color: #fff !important;
     text-decoration: none;
 }
+.bhg-leaderboard th a:hover,
+.bhg-tournaments th a:hover,
+.bhg-user-guesses th a:hover,
+.bhg-hunts th a:hover,
+.bhg-profile-table th a:hover,
+.bhg-jackpot-winners-table th a:hover,
+.bhg-user-profile-table th a:hover {
+    color: #f8fafc !important;
+    text-decoration: underline;
+}
+
+/* Sort icons */
 
 .bhg-leaderboard th.sortable > a,
 .bhg-tournaments th.sortable > a,
@@ -910,30 +621,12 @@
     align-items: center;
     gap: 0.35rem;
 }
-
-.bhg-leaderboard th a:focus,
-.bhg-leaderboard th a:hover,
-.bhg-tournaments th a:focus,
-.bhg-tournaments th a:hover,
-.bhg-user-guesses th a:focus,
-.bhg-user-guesses th a:hover,
-.bhg-hunts th a:focus,
-.bhg-hunts th a:hover,
-.bhg-profile-table th a:focus,
-.bhg-profile-table th a:hover,
-.bhg-jackpot-winners-table th a:focus,
-.bhg-jackpot-winners-table th a:hover {
-    color: #fff !important;
-    text-decoration: underline;
-}
-
 .bhg-sort-icon {
     display: inline-flex;
     align-items: center;
     font-size: 0.85em;
     opacity: 0.75;
 }
-
 .bhg-leaderboard th.asc .bhg-sort-icon,
 .bhg-tournaments th.asc .bhg-sort-icon,
 .bhg-user-guesses th.asc .bhg-sort-icon,
@@ -949,6 +642,8 @@
     opacity: 1;
 }
 
+/* Cells */
+
 .bhg-leaderboard td,
 .bhg-tournaments td,
 .bhg-user-guesses td,
@@ -957,52 +652,9 @@
 .bhg-jackpot-winners-table td {
     padding: 6px;
     border-bottom: 1px solid #f1f5f9;
-    word-break: break-word;
 }
 
-@media (max-width: 768px) {
-    .bhg-table-wrapper {
-        margin-left: -4px;
-        margin-right: -4px;
-        padding-left: 4px;
-        padding-right: 4px;
-    }
-
-    .bhg-leaderboard th,
-    .bhg-tournaments th,
-    .bhg-user-guesses th,
-    .bhg-hunts th,
-    .bhg-profile-table th,
-    .bhg-jackpot-winners-table th {
-        font-size: 14px;
-        line-height: 1.35;
-    }
-
-    .bhg-leaderboard td,
-    .bhg-tournaments td,
-    .bhg-user-guesses td,
-    .bhg-hunts td,
-    .bhg-profile-table td,
-    .bhg-jackpot-winners-table td {
-        font-size: 14px;
-        line-height: 1.5;
-        word-break: break-word;
-    }
-}
-
-tr.bhg-winner,
-.bhg-leaderboard--tournament tr.bhg-tournament-row--winner {
-    background-color: #e6ffe6 !important;
-    border-left: 4px solid #22c55e !important;
-}
-
-.bhg-leaderboard--tournament tr.bhg-tournament-row--top-three {
-    box-shadow: inset 4px 0 0 #15803d;
-}
-
-.bhg-leaderboard--tournament tr.bhg-tournament-row--first {
-    background-color: #dcfce7;
-}
+/* Zebra + hover */
 
 .bhg-leaderboard tr:nth-child(even),
 .bhg-tournaments tr:nth-child(even),
@@ -1012,7 +664,6 @@ tr.bhg-winner,
 .bhg-jackpot-winners-table tr:nth-child(even) {
     background-color: #f9fafb;
 }
-
 .bhg-leaderboard tr:hover,
 .bhg-tournaments tr:hover,
 .bhg-user-guesses tr:hover,
@@ -1022,7 +673,42 @@ tr.bhg-winner,
     background-color: #eef2ff;
 }
 
-/* Responsive tables */
+/* Winner highlight */
+
+tr.bhg-winner,
+.bhg-leaderboard--tournament tr.bhg-tournament-row--winner {
+    background-color: #e6ffe6 !important;
+    border-left: 4px solid #22c55e !important;
+}
+.bhg-leaderboard--tournament tr.bhg-tournament-row--top-three {
+    box-shadow: inset 4px 0 0 #15803d;
+}
+.bhg-leaderboard--tournament tr.bhg-tournament-row--first {
+    background-color: #dcfce7;
+}
+
+/* Tournaments first column width */
+
+.bhg-tournaments th:first-child,
+.bhg-tournaments td:first-child {
+    width: 35%;
+}
+.bhg-tournaments td:first-child a {
+    color: inherit;
+    text-decoration: none;
+}
+.bhg-tournaments td:first-child a:hover {
+    text-decoration: underline;
+}
+.bhg-tournaments th:last-child,
+.bhg-tournaments td:last-child {
+    text-align: right;
+}
+
+/* ===========================
+   RESPONSIVE TABLES (CARD MODE)
+   =========================== */
+
 @media screen and (max-width: 640px) {
     .bhg-leaderboard,
     .bhg-leaderboard thead,
@@ -1061,6 +747,7 @@ tr.bhg-winner,
     .bhg-jackpot-winners-table td,
     .bhg-jackpot-winners-table tr {
         display: block;
+        width: 100%;
     }
 
     .bhg-leaderboard thead tr,
@@ -1084,6 +771,7 @@ tr.bhg-winner,
         margin-bottom: 6px;
         border-radius: 6px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        background: #fff;
     }
 
     .bhg-leaderboard td,
@@ -1123,18 +811,20 @@ tr.bhg-winner,
     }
 }
 
+/* ===========================
+   USER PROFILE TABLE
+   =========================== */
+
 .bhg-user-profile-table th,
 .bhg-user-profile-table td {
     padding: 6px;
     border-bottom: 1px solid #f1f5f9;
 }
-
 .bhg-user-profile-table th {
     width: 40%;
     background-color: #f9fafb;
     font-weight: 600;
 }
-
 @media screen and (max-width: 640px) {
     .bhg-user-profile-table,
     .bhg-user-profile-table tbody,
@@ -1144,26 +834,28 @@ tr.bhg-winner,
         display: block;
         width: 100%;
     }
-
     .bhg-user-profile-table tr {
         margin-bottom: 8px;
         border: 1px solid #e5e7eb;
         border-radius: 6px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        background: #fff;
     }
-
     .bhg-user-profile-table th {
         background-color: var(--bhg-accent-color);
         color: #fff;
         border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 6px 6px 0 0;
     }
-
-.bhg-user-profile-table td {
+    .bhg-user-profile-table td {
         border: none;
         padding: 10px;
+    }
 }
-}
+
+/* ===========================
+   MISC
+   =========================== */
 
 .bhg-tournament-countdown {
     background-color: #ffeb3b;
@@ -1175,7 +867,5 @@ tr.bhg-winner,
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-/* Reserved for potential winner-specific overrides. */
-.bhg-winner {
-}
-
+/* winner class kept for potential overrides */
+.bhg-winner {}
