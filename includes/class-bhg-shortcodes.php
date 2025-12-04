@@ -2222,42 +2222,61 @@ $tab_index++;
 return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-prize-tabs" role="tablist">' . $nav_markup . '</div><div class="bhg-prize-tab-panels">' . $panel_markup . '</div></div>';
 }
 
-       /**
-        * Normalize username labels with consistent capitalization.
-        *
-        * @param string $label   Raw username label.
-        * @param int    $user_id Optional user ID for fallback labels.
-        *
-        * @return string
-        */
-       private function format_username_label( $label, $user_id = 0 ) {
-               $label = (string) $label;
+       	/**
+	 * Normalize username labels with consistent capitalization.
+	 *
+	 * @param string $label   Raw username label.
+	 * @param int    $user_id Optional user ID for fallback labels.
+	 *
+	 * @return string
+	 */
+	private function format_username_label( $label, $user_id = 0 ) {
+		$label = (string) $label;
 
-               if ( '' === $label && $user_id > 0 ) {
-                       /* translators: %d: user ID. */
-                       $label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), $user_id );
-               }
+		if ( '' === $label && $user_id > 0 ) {
+			/* translators: %d: user ID. */
+			$label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), $user_id );
+		}
 
-               if ( '' === $label ) {
-                       return $label;
-               }
+		if ( '' === $label ) {
+			return $label;
+		}
 
-               $charset = get_bloginfo( 'charset' );
-               $charset = $charset ? $charset : 'UTF-8';
+		$charset = get_bloginfo( 'charset' );
+		$charset = $charset ? $charset : 'UTF-8';
 
-               if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
-                       $first = mb_substr( $label, 0, 1, $charset );
-                       $rest  = mb_substr( $label, 1, null, $charset );
-                       $label = mb_strtoupper( $first, $charset ) . $rest;
-               } else {
-                       $label = ucfirst( $label );
-               }
+		if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
+			$first = mb_substr( $label, 0, 1, $charset );
+			$rest  = mb_substr( $label, 1, null, $charset );
+			$label = mb_strtoupper( $first, $charset ) . $rest;
+		} else {
+			$label = ucfirst( $label );
+		}
 
-               return $label;
-       }
+		return $label;
+	}
 
-        /**
-        * Retrieve bonus hunts the current user has participated in.
+	/**
+	 * Normalize a username label and append qualifying badges when available.
+	 *
+	 * @param string $label   Raw username label.
+	 * @param int    $user_id Optional user ID for badge lookups.
+	 *
+	 * @return string HTML-safe username with badges appended.
+	 */
+	private function format_username_with_badges( $label, $user_id = 0 ) {
+		$normalized = $this->format_username_label( $label, $user_id );
+
+		if ( $user_id > 0 && function_exists( 'bhg_format_user_with_badges' ) ) {
+			return bhg_format_user_with_badges( (int) $user_id, $normalized );
+		}
+
+		return esc_html( $normalized );
+	}
+
+	/**
+	 * Retrieve bonus hunts the current user has participated in.
+
         *
         * @param int $user_id User identifier.
 	* @param int $limit   Maximum number of hunts to return.
@@ -3522,7 +3541,7 @@ echo '<table class="bhg-leaderboard">';
 					$site_id                         = isset( $r->affiliate_site_id ) ? (int) $r->affiliate_site_id : 0;
 											$aff_dot = bhg_render_affiliate_dot( (int) $r->user_id, $site_id );
                                                                                         /* translators: %d: user ID. */
-                                                                                        $user_label = $this->format_username_label( $r->user_login, (int) $r->user_id );
+$user_label = $this->format_username_with_badges( $r->user_login, (int) $r->user_id );
 				}
 
 				echo '<tr>';
@@ -3530,7 +3549,7 @@ echo '<table class="bhg-leaderboard">';
 					if ( 'position' === $field ) {
 						echo '<td data-column="position">' . (int) $pos . '</td>';
 					} elseif ( 'user' === $field ) {
-																											echo '<td data-column="user">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
+echo '<td data-column="user">' . wp_kses_post( $user_label . ' ' . $aff_dot ) . '</td>';
 					} elseif ( 'guess' === $field ) {
 						echo '<td data-column="guess">' . esc_html( bhg_format_money( (float) $r->guess ) ) . '</td>';
 					}
@@ -4140,7 +4159,7 @@ $atts,
                                                                                /* translators: %d: user ID. */
                                                                                $user_label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), $user_id );
                                                                }
-                                                               $user_label = $this->format_username_label( $user_label, $user_id );
+$user_label = $this->format_username_with_badges( $user_label, $user_id );
 
                                                                $prize_title = '';
                                                                if ( $show_prize && $hunt_id > 0 ) {
@@ -4206,7 +4225,7 @@ $atts,
                                                                                $parts[] = '<span class="bhg-winner-position">#' . esc_html( number_format_i18n( $position ) ) . '</span>';
                                                                }
                                                                if ( $show_username ) {
-                                                                               $parts[] = '<span class="bhg-winner-username">' . esc_html( $user_label ) . '</span>';
+$parts[] = '<span class="bhg-winner-username">' . wp_kses_post( $user_label ) . '</span>';
                                                                }
                                                                if ( $show_prize ) {
                                                                                $parts[] = '<span class="bhg-winner-prize">' . esc_html( '' !== $prize_title ? $prize_title : bhg_t( 'label_emdash', '—' ) ) . '</span>';
@@ -5753,15 +5772,15 @@ $add_args['bhg_aff'] = $aff_filter;
                                                                $aff     = bhg_render_affiliate_dot( (int) $row->user_id, $site_id );
                                                }
 
-                                               /* translators: %d: user ID. */
-                                               $user_label = $this->format_username_label( $row->user_login, (int) $row->user_id );
+/* translators: %d: user ID. */
+$user_label = $this->format_username_with_badges( $row->user_login, (int) $row->user_id );
 
                                                echo '<tr>';
                                                foreach ( $fields_arr as $field ) {
                                                                if ( 'pos' === $field ) {
                                                                                echo '<td>' . (int) $pos . '</td>';
                                                                } elseif ( 'user' === $field ) {
-                                                                               echo '<td>' . esc_html( $user_label ) . '</td>';
+echo '<td>' . wp_kses_post( $user_label ) . '</td>';
                                                                } elseif ( 'wins' === $field ) {
                                                                                echo '<td>' . (int) $row->total_wins . '</td>';
                                                                } elseif ( 'avg_hunt' === $field ) {
@@ -6212,10 +6231,10 @@ foreach ( $rows as $index => $row ) {
         }
                                                                $class_attr = ' class="' . esc_attr( implode( ' ', $row_classes ) ) . '"';
 
-                                                               $user_label = $this->format_username_label(
-                                                                               $row->user_login,
-                                                                               (int) $row->user_id
-                                                               );
+$user_label = $this->format_username_with_badges(
+$row->user_login,
+(int) $row->user_id
+);
 
 $resolved_last_win = '';
 if ( isset( $row->user_id ) && isset( $last_win_map[ (int) $row->user_id ] ) ) {
@@ -6226,7 +6245,7 @@ $resolved_last_win = $row->last_win_date;
 
 echo '<tr' . $class_attr . '>';
 echo '<td data-label="' . esc_attr( $position_label ) . '">' . (int) $position_number . '</td>';
-echo '<td data-label="' . esc_attr( $username_label ) . '">' . esc_html( $user_label ) . '</td>';
+echo '<td data-label="' . esc_attr( $username_label ) . '">' . wp_kses_post( $user_label ) . '</td>';
 echo '<td data-label="' . esc_attr( $wins_label ) . '">' . (int) $row->wins . '</td>';
 echo '<td data-label="' . esc_attr( $last_win_label ) . '">';
 echo $resolved_last_win ? esc_html( mysql2date( get_option( 'date_format' ), $resolved_last_win ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
@@ -7117,14 +7136,15 @@ return ob_get_clean();
 					   );
 					  $user        = wp_get_current_user();
 					  $user_id     = $user->ID;
-					  $real_name   = trim( (string) get_user_meta( $user_id, 'bhg_real_name', true ) );
-					  if ( '' === $real_name ) {
-							  $real_name = trim( $user->get( 'first_name' ) . ' ' . $user->get( 'last_name' ) );
-					  }
-					  if ( '' === $real_name ) {
-							  $real_name = (string) $user->display_name;
-					  }
-					   $username    = $user->user_login;
+$real_name   = trim( (string) get_user_meta( $user_id, 'bhg_real_name', true ) );
+if ( '' === $real_name ) {
+$real_name = trim( $user->get( 'first_name' ) . ' ' . $user->get( 'last_name' ) );
+}
+if ( '' === $real_name ) {
+$real_name = (string) $user->display_name;
+}
+ $username          = $user->user_login;
+ $username_display = $this->format_username_with_badges( $username, $user_id );
 					   $email       = $user->user_email;
 					   $is_affiliate = (int) get_user_meta( $user_id, 'bhg_is_affiliate', true );
 					   $badge       = $is_affiliate ? '<span class="bhg-aff-green" aria-hidden="true"></span>' : '<span class="bhg-aff-red" aria-hidden="true"></span>';
@@ -7135,7 +7155,7 @@ return ob_get_clean();
 					   }
 $output  = '<div class="bhg-user-profile"><div class="bhg-table-wrapper"><table class="bhg-user-profile-table">';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_name', 'Name' ) ) . '</th><td>' . esc_html( $real_name ) . '</td></tr>';
-                                     $output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'User' ) ) . '</th><td>' . esc_html( $username ) . '</td></tr>';
+$output .= '<tr><th>' . esc_html( bhg_t( 'label_username', 'User' ) ) . '</th><td>' . wp_kses_post( $username_display ) . '</td></tr>';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_email', 'Email' ) ) . '</th><td>' . esc_html( $email ) . '</td></tr>';
 					  $output .= '<tr><th>' . esc_html( bhg_t( 'label_affiliate_status', 'Affiliate Status' ) ) . '</th><td>' . wp_kses_post( $badge ) . ' ' . esc_html( $aff_text ) . '</td></tr>';
 
@@ -7270,11 +7290,11 @@ echo '<div class="' . esc_attr( implode( ' ', $classes ) ) . '" data-interval="'
                                                                                                                 $user_label = $user->display_name;
                                                                                                 }
                                                                                 }
-                                                                                $user_label = $this->format_username_label( $user_label, $user_id );
+$user_label = $this->format_username_with_badges( $user_label, $user_id );
                                                                                 $amount = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
                                                                                 $title  = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
 echo '<li class="bhg-jackpot-ticker__item">';
-                                                                                echo '<span class="bhg-ticker-winner-name">' . esc_html( $user_label ) . '</span> ';
+echo '<span class="bhg-ticker-winner-name">' . wp_kses_post( $user_label ) . '</span> ';
                                                                                 echo '<span class="bhg-ticker-amount">' . esc_html( $format_amount( $amount ) ) . '</span> ';
                                                                                 if ( $title ) {
                                                                                                 echo '<span class="bhg-ticker-jackpot">' . esc_html( $title ) . '</span>';
@@ -7606,9 +7626,9 @@ echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
 					foreach ( $rows as $r ) {
-                                                       /* translators: %d: user ID. */
-                                                       $user_label = $this->format_username_label( $r->user_login, (int) $r->user_id );
-							echo '<tr><td>' . (int) $pos . '</td><td>' . esc_html( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
+/* translators: %d: user ID. */
+$user_label = $this->format_username_with_badges( $r->user_login, (int) $r->user_id );
+ echo '<tr><td>' . (int) $pos . '</td><td>' . wp_kses_post( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
 							++$pos;
 					}
 echo '</tbody></table>';
