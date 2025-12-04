@@ -2825,10 +2825,14 @@ return ob_get_clean();
 
 					   $selected_hunt = $hunts_map[ $selected_hunt_id ];
 
-					   $prize_sets = array(
-							   'regular' => array(),
-							   'premium' => array(),
-					   );
+                                           if ( ! class_exists( 'BHG_Buttons' ) && file_exists( BHG_PLUGIN_DIR . 'includes/class-bhg-buttons.php' ) ) {
+                                                           require_once BHG_PLUGIN_DIR . 'includes/class-bhg-buttons.php';
+                                           }
+
+                                           $prize_sets = array(
+                                                           'regular' => array(),
+                                                           'premium' => array(),
+                                           );
 					   if ( class_exists( 'BHG_Prizes' ) ) {
 							   $prize_sets = BHG_Prizes::get_prizes_for_hunt(
 									   $selected_hunt_id,
@@ -3078,7 +3082,14 @@ return ob_get_clean();
                                            }
                                            echo '</div>';
 
-			   echo '<div class="bhg-table-wrapper">';
+                                           if ( class_exists( 'BHG_Buttons' ) ) {
+                                                           $buttons_markup = BHG_Buttons::render_for_placement( 'active_bonushunt' );
+                                                           if ( '' !== $buttons_markup ) {
+                                                                           echo '<div class="bhg-hunt-buttons">' . wp_kses_post( $buttons_markup ) . '</div>';
+                                                           }
+                                           }
+
+                           echo '<div class="bhg-table-wrapper">';
                           if ( empty( $rows ) ) {
                                    echo '<div class="bhg-info-block bhg-info-block--muted">' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses have been submitted for this hunt yet.' ) ) . '</div>';
                            } else {

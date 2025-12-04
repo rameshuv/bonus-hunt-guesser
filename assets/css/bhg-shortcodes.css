@@ -932,3 +932,14 @@ text-align: center;
 
 /* winner class kept for potential overrides */
 .bhg-winner {}
+
+.bhg-button-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.bhg-hunt-buttons {
+  margin: 1rem 0;
+}

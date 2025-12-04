@@ -36,16 +36,18 @@ class BHG_Admin {
 		add_action( 'admin_post_bhg_prize_delete', array( $this, 'handle_delete_prize' ) );
 		add_action( 'admin_post_bhg_save_prize_category', array( $this, 'handle_save_prize_category' ) );
 		add_action( 'admin_post_bhg_delete_prize_category', array( $this, 'handle_delete_prize_category' ) );
-		add_action( 'admin_post_bhg_save_jackpot', array( $this, 'handle_save_jackpot' ) );
-		add_action( 'admin_post_bhg_delete_jackpot', array( $this, 'handle_delete_jackpot' ) );
-		add_action( 'admin_post_bhg_reset_jackpot', array( $this, 'handle_reset_jackpot' ) );
-		add_action( 'admin_post_bhg_tournament_save', array( $this, 'handle_save_tournament' ) );
-		add_action( 'admin_post_bhg_tournament_delete', array( $this, 'handle_delete_tournament' ) );
-		add_action( 'admin_post_bhg_tournament_close', array( $this, 'handle_close_tournament' ) );
-		add_action( 'admin_post_bhg_save_affiliate', array( $this, 'handle_save_affiliate' ) );
-		add_action( 'admin_post_bhg_delete_affiliate', array( $this, 'handle_delete_affiliate' ) );
-		add_action( 'admin_post_bhg_save_user_meta', array( $this, 'handle_save_user_meta' ) );
-	}
+                add_action( 'admin_post_bhg_save_jackpot', array( $this, 'handle_save_jackpot' ) );
+                add_action( 'admin_post_bhg_delete_jackpot', array( $this, 'handle_delete_jackpot' ) );
+                add_action( 'admin_post_bhg_reset_jackpot', array( $this, 'handle_reset_jackpot' ) );
+                add_action( 'admin_post_bhg_tournament_save', array( $this, 'handle_save_tournament' ) );
+                add_action( 'admin_post_bhg_tournament_delete', array( $this, 'handle_delete_tournament' ) );
+                add_action( 'admin_post_bhg_tournament_close', array( $this, 'handle_close_tournament' ) );
+                add_action( 'admin_post_bhg_save_affiliate', array( $this, 'handle_save_affiliate' ) );
+                add_action( 'admin_post_bhg_delete_affiliate', array( $this, 'handle_delete_affiliate' ) );
+                add_action( 'admin_post_bhg_save_user_meta', array( $this, 'handle_save_user_meta' ) );
+                add_action( 'admin_post_bhg_save_button', array( $this, 'handle_save_button' ) );
+                add_action( 'admin_post_bhg_delete_button', array( $this, 'handle_delete_button' ) );
+        }
 
 	/**
 	 * Register admin menus and pages.
@@ -70,10 +72,11 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'button_results', 'Results' ), bhg_t( 'button_results', 'Results' ), $cap, 'bhg-bonus-hunts-results', array( $this, 'bonus_hunts_results' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_tournaments', 'Tournaments' ), bhg_t( 'menu_tournaments', 'Tournaments' ), $cap, 'bhg-tournaments', array( $this, 'tournaments' ) );
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
-		add_submenu_page( $slug, bhg_t( 'menu_shortcodes', 'Shortcodes' ), bhg_t( 'menu_shortcodes', 'Shortcodes' ), $cap, 'bhg-shortcodes', array( $this, 'shortcodes' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_buttons', 'Buttons' ), bhg_t( 'menu_buttons', 'Buttons' ), $cap, 'bhg-buttons', array( $this, 'buttons' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_shortcodes', 'Shortcodes' ), bhg_t( 'menu_shortcodes', 'Shortcodes' ), $cap, 'bhg-shortcodes', array( $this, 'shortcodes' ) );
 		add_submenu_page( $slug, bhg_t( 'database', 'Database' ), bhg_t( 'database', 'Database' ), $cap, 'bhg-database', array( $this, 'database' ) );
 		add_submenu_page( $slug, bhg_t( 'settings', 'Settings' ), bhg_t( 'settings', 'Settings' ), $cap, 'bhg-settings', array( $this, 'settings' ) );
 		add_submenu_page(
@@ -240,9 +243,16 @@ class BHG_Admin {
 		/**
 		 * Render the advertising page.
 		 */
-	public function advertising() {
-			require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
-	}
+        public function advertising() {
+                        require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
+        }
+
+                /**
+                 * Render the Buttons admin page.
+                 */
+                public function buttons() {
+                        require BHG_PLUGIN_DIR . 'admin/views/buttons.php';
+                }
 
 		/**
 		 * Render the shortcodes reference page.
@@ -772,10 +782,10 @@ $prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
 		/**
 		 * Save or update an advertising entry.
 		 */
-	public function handle_save_ad() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-				wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
-		}
+        public function handle_save_ad() {
+                if ( ! current_user_can( 'manage_options' ) ) {
+                                wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                }
 						check_admin_referer( 'bhg_save_ad', 'bhg_save_ad_nonce' );
 			global $wpdb;
 			$table = $wpdb->prefix . 'bhg_ads';
@@ -809,9 +819,74 @@ $prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
 				$wpdb->insert( $table, $data, $format );
 			}
 
-							wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-ads' ) );
-			exit;
-	}
+                                                        wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-ads' ) );
+                        exit;
+        }
+
+                /**
+                 * Save or update a configured frontend button.
+                 */
+                public function handle_save_button() {
+                        if ( ! current_user_can( 'manage_options' ) ) {
+                                wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                        }
+
+                        check_admin_referer( 'bhg_save_button', 'bhg_save_button_nonce' );
+
+                        if ( ! class_exists( 'BHG_Buttons' ) ) {
+                                require_once BHG_PLUGIN_DIR . 'includes/class-bhg-buttons.php';
+                        }
+
+                        $data = array(
+                                'id'               => isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0,
+                                'title'            => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+                                'text'             => isset( $_POST['text'] ) ? sanitize_text_field( wp_unslash( $_POST['text'] ) ) : '',
+                                'placement'        => isset( $_POST['placement'] ) ? sanitize_key( wp_unslash( $_POST['placement'] ) ) : 'none',
+                                'visible_to'       => isset( $_POST['visible_to'] ) ? sanitize_key( wp_unslash( $_POST['visible_to'] ) ) : 'all',
+                                'visible_when'     => isset( $_POST['visible_when'] ) ? sanitize_key( wp_unslash( $_POST['visible_when'] ) ) : 'always',
+                                'link_url'         => isset( $_POST['link_url'] ) ? esc_url_raw( wp_unslash( $_POST['link_url'] ) ) : '',
+                                'link_target'      => isset( $_POST['link_target'] ) ? sanitize_text_field( wp_unslash( $_POST['link_target'] ) ) : '_self',
+                                'background'       => isset( $_POST['background'] ) ? sanitize_text_field( wp_unslash( $_POST['background'] ) ) : '',
+                                'background_hover' => isset( $_POST['background_hover'] ) ? sanitize_text_field( wp_unslash( $_POST['background_hover'] ) ) : '',
+                                'text_color'       => isset( $_POST['text_color'] ) ? sanitize_text_field( wp_unslash( $_POST['text_color'] ) ) : '',
+                                'text_hover'       => isset( $_POST['text_hover'] ) ? sanitize_text_field( wp_unslash( $_POST['text_hover'] ) ) : '',
+                                'border_color'     => isset( $_POST['border_color'] ) ? sanitize_text_field( wp_unslash( $_POST['border_color'] ) ) : '',
+                                'text_size'        => isset( $_POST['text_size'] ) ? absint( wp_unslash( $_POST['text_size'] ) ) : null,
+                                'size'             => isset( $_POST['size'] ) ? sanitize_text_field( wp_unslash( $_POST['size'] ) ) : 'medium',
+                                'active'           => isset( $_POST['active'] ) ? 1 : 0,
+                        );
+
+                        BHG_Buttons::save_button( $data );
+
+                        wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-buttons' ) );
+                        exit;
+                }
+
+                /**
+                 * Delete a configured button.
+                 */
+                public function handle_delete_button() {
+                        if ( ! current_user_can( 'manage_options' ) ) {
+                                wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                        }
+
+                        check_admin_referer( 'bhg_delete_button', 'bhg_delete_button_nonce' );
+
+                        $id = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+                        if ( ! $id ) {
+                                wp_safe_redirect( wp_get_referer() ? wp_get_referer() : BHG_Utils::admin_url( 'admin.php?page=bhg-buttons' ) );
+                                exit;
+                        }
+
+                        if ( ! class_exists( 'BHG_Buttons' ) ) {
+                                require_once BHG_PLUGIN_DIR . 'includes/class-bhg-buttons.php';
+                        }
+
+                        BHG_Buttons::delete_button( $id );
+
+                        wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-buttons' ) );
+                        exit;
+                }
 
 		/**
 		 * Create or update a prize entry.

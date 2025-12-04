@@ -81,13 +81,14 @@ class BHG_DB {
 		$tres_table                = $wpdb->prefix . 'bhg_tournament_results';
 		$ads_table                 = $wpdb->prefix . 'bhg_ads';
 		$trans_table               = $wpdb->prefix . 'bhg_translations';
-		$aff_websites_table        = $wpdb->prefix . 'bhg_affiliate_websites';
-		$winners_table             = $wpdb->prefix . 'bhg_hunt_winners';
-		$hunt_tours_table          = $wpdb->prefix . 'bhg_tournaments_hunts';
-		$legacy_hunt_tours         = $wpdb->prefix . 'bhg_hunt_tournaments';
-				$prizes_table      = $wpdb->prefix . 'bhg_prizes';
-				$prize_cats_table  = $wpdb->prefix . 'bhg_prize_categories';
-				$hunt_prizes_table = $wpdb->prefix . 'bhg_hunt_prizes';
+                $aff_websites_table        = $wpdb->prefix . 'bhg_affiliate_websites';
+                $winners_table             = $wpdb->prefix . 'bhg_hunt_winners';
+                $hunt_tours_table          = $wpdb->prefix . 'bhg_tournaments_hunts';
+                $legacy_hunt_tours         = $wpdb->prefix . 'bhg_hunt_tournaments';
+                                $prizes_table      = $wpdb->prefix . 'bhg_prizes';
+                                $prize_cats_table  = $wpdb->prefix . 'bhg_prize_categories';
+                                $hunt_prizes_table = $wpdb->prefix . 'bhg_hunt_prizes';
+                $buttons_table            = $wpdb->prefix . 'bhg_buttons';
 
 		if ( $this->table_exists( $legacy_hunt_tours ) && ! $this->table_exists( $hunt_tours_table ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -278,11 +279,11 @@ css_background VARCHAR(40) NULL,
                         $existing_hunt_prize_index = array();
                 }
 
-		$sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
-		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-		hunt_id BIGINT UNSIGNED NOT NULL,
-		prize_id BIGINT UNSIGNED NOT NULL,
-		prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
+                $sql[] = "CREATE TABLE `{$hunt_prizes_table}` (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                hunt_id BIGINT UNSIGNED NOT NULL,
+                prize_id BIGINT UNSIGNED NOT NULL,
+                prize_type VARCHAR(20) NOT NULL DEFAULT 'regular',
 		position INT UNSIGNED NOT NULL DEFAULT 1,
 		created_at DATETIME NULL,
 		PRIMARY KEY  (id),
@@ -342,10 +343,37 @@ css_background VARCHAR(40) NULL,
 	tournament_id BIGINT UNSIGNED NOT NULL,
 	created_at DATETIME NULL,
 	PRIMARY KEY  (id),
-	UNIQUE KEY tournament_hunt (tournament_id, hunt_id),
-	KEY tournament_id (tournament_id),
-	KEY hunt_id (hunt_id)
-) {$charset_collate};";
+                UNIQUE KEY tournament_hunt (tournament_id, hunt_id),
+                KEY tournament_id (tournament_id),
+                KEY hunt_id (hunt_id)
+                ) {$charset_collate};";
+
+                // Frontend buttons.
+                $sql[] = "CREATE TABLE `{$buttons_table}` (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        title VARCHAR(190) NOT NULL,
+        text VARCHAR(190) NOT NULL,
+        placement VARCHAR(60) NOT NULL DEFAULT 'none',
+        visible_to VARCHAR(30) NOT NULL DEFAULT 'all',
+        visible_when VARCHAR(40) NOT NULL DEFAULT 'always',
+        link_url VARCHAR(255) NULL,
+        link_target VARCHAR(20) NOT NULL DEFAULT '_self',
+        background VARCHAR(20) NULL,
+        background_hover VARCHAR(20) NULL,
+        text_color VARCHAR(20) NULL,
+        text_hover VARCHAR(20) NULL,
+        border_color VARCHAR(20) NULL,
+        text_size INT NULL,
+        size VARCHAR(20) NOT NULL DEFAULT 'medium',
+        active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at DATETIME NULL,
+        updated_at DATETIME NULL,
+        PRIMARY KEY  (id),
+        KEY placement (placement),
+        KEY visible_to (visible_to),
+        KEY visible_when (visible_when),
+        KEY active (active)
+                ) {$charset_collate};";
 
 		foreach ( $sql as $statement ) {
 			dbDelta( $statement );
