@@ -1991,9 +1991,6 @@ include $view;
 return ob_get_clean();
 }
 
-		return '';
-	}
-
 /**
  * Render a configurable call-to-action button.
  *
