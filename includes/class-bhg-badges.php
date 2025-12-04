@@ -12,6 +12,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 class BHG_Badges {
 
         /**
+         * Cached badge collection for the request.
+         *
+         * @var array<int,object>|null
+         */
+        private static $all_cache = null;
+
+        /**
+         * Cached badge matches per user for the request.
+         *
+         * @var array<int,array<int,object>>
+         */
+        private static $user_badges_cache = array();
+
+        /**
+         * Cached rendered badge markup per user for the request.
+         *
+         * @var array<int,string>
+         */
+        private static $render_cache = array();
+
+        /**
          * Fetch all badges.
          *
          * @return array<int,object>
@@ -19,13 +40,19 @@ class BHG_Badges {
         public static function all() {
                 global $wpdb;
 
+                if ( null !== self::$all_cache ) {
+                        return self::$all_cache;
+                }
+
                 $table = esc_sql( $wpdb->prefix . 'bhg_badges' );
                 if ( ! $table ) {
                         return array();
                 }
 
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                return (array) $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC, id DESC" );
+                self::$all_cache = (array) $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC, id DESC" );
+
+                return self::$all_cache;
         }
 
         /**
@@ -57,12 +84,14 @@ class BHG_Badges {
                 if ( $id > 0 ) {
                         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                         $wpdb->update( $table, $row, array( 'id' => $id ) );
+                        self::reset_cache();
                         return $id;
                 }
 
                 $row['created_at'] = $now;
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->insert( $table, $row );
+                self::reset_cache();
 
                 return (int) $wpdb->insert_id;
         }
@@ -83,6 +112,8 @@ class BHG_Badges {
 
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->delete( $table, array( 'id' => absint( $id ) ) );
+
+                self::reset_cache();
         }
 
         /**
@@ -92,8 +123,14 @@ class BHG_Badges {
          * @return string
          */
         public static function render_for_user( $user_id ) {
+                $user_id = (int) $user_id;
+                if ( isset( self::$render_cache[ $user_id ] ) ) {
+                        return self::$render_cache[ $user_id ];
+                }
+
                 $badges = self::get_user_badges( $user_id );
                 if ( empty( $badges ) ) {
+                        self::$render_cache[ $user_id ] = '';
                         return '';
                 }
 
@@ -102,7 +139,9 @@ class BHG_Badges {
                         $parts[] = self::render_badge( $badge );
                 }
 
-                return $parts ? '<span class="bhg-user-badges">' . implode( '', $parts ) . '</span>' : '';
+                self::$render_cache[ $user_id ] = $parts ? '<span class="bhg-user-badges">' . implode( '', $parts ) . '</span>' : '';
+
+                return self::$render_cache[ $user_id ];
         }
 
         /**
@@ -117,15 +156,20 @@ class BHG_Badges {
                         return array();
                 }
 
+                if ( isset( self::$user_badges_cache[ $user_id ] ) ) {
+                        return self::$user_badges_cache[ $user_id ];
+                }
+
                 $badges = array_filter( self::all(), static function ( $badge ) {
                         return ! empty( $badge->active );
                 } );
 
                 if ( empty( $badges ) ) {
+                        self::$user_badges_cache[ $user_id ] = array();
                         return array();
                 }
 
-                return array_values(
+                self::$user_badges_cache[ $user_id ] = array_values(
                         array_filter(
                                 $badges,
                                 static function ( $badge ) use ( $user_id ) {
@@ -133,6 +177,19 @@ class BHG_Badges {
                                 }
                         )
                 );
+
+                return self::$user_badges_cache[ $user_id ];
+        }
+
+        /**
+         * Reset in-request caches after a mutation.
+         *
+         * @return void
+         */
+        private static function reset_cache() {
+                self::$all_cache          = null;
+                self::$user_badges_cache  = array();
+                self::$render_cache       = array();
         }
 
         /**
