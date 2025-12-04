@@ -219,16 +219,33 @@ if ( ! function_exists( 'bhg_get_default_translations' ) ) {
 			'menu_bonus_hunts'                             => 'Bonus Hunts',
 			'menu_results'                                 => 'Results',
 			'menu_tournaments'                             => 'Tournaments',
-			'menu_users'                                   => 'Users',
-			'menu_affiliates'                              => 'Affiliate Websites',
-			'menu_advertising'                             => 'Advertising',
-			'menu_notifications'                           => 'Notifications',
-			'menu_prizes'                                  => 'Prizes',
-			'menu_translations'                            => 'Translations',
-			'menu_settings'                                => 'Settings',
-			'menu_database'                                => 'Database',
-			'menu_tools'                                   => 'Tools',
-			'menu_ads'                                     => 'Ads',
+                        'menu_users'                                   => 'Users',
+                        'menu_affiliates'                              => 'Affiliate Websites',
+                        'menu_advertising'                             => 'Advertising',
+                        'menu_badges'                                  => 'Badges',
+                        'menu_buttons'                                 => 'Buttons',
+                        'menu_notifications'                           => 'Notifications',
+                        'menu_prizes'                                  => 'Prizes',
+                        'menu_translations'                            => 'Translations',
+                        'menu_settings'                                => 'Settings',
+                        'menu_database'                                => 'Database',
+                        'menu_tools'                                   => 'Tools',
+                        'menu_ads'                                     => 'Ads',
+                        'existing_badges'                              => 'Existing Badges',
+                        'no_badges_found'                              => 'No badges created yet.',
+                        'edit_badge'                                   => 'Edit Badge',
+                        'add_badge'                                    => 'Add Badge',
+                        'update_badge'                                 => 'Update Badge',
+                        'badge_image'                                  => 'Badge Image/Icon',
+                        'badge_user_data'                              => 'User Data',
+                        'badge_threshold'                              => 'Set Data',
+                        'badge_affiliate_help'                         => 'When set, qualification uses the affiliate activation date for that site.',
+                        'badge_data_none'                              => 'None (use affiliate activation date when set)',
+                        'badge_data_hunt_wins'                         => 'Total bonus hunt wins',
+                        'badge_data_tournament_wins'                   => 'Total tournament wins',
+                        'badge_data_guesses'                           => 'Total guesses',
+                        'badge_data_registration_days'                 => 'Days since registration',
+                        'badge_data_affiliate_days'                    => 'Days of affiliate active',
 
 			// Translation UI helpers.
 			'translations_section_frontend'                => 'Frontend Interface',
@@ -1440,14 +1457,19 @@ function bhg_get_user_display_name( $user_id ) {
 		return wp_kses_post( bhg_t( 'unknown_user', 'Unknown User' ) );
 	}
 
-	$display_name = $user->display_name ? $user->display_name : $user->user_login;
-	$is_affiliate = bhg_is_user_affiliate( (int) $user_id );
+        $display_name = $user->display_name ? $user->display_name : $user->user_login;
+        $is_affiliate = bhg_is_user_affiliate( (int) $user_id );
 
-	if ( $is_affiliate ) {
-		$display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
-	}
+        if ( $is_affiliate ) {
+                $display_name .= ' <span class="bhg-affiliate-indicator" title="' . esc_attr( bhg_t( 'label_affiliate_user_title', 'Affiliate User' ) ) . '">★</span>';
+        }
 
-	return wp_kses_post( $display_name );
+        $badges_markup = bhg_render_user_badges( (int) $user_id );
+        if ( $badges_markup ) {
+                $display_name .= ' ' . $badges_markup;
+        }
+
+        return wp_kses_post( $display_name );
 }
 
 if ( ! function_exists( 'bhg_is_user_affiliate' ) ) {
@@ -1470,16 +1492,29 @@ if ( ! function_exists( 'bhg_get_user_affiliate_websites' ) ) {
 	 * @param int $user_id User ID.
 	 * @return array
 	 */
-	function bhg_get_user_affiliate_websites( $user_id ) {
-		$ids = get_user_meta( (int) $user_id, 'bhg_affiliate_websites', true );
-		if ( is_array( $ids ) ) {
-			return array_map( 'absint', $ids );
-		}
-		if ( is_string( $ids ) && '' !== $ids ) {
-			return array_map( 'absint', array_filter( array_map( 'trim', explode( ',', $ids ) ) ) );
-		}
-		return array();
-	}
+        function bhg_get_user_affiliate_websites( $user_id ) {
+                global $wpdb;
+
+                $table = esc_sql( $wpdb->prefix . 'bhg_user_affiliates' );
+
+                // Prefer dedicated table when available.
+                if ( $table && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                        $rows = $wpdb->get_col( $wpdb->prepare( "SELECT affiliate_site_id FROM {$table} WHERE user_id = %d", (int) $user_id ) );
+                        if ( ! empty( $rows ) ) {
+                                return array_map( 'absint', (array) $rows );
+                        }
+                }
+
+                $ids = get_user_meta( (int) $user_id, 'bhg_affiliate_websites', true );
+                if ( is_array( $ids ) ) {
+                        return array_map( 'absint', $ids );
+                }
+                if ( is_string( $ids ) && '' !== $ids ) {
+                        return array_map( 'absint', array_filter( array_map( 'trim', explode( ',', $ids ) ) ) );
+                }
+                return array();
+        }
 }
 
 if ( ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
@@ -1490,18 +1525,90 @@ if ( ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
 				 * @param array $site_ids Site IDs.
 				 * @return void
 				 */
-	function bhg_set_user_affiliate_websites( $user_id, $site_ids ) {
-					$clean = array();
-		if ( is_array( $site_ids ) ) {
-			foreach ( $site_ids as $sid ) {
-				$sid = absint( $sid );
-				if ( $sid ) {
-								$clean[] = $sid;
-				}
-			}
-		}
-					update_user_meta( (int) $user_id, 'bhg_affiliate_websites', $clean );
-	}
+        function bhg_set_user_affiliate_websites( $user_id, $site_ids ) {
+                                        $clean = array();
+                if ( is_array( $site_ids ) ) {
+                        foreach ( $site_ids as $sid ) {
+                                $sid = absint( $sid );
+                                if ( $sid ) {
+                                                                $clean[] = $sid;
+                                }
+                        }
+                }
+                                        update_user_meta( (int) $user_id, 'bhg_affiliate_websites', $clean );
+
+                global $wpdb;
+                $table = esc_sql( $wpdb->prefix . 'bhg_user_affiliates' );
+
+                if ( ! $table || ! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                        return;
+                }
+
+                $user_id = (int) $user_id;
+                $now     = current_time( 'mysql' );
+
+                // Existing associations.
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                $existing = $wpdb->get_col( $wpdb->prepare( "SELECT affiliate_site_id FROM {$table} WHERE user_id = %d", $user_id ) );
+                $existing = array_map( 'absint', (array) $existing );
+
+                $clean_unique = array_values( array_unique( $clean ) );
+
+                // Insert new associations with activation date.
+                foreach ( $clean_unique as $sid ) {
+                        if ( ! in_array( $sid, $existing, true ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                $wpdb->insert( $table, array(
+                                        'user_id'           => $user_id,
+                                        'affiliate_site_id' => $sid,
+                                        'activated_at'      => $now,
+                                ) );
+                        }
+                }
+
+                // Remove unselected associations.
+                foreach ( $existing as $sid ) {
+                        if ( ! in_array( $sid, $clean_unique, true ) ) {
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                $wpdb->delete( $table, array( 'user_id' => $user_id, 'affiliate_site_id' => $sid ) );
+                        }
+                }
+        }
+}
+
+if ( ! function_exists( 'bhg_get_affiliate_activation_date' ) ) {
+        /**
+         * Retrieve the activation date for a user's affiliate status.
+         *
+         * @param int $user_id User ID.
+         * @param int $site_id Optional site ID for per-site activation.
+         * @return string Empty string when unavailable.
+         */
+        function bhg_get_affiliate_activation_date( $user_id, $site_id = 0 ) {
+                global $wpdb;
+
+                $user_id = (int) $user_id;
+                $site_id = (int) $site_id;
+
+                if ( $site_id > 0 ) {
+                        $table = esc_sql( $wpdb->prefix . 'bhg_user_affiliates' );
+                        if ( $table && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                $date = $wpdb->get_var( $wpdb->prepare( "SELECT activated_at FROM {$table} WHERE user_id = %d AND affiliate_site_id = %d", $user_id, $site_id ) );
+                                if ( $date ) {
+                                        return $date;
+                                }
+                        }
+                }
+
+                $meta_date = get_user_meta( $user_id, 'bhg_affiliate_since', true );
+                if ( $meta_date ) {
+                        return $meta_date;
+                }
+
+                $user = get_userdata( $user_id );
+                return $user && $user->user_registered ? $user->user_registered : '';
+        }
 }
 
 if ( ! function_exists( 'bhg_remove_affiliate_site_from_users' ) ) {
@@ -1609,6 +1716,43 @@ if ( ! function_exists( 'bhg_render_affiliate_dot' ) ) {
 		$html   = '<span class="bhg-aff-dot ' . esc_attr( $cls ) . '" aria-label="' . esc_attr( $label ) . '"></span>';
 		return wp_kses_post( $html );
 	}
+}
+
+if ( ! function_exists( 'bhg_render_user_badges' ) ) {
+        /**
+         * Render badges for a user if available.
+         *
+         * @param int $user_id User ID.
+         * @return string
+         */
+        function bhg_render_user_badges( $user_id ) {
+                if ( ! class_exists( 'BHG_Badges' ) && file_exists( BHG_PLUGIN_DIR . 'includes/class-bhg-badges.php' ) ) {
+                        require_once BHG_PLUGIN_DIR . 'includes/class-bhg-badges.php';
+                }
+
+                return class_exists( 'BHG_Badges' ) ? BHG_Badges::render_for_user( (int) $user_id ) : '';
+        }
+}
+
+if ( ! function_exists( 'bhg_format_user_with_badges' ) ) {
+        /**
+         * Combine a username label with qualifying badges.
+         *
+         * @param int    $user_id User ID.
+         * @param string $label   Preferred label.
+         * @return string
+         */
+        function bhg_format_user_with_badges( $user_id, $label = '' ) {
+                $name   = '' !== $label ? $label : wp_strip_all_tags( bhg_get_user_display_name( $user_id ) );
+                $badges = bhg_render_user_badges( $user_id );
+
+                $output = esc_html( $name );
+                if ( $badges ) {
+                        $output .= ' ' . $badges;
+                }
+
+                return $output;
+        }
 }
 
 if ( ! function_exists( 'bhg_cleanup_translation_duplicates' ) ) {

@@ -234,11 +234,13 @@ spl_autoload_register(
 			'BHG_Models'                 => 'includes/class-bhg-models.php',
 			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
 			'BHG_Ads'                    => 'includes/class-bhg-ads.php',
-			'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
-			'BHG_Jackpots'               => 'includes/class-bhg-jackpots.php',
-			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
-			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
-		);
+                        'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
+                        'BHG_Jackpots'               => 'includes/class-bhg-jackpots.php',
+                        'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
+                        'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
+                        'BHG_Buttons'                => 'includes/class-bhg-buttons.php',
+                        'BHG_Badges'                 => 'includes/class-bhg-badges.php',
+                );
 
 		if ( isset( $class_map[ $class_name ] ) ) {
 			$file_path = BHG_PLUGIN_DIR . $class_map[ $class_name ];
