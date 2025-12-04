@@ -2824,12 +2824,26 @@ return ob_get_clean();
 							   echo '<li><strong>' . esc_html( bhg_t( 'label_opened', 'Opened' ) ) . ':</strong> ' . esc_html( $opened_label ) . '</li>';
 					   }
 
-					   $closed_at      = isset( $selected_hunt->closed_at ) ? (string) $selected_hunt->closed_at : '';
-					   $closed_display = '-';
-					   if ( '' !== $closed_at && '0000-00-00 00:00:00' !== $closed_at ) {
-							   $closed_display = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $closed_at, true );
-					   }
-					   echo '<li><strong>' . esc_html( bhg_t( 'label_closed', 'Closed' ) ) . ':</strong> ' . esc_html( $closed_display ) . '</li>';
+                                          $closed_at      = isset( $selected_hunt->closed_at ) ? (string) $selected_hunt->closed_at : '';
+                                          $closed_display = '-';
+                                          if ( '' !== $closed_at && '0000-00-00 00:00:00' !== $closed_at ) {
+                                                          $closed_display = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $closed_at, true );
+                                          }
+
+                                          $status_label = bhg_t( 'label_status', 'Status' );
+                                          $status_value = 'open' === $selected_hunt->status ? bhg_t( 'status_active_guess_now', 'Active: Guess Now' ) : bhg_t( 'status_closed', 'Closed' );
+                                          $guess_url    = add_query_arg( array( 'bhg_hunt' => $selected_hunt_id ), get_permalink() );
+
+                                          if ( 'open' === $selected_hunt->status ) {
+                                                          $status_link = sprintf(
+                                                                          '<a href="%s" class="bhg-hunt-status-link">%s</a>',
+                                                                          esc_url( $guess_url ),
+                                                                          esc_html( bhg_t( 'status_active_guess_now', 'Active: Guess Now' ) )
+                                                          );
+                                                          $status_value = $status_link;
+                                          }
+
+                                          echo '<li><strong>' . esc_html( $status_label ) . ':</strong> ' . wp_kses_post( $status_value ) . '</li>';
 
 					   $affiliate_name = isset( $selected_hunt->affiliate_site_name ) ? $selected_hunt->affiliate_site_name : '';
 					   if ( '' === $affiliate_name && isset( $selected_hunt->affiliate_site_id ) && (int) $selected_hunt->affiliate_site_id > 0 ) {
@@ -2918,9 +2932,9 @@ return ob_get_clean();
                                            echo '</div>';
 
 			   echo '<div class="bhg-table-wrapper">';
-			   if ( empty( $rows ) ) {
-				   echo '<p class="bhg-no-guesses">' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses have been submitted for this hunt yet.' ) ) . '</p>';
-			   } else {
+                          if ( empty( $rows ) ) {
+                                   echo '<div class="bhg-info-block bhg-info-block--muted">' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses have been submitted for this hunt yet.' ) ) . '</div>';
+                           } else {
 				   echo '<table class="bhg-leaderboard bhg-active-hunt-table">';
 				   echo '<thead><tr>';
 				   echo '<th scope="col">' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th>';
@@ -3231,7 +3245,7 @@ return ob_get_clean();
 																	   wp_cache_set( $total_cache, $total, 'bhg', 300 );
 															   }
 															   if ( $total < 1 ) {
-																					   return '<p>' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</p>';
+  return '<div class="bhg-info-block bhg-info-block--muted">' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses yet.' ) ) . '</div>';
 															   }
 
 																								$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
@@ -3680,7 +3694,7 @@ $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ?
 						};
 
 						if ( ! $rows ) {
-								return '<p>' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</p>';
+                                                          return '<div class="bhg-info-block bhg-info-block--muted">' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</div>';
 						}
 
 		$show_aff = $need_users;
