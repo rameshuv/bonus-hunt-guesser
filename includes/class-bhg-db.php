@@ -85,10 +85,12 @@ class BHG_DB {
                 $winners_table             = $wpdb->prefix . 'bhg_hunt_winners';
                 $hunt_tours_table          = $wpdb->prefix . 'bhg_tournaments_hunts';
                 $legacy_hunt_tours         = $wpdb->prefix . 'bhg_hunt_tournaments';
-                                $prizes_table      = $wpdb->prefix . 'bhg_prizes';
-                                $prize_cats_table  = $wpdb->prefix . 'bhg_prize_categories';
-                                $hunt_prizes_table = $wpdb->prefix . 'bhg_hunt_prizes';
+                $prizes_table      = $wpdb->prefix . 'bhg_prizes';
+                $prize_cats_table  = $wpdb->prefix . 'bhg_prize_categories';
+                $hunt_prizes_table = $wpdb->prefix . 'bhg_hunt_prizes';
                 $buttons_table            = $wpdb->prefix . 'bhg_buttons';
+                $badges_table             = $wpdb->prefix . 'bhg_badges';
+                $user_affiliates_table    = $wpdb->prefix . 'bhg_user_affiliates';
 
 		if ( $this->table_exists( $legacy_hunt_tours ) && ! $this->table_exists( $hunt_tours_table ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
@@ -373,6 +375,34 @@ css_background VARCHAR(40) NULL,
         KEY visible_to (visible_to),
         KEY visible_when (visible_when),
         KEY active (active)
+                ) {$charset_collate};";
+
+                // Badges.
+                $sql[] = "CREATE TABLE `{$badges_table}` (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        title VARCHAR(190) NOT NULL,
+        image_id BIGINT UNSIGNED NULL,
+        affiliate_site_id BIGINT UNSIGNED NULL,
+        user_data VARCHAR(50) NOT NULL DEFAULT 'none',
+        threshold INT UNSIGNED NOT NULL DEFAULT 0,
+        active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at DATETIME NULL,
+        updated_at DATETIME NULL,
+        PRIMARY KEY  (id),
+        KEY affiliate_site_id (affiliate_site_id),
+        KEY user_data (user_data),
+        KEY active (active)
+                ) {$charset_collate};";
+
+                // User affiliate activation dates.
+                $sql[] = "CREATE TABLE `{$user_affiliates_table}` (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        user_id BIGINT UNSIGNED NOT NULL,
+        affiliate_site_id BIGINT UNSIGNED NOT NULL,
+        activated_at DATETIME NULL,
+        PRIMARY KEY  (id),
+        UNIQUE KEY user_site (user_id, affiliate_site_id),
+        KEY affiliate_site_id (affiliate_site_id)
                 ) {$charset_collate};";
 
 		foreach ( $sql as $statement ) {

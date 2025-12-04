@@ -3104,13 +3104,14 @@ return ob_get_clean();
 				   echo '</tr></thead><tbody>';
 				   foreach ( $rows as $index => $row ) {
 					   $position   = $offset + $index + 1;
-                                           $user_login = ! empty( $row->display_name ) ? $row->display_name : $row->user_login;
-                                           $user_label = $user_login ? $this->format_username_label( $user_login ) : bhg_t( 'label_unknown_user', 'Unknown user' );
-					   $aff_dot    = bhg_render_affiliate_dot( (int) $row->user_id, $hunt_site_id );
+                                          $user_login = ! empty( $row->display_name ) ? $row->display_name : $row->user_login;
+                                          $user_label = $user_login ? $this->format_username_label( $user_login ) : bhg_t( 'label_unknown_user', 'Unknown user' );
+                                          $aff_dot    = bhg_render_affiliate_dot( (int) $row->user_id, $hunt_site_id );
+                                          $user_cell  = function_exists( 'bhg_format_user_with_badges' ) ? bhg_format_user_with_badges( (int) $row->user_id, $user_label ) : esc_html( $user_label );
 
 					   echo '<tr>';
 					   echo '<td data-label="' . esc_attr( bhg_t( 'label_position', 'Position' ) ) . '">' . (int) $position . '</td>';
-                                      echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'User' ) ) . '">' . esc_html( $user_label ) . ' ' . wp_kses_post( $aff_dot ) . '</td>';
+                                      echo '<td data-label="' . esc_attr( bhg_t( 'label_username', 'User' ) ) . '">' . wp_kses_post( $user_cell . ' ' . $aff_dot ) . '</td>';
 					   echo '<td data-label="' . esc_attr( bhg_t( 'label_guess', 'Guess' ) ) . '">' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
 					   if ( $has_final ) {
 						   $diff = isset( $row->diff ) ? (float) $row->diff : 0.0;
@@ -3947,12 +3948,11 @@ echo '<table class="bhg-user-guesses"><thead><tr>';
 								$user_display = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
 						}
 
-						$user_cell = '';
-						if ( $show_aff ) {
-								$user_cell .= bhg_render_affiliate_dot( (int) $row->user_id, (int) $row->affiliate_site_id ) . ' ';
-						}
-						$user_cell .= '<span class="bhg-user-name">' . esc_html( $user_display ) . '</span>';
-						echo '<td>' . wp_kses_post( $user_cell ) . '</td>';
+                                                $user_cell = function_exists( 'bhg_format_user_with_badges' ) ? bhg_format_user_with_badges( (int) $row->user_id, $user_display ) : esc_html( $user_display );
+                                                if ( $show_aff ) {
+                                                                $user_cell = bhg_render_affiliate_dot( (int) $row->user_id, (int) $row->affiliate_site_id ) . ' ' . $user_cell;
+                                                }
+                                                echo '<td>' . wp_kses_post( $user_cell ) . '</td>';
 				}
 				echo '<td>' . esc_html( bhg_format_money( (float) $row->guess ) ) . '</td>';
 				if ( $need_site ) {

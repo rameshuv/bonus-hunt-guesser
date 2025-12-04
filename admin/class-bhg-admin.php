@@ -47,6 +47,8 @@ class BHG_Admin {
                 add_action( 'admin_post_bhg_save_user_meta', array( $this, 'handle_save_user_meta' ) );
                 add_action( 'admin_post_bhg_save_button', array( $this, 'handle_save_button' ) );
                 add_action( 'admin_post_bhg_delete_button', array( $this, 'handle_delete_button' ) );
+                add_action( 'admin_post_bhg_save_badge', array( $this, 'handle_save_badge' ) );
+                add_action( 'admin_post_bhg_delete_badge', array( $this, 'handle_delete_badge' ) );
         }
 
 	/**
@@ -74,6 +76,7 @@ class BHG_Admin {
 		add_submenu_page( $slug, bhg_t( 'menu_users', 'Users' ), bhg_t( 'menu_users', 'Users' ), $cap, 'bhg-users', array( $this, 'users' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_affiliates', 'Affiliates' ), bhg_t( 'menu_affiliates', 'Affiliates' ), $cap, 'bhg-affiliates', array( $this, 'affiliates' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_advertising', 'Advertising' ), bhg_t( 'menu_advertising', 'Advertising' ), $cap, 'bhg-ads', array( $this, 'advertising' ) );
+                add_submenu_page( $slug, bhg_t( 'menu_badges', 'Badges' ), bhg_t( 'menu_badges', 'Badges' ), $cap, 'bhg-badges', array( $this, 'badges' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_buttons', 'Buttons' ), bhg_t( 'menu_buttons', 'Buttons' ), $cap, 'bhg-buttons', array( $this, 'buttons' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_translations', 'Translations' ), bhg_t( 'menu_translations', 'Translations' ), $cap, 'bhg-translations', array( $this, 'translations' ) );
                 add_submenu_page( $slug, bhg_t( 'menu_shortcodes', 'Shortcodes' ), bhg_t( 'menu_shortcodes', 'Shortcodes' ), $cap, 'bhg-shortcodes', array( $this, 'shortcodes' ) );
@@ -123,10 +126,10 @@ class BHG_Admin {
 							);
 			}
 
-			if ( false !== strpos( $hook, 'bhg-prizes' ) ) {
-					wp_enqueue_media();
-					$prize_script = BHG_PLUGIN_DIR . 'assets/js/admin-prizes.js';
-				if ( file_exists( $prize_script ) ) {
+                        if ( false !== strpos( $hook, 'bhg-prizes' ) ) {
+                                        wp_enqueue_media();
+                                        $prize_script = BHG_PLUGIN_DIR . 'assets/js/admin-prizes.js';
+                                if ( file_exists( $prize_script ) ) {
 								wp_enqueue_script(
 									'bhg-admin-prizes',
 									BHG_PLUGIN_URL . 'assets/js/admin-prizes.js',
@@ -156,10 +159,14 @@ class BHG_Admin {
 								'modalAddTitle'  => bhg_t( 'add_new_prize', 'Add New Prize' ),
 								'modalEditTitle' => bhg_t( 'edit_prize', 'Edit Prize' ),
 								'errorLoading'   => bhg_t( 'prize_error_loading', 'Unable to load prize details.' ),
-							),
-						)
-					);
-				}
+                                                        ),
+                                                )
+                                        );
+                        }
+
+                        if ( false !== strpos( $hook, 'bhg-badges' ) ) {
+                                wp_enqueue_media();
+                        }
 			}
 
 			if ( false !== strpos( $hook, 'bhg-bonus-hunts-results' ) ) {
@@ -245,6 +252,13 @@ class BHG_Admin {
 		 */
         public function advertising() {
                         require BHG_PLUGIN_DIR . 'admin/views/advertising.php';
+        }
+
+        /**
+         * Render the Badges admin page.
+         */
+        public function badges() {
+                require BHG_PLUGIN_DIR . 'admin/views/badges.php';
         }
 
                 /**
@@ -885,6 +899,59 @@ $prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
                         BHG_Buttons::delete_button( $id );
 
                         wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-buttons' ) );
+                        exit;
+                }
+
+                /**
+                 * Save or update a badge.
+                 */
+                public function handle_save_badge() {
+                        if ( ! current_user_can( 'manage_options' ) ) {
+                                wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                        }
+
+                        check_admin_referer( 'bhg_save_badge', 'bhg_save_badge_nonce' );
+
+                        if ( ! class_exists( 'BHG_Badges' ) ) {
+                                require_once BHG_PLUGIN_DIR . 'includes/class-bhg-badges.php';
+                        }
+
+                        $data = array(
+                                'id'                => isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0,
+                                'title'             => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '',
+                                'image_id'          => isset( $_POST['image_id'] ) ? absint( wp_unslash( $_POST['image_id'] ) ) : 0,
+                                'affiliate_site_id' => isset( $_POST['affiliate_site_id'] ) ? absint( wp_unslash( $_POST['affiliate_site_id'] ) ) : 0,
+                                'user_data'         => isset( $_POST['user_data'] ) ? sanitize_key( wp_unslash( $_POST['user_data'] ) ) : 'none',
+                                'threshold'         => isset( $_POST['threshold'] ) ? absint( wp_unslash( $_POST['threshold'] ) ) : 0,
+                                'active'            => isset( $_POST['active'] ) ? 1 : 0,
+                        );
+
+                        BHG_Badges::save( $data );
+
+                        wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-badges' ) );
+                        exit;
+                }
+
+                /**
+                 * Delete a badge row.
+                 */
+                public function handle_delete_badge() {
+                        if ( ! current_user_can( 'manage_options' ) ) {
+                                wp_die( esc_html( bhg_t( 'no_permission', 'No permission' ) ) );
+                        }
+
+                        check_admin_referer( 'bhg_delete_badge', 'bhg_delete_badge_nonce' );
+
+                        $id = isset( $_POST['id'] ) ? absint( wp_unslash( $_POST['id'] ) ) : 0;
+                        if ( $id ) {
+                                if ( ! class_exists( 'BHG_Badges' ) ) {
+                                        require_once BHG_PLUGIN_DIR . 'includes/class-bhg-badges.php';
+                                }
+
+                                BHG_Badges::delete( $id );
+                        }
+
+                        wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-badges' ) );
                         exit;
                 }
 
@@ -1613,12 +1680,19 @@ $prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
 		}
 								check_admin_referer( 'bhg_save_user_meta', 'bhg_save_user_meta_nonce' );
 		$user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
-		if ( $user_id ) {
-			$real_name    = isset( $_POST['bhg_real_name'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_real_name'] ) ) : '';
-			$is_affiliate = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
-			update_user_meta( $user_id, 'bhg_real_name', $real_name );
-			update_user_meta( $user_id, 'bhg_is_affiliate', $is_affiliate );
-		}
+                if ( $user_id ) {
+                        $real_name    = isset( $_POST['bhg_real_name'] ) ? sanitize_text_field( wp_unslash( $_POST['bhg_real_name'] ) ) : '';
+                        $is_affiliate = isset( $_POST['bhg_is_affiliate'] ) ? 1 : 0;
+                        update_user_meta( $user_id, 'bhg_real_name', $real_name );
+                        update_user_meta( $user_id, 'bhg_is_affiliate', $is_affiliate );
+
+                        if ( $is_affiliate ) {
+                                $since = get_user_meta( $user_id, 'bhg_affiliate_since', true );
+                                if ( ! $since ) {
+                                        update_user_meta( $user_id, 'bhg_affiliate_since', current_time( 'mysql' ) );
+                                }
+                        }
+                }
 				wp_safe_redirect( BHG_Utils::admin_url( 'admin.php?page=bhg-users' ) );
 		exit;
 	}
