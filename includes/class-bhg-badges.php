@@ -51,8 +51,9 @@ class BHG_Badges {
                         return self::$all_cache;
                 }
 
-                $table = esc_sql( $wpdb->prefix . 'bhg_badges' );
-                if ( ! self::badges_table_exists( $table ) ) {
+                $table_name = $wpdb->prefix . 'bhg_badges';
+                $table      = esc_sql( $table_name );
+                if ( ! self::badges_table_exists( $table_name ) ) {
                         self::$all_cache = array();
                         return self::$all_cache;
                 }
@@ -72,8 +73,9 @@ class BHG_Badges {
         public static function save( $data ) {
                 global $wpdb;
 
-                $table = esc_sql( $wpdb->prefix . 'bhg_badges' );
-                if ( ! self::badges_table_exists( $table ) ) {
+                $table_name = $wpdb->prefix . 'bhg_badges';
+                $table      = esc_sql( $table_name );
+                if ( ! self::badges_table_exists( $table_name ) ) {
                         return 0;
                 }
 
@@ -113,8 +115,9 @@ class BHG_Badges {
         public static function delete( $id ) {
                 global $wpdb;
 
-                $table = esc_sql( $wpdb->prefix . 'bhg_badges' );
-                if ( ! self::badges_table_exists( $table ) ) {
+                $table_name = $wpdb->prefix . 'bhg_badges';
+                $table      = esc_sql( $table_name );
+                if ( ! self::badges_table_exists( $table_name ) ) {
                         return;
                 }
 
@@ -204,7 +207,7 @@ class BHG_Badges {
         /**
          * Determine if the badges table exists.
          *
-         * @param string $table Table name.
+         * @param string $table Table name (unescaped).
          * @return bool
          */
         private static function badges_table_exists( $table ) {
