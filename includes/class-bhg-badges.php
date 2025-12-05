@@ -19,13 +19,6 @@ class BHG_Badges {
         private static $all_cache = null;
 
         /**
-         * Cached table existence flag for badges table.
-         *
-         * @var bool|null
-         */
-        private static $table_exists = null;
-
-        /**
          * Cached badge matches per user for the request.
          *
          * @var array<int,array<int,object>>
