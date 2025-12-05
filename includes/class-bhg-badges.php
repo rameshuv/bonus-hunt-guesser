@@ -19,6 +19,13 @@ class BHG_Badges {
         private static $all_cache = null;
 
         /**
+         * Cached table existence flag for badges table.
+         *
+         * @var bool|null
+         */
+        private static $table_exists = null;
+
+        /**
          * Cached badge matches per user for the request.
          *
          * @var array<int,array<int,object>>
@@ -213,7 +220,8 @@ class BHG_Badges {
                 }
 
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                $found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+                $table_like = $wpdb->esc_like( $table );
+                $found      = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_like ) );
 
                 self::$table_exists = ! empty( $found );
 
