@@ -53,6 +53,32 @@ $view_type      = in_array( $requested_type, array( 'hunt', 'tournament' ), true
 $hunt_id       = ( 'tournament' === $view_type ) ? 0 : $requested_id;
 $tournament_id = ( 'tournament' === $view_type ) ? $requested_id : 0;
 
+// Ensure selectors include the requested item, even if it's outside the current timeframe.
+if ( $hunt_id && ! isset( $hunts_map[ $hunt_id ] ) ) {
+        $requested_hunt = BHG_Bonus_Hunts::get_hunt( $hunt_id );
+
+        if ( $requested_hunt ) {
+                $hunts_map[ $hunt_id ] = (object) array(
+                        'id'        => (int) $requested_hunt->id,
+                        'title'     => $requested_hunt->title,
+                        'closed_at' => $requested_hunt->closed_at,
+                );
+        }
+} elseif ( $tournament_id && ! isset( $tournaments_map[ $tournament_id ] ) ) {
+        $tournaments_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
+
+        $requested_tournament = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                $wpdb->prepare(
+                        "SELECT id, title, start_date, end_date FROM {$tournaments_table} WHERE id = %d",
+                        $tournament_id
+                )
+        );
+
+        if ( $requested_tournament ) {
+                $tournaments_map[ (int) $requested_tournament->id ] = $requested_tournament;
+        }
+}
+
 // Fallback gracefully if the requested item isn't available in the current timeframe.
 if ( 'tournament' === $view_type ) {
 	if ( ! $tournament_id || ! isset( $tournaments_map[ $tournament_id ] ) ) {
@@ -144,10 +170,13 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 			)
 		);
 
-		$total_participants = count( $results );
-		$winners_limit      = apply_filters( 'bhg_tournament_winners_limit', 3, $tournament );
-		$winners_limit      = max( 1, (int) $winners_limit );
-	}
+                $total_participants = count( $results );
+
+                $configured_winners = isset( $tournament->winners_count ) ? (int) $tournament->winners_count : 0;
+                $winners_limit      = $configured_winners > 0 ? $configured_winners : 3;
+                $winners_limit      = apply_filters( 'bhg_tournament_winners_limit', $winners_limit, $tournament );
+                $winners_limit      = max( 1, (int) $winners_limit );
+        }
 } elseif ( 'hunt' === $view_type && $hunt_id ) {
 	$hunt = BHG_Bonus_Hunts::get_hunt( $hunt_id );
 
