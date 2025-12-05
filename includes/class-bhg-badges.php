@@ -45,8 +45,9 @@ class BHG_Badges {
                 }
 
                 $table = esc_sql( $wpdb->prefix . 'bhg_badges' );
-                if ( ! $table ) {
-                        return array();
+                if ( ! self::badges_table_exists( $table ) ) {
+                        self::$all_cache = array();
+                        return self::$all_cache;
                 }
 
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -65,7 +66,7 @@ class BHG_Badges {
                 global $wpdb;
 
                 $table = esc_sql( $wpdb->prefix . 'bhg_badges' );
-                if ( ! $table ) {
+                if ( ! self::badges_table_exists( $table ) ) {
                         return 0;
                 }
 
@@ -106,7 +107,7 @@ class BHG_Badges {
                 global $wpdb;
 
                 $table = esc_sql( $wpdb->prefix . 'bhg_badges' );
-                if ( ! $table ) {
+                if ( ! self::badges_table_exists( $table ) ) {
                         return;
                 }
 
@@ -190,6 +191,33 @@ class BHG_Badges {
                 self::$all_cache          = null;
                 self::$user_badges_cache  = array();
                 self::$render_cache       = array();
+                self::$table_exists       = null;
+        }
+
+        /**
+         * Determine if the badges table exists.
+         *
+         * @param string $table Table name.
+         * @return bool
+         */
+        private static function badges_table_exists( $table ) {
+                global $wpdb;
+
+                if ( null !== self::$table_exists ) {
+                        return self::$table_exists;
+                }
+
+                if ( empty( $table ) ) {
+                        self::$table_exists = false;
+                        return self::$table_exists;
+                }
+
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                $found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+
+                self::$table_exists = ! empty( $found );
+
+                return self::$table_exists;
         }
 
         /**
