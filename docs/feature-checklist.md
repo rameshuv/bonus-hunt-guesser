@@ -1,19 +1,36 @@
-# Feature Verification Checklist
+# Feature Implementation Checklist (Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+)
 
-## Prize Adjustments
-- ✅ Add/edit Bonus Hunt forms support configuring regular and premium prizes for each winner slot based on the selected number of winners. 【F:admin/views/bonus-hunts.php†L420-L461】
-- ✅ Add/edit Tournament forms mirror the regular/premium prize mapping per winner slot. 【F:admin/views/tournaments.php†L430-L463】
-- ✅ Prize sections render a per-position summary list beneath prize cards when enabled. 【F:includes/class-bhg-shortcodes.php†L1567-L1694】
-- ✅ Prize displays use a tabbed carousel separating regular and premium prizes. 【F:includes/class-bhg-shortcodes.php†L1203-L1260】【F:includes/class-bhg-shortcodes.php†L4780-L4823】
-- ✅ Shortcode attributes allow showing/hiding prizes and prize summaries for tournaments, leaderboards, and prize displays. 【F:includes/class-bhg-shortcodes.php†L4569-L4613】【F:includes/class-bhg-shortcodes.php†L5239-L5250】【F:includes/class-bhg-shortcodes.php†L5883-L5938】
+## Badges
+- [ ] Admin menu entry for **Badges** under Bonushunt
+- [ ] CRUD: add, edit, delete badges
+- [ ] Fields: Badge Title, Badge Image/Icon
+- [ ] Field: Affiliate Website (options: none, all affiliate websites; applies activation date tracking per user/site)
+- [ ] Field: User Data (none; total bonushunt wins; total tournament wins; total guesses; days of registration; days of affiliate active)
+- [ ] Field: Set Data threshold (5, 10, 25, 50, 100, 250, 500, 1000)
+- [ ] Show earned badges after usernames on frontend
 
-## Front-page List Shortcodes
-- ✅ Latest winners text list shortcode with selectable fields and limits. 【F:includes/class-bhg-shortcodes.php†L3443-L3685】
-- ✅ Leaderboard list shortcode for top guessers with tournament/bonushunt filters and selectable fields. 【F:includes/class-bhg-shortcodes.php†L3688-L3959】
-- ✅ Tournament list shortcode showing timeline/status details with configurable fields. 【F:includes/class-bhg-shortcodes.php†L3961-L4178】
-- ✅ Bonushunt list shortcode showing timeline/status details with configurable fields. 【F:includes/class-bhg-shortcodes.php†L4180-L4461】
+## Buttons
+- [ ] Admin Buttons CRUD
+- [ ] Placement options: none; active bonushunt details (below description); active tournament details (below description)
+- [ ] Visibility options: all, guests, logged in, affiliates, non affiliates
+- [ ] Conditional visibility: active bonushunt; active tournament
+- [ ] Button text (default: Guess Now)
+- [ ] Custom link + target (same window default)
+- [ ] Colors: background + hover; text + hover; border
+- [ ] Text size control
+- [ ] Button size: small, medium, big
+- [ ] Responsive tablet/mobile/desktop styles
+- [ ] `bhg_button` shortcode documented in backend
 
-## Shortcode Filter Adjustments
-- ✅ Timeline filters limited to Alltime, Today, This Week, This Month, This Quarter, This Year, and Last Year across shortcode UIs. 【F:includes/class-bhg-shortcodes.php†L3339-L3366】【F:includes/class-bhg-shortcodes.php†L5735-L5760】
-- ✅ Bonushunt and tournament listings include status/timeline dropdown filters and options to hide the search box. 【F:includes/class-bhg-shortcodes.php†L5729-L5794】【F:includes/class-bhg-shortcodes.php†L4462-L4515】
-- ✅ Leaderboard shortcode supports hiding the search form and toggling prize visibility/summary displays. 【F:includes/class-bhg-shortcodes.php†L4569-L4613】
+## Active Hunt & User Guesses
+- [ ] Empty states wrapped in info block ("No Guesses Yet" / "No Guesses Found")
+- [ ] Active bonus hunt details displayed in styled block
+
+## Active Hunt Details
+- [ ] Toggle to hide/show description details: number of bonuses, affiliate website
+- [ ] Detail label changed to **Status:** with link "Active: Guess Now" or "Closed"
+
+## Bonus Hunts Results (Backend)
+- [ ] Winner row highlighting matches selected winners count
+- [ ] Results admin dropdown includes bonushunts and tournaments
+- [ ] Clicking "results" in bonushunt list opens correct data in results screen
