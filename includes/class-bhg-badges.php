@@ -19,11 +19,11 @@ class BHG_Badges {
         private static $all_cache = null;
 
         /**
-         * Cached table existence flag for badges table.
+         * Cached table existence flags keyed by table name for the request.
          *
-         * @var bool|null
+         * @var array<string,bool>
          */
-        private static $table_exists = null;
+        private static $table_exists = array();
 
         /**
          * Cached badge matches per user for the request.
@@ -201,7 +201,7 @@ class BHG_Badges {
                 self::$all_cache          = null;
                 self::$user_badges_cache  = array();
                 self::$render_cache       = array();
-                self::$table_exists       = null;
+                self::$table_exists       = array();
         }
 
         /**
@@ -213,22 +213,21 @@ class BHG_Badges {
         private static function badges_table_exists( $table ) {
                 global $wpdb;
 
-                if ( null !== self::$table_exists ) {
-                        return self::$table_exists;
+                if ( empty( $table ) ) {
+                        return false;
                 }
 
-                if ( empty( $table ) ) {
-                        self::$table_exists = false;
-                        return self::$table_exists;
+                if ( isset( self::$table_exists[ $table ] ) ) {
+                        return self::$table_exists[ $table ];
                 }
 
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
                 $table_like = $wpdb->esc_like( $table );
                 $found      = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_like ) );
 
-                self::$table_exists = ! empty( $found );
+                self::$table_exists[ $table ] = ! empty( $found );
 
-                return self::$table_exists;
+                return self::$table_exists[ $table ];
         }
 
         /**
