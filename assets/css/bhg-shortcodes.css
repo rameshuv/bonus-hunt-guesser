@@ -481,6 +481,25 @@
     border-radius: 4px;
 }
 
+.bhg-info-block {
+    margin: 1em 0;
+    padding: 12px 14px;
+    border-radius: 6px;
+    background: #f0f6ff;
+    border: 1px solid #c4d7f1;
+    color: #1d2734;
+}
+
+.bhg-info-block--muted {
+    background: #f7f7f7;
+    border-color: #dcdcdc;
+    color: #444;
+}
+
+.bhg-hunt-status-link {
+    font-weight: 600;
+}
+
 .bhg-hunt-meta {
     list-style: none;
     margin: 0;
@@ -867,5 +886,60 @@ tr.bhg-winner,
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+.bhg-button-shortcode {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+padding: 0.75em 1.5em;
+border-radius: 6px;
+border: 2px solid transparent;
+background: var(--bhg-button-bg, #1a73e8);
+color: var(--bhg-button-text, #fff);
+text-decoration: none;
+font-weight: 700;
+transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.bhg-button-shortcode:hover,
+.bhg-button-shortcode:focus {
+background: var(--bhg-button-bg-hover, var(--bhg-button-bg, #0f5ec2));
+color: var(--bhg-button-text-hover, var(--bhg-button-text, #fff));
+text-decoration: none;
+}
+
+.bhg-button-size-small {
+padding: 0.5em 1em;
+font-size: 0.9rem;
+}
+
+.bhg-button-size-medium {
+padding: 0.75em 1.5em;
+font-size: 1rem;
+}
+
+.bhg-button-size-big {
+padding: 1em 1.75em;
+font-size: 1.1rem;
+}
+
+@media (max-width: 600px) {
+.bhg-button-shortcode {
+width: 100%;
+box-sizing: border-box;
+text-align: center;
+}
+}
+
 /* winner class kept for potential overrides */
 .bhg-winner {}
+
+.bhg-button-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.bhg-hunt-buttons {
+  margin: 1rem 0;
+}
