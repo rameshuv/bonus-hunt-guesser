@@ -9,3 +9,7 @@ Confirm the build is ready to hand off with the target **Runtime: PHP 7.4 · Wor
 4. Note the runtime and version (8.0.23) in the handoff message so hosting teams deploy with the correct stack.
 
 When these items are confirmed, you can proceed with the order delivery.
+
+## Go/No-Go crib
+- ✅ Go if: the order delivery checklist stays fully checked, evidence links are ready, and the handoff note mentions 8.0.23.
+- 🔄 Hold if: any checklist item fails or needs re-testing after a change; re-run smoke checks before proceeding.
