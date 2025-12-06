@@ -14,4 +14,5 @@ This plugin build targets **Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+*
 3. In wp-admin, validate badge and button CRUD flows and ensure results pages show both bonushunts and tournaments with proper winner highlighting.
 
 ## Delivery Note
-All requested features are present and marked complete. Deploy with the target runtime noted above.
+All requested features are present and marked complete. Deploy with the target runtime noted above and complete the
+[Order Delivery Checklist](order-delivery-checklist.md) during handoff.
