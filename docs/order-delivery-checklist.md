@@ -1,6 +1,6 @@
 # Order Delivery Checklist
 
-Use this list to confirm the build is ready to hand off. All items align with the requested **Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+ (Version 8.0.22)** and the completed features for badges, buttons, hunts, and results.
+Use this list to confirm the build is ready to hand off. All items align with the requested **Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+ (Version 8.0.23)** and the completed features for badges, buttons, hunts, and results.
 
 ## Environment & Schema
 - [x] Target runtime matches PHP 7.4, WordPress 6.3.5, and MySQL 5.5.5+.

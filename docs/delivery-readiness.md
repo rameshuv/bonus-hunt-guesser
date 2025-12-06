@@ -1,6 +1,6 @@
 # Delivery Readiness Summary
 
-This plugin build targets **Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+** (Version 8.0.22) and reflects the completed feature set requested.
+This plugin build targets **Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+** (Version 8.0.23) and reflects the completed feature set requested.
 
 ## Implemented Areas
 - Badges: admin CRUD (title, image/icon, affiliate website, user data source, threshold), affiliate activation tracking, and frontend username badge rendering.
