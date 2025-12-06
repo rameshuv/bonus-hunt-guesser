@@ -252,14 +252,32 @@ $shortcodes = array(
 			'area' => bhg_t( 'shortcode_attr_nav_area', 'Menu selection: guest, user, or admin.' ),
 		),
 	),
-	array(
-		'tag'         => 'bhg_menu',
-		'description' => bhg_t( 'shortcode_bhg_menu_desc', 'Automatically selects the correct menu for the visitor’s role.' ),
-		'attributes'  => array(),
-	),
-	array(
-		'tag'         => 'bhg_ad',
-		'description' => bhg_t( 'shortcode_bhg_ad_desc', 'Outputs a single advertising row with placement targeting.' ),
+array(
+'tag'         => 'bhg_menu',
+'description' => bhg_t( 'shortcode_bhg_menu_desc', 'Automatically selects the correct menu for the visitor’s role.' ),
+'attributes'  => array(),
+),
+array(
+'tag'         => 'bhg_button',
+'description' => bhg_t( 'shortcode_bhg_button_desc', 'Renders a configurable call-to-action button.' ),
+'attributes'  => array(
+'text'           => bhg_t( 'shortcode_attr_button_text', 'Button label. Defaults to Guess Now.' ),
+'link'           => bhg_t( 'shortcode_attr_button_link', 'Destination URL for the button.' ),
+'link_target'    => bhg_t( 'shortcode_attr_button_target', 'Open link in _self or _blank.' ),
+'visible_to'     => bhg_t( 'shortcode_attr_button_visible_to', 'Visibility rule: all, guests, logged_in, affiliates, non_affiliates.' ),
+'visible_when'   => bhg_t( 'shortcode_attr_button_visible_when', 'Timing rule: always, active_bonushunt, active_tournament.' ),
+'background'     => bhg_t( 'shortcode_attr_button_bg', 'Background color hex value.' ),
+'background_hover' => bhg_t( 'shortcode_attr_button_bg_hover', 'Background hover color hex value.' ),
+'text_color'     => bhg_t( 'shortcode_attr_button_text_color', 'Button text color.' ),
+'text_hover'     => bhg_t( 'shortcode_attr_button_text_hover', 'Button text hover color.' ),
+'border_color'   => bhg_t( 'shortcode_attr_button_border', 'Border color.' ),
+'size'           => bhg_t( 'shortcode_attr_button_size', 'Size: small, medium, or big.' ),
+'text_size'      => bhg_t( 'shortcode_attr_button_text_size', 'Explicit text size in pixels.' ),
+),
+),
+array(
+'tag'         => 'bhg_ad',
+'description' => bhg_t( 'shortcode_bhg_ad_desc', 'Outputs a single advertising row with placement targeting.' ),
 		'attributes'  => array(
 			'id'     => bhg_t( 'shortcode_attr_ad_id', 'ID of the advertisement row to render.' ),
 			'ad'     => bhg_t( 'shortcode_attr_ad_alias', 'Alias for id; useful when embedding through page builders.' ),
