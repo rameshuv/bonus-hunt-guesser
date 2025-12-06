@@ -6,6 +6,10 @@ Confirm the build is ready to hand off with the target **Runtime: PHP 7.4 · Wor
 > screenshots showing badges beside usernames, CTA buttons in place, and correct results highlighting. If any checklist item
 > regresses, pause and re-test before sending.
 
+### One-line go reply
+
+- "Ready for delivery on 8.0.23 after checklist pass; evidence attached for badges, CTA buttons, and results highlighting."
+
 ## Rapid verification (2-minute check)
 1. Visit a leaderboard or standings view and confirm usernames show badges plus affiliate markers where relevant.
 2. Open the active hunt/tournament detail block and verify the CTA button placement and status label (Active → Guess Now link or Closed).

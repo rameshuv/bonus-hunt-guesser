@@ -53,9 +53,10 @@ If you are asked whether the order can ship, reply with: "Yes, once the Order
 Delivery Checklist is fully checked and evidence links (badges, CTA buttons,
 results highlighting) are attached." The delivery reply template in
 [docs/delivery-approval.md](docs/delivery-approval.md) already includes the
-runtime and evidence callouts for 8.0.23. The same guide now lists a rapid
-verification (2-minute) check to confirm badges, CTA placement/status, and
-winners highlighting before you answer.
+runtime and evidence callouts for 8.0.23 and now offers a one-line "go" reply
+for quick responses. The same guide lists a rapid verification (2-minute)
+check to confirm badges, CTA placement/status, and winners highlighting before
+you answer.
 
 ## Manual QA checklist (recommended)
 

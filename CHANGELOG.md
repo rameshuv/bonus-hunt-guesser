@@ -16,6 +16,8 @@
   template and evidence expectations.
 - Documented a rapid verification pass in the delivery approval guide to
   answer "can we deliver now?" with on-page badge, CTA, and results checks.
+- Added a one-line delivery "go" reply in the approval guide for fast handoff
+  responses.
 
 ## 8.0.22 — 2025-02-20
 - Updated plugin metadata and internal version constant to 8.0.22.
