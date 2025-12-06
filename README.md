@@ -65,6 +65,11 @@ integration (Google, Twitch, Kick).
 Documenting evidence (screenshots or logs) of these flows remains part of the
 customer’s acceptance checklist for v8.0.22.
 
+For a concise confirmation of completed features and handoff steps, see
+[docs/delivery-readiness.md](docs/delivery-readiness.md). To run through
+the final delivery-specific checks before handoff, use
+[docs/order-delivery-checklist.md](docs/order-delivery-checklist.md).
+
 ## Automated testing
 
 Run the PHPUnit suite to confirm core services behave as expected:
@@ -130,3 +135,7 @@ Summarises the logged-in user's performance across hunts and tournaments. The bl
   4. Save the changes, refresh the shortcode output, and verify the tournament still appears in the monthly view (demonstrating the stored type was preserved).
   5. Repeat with a weekly-length tournament to confirm the shortcode timeline tabs continue filtering correctly after edits.
 
+
+## Feature Checklist
+
+See [docs/feature-checklist.md](docs/feature-checklist.md) for the current runtime requirements checklist.
