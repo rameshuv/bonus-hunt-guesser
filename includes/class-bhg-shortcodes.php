@@ -2985,11 +2985,16 @@ return ob_get_clean();
 				   echo '</form>';
 			   }
 
-			   echo '<div class="bhg-hunt-card">';
-			   echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
-					   echo '<ul class="bhg-hunt-meta">';
-					   echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $selected_hunt->starting_balance ) ) . '</li>';
-					   echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
+                            $show_num_bonuses = isset( $selected_hunt->num_bonuses_visible ) ? (int) $selected_hunt->num_bonuses_visible : 1;
+                            $show_affiliate   = isset( $selected_hunt->affiliate_visible ) ? (int) $selected_hunt->affiliate_visible : 1;
+
+                            echo '<div class="bhg-hunt-card">';
+                            echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
+                                            echo '<ul class="bhg-hunt-meta">';
+                                            echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $selected_hunt->starting_balance ) ) . '</li>';
+                                            if ( $show_num_bonuses ) {
+                                                    echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
+                                            }
 
 					   $opened_at = isset( $selected_hunt->created_at ) ? (string) $selected_hunt->created_at : '';
 					   if ( '' !== $opened_at && '0000-00-00 00:00:00' !== $opened_at ) {
@@ -3030,8 +3035,10 @@ return ob_get_clean();
 									   ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 							   }
 					   }
-					   $affiliate_display = '' !== $affiliate_name ? $affiliate_name : '-';
-					   echo '<li><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> ' . esc_html( $affiliate_display ) . '</li>';
+                                            if ( $show_affiliate ) {
+                                                    $affiliate_display = '' !== $affiliate_name ? $affiliate_name : '-';
+                                                    echo '<li><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> ' . esc_html( $affiliate_display ) . '</li>';
+                                            }
 					   if ( ! empty( $selected_hunt->prizes ) ) {
 							   echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
 					   }

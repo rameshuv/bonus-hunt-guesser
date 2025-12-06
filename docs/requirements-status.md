@@ -17,6 +17,7 @@ This document summarizes how the plugin codebase addresses the feature requests 
 ## 3. `bhg_active_hunt` and `bhg_user_guesses`
 - **Empty-state messaging**: "No Guesses Yet" and "No Guesses Found" messages display within styled info blocks as defined in `includes/helpers.php` and `assets/css/bhg-shortcodes.css`.
 - **Active bonus hunt layout**: Active hunt details are presented in a styled card layout in `assets/css/bhg-shortcodes.css`, matching the tournament detail treatment.
+- **Detail visibility controls**: Admin users can toggle whether the number of bonuses and affiliate website appear in the frontend hunt detail card via checkboxes in `admin/views/bonus-hunts.php`; the shortcode renderer respects these flags in `includes/class-bhg-shortcodes.php`.
 
 ## 4. `bhg_active_hunt` detail controls
 - **Description visibility**: Bonus hunt records include flags to hide/show number of bonuses and affiliate website fields in `admin/views/bonus-hunts.php`, respected during frontend rendering in `includes/class-bhg-shortcodes.php`.

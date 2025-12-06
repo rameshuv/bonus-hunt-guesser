@@ -380,6 +380,8 @@ class BHG_Admin {
                 $primary_tournament_id          = ! empty( $tournament_ids ) ? (int) reset( $tournament_ids ) : 0;
                 $winners_count                  = isset( $_POST['winners_count'] ) ? max( 1, absint( wp_unslash( $_POST['winners_count'] ) ) ) : 3;
                 $winners_count                  = min( 25, max( 1, $winners_count ) );
+                $show_num_bonuses               = isset( $_POST['show_num_bonuses'] ) ? 1 : 0;
+                $show_affiliate                 = isset( $_POST['show_affiliate'] ) ? 1 : 0;
 $extract_prize_map              = static function ( $field ) {
 $raw = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : array();
 $map = array();
@@ -448,18 +450,20 @@ $prize_sets['regular'] = $extract_prize_map( 'prize_ids' );
 					$status = 'open';
 				}
 
-                                                                $data = array(
-                                                                        'title'             => $title,
-                                                                        'starting_balance'  => $starting,
-                                                                        'num_bonuses'       => $num_bonuses,
-                                                                        'affiliate_site_id' => $affiliate_site,
-                                                                        'tournament_id'     => $primary_tournament_id,
-                                                                        'winners_count'     => $winners_count,
-                                                                        'guessing_enabled'  => $guessing_enabled,
-                                                                        'jackpot_increase_enabled' => $jackpot_increase,
-                                                                );
+                                $data = array(
+                                        'title'             => $title,
+                                        'starting_balance'  => $starting,
+                                        'num_bonuses'       => $num_bonuses,
+                                        'affiliate_site_id' => $affiliate_site,
+                                        'tournament_id'     => $primary_tournament_id,
+                                        'winners_count'     => $winners_count,
+                                        'num_bonuses_visible' => $show_num_bonuses,
+                                        'affiliate_visible' => $show_affiliate,
+                                        'guessing_enabled'  => $guessing_enabled,
+                                        'jackpot_increase_enabled' => $jackpot_increase,
+                                );
 
-                                                                $format = array( '%s', '%f', '%d', '%d', '%d', '%d', '%d', '%d' );
+                                $format = array( '%s', '%f', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d' );
 
 								if ( null !== $final_balance ) {
 									$data['final_balance'] = $final_balance;
