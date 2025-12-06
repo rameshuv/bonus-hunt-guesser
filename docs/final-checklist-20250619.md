@@ -1,7 +1,7 @@
 # Delivery readiness review — 2025-06-19
 
 ## Runtime/version
-- Plugin header version remains **8.0.22** (matches requested runtime targets).
+- Plugin header version remains **8.0.23** (matches requested runtime targets).
 
 ## Tests executed
 - None in this review window; PHPUnit/PHPCS not run.
