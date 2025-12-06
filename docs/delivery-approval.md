@@ -6,6 +6,11 @@ Confirm the build is ready to hand off with the target **Runtime: PHP 7.4 · Wor
 > screenshots showing badges beside usernames, CTA buttons in place, and correct results highlighting. If any checklist item
 > regresses, pause and re-test before sending.
 
+## Rapid verification (2-minute check)
+1. Visit a leaderboard or standings view and confirm usernames show badges plus affiliate markers where relevant.
+2. Open the active hunt/tournament detail block and verify the CTA button placement and status label (Active → Guess Now link or Closed).
+3. Navigate to Results admin, pick a hunt or tournament, and confirm the highlighted winner rows match the configured winners count.
+
 ## Quick approval steps
 1. Review the [Order Delivery Checklist](order-delivery-checklist.md) to ensure every box remains checked after your final smoke test.
 2. Cross-reference the [Delivery Readiness Summary](delivery-readiness.md) for a concise feature recap and verification pointers.

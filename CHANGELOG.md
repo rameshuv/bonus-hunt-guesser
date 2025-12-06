@@ -14,6 +14,8 @@
 - Synced delivery and order checklists to reflect the 8.0.23 release details.
 - Added a README delivery quick-answer note pointing to the 8.0.23 reply
   template and evidence expectations.
+- Documented a rapid verification pass in the delivery approval guide to
+  answer "can we deliver now?" with on-page badge, CTA, and results checks.
 
 ## 8.0.22 — 2025-02-20
 - Updated plugin metadata and internal version constant to 8.0.22.
