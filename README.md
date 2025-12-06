@@ -65,6 +65,9 @@ integration (Google, Twitch, Kick).
 Documenting evidence (screenshots or logs) of these flows remains part of the
 customer’s acceptance checklist for v8.0.22.
 
+For a concise confirmation of completed features and handoff steps, see
+[docs/delivery-readiness.md](docs/delivery-readiness.md).
+
 ## Automated testing
 
 Run the PHPUnit suite to confirm core services behave as expected:
