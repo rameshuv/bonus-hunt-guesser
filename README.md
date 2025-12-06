@@ -130,3 +130,7 @@ Summarises the logged-in user's performance across hunts and tournaments. The bl
   4. Save the changes, refresh the shortcode output, and verify the tournament still appears in the monthly view (demonstrating the stored type was preserved).
   5. Repeat with a weekly-length tournament to confirm the shortcode timeline tabs continue filtering correctly after edits.
 
+
+## Feature Checklist
+
+See [docs/feature-checklist.md](docs/feature-checklist.md) for the current runtime requirements checklist.
