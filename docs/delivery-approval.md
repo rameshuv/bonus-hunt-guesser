@@ -17,3 +17,11 @@ When these items are confirmed, you can proceed with the order delivery.
 ## Go/No-Go crib
 - ✅ Go if: the order delivery checklist stays fully checked, evidence links are ready, and the handoff note mentions 8.0.23.
 - 🔄 Hold if: any checklist item fails or needs re-testing after a change; re-run smoke checks before proceeding.
+
+## Delivery reply template
+Copy/paste (and adjust links) when the go conditions are met:
+
+> Ready for delivery. Runtime: PHP 7.4 · WordPress 6.3.5 · MySQL 5.5.5+ (Version 8.0.23).\
+> Evidence: [badges next to usernames](#), [CTA buttons placement](#), [results highlighting](#).\
+> Checklists: [Order Delivery](order-delivery-checklist.md) ✔️, [Delivery Readiness](delivery-readiness.md) ✔️.\
+> Proceeding to handoff; please deploy with the noted runtime.

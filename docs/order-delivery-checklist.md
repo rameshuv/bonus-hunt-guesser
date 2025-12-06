@@ -27,3 +27,4 @@ Use this list to confirm the build is ready to hand off. All items align with th
 - [x] Run spot PHP lint on changed classes/templates if desired (e.g., `php -l includes/class-bhg-badges.php`).
 - [x] Provide staging screenshots or links for badges next to usernames, CTA buttons in place, and results highlighting to accompany delivery.
 - [x] Include links to this checklist and the Delivery Readiness Summary in your delivery message.
+- [x] Use the delivery reply template in [delivery-approval.md](delivery-approval.md) so the handoff explicitly notes runtime, evidence, and checklists.
