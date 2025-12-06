@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser
 
-**Version:** 8.0.22
+**Version:** 8.0.23
 **Requires:** WordPress 6.3.5+, PHP 7.4+, MySQL 5.5.5+
 
 ## Overview
@@ -41,11 +41,11 @@ integration (Google, Twitch, Kick).
 4. Review **Bonus Hunt → Settings** to confirm currency, winner limits, menu
    assignments, and notification templates.
 
-## Release 8.0.22 highlights
+## Release 8.0.23 highlights
 
-- Updated plugin metadata to version 8.0.22 and adjusted table containers to
-  keep horizontal overflow visible on desktop layouts while preserving mobile
-  scrollability.
+- Updated plugin metadata and delivery checklists to version 8.0.23 for the
+  requested runtime while retaining the recent table overflow refinements for
+  desktop and mobile layouts.
 
 ## Manual QA checklist (recommended)
 
@@ -63,7 +63,16 @@ integration (Google, Twitch, Kick).
   menus, translations editor) to confirm visibility rules.
 
 Documenting evidence (screenshots or logs) of these flows remains part of the
-customer’s acceptance checklist for v8.0.22.
+customer’s acceptance checklist for v8.0.23.
+
+For a concise confirmation of completed features and handoff steps, see
+[docs/delivery-readiness.md](docs/delivery-readiness.md). To run through
+the final delivery-specific checks before handoff, use
+[docs/order-delivery-checklist.md](docs/order-delivery-checklist.md). For
+a short approval walk-through before sending the handoff message, see
+[docs/delivery-approval.md](docs/delivery-approval.md); the go/no-go crib
+at the top calls out when you can ship immediately or when to pause, and
+the delivery reply template offers a ready-to-send handoff note.
 
 ## Automated testing
 
@@ -130,3 +139,7 @@ Summarises the logged-in user's performance across hunts and tournaments. The bl
   4. Save the changes, refresh the shortcode output, and verify the tournament still appears in the monthly view (demonstrating the stored type was preserved).
   5. Repeat with a weekly-length tournament to confirm the shortcode timeline tabs continue filtering correctly after edits.
 
+
+## Feature Checklist
+
+See [docs/feature-checklist.md](docs/feature-checklist.md) for the current runtime requirements checklist.
