@@ -51,12 +51,12 @@ integration (Google, Twitch, Kick).
 
 If you are asked whether the order can ship, reply with: "Yes, once the Order
 Delivery Checklist is fully checked and evidence links (badges, CTA buttons,
-results highlighting) are attached." The delivery reply template in
-[docs/delivery-approval.md](docs/delivery-approval.md) already includes the
-runtime and evidence callouts for 8.0.23 and now offers a one-line "go" reply
-for quick responses. The same guide lists a rapid verification (2-minute)
-check to confirm badges, CTA placement/status, and winners highlighting before
-you answer.
+results highlighting) are attached." For a copy/paste-ready answer to "Can I
+deliver now?", use the instant response in
+[docs/delivery-approval.md](docs/delivery-approval.md); the guide also includes
+the delivery reply template with runtime/evidence callouts, a one-line "go"
+reply, and a rapid 2-minute verification pass for badges, CTA placement/status,
+and winner highlighting.
 
 ## Manual QA checklist (recommended)
 
