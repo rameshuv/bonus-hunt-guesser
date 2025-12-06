@@ -52,7 +52,7 @@ integration (Google, Twitch, Kick).
 If you are asked whether the order can ship, reply with: "Yes, once the Order
 Delivery Checklist is fully checked and evidence links (badges, CTA buttons,
 results highlighting) are attached." For a copy/paste-ready answer to "Can I
-deliver now?", use the instant response in
+deliver now?", use the immediate yes/no responses in
 [docs/delivery-approval.md](docs/delivery-approval.md); the guide also includes
 the delivery reply template with runtime/evidence callouts, a one-line "go"
 reply, and a rapid 2-minute verification pass for badges, CTA placement/status,

@@ -6,6 +6,11 @@ Confirm the build is ready to hand off with the target **Runtime: PHP 7.4 · Wor
 > screenshots showing badges beside usernames, CTA buttons in place, and correct results highlighting. If any checklist item
 > regresses, pause and re-test before sending.
 
+### Immediate verification answer
+
+- **Yes:** "Yes—delivery is ready now on 8.0.23 with evidence attached (badges, CTA buttons, results highlighting)."
+- **Not yet:** "Not yet—delivery is paused until the checklists pass again and refreshed evidence is attached."
+
 ### Instant response for "Can I deliver now?"
 
 - If the checklist is green and evidence is ready, answer: **"Yes—delivery is ready on 8.0.23 with evidence attached."**
