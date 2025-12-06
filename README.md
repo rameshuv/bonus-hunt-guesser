@@ -70,7 +70,8 @@ For a concise confirmation of completed features and handoff steps, see
 the final delivery-specific checks before handoff, use
 [docs/order-delivery-checklist.md](docs/order-delivery-checklist.md). For
 a short approval walk-through before sending the handoff message, see
-[docs/delivery-approval.md](docs/delivery-approval.md).
+[docs/delivery-approval.md](docs/delivery-approval.md); the go/no-go crib
+at the top calls out when you can ship immediately or when to pause.
 
 ## Automated testing
 
