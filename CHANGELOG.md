@@ -8,6 +8,13 @@
 
 # Changelog
 
+## 8.0.23 — 2025-02-21
+- Updated plugin metadata and internal version constant to 8.0.23 for the
+  requested runtime.
+- Synced delivery and order checklists to reflect the 8.0.23 release details.
+- Added a README delivery quick-answer note pointing to the 8.0.23 reply
+  template and evidence expectations.
+
 ## 8.0.22 — 2025-02-20
 - Updated plugin metadata and internal version constant to 8.0.22.
 - Allowed desktop table wrappers to show horizontal overflow while retaining

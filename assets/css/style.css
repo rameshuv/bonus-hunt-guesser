@@ -105,6 +105,19 @@
   font-weight:600;
 }
 
+.bhg-user-badges{
+  display:inline-flex;
+  gap:6px;
+  margin-left:6px;
+  vertical-align:middle;
+}
+
+.bhg-user-badges .bhg-badge{
+  background: var(--bhg-accent-soft, #eef2ff);
+  color:#111827;
+  border:1px solid var(--bhg-border, #e5e7eb);
+}
+
 .bhg-tabs{
   display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;
 }
