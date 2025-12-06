@@ -70,6 +70,11 @@ For a concise confirmation of completed features and handoff steps, see
 the final delivery-specific checks before handoff, use
 [docs/order-delivery-checklist.md](docs/order-delivery-checklist.md).
 
+For a concise confirmation of completed features and handoff steps, see
+[docs/delivery-readiness.md](docs/delivery-readiness.md). To run through
+the final delivery-specific checks before handoff, use
+[docs/order-delivery-checklist.md](docs/order-delivery-checklist.md).
+
 ## Automated testing
 
 Run the PHPUnit suite to confirm core services behave as expected:
