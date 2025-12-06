@@ -47,6 +47,14 @@ integration (Google, Twitch, Kick).
   requested runtime while retaining the recent table overflow refinements for
   desktop and mobile layouts.
 
+### Delivery quick answer
+
+If you are asked whether the order can ship, reply with: "Yes, once the Order
+Delivery Checklist is fully checked and evidence links (badges, CTA buttons,
+results highlighting) are attached." The delivery reply template in
+[docs/delivery-approval.md](docs/delivery-approval.md) already includes the
+runtime and evidence callouts for 8.0.23.
+
 ## Manual QA checklist (recommended)
 
 - Create, edit, and close a hunt with multiple winners; verify results page
