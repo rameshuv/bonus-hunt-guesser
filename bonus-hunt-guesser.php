@@ -3,7 +3,7 @@
  * Plugin Name: Bonus Hunt Guesser
  * Plugin URI: https://yourdomain.com/
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality.
- * Version: 8.0.22
+ * Version: 8.0.23
  * Requires at least: 6.3.5
  * Requires PHP: 7.4
  * Requires MySQL: 5.5.5
@@ -153,7 +153,7 @@ add_action( 'after_setup_theme', 'bhg_register_prize_image_size' );
 require_once __DIR__ . '/includes/class-bhg-db.php';
 
 // Define plugin constants.
-define( 'BHG_VERSION', '8.0.22' );
+define( 'BHG_VERSION', '8.0.23' );
 define( 'BHG_MIN_WP', '6.3.5' );
 define( 'BHG_PLUGIN_FILE', __FILE__ );
 define( 'BHG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -234,11 +234,13 @@ spl_autoload_register(
 			'BHG_Models'                 => 'includes/class-bhg-models.php',
 			'BHG_Front_Menus'            => 'includes/class-bhg-front-menus.php',
 			'BHG_Ads'                    => 'includes/class-bhg-ads.php',
-			'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
-			'BHG_Jackpots'               => 'includes/class-bhg-jackpots.php',
-			'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
-			'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
-		);
+                        'BHG_Prizes'                 => 'includes/class-bhg-prizes.php',
+                        'BHG_Jackpots'               => 'includes/class-bhg-jackpots.php',
+                        'BHG_Login_Redirect'         => 'includes/class-bhg-login-redirect.php',
+                        'BHG_Tournaments_Controller' => 'includes/class-bhg-tournaments-controller.php',
+                        'BHG_Buttons'                => 'includes/class-bhg-buttons.php',
+                        'BHG_Badges'                 => 'includes/class-bhg-badges.php',
+                );
 
 		if ( isset( $class_map[ $class_name ] ) ) {
 			$file_path = BHG_PLUGIN_DIR . $class_map[ $class_name ];
