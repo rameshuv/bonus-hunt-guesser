@@ -1972,27 +1972,81 @@ $context       = array(
 'display_defaults'  => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_display_defaults() : array(),
 );
 
-if ( $view ) {
-$view_layout        = $layout;
-$view_size          = $size;
-$view_prizes        = $prizes;
-$view_display       = $display_options;
-$view_context       = $context;
-$view_title         = $hide_heading ? '' : $heading_text;
-$view_count         = $count;
-$view_pages         = $carousel_pages;
-$view_card_renderer = $card_renderer;
-$view_summary_label = $summary_label;
-$view_summary_items = $summary_entries;
+    if ( $view ) {
+        $view_layout        = $layout;
+        $view_size          = $size;
+        $view_prizes        = $prizes;
+        $view_display       = $display_options;
+        $view_context       = $context;
+        $view_title         = $hide_heading ? '' : $heading_text;
+        $view_count         = $count;
+        $view_pages         = $carousel_pages;
+        $view_card_renderer = $card_renderer;
+        $view_summary_label = $summary_label;
+        $view_summary_items = $summary_entries;
 
-ob_start();
-include $view;
+        ob_start();
+        include $view;
 
-return ob_get_clean();
+        return ob_get_clean();
+    }
+
+    ob_start();
+    echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
+    if ( ! $hide_heading && '' !== $heading_text ) {
+        echo '<h4 class="bhg-prizes-title">' . esc_html( $heading_text ) . '</h4>';
+    }
+
+    if ( 'carousel' === $layout ) {
+        $show_nav = $carousel_pages > 1;
+        echo '<div class="bhg-prize-carousel" data-count="' . (int) $count . '" data-visible="' . esc_attr( $carousel_visible ) . '" data-pages="' . esc_attr( $carousel_pages ) . '" data-autoplay="' . ( $carousel_autoplay ? '1' : '0' ) . '" data-interval="' . esc_attr( $carousel_interval ) . '">';
+        if ( $show_nav ) {
+            echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '"><span aria-hidden="true">&lsaquo;</span></button>';
+        }
+        echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
+        foreach ( $prizes as $prize ) {
+            echo $this->render_prize_card( $prize, $size, $display_options, $context );
+        }
+        echo '</div></div>';
+        if ( $show_nav ) {
+            echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '"><span aria-hidden="true">&rsaquo;</span></button>';
+            echo '<div class="bhg-prize-dots" role="tablist">';
+            for ( $i = 0; $i < $carousel_pages; $i++ ) {
+                $active = 0 === $i ? ' active' : '';
+                echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
+            }
+            echo '</div>';
+        }
+        echo '</div>';
+    } else {
+        echo '<div class="bhg-prizes-grid" data-columns="' . esc_attr( $grid_columns ) . '" style="--bhg-prize-grid-columns:' . esc_attr( $grid_columns ) . ';">';
+        foreach ( $prizes as $prize ) {
+            echo $this->render_prize_card( $prize, $size, $display_options, $context );
+        }
+        echo '</div>';
+    }
+
+    if ( ! empty( $summary_entries ) ) {
+        echo '<div class="bhg-prize-summary">';
+        if ( '' !== $summary_label ) {
+            echo '<h5 class="bhg-prize-summary-title">' . esc_html( $summary_label ) . '</h5>';
+        }
+        echo '<ol class="bhg-prize-summary-list">';
+        foreach ( $summary_entries as $entry ) {
+            $text = isset( $entry['text'] ) ? (string) $entry['text'] : '';
+            if ( '' === $text ) {
+                $text = bhg_t( 'label_emdash', '—' );
+            }
+            echo '<li>' . esc_html( $text ) . '</li>';
+        }
+        echo '</ol>';
+        echo '</div>';
+    }
+
+    echo '</div>';
+
+    return ob_get_clean();
 }
-
-		return '';
-	}
 
 /**
  * Render a configurable call-to-action button.
@@ -2138,63 +2192,6 @@ return false;
 }
 
 return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(1) FROM {$tours_table} WHERE status = %s", 'open' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-}
-
-ob_start();
-echo '<div class="bhg-prizes-block bhg-prizes-layout-' . esc_attr( $layout ) . ' size-' . esc_attr( $size ) . '">';
-if ( ! $hide_heading && '' !== $heading_text ) {
-echo '<h4 class="bhg-prizes-title">' . esc_html( $heading_text ) . '</h4>';
-}
-
-if ( 'carousel' === $layout ) {
-$show_nav = $carousel_pages > 1;
-echo '<div class="bhg-prize-carousel" data-count="' . (int) $count . '" data-visible="' . esc_attr( $carousel_visible ) . '" data-pages="' . esc_attr( $carousel_pages ) . '" data-autoplay="' . ( $carousel_autoplay ? '1' : '0' ) . '" data-interval="' . esc_attr( $carousel_interval ) . '">';
-if ( $show_nav ) {
-echo '<button type="button" class="bhg-prize-nav bhg-prize-prev" aria-label="' . esc_attr( bhg_t( 'previous', 'Previous' ) ) . '"><span aria-hidden="true">&lsaquo;</span></button>';
-}
-echo '<div class="bhg-prize-track-wrapper"><div class="bhg-prize-track">';
-foreach ( $prizes as $prize ) {
-echo $this->render_prize_card( $prize, $size, $display_options, $context );
-}
-echo '</div></div>';
-if ( $show_nav ) {
-echo '<button type="button" class="bhg-prize-nav bhg-prize-next" aria-label="' . esc_attr( bhg_t( 'next', 'Next' ) ) . '"><span aria-hidden="true">&rsaquo;</span></button>';
-echo '<div class="bhg-prize-dots" role="tablist">';
-for ( $i = 0; $i < $carousel_pages; $i++ ) {
-$active = 0 === $i ? ' active' : '';
-echo '<button type="button" class="bhg-prize-dot' . esc_attr( $active ) . '" data-index="' . esc_attr( $i ) . '" aria-label="' . esc_attr( sprintf( bhg_t( 'prize_slide_label', 'Go to prize %d' ), $i + 1 ) ) . '"></button>';
-}
-echo '</div>';
-}
-echo '</div>';
-} else {
-echo '<div class="bhg-prizes-grid" data-columns="' . esc_attr( $grid_columns ) . '" style="--bhg-prize-grid-columns:' . esc_attr( $grid_columns ) . ';">';
-foreach ( $prizes as $prize ) {
-echo $this->render_prize_card( $prize, $size, $display_options, $context );
-}
-echo '</div>';
-}
-
-if ( ! empty( $summary_entries ) ) {
-echo '<div class="bhg-prize-summary">';
-if ( '' !== $summary_label ) {
-echo '<h5 class="bhg-prize-summary-title">' . esc_html( $summary_label ) . '</h5>';
-}
-echo '<ol class="bhg-prize-summary-list">';
-foreach ( $summary_entries as $entry ) {
-$text = isset( $entry['text'] ) ? (string) $entry['text'] : '';
-if ( '' === $text ) {
-$text = bhg_t( 'label_emdash', '—' );
-}
-echo '<li>' . esc_html( $text ) . '</li>';
-}
-echo '</ol>';
-echo '</div>';
-}
-
-echo '</div>';
-
-return ob_get_clean();
 }
 
 private function render_prize_tabs( $tabs ) {
@@ -2985,11 +2982,16 @@ return ob_get_clean();
 				   echo '</form>';
 			   }
 
-			   echo '<div class="bhg-hunt-card">';
-			   echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
-					   echo '<ul class="bhg-hunt-meta">';
-					   echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $selected_hunt->starting_balance ) ) . '</li>';
-					   echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
+                            $show_num_bonuses = isset( $selected_hunt->num_bonuses_visible ) ? (int) $selected_hunt->num_bonuses_visible : 1;
+                            $show_affiliate   = isset( $selected_hunt->affiliate_visible ) ? (int) $selected_hunt->affiliate_visible : 1;
+
+                            echo '<div class="bhg-hunt-card">';
+                            echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
+                                            echo '<ul class="bhg-hunt-meta">';
+                                            echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $selected_hunt->starting_balance ) ) . '</li>';
+                                            if ( $show_num_bonuses ) {
+                                                    echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
+                                            }
 
 					   $opened_at = isset( $selected_hunt->created_at ) ? (string) $selected_hunt->created_at : '';
 					   if ( '' !== $opened_at && '0000-00-00 00:00:00' !== $opened_at ) {
@@ -3030,8 +3032,10 @@ return ob_get_clean();
 									   ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 							   }
 					   }
-					   $affiliate_display = '' !== $affiliate_name ? $affiliate_name : '-';
-					   echo '<li><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> ' . esc_html( $affiliate_display ) . '</li>';
+                                            if ( $show_affiliate ) {
+                                                    $affiliate_display = '' !== $affiliate_name ? $affiliate_name : '-';
+                                                    echo '<li><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> ' . esc_html( $affiliate_display ) . '</li>';
+                                            }
 					   if ( ! empty( $selected_hunt->prizes ) ) {
 							   echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
 					   }

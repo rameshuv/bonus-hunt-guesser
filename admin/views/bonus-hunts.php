@@ -368,15 +368,19 @@ if ( 'add' === $view ) :
 			<th scope="row"><label for="bhg_starting"><?php echo esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ); ?></label></th>
 			<td><input type="number" step="0.01" min="0" id="bhg_starting" name="starting_balance" value=""></td>
 		</tr>
-		<tr>
-			<th scope="row"><label for="bhg_num"><?php echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ); ?></label></th>
-			<td><input type="number" min="0" id="bhg_num" name="num_bonuses" value=""></td>
-		</tr>
-		<tr>
-			<th scope="row"><label for="bhg_affiliate"><?php echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) ); ?></label></th>
-			<td>
-						<?php
-												$aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
+                <tr>
+                        <th scope="row"><label for="bhg_num"><?php echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ); ?></label></th>
+                        <td><input type="number" min="0" id="bhg_num" name="num_bonuses" value=""></td>
+                </tr>
+                <tr>
+                        <th scope="row"><?php echo esc_html( bhg_t( 'label_show_num_bonuses', 'Show number of bonuses in details' ) ); ?></th>
+                        <td><label><input type="checkbox" name="show_num_bonuses" value="1" checked /> <?php echo esc_html( bhg_t( 'label_show_in_details', 'Show in frontend details' ) ); ?></label></td>
+                </tr>
+                <tr>
+                        <th scope="row"><label for="bhg_affiliate"><?php echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) ); ?></label></th>
+                        <td>
+                                                <?php
+                                                                $aff_table = esc_sql( $wpdb->prefix . 'bhg_affiliate_websites' );
 						if ( ! in_array( $aff_table, $allowed_tables, true ) ) {
 										wp_die( esc_html( bhg_t( 'notice_invalid_table', 'Invalid table.' ) ) );
 						}
@@ -384,16 +388,20 @@ if ( 'add' === $view ) :
 																								$affs = $wpdb->get_results(
 																									"SELECT id, name FROM {$aff_table} ORDER BY name ASC"
 																								);
-						$sel = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
+                                                $sel = 0;
 						?>
-			<select id="bhg_affiliate" name="affiliate_site_id">
-				<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
-								<?php foreach ( $affs as $a ) : ?>
-								<option value="<?php echo esc_attr( (int) $a->id ); ?>" <?php selected( $sel, (int) $a->id ); ?>><?php echo esc_html( $a->name ); ?></option>
-								<?php endforeach; ?>
-			</select>
-			</td>
-				</tr>
+<select id="bhg_affiliate" name="affiliate_site_id">
+<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+<?php foreach ( $affs as $a ) : ?>
+<option value="<?php echo esc_attr( (int) $a->id ); ?>" <?php selected( $sel, (int) $a->id ); ?>><?php echo esc_html( $a->name ); ?></option>
+<?php endforeach; ?>
+</select>
+</td>
+</tr>
+<tr>
+                        <th scope="row"><?php echo esc_html( bhg_t( 'label_show_affiliate', 'Show affiliate site in details' ) ); ?></th>
+                        <td><label><input type="checkbox" name="show_affiliate" value="1" checked /> <?php echo esc_html( bhg_t( 'label_show_in_details', 'Show in frontend details' ) ); ?></label></td>
+                </tr>
 								<tr>
 												<th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
 												<td>
@@ -544,10 +552,14 @@ if ( 'edit' === $view ) :
 			<th scope="row"><label for="bhg_starting"><?php echo esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ); ?></label></th>
 			<td><input type="number" step="0.01" min="0" id="bhg_starting" name="starting_balance" value="<?php echo esc_attr( $hunt->starting_balance ); ?>"></td>
 		</tr>
-		<tr>
-			<th scope="row"><label for="bhg_num"><?php echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ); ?></label></th>
-			<td><input type="number" min="0" id="bhg_num" name="num_bonuses" value="<?php echo esc_attr( $hunt->num_bonuses ); ?>"></td>
-		</tr>
+                <tr>
+                        <th scope="row"><label for="bhg_num"><?php echo esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ); ?></label></th>
+                        <td><input type="number" min="0" id="bhg_num" name="num_bonuses" value="<?php echo esc_attr( $hunt->num_bonuses ); ?>"></td>
+                </tr>
+                <tr>
+                        <th scope="row"><?php echo esc_html( bhg_t( 'label_show_num_bonuses', 'Show number of bonuses in details' ) ); ?></th>
+                        <td><label><input type="checkbox" name="show_num_bonuses" value="1" <?php checked( (int) $hunt->num_bonuses_visible, 1 ); ?> /> <?php echo esc_html( bhg_t( 'label_show_in_details', 'Show in frontend details' ) ); ?></label></td>
+                </tr>
 		<tr>
 			<th scope="row"><label for="bhg_affiliate"><?php echo esc_html( bhg_t( 'affiliate_site', 'Affiliate Site' ) ); ?></label></th>
 			<td>
@@ -562,17 +574,21 @@ if ( 'edit' === $view ) :
 																								);
 						$sel = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
 						?>
-			<select id="bhg_affiliate" name="affiliate_site_id">
-				<option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
-								<?php foreach ( $affs as $a ) : ?>
-								<option value="<?php echo esc_attr( (int) $a->id ); ?>" <?php selected( $sel, (int) $a->id ); ?>><?php echo esc_html( $a->name ); ?></option>
-								<?php endforeach; ?>
-			</select>
-						</td>
-				</tr>
-				<tr>
-						<th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
-						<td>
+                        <select id="bhg_affiliate" name="affiliate_site_id">
+                                <option value="0"><?php echo esc_html( bhg_t( 'none', 'None' ) ); ?></option>
+                                                                <?php foreach ( $affs as $a ) : ?>
+                                                                <option value="<?php echo esc_attr( (int) $a->id ); ?>" <?php selected( $sel, (int) $a->id ); ?>><?php echo esc_html( $a->name ); ?></option>
+                                                                <?php endforeach; ?>
+                        </select>
+                                                </td>
+                                </tr>
+                                <tr>
+                                                <th scope="row"><?php echo esc_html( bhg_t( 'label_show_affiliate', 'Show affiliate site in details' ) ); ?></th>
+                                                <td><label><input type="checkbox" name="show_affiliate" value="1" <?php checked( (int) $hunt->affiliate_visible, 1 ); ?> /> <?php echo esc_html( bhg_t( 'label_show_in_details', 'Show in frontend details' ) ); ?></label></td>
+                                </tr>
+                                <tr>
+                                                <th scope="row"><label for="bhg_tournament"><?php echo esc_html( bhg_t( 'tournament', 'Tournament' ) ); ?></label></th>
+                                                <td>
 												<?php
 												$t_table = esc_sql( $wpdb->prefix . 'bhg_tournaments' );
 												if ( ! in_array( $t_table, $allowed_tables, true ) ) {
