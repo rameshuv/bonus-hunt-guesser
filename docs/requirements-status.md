@@ -1,9 +1,9 @@
 # Feature Requirement Mapping
 
-This document confirms that version 8.0.23 of the plugin implements all requested functionality for PHP 7.4 / WordPress 6.3.5 / MySQL 5.5.5+. Each bullet points to where the code satisfies the requirement so you can quickly verify coverage.
+This document confirms that version 8.0.23 of the plugin implements all requested functionality for PHP 7.4 / WordPress 6.3.5 / MySQL 5.5.5+. Each bullet points to where the code satisfies the requirement so you can quickly verify coverage. Runtime targets are defined in the main plugin header (`bonus-hunt-guesser.php`).
 
 ## 1. Badges
-- **Admin menu and CRUD**: The `Badges` submenu is registered in `BHG_Admin::register_menu_pages()` and renders the badges view for create/update/delete flows in `admin/views/badges.php` via `BHG_Badges::save()` / `BHG_Badges::delete()`. 
+- **Admin menu and CRUD**: The `Badges` submenu is registered in `BHG_Admin::register_menu_pages()` and renders the badges view for create/update/delete flows in `admin/views/badges.php` via `BHG_Badges::save()` / `BHG_Badges::delete()`.
 - **Badge fields**: The badges form exposes Title, Badge Image/Icon, Affiliate Website selector, User Data selector, Set Data threshold selector, and Active toggle (see the form table in `admin/views/badges.php`).
 - **Affiliate/user data logic**: Badge qualification checks affiliate activation dates, total wins (bonus hunts/tournaments), total guesses, registration days, and affiliate-active days inside `BHG_Badges::qualify_user_for_badge()` in `includes/class-bhg-badges.php`.
 - **Frontend display**: Usernames render with earned badges appended through `bhg_format_user_with_badges()` (declared in `includes/helpers.php` and used in shortcode renderers in `includes/class-bhg-shortcodes.php`).
