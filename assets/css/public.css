@@ -29,6 +29,44 @@
 }
 
 /* =========================================
+   BADGES
+   ========================================= */
+
+.bhg-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--bhg-accent-color);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.bhg-user-badges {
+    display: inline-flex;
+    gap: 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.bhg-user-badges .bhg-badge {
+    background: var(--bhg-bg-soft);
+    color: var(--bhg-text-main);
+    border: 1px solid var(--bhg-border-color);
+}
+
+.bhg-badge--image img {
+    display: block;
+    width: 18px;
+    height: 18px;
+    object-fit: cover;
+    border-radius: 999px;
+}
+
+/* =========================================
    BUTTONS (PLUGIN-WIDE)
    ========================================= */
 

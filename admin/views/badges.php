@@ -174,33 +174,3 @@ $image_url = $editing->image_id ? wp_get_attachment_image_url( $editing->image_i
         </div>
 </div>
 
-<script>
-(function($){
-        var frame;
-        $('#bhg_select_badge_image').on('click', function(e){
-                e.preventDefault();
-                if ( frame ) {
-                        frame.open();
-                        return;
-                }
-                frame = wp.media({
-                        title: '<?php echo esc_js( bhg_t( 'select_image', 'Select Image' ) ); ?>',
-                        button: { text: '<?php echo esc_js( bhg_t( 'select_image', 'Select Image' ) ); ?>' },
-                        multiple: false
-                });
-
-                frame.on('select', function(){
-                        var attachment = frame.state().get('selection').first().toJSON();
-                        $('#bhg_badge_image').val( attachment.id );
-                        $('#bhg_badge_preview').html( '<img src="' + attachment.url + '" alt="" />' );
-                });
-
-                frame.open();
-        });
-
-        $('#bhg_clear_badge_image').on('click', function(){
-                $('#bhg_badge_image').val('');
-                $('#bhg_badge_preview').empty();
-        });
-})(jQuery);
-</script>

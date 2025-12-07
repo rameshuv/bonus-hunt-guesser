@@ -242,9 +242,17 @@ class BHG_Badges {
                 $metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
                 $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
 
-                // Affiliate website based badges require membership.
-                if ( $site_id > 0 && ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
-                        return false;
+                $affiliate_days = null;
+                if ( $site_id > 0 ) {
+                        // Affiliate website based badges require membership and a recorded activation date.
+                        if ( ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
+                                return false;
+                        }
+
+                        $affiliate_days = self::get_days_affiliate_active( $user_id, $site_id );
+                        if ( $affiliate_days < 0 ) {
+                                return false;
+                        }
                 }
 
                 switch ( $metric ) {
@@ -257,16 +265,10 @@ class BHG_Badges {
                         case 'registration_days':
                                 return self::get_days_since_registration( $user_id ) >= $threshold;
                         case 'affiliate_days':
-                                $days = self::get_days_affiliate_active( $user_id, $site_id );
-                                return $days >= $threshold;
+                                return is_int( $affiliate_days ) && $affiliate_days >= $threshold;
                         case 'none':
                         default:
-                                if ( $site_id > 0 ) {
-                                        $days = self::get_days_affiliate_active( $user_id, $site_id );
-                                        return $days >= $threshold;
-                                }
-
-                                return false;
+                                return ( null !== $affiliate_days ) ? $affiliate_days >= $threshold : false;
                 }
         }
 
@@ -281,7 +283,15 @@ class BHG_Badges {
                 $img   = isset( $badge->image_id ) ? (int) $badge->image_id : 0;
 
                 if ( $img ) {
-                        $image = wp_get_attachment_image( $img, 'thumbnail', false, array( 'class' => 'bhg-badge-image', 'alt' => esc_attr( $title ) ) );
+                        $image = wp_get_attachment_image(
+                                $img,
+                                'thumbnail',
+                                false,
+                                array(
+                                        'class' => 'bhg-badge-image',
+                                        'alt'   => esc_attr( $title ),
+                                )
+                        );
                         if ( $image ) {
                                 return '<span class="bhg-badge bhg-badge--image" title="' . esc_attr( $title ) . '">' . wp_kses_post( $image ) . '</span>';
                         }
@@ -370,12 +380,12 @@ class BHG_Badges {
         private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
                 $date = bhg_get_affiliate_activation_date( $user_id, $site_id );
                 if ( ! $date ) {
-                        return 0;
+                        return -1;
                 }
 
                 $timestamp = strtotime( $date );
                 if ( ! $timestamp ) {
-                        return 0;
+                        return -1;
                 }
 
                 return floor( ( time() - $timestamp ) / DAY_IN_SECONDS );

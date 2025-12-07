@@ -118,6 +118,14 @@
   border:1px solid var(--bhg-border, #e5e7eb);
 }
 
+.bhg-badge--image img{
+  display:block;
+  width:18px;
+  height:18px;
+  object-fit:cover;
+  border-radius:999px;
+}
+
 .bhg-tabs{
   display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;
 }

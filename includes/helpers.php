@@ -1554,7 +1554,7 @@ if ( ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
 
                 $clean_unique = array_values( array_unique( $clean ) );
 
-                // Insert new associations with activation date.
+                // Insert new associations with activation date or backfill activation when missing.
                 foreach ( $clean_unique as $sid ) {
                         if ( ! in_array( $sid, $existing, true ) ) {
                                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -1563,6 +1563,10 @@ if ( ! function_exists( 'bhg_set_user_affiliate_websites' ) ) {
                                         'affiliate_site_id' => $sid,
                                         'activated_at'      => $now,
                                 ) );
+                        } else {
+                                // Ensure legacy rows have an activation date for badge eligibility checks.
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                $wpdb->query( $wpdb->prepare( "UPDATE {$table} SET activated_at = COALESCE(activated_at, %s) WHERE user_id = %d AND affiliate_site_id = %d", $now, $user_id, $sid ) );
                         }
                 }
 
