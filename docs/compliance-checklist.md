@@ -11,7 +11,7 @@ This checklist consolidates runtime expectations, coding standards, customer fea
   - The bootstrap loads translations during `plugins_loaded` (`bonus-hunt-guesser.php` line 411) and every admin/frontend template wraps UI strings with `bhg_t()`/`__()` helpers.
 
 ## 2. Plugin Header and Bootstrapping
-- [x] Main file is `bonus-hunt-guesser.php` with Name, URI, Description, Version (8.0.18), Author, Text Domain, Domain Path, Requires PHP 7.4, Requires at least WP 6.3.5, GPLv2+.
+- [x] Main file is `bonus-hunt-guesser.php` with Name, URI, Description, Version (8.0.23), Author, Text Domain, Domain Path, Requires PHP 7.4, Requires at least WP 6.3.5, GPLv2+.
   - Header block (lines 4–20) declares the required runtime values plus the GPL notice, and the bootstrap wires up activation hooks and helpers immediately after the header so QA can point to the canonical metadata.
 - [x] Text domain is loaded on init; no PHPCS header issues.
   - `bonus-hunt-guesser.php` loads translations via `load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );` during `plugins_loaded`, matching the runtime contract.
@@ -126,7 +126,7 @@ This checklist consolidates runtime expectations, coding standards, customer fea
 - [ ] Legacy data handled safely with defaults; deprecated options mapped to new settings; migrations are idempotent and version-based.
 
 ## 17. Release and Documentation
-- [ ] Version bumped (8.0.16/8.0.18 per header) with changelog covering DB migrations and features.
+- [ ] Version bumped (8.0.23 header/metadata) with changelog covering DB migrations and features.
 - [ ] Readme and Info & Help updated; include optional screenshots/GIFs and QA notes.
 
 ## 18. QA and Acceptance
@@ -140,3 +140,13 @@ This checklist consolidates runtime expectations, coding standards, customer fea
   - `BHG_Shortcodes::leaderboards_shortcode()` now normalizes `$atts` via `shortcode_atts()` before checking keys (lines 3600–3700), so the PHP warnings reported around lines 4432/4488/4498 are resolved.
 - [x] Hunts/guesses tables initialize the `$status_filter` variable before building SQL queries, eliminating the "Undefined variable" notice from line 2935.
   - Both `[bhg_hunts]` and `[bhg_user_guesses]` seed `$status_filter` from shortcode attributes and query vars before applying the WHERE clause, so error logs remain clean when status filtering is toggled.
+
+## 20. Runtime 8.0.23 Customer Feature Parity
+- [x] Badges admin exists under Bonus Hunt → Badges with add/edit/delete, image picker, Affiliate Website dropdown (including activation-date logic), User Data selector (wins/guesses/registration/affiliate days), and Set Data thresholds (5–1000). Badge markup renders after usernames via `bhg_format_user_with_badges()` across shortcodes.
+  - `admin/views/badges.php` shows the CRUD form with affiliate and user data dropdowns plus the threshold picker, and `includes/class-bhg-badges.php` evaluates wins, guesses, registration days, or affiliate activation days before rendering badge markup next to usernames.
+- [x] Buttons admin supports add/edit/delete with placement (none/active hunt/tournament), visibility (all/guests/logged in/affiliates/non affiliates), timing (always/active bonushunt/active tournament), text, link + target, colors, text size, border color, and size (small/medium/big); frontend renders via `[bhg_button]` shortcode and placement helpers for hunt/tournament detail sections.
+  - `admin/views/buttons.php` surfaces the placement/visibility/timing and style fields, while `includes/class-bhg-buttons.php` stores, evaluates visibility rules, and outputs styled links. `includes/class-bhg-shortcodes.php` registers `[bhg_button]` so buttons can also be dropped into pages manually.
+- [x] `[bhg_active_hunt]` and `[bhg_user_guesses]` show "No Guesses Yet"/"No Guesses Found" inside styled info blocks, and the active hunt detail block matches the tournament detail styling with status text updated to "Status: Active: Guess Now" (links to guess form) or "Status: Closed" plus toggles to hide description items like number of bonuses and affiliate website.
+  - `includes/class-bhg-shortcodes.php` renders info blocks for empty guess sets, builds the bonushunt detail card with the new Status label and Guess Now link, and respects admin toggles for showing number of bonuses and affiliate website fields.
+- [x] Bonus-hunt results admin highlights the top N winners in green based on the configured winners count and exposes a selector for both tournaments and bonushunts; clicking "Results" from Bonus Hunts routes to the matching entry in `bhg-bonus-hunts-results` with the correct filters applied.
+  - `admin/views/bonus-hunts-results.php` calculates `$winners_limit` from the selected tournament or hunt, applies winner row classes accordingly, and builds selectors for both hunts and tournaments while honoring the inbound `type`/`id` parameters from the Bonus Hunts list.
