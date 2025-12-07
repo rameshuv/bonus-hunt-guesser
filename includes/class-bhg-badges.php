@@ -237,10 +237,17 @@ class BHG_Badges {
          * @param object $badge   Badge config.
          * @return bool
          */
-        private static function user_meets_badge( $user_id, $badge ) {
-                $threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
-                $metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
-                $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
+private static function user_meets_badge( $user_id, $badge ) {
+$threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
+$metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
+$site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
+
+                $affiliate_days = null;
+                if ( $site_id > 0 ) {
+                        // Affiliate website based badges require membership and a recorded activation date.
+                        if ( ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
+                                return false;
+                        }
 
                 $affiliate_days = null;
                 if ( $site_id > 0 ) {
@@ -388,6 +395,6 @@ class BHG_Badges {
                         return -1;
                 }
 
-                return floor( ( time() - $timestamp ) / DAY_IN_SECONDS );
-        }
+return floor( ( time() - $timestamp ) / DAY_IN_SECONDS );
+}
 }
