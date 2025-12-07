@@ -2124,12 +2124,12 @@ $style_attr
 );
 }
 
-/**
- * Determine user visibility rules.
- *
- * @param string $visible_to Rule name.
- * @return bool
- */
+    /**
+     * Determine user visibility rules.
+     *
+     * @param string $visible_to Rule name.
+     * @return bool
+     */
     private function button_visibility_allows( $visible_to ) {
         switch ( $visible_to ) {
             case 'guests':
@@ -2149,12 +2149,12 @@ $style_attr
         }
     }
 
-/**
- * Check temporal visibility rules.
- *
- * @param string $when Timing rule.
- * @return bool
- */
+    /**
+     * Check temporal visibility rules.
+     *
+     * @param string $when Timing rule.
+     * @return bool
+     */
     private function button_timing_allows( $when ) {
         switch ( $when ) {
             case 'active_bonushunt':
@@ -2168,42 +2168,42 @@ $style_attr
         }
     }
 
-/**
- * Whether an open bonus hunt exists.
- *
- * @return bool
- */
-private function has_open_hunt() {
-global $wpdb;
+    /**
+     * Whether an open bonus hunt exists.
+     *
+     * @return bool
+     */
+    private function has_open_hunt() {
+        global $wpdb;
 
-$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
-if ( ! $hunts_table ) {
-return false;
-}
+        $hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
+        if ( ! $hunts_table ) {
+            return false;
+        }
 
-return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(1) FROM {$hunts_table} WHERE status = %s", 'open' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-}
+        return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(1) FROM {$hunts_table} WHERE status = %s", 'open' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+    }
 
-/**
- * Whether an open tournament exists.
- *
- * @return bool
- */
-private function has_open_tournament() {
-global $wpdb;
+    /**
+     * Whether an open tournament exists.
+     *
+     * @return bool
+     */
+    private function has_open_tournament() {
+        global $wpdb;
 
-$tours_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
-if ( ! $tours_table ) {
-return false;
-}
+        $tours_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
+        if ( ! $tours_table ) {
+            return false;
+        }
 
-return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(1) FROM {$tours_table} WHERE status = %s", 'open' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-}
+        return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(1) FROM {$tours_table} WHERE status = %s", 'open' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+    }
 
-private function render_prize_tabs( $tabs ) {
-if ( empty( $tabs ) || ! is_array( $tabs ) ) {
-return '';
-}
+    private function render_prize_tabs( $tabs ) {
+        if ( empty( $tabs ) || ! is_array( $tabs ) ) {
+            return '';
+        }
 
 $container_id = wp_unique_id( 'bhg-prize-tabset-' );
 $tab_index    = 0;
