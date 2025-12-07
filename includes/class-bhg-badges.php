@@ -242,9 +242,17 @@ $threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
 $metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
 $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
 
-                // Affiliate website based badges require membership.
-                if ( $site_id > 0 && ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
-                        return false;
+                $affiliate_days = null;
+                if ( $site_id > 0 ) {
+                        // Affiliate website based badges require membership and a recorded activation date.
+                        if ( ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
+                                return false;
+                        }
+
+                        $affiliate_days = self::get_days_affiliate_active( $user_id, $site_id );
+                        if ( $affiliate_days < 0 ) {
+                                return false;
+                        }
                 }
 
                 switch ( $metric ) {
@@ -256,27 +264,13 @@ $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_i
                                 return self::get_total_guesses( $user_id ) >= $threshold;
                         case 'registration_days':
                                 return self::get_days_since_registration( $user_id ) >= $threshold;
-case 'affiliate_days':
-$days = self::get_days_affiliate_active( $user_id, $site_id );
-if ( $days < 0 ) {
-return false;
-}
-
-return $days >= $threshold;
-case 'none':
-default:
-if ( $site_id > 0 ) {
-$days = self::get_days_affiliate_active( $user_id, $site_id );
-if ( $days < 0 ) {
-return false;
-}
-
-return $days >= $threshold;
-}
-
-return false;
-}
-}
+                        case 'affiliate_days':
+                                return is_int( $affiliate_days ) && $affiliate_days >= $threshold;
+                        case 'none':
+                        default:
+                                return ( null !== $affiliate_days ) ? $affiliate_days >= $threshold : false;
+                }
+        }
 
         /**
          * Render a single badge element.
@@ -289,7 +283,15 @@ return false;
                 $img   = isset( $badge->image_id ) ? (int) $badge->image_id : 0;
 
                 if ( $img ) {
-                        $image = wp_get_attachment_image( $img, 'thumbnail', false, array( 'class' => 'bhg-badge-image', 'alt' => esc_attr( $title ) ) );
+                        $image = wp_get_attachment_image(
+                                $img,
+                                'thumbnail',
+                                false,
+                                array(
+                                        'class' => 'bhg-badge-image',
+                                        'alt'   => esc_attr( $title ),
+                                )
+                        );
                         if ( $image ) {
                                 return '<span class="bhg-badge bhg-badge--image" title="' . esc_attr( $title ) . '">' . wp_kses_post( $image ) . '</span>';
                         }
