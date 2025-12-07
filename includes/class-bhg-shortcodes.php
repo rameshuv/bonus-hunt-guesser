@@ -2130,20 +2130,24 @@ $style_attr
  * @param string $visible_to Rule name.
  * @return bool
  */
-private function button_visibility_allows( $visible_to ) {
-switch ( $visible_to ) {
-case 'guests':
-return ! is_user_logged_in();
-case 'logged_in':
-return is_user_logged_in();
-case 'affiliates':
-return is_user_logged_in() && function_exists( 'bhg_is_user_affiliate' ) && bhg_is_user_affiliate( get_current_user_id() );
-case 'non_affiliates':
-return ! is_user_logged_in() || ! ( function_exists( 'bhg_is_user_affiliate' ) && bhg_is_user_affiliate( get_current_user_id() ) );
-default:
-return true;
-}
-}
+    private function button_visibility_allows( $visible_to ) {
+        switch ( $visible_to ) {
+            case 'guests':
+                return ! is_user_logged_in();
+
+            case 'logged_in':
+                return is_user_logged_in();
+
+            case 'affiliates':
+                return is_user_logged_in() && function_exists( 'bhg_is_user_affiliate' ) && bhg_is_user_affiliate( get_current_user_id() );
+
+            case 'non_affiliates':
+                return ! is_user_logged_in() || ! ( function_exists( 'bhg_is_user_affiliate' ) && bhg_is_user_affiliate( get_current_user_id() ) );
+
+            default:
+                return true;
+        }
+    }
 
 /**
  * Check temporal visibility rules.
@@ -2151,16 +2155,18 @@ return true;
  * @param string $when Timing rule.
  * @return bool
  */
-private function button_timing_allows( $when ) {
-switch ( $when ) {
-case 'active_bonushunt':
-return $this->has_open_hunt();
-case 'active_tournament':
-return $this->has_open_tournament();
-default:
-return true;
-}
-}
+    private function button_timing_allows( $when ) {
+        switch ( $when ) {
+            case 'active_bonushunt':
+                return $this->has_open_hunt();
+
+            case 'active_tournament':
+                return $this->has_open_tournament();
+
+            default:
+                return true;
+        }
+    }
 
 /**
  * Whether an open bonus hunt exists.
