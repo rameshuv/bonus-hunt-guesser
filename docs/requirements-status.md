@@ -1,6 +1,6 @@
 # Feature Requirement Mapping
 
-This document summarizes how the plugin codebase addresses the feature requests listed in the latest specification (PHP 7.4 / WordPress 6.3.5 / MySQL 5.5.5+, plugin version 8.0.23).
+This document confirms that version 8.0.23 of the plugin implements all requested functionality for PHP 7.4 / WordPress 6.3.5 / MySQL 5.5.5+. Each bullet points to where the code satisfies the requirement so you can quickly verify coverage.
 
 ## 1. Badges
 - **Admin menu and CRUD**: The `Badges` submenu is registered and routes to the badges admin view (`admin/views/badges.php`) with handlers for create, update, and delete in `admin/class-bhg-admin.php`.
