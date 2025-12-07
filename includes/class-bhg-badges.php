@@ -237,10 +237,10 @@ class BHG_Badges {
          * @param object $badge   Badge config.
          * @return bool
          */
-        private static function user_meets_badge( $user_id, $badge ) {
-                $threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
-                $metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
-                $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
+private static function user_meets_badge( $user_id, $badge ) {
+$threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
+$metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
+$site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
 
                 $affiliate_days = null;
                 if ( $site_id > 0 ) {
