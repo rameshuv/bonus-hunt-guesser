@@ -237,10 +237,10 @@ class BHG_Badges {
          * @param object $badge   Badge config.
          * @return bool
          */
-        private static function user_meets_badge( $user_id, $badge ) {
-                $threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
-                $metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
-                $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
+private static function user_meets_badge( $user_id, $badge ) {
+$threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
+$metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
+$site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
 
                 // Affiliate website based badges require membership.
                 if ( $site_id > 0 && ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
@@ -256,19 +256,27 @@ class BHG_Badges {
                                 return self::get_total_guesses( $user_id ) >= $threshold;
                         case 'registration_days':
                                 return self::get_days_since_registration( $user_id ) >= $threshold;
-                        case 'affiliate_days':
-                                $days = self::get_days_affiliate_active( $user_id, $site_id );
-                                return $days >= $threshold;
-                        case 'none':
-                        default:
-                                if ( $site_id > 0 ) {
-                                        $days = self::get_days_affiliate_active( $user_id, $site_id );
-                                        return $days >= $threshold;
-                                }
+case 'affiliate_days':
+$days = self::get_days_affiliate_active( $user_id, $site_id );
+if ( $days < 0 ) {
+return false;
+}
 
-                                return false;
-                }
-        }
+return $days >= $threshold;
+case 'none':
+default:
+if ( $site_id > 0 ) {
+$days = self::get_days_affiliate_active( $user_id, $site_id );
+if ( $days < 0 ) {
+return false;
+}
+
+return $days >= $threshold;
+}
+
+return false;
+}
+}
 
         /**
          * Render a single badge element.
@@ -367,17 +375,17 @@ class BHG_Badges {
          * @param int $site_id Affiliate site ID (optional).
          * @return int
          */
-        private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
-                $date = bhg_get_affiliate_activation_date( $user_id, $site_id );
-                if ( ! $date ) {
-                        return 0;
-                }
+private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
+$date = bhg_get_affiliate_activation_date( $user_id, $site_id );
+if ( ! $date ) {
+return -1;
+}
 
-                $timestamp = strtotime( $date );
-                if ( ! $timestamp ) {
-                        return 0;
-                }
+$timestamp = strtotime( $date );
+if ( ! $timestamp ) {
+return -1;
+}
 
-                return floor( ( time() - $timestamp ) / DAY_IN_SECONDS );
-        }
+return floor( ( time() - $timestamp ) / DAY_IN_SECONDS );
+}
 }
