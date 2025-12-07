@@ -127,66 +127,84 @@ class BHG_Admin {
 			}
 
                         if ( false !== strpos( $hook, 'bhg-prizes' ) ) {
-                                        wp_enqueue_media();
-                                        $prize_script = BHG_PLUGIN_DIR . 'assets/js/admin-prizes.js';
+                                wp_enqueue_media();
+                                $prize_script = BHG_PLUGIN_DIR . 'assets/js/admin-prizes.js';
                                 if ( file_exists( $prize_script ) ) {
-								wp_enqueue_script(
-									'bhg-admin-prizes',
-									BHG_PLUGIN_URL . 'assets/js/admin-prizes.js',
-									array( 'jquery' ),
-									defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
-									true
-								);
+                                        wp_enqueue_script(
+                                                'bhg-admin-prizes',
+                                                BHG_PLUGIN_URL . 'assets/js/admin-prizes.js',
+                                                array( 'jquery' ),
+                                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
+                                                true
+                                        );
 
-								$css_defaults = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::default_css_settings() : array();
+                                        $css_defaults     = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::default_css_settings() : array();
+                                        $display_defaults = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_display_settings() : array();
 
-					$display_defaults = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_display_settings() : array();
-
-					wp_localize_script(
-						'bhg-admin-prizes',
-						'BHGPrizesL10n',
-						array(
-							'chooseImage'     => bhg_t( 'select_image', 'Select Image' ),
-							'noImage'         => bhg_t( 'no_image_selected', 'No image selected' ),
-							'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
-							'fetchNonce'      => wp_create_nonce( 'bhg_get_prize' ),
-							'cssDefaults'     => $css_defaults,
-							'displayDefaults' => $display_defaults,
-							'clickActions'    => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_click_actions() : array(),
-							'strings'         => array(
-								'saveLabel'      => bhg_t( 'add_prize', 'Add Prize' ),
-								'updateLabel'    => bhg_t( 'update_prize', 'Update Prize' ),
-								'modalAddTitle'  => bhg_t( 'add_new_prize', 'Add New Prize' ),
-								'modalEditTitle' => bhg_t( 'edit_prize', 'Edit Prize' ),
-								'errorLoading'   => bhg_t( 'prize_error_loading', 'Unable to load prize details.' ),
+                                        wp_localize_script(
+                                                'bhg-admin-prizes',
+                                                'BHGPrizesL10n',
+                                                array(
+                                                        'chooseImage'     => bhg_t( 'select_image', 'Select Image' ),
+                                                        'noImage'         => bhg_t( 'no_image_selected', 'No image selected' ),
+                                                        'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+                                                        'fetchNonce'      => wp_create_nonce( 'bhg_get_prize' ),
+                                                        'cssDefaults'     => $css_defaults,
+                                                        'displayDefaults' => $display_defaults,
+                                                        'clickActions'    => class_exists( 'BHG_Prizes' ) ? BHG_Prizes::get_click_actions() : array(),
+                                                        'strings'         => array(
+                                                                'saveLabel'      => bhg_t( 'add_prize', 'Add Prize' ),
+                                                                'updateLabel'    => bhg_t( 'update_prize', 'Update Prize' ),
+                                                                'modalAddTitle'  => bhg_t( 'add_new_prize', 'Add New Prize' ),
+                                                                'modalEditTitle' => bhg_t( 'edit_prize', 'Edit Prize' ),
+                                                                'errorLoading'   => bhg_t( 'prize_error_loading', 'Unable to load prize details.' ),
                                                         ),
                                                 )
                                         );
+                                }
                         }
 
                         if ( false !== strpos( $hook, 'bhg-badges' ) ) {
                                 wp_enqueue_media();
-                        }
-			}
 
-			if ( false !== strpos( $hook, 'bhg-bonus-hunts-results' ) ) {
-							wp_enqueue_script(
-								'bhg-admin-results',
-								BHG_PLUGIN_URL . 'assets/js/admin-results.js',
-								array(),
-								BHG_VERSION,
-								true
-							);
-							wp_localize_script(
-								'bhg-admin-results',
-								'bhgResults',
-								array(
-									'base_url' => admin_url( 'admin.php?page=bhg-bonus-hunts-results' ),
-								)
-							);
-			}
-		}
-	}
+                                $badge_script = BHG_PLUGIN_DIR . 'assets/js/admin-badges.js';
+                                if ( file_exists( $badge_script ) ) {
+                                        wp_enqueue_script(
+                                                'bhg-admin-badges',
+                                                BHG_PLUGIN_URL . 'assets/js/admin-badges.js',
+                                                array( 'jquery' ),
+                                                defined( 'BHG_VERSION' ) ? BHG_VERSION : null,
+                                                true
+                                        );
+
+                                        wp_localize_script(
+                                                'bhg-admin-badges',
+                                                'BHGAdminBadges',
+                                                array(
+                                                        'selectImage' => bhg_t( 'select_image', 'Select Image' ),
+                                                )
+                                        );
+                                }
+                        }
+
+                        if ( false !== strpos( $hook, 'bhg-bonus-hunts-results' ) ) {
+                                wp_enqueue_script(
+                                        'bhg-admin-results',
+                                        BHG_PLUGIN_URL . 'assets/js/admin-results.js',
+                                        array(),
+                                        BHG_VERSION,
+                                        true
+                                );
+                                wp_localize_script(
+                                        'bhg-admin-results',
+                                        'bhgResults',
+                                        array(
+                                                'base_url' => admin_url( 'admin.php?page=bhg-bonus-hunts-results' ),
+                                        )
+                                );
+                        }
+                }
+        }
 
 	// -------------------- Views --------------------
 	/**

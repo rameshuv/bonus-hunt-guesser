@@ -249,6 +249,13 @@ $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_i
                                 return false;
                         }
 
+                $affiliate_days = null;
+                if ( $site_id > 0 ) {
+                        // Affiliate website based badges require membership and a recorded activation date.
+                        if ( ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
+                                return false;
+                        }
+
                         $affiliate_days = self::get_days_affiliate_active( $user_id, $site_id );
                         if ( $affiliate_days < 0 ) {
                                 return false;
@@ -377,16 +384,16 @@ $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_i
          * @param int $site_id Affiliate site ID (optional).
          * @return int
          */
-private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
-$date = bhg_get_affiliate_activation_date( $user_id, $site_id );
-if ( ! $date ) {
-return -1;
-}
+        private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
+                $date = bhg_get_affiliate_activation_date( $user_id, $site_id );
+                if ( ! $date ) {
+                        return -1;
+                }
 
-$timestamp = strtotime( $date );
-if ( ! $timestamp ) {
-return -1;
-}
+                $timestamp = strtotime( $date );
+                if ( ! $timestamp ) {
+                        return -1;
+                }
 
 return floor( ( time() - $timestamp ) / DAY_IN_SECONDS );
 }
