@@ -1,6 +1,6 @@
 # Feature Requirement Mapping
 
-Version **8.0.23** of the plugin meets the requested runtime targets (PHP 7.4 / WordPress 6.3.5 / MySQL 5.5.5+) as declared in the main plugin header (`bonus-hunt-guesser.php`). The tables below mark each requirement as **Met** and point to the code sections that implement it for quick verification. Syntax checks on `includes/class-bhg-shortcodes.php` (where the shortcodes, buttons, and hunt displays are rendered) currently report no parse errors, and the helper methods that gate visibility (e.g., `button_visibility_allows()` and `button_timing_allows()`) remain defined within the class scope, confirming the active codebase aligns with these mappings.
+Version **8.0.23** of the plugin meets the requested runtime targets (PHP 7.4 / WordPress 6.3.5 / MySQL 5.5.5+) as declared in the main plugin header (`bonus-hunt-guesser.php`). The tables below mark each requirement as **Met** and point to the code sections that implement it for quick verification. The badge/button database tables (`bhg_badges`, `bhg_user_affiliate_dates`, `bhg_buttons`) are created by the installer, the admin menus are wired via `BHG_Admin`, and the rendering logic lives in `includes/class-bhg-shortcodes.php` plus its helpers, giving a single place to review runtime behavior.
 
 ## Runtime targets
 | Requirement | Status | Reference |
