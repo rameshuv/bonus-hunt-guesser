@@ -11,7 +11,7 @@ This checklist consolidates runtime expectations, coding standards, customer fea
   - The bootstrap loads translations during `plugins_loaded` (`bonus-hunt-guesser.php` line 411) and every admin/frontend template wraps UI strings with `bhg_t()`/`__()` helpers.
 
 ## 2. Plugin Header and Bootstrapping
-- [x] Main file is `bonus-hunt-guesser.php` with Name, URI, Description, Version (8.0.18), Author, Text Domain, Domain Path, Requires PHP 7.4, Requires at least WP 6.3.5, GPLv2+.
+- [x] Main file is `bonus-hunt-guesser.php` with Name, URI, Description, Version (8.0.23), Author, Text Domain, Domain Path, Requires PHP 7.4, Requires at least WP 6.3.5, GPLv2+.
   - Header block (lines 4–20) declares the required runtime values plus the GPL notice, and the bootstrap wires up activation hooks and helpers immediately after the header so QA can point to the canonical metadata.
 - [x] Text domain is loaded on init; no PHPCS header issues.
   - `bonus-hunt-guesser.php` loads translations via `load_plugin_textdomain( 'bonus-hunt-guesser', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );` during `plugins_loaded`, matching the runtime contract.
@@ -126,7 +126,7 @@ This checklist consolidates runtime expectations, coding standards, customer fea
 - [ ] Legacy data handled safely with defaults; deprecated options mapped to new settings; migrations are idempotent and version-based.
 
 ## 17. Release and Documentation
-- [ ] Version bumped (8.0.16/8.0.18 per header) with changelog covering DB migrations and features.
+- [ ] Version bumped (8.0.23 header/metadata) with changelog covering DB migrations and features.
 - [ ] Readme and Info & Help updated; include optional screenshots/GIFs and QA notes.
 
 ## 18. QA and Acceptance
