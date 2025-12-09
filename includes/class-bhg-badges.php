@@ -377,7 +377,7 @@ class BHG_Badges {
          * @param int $site_id Affiliate site ID (optional).
          * @return int
          */
-        	private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
+        private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
 		$date = bhg_get_affiliate_activation_date( $user_id, $site_id );
 		if ( ! $date ) {
 			return -1;

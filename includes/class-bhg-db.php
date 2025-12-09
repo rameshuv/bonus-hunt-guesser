@@ -68,11 +68,14 @@ class BHG_DB {
 	 *
 	 * @return void
 	 */
-	public function create_tables() {
-		global $wpdb;
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        public function create_tables() {
+                global $wpdb;
+                require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		$charset_collate = $wpdb->get_charset_collate();
+                $charset_collate = $wpdb->get_charset_collate();
+
+                // Ensure core comment meta table exists for cron cleanups.
+                $this->ensure_commentmeta_table( $charset_collate );
 
 		// Raw table names without backticks.
 		$hunts_table               = $wpdb->prefix . 'bhg_bonus_hunts';
@@ -1049,18 +1052,45 @@ WHERE tournament_id IS NOT NULL AND tournament_id > 0",
                return array_values( array_unique( wp_list_pluck( $rows, 'Column_name' ) ) );
         }
 
-	/**
-	 * Check whether a table exists in the database.
-	 *
-	 * @param string $table Table name.
-	 * @return bool
-	 */
-	private function table_exists( $table ) {
-		global $wpdb;
+        /**
+         * Check whether a table exists in the database.
+         *
+         * @param string $table Table name.
+         * @return bool
+         */
+        private function table_exists( $table ) {
+                global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+                $exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 
-		return ! empty( $exists );
-	}
+                return ! empty( $exists );
+        }
+
+        /**
+         * Ensure the core comment meta table exists to prevent cron failures on installs missing it.
+         *
+         * @param string $charset_collate Charset + collate string.
+         * @return void
+         */
+        private function ensure_commentmeta_table( $charset_collate ) {
+                global $wpdb;
+
+                if ( $this->table_exists( $wpdb->commentmeta ) ) {
+                        return;
+                }
+
+                $table = $wpdb->commentmeta;
+                $sql   = "CREATE TABLE {$table} (
+        meta_id bigint(20) unsigned NOT NULL auto_increment,
+        comment_id bigint(20) unsigned NOT NULL default '0',
+        meta_key varchar(255) DEFAULT NULL,
+        meta_value longtext,
+        PRIMARY KEY  (meta_id),
+        KEY comment_id (comment_id),
+        KEY meta_key (meta_key(191))
+) {$charset_collate};";
+
+                maybe_create_table( $table, $sql );
+        }
 }
