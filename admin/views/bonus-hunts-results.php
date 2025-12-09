@@ -27,11 +27,12 @@ if ( ! class_exists( 'BHG_Prizes' ) && file_exists( BHG_PLUGIN_DIR . 'includes/c
 $timeframe        = isset( $_GET['timeframe'] ) ? sanitize_key( wp_unslash( $_GET['timeframe'] ) ) : 'month';
 $valid_timeframes = array( 'month', 'year', 'all' );
 if ( ! in_array( $timeframe, $valid_timeframes, true ) ) {
-	$timeframe = 'month';
+        $timeframe = 'month';
 }
 
 $selector_limit       = (int) apply_filters( 'bhg_results_selector_limit', 50 );
 $hunts_selector       = BHG_Bonus_Hunts::get_closed_hunts_for_selector( $timeframe, $selector_limit );
+$hunts_selector       = $hunts_selector ? $hunts_selector : BHG_Bonus_Hunts::get_recent_hunts_for_results_selector( $selector_limit );
 $tournaments_selector = BHG_Bonus_Hunts::get_tournaments_for_selector( $timeframe, $selector_limit );
 
 // Build quick lookup maps for select controls.
@@ -48,6 +49,14 @@ foreach ( (array) $tournaments_selector as $tournament_row ) {
 // View selection.
 $requested_type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : 'hunt';
 $requested_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
+if ( isset( $_GET['hunt_id'] ) ) {
+        $requested_type = 'hunt';
+        $requested_id   = absint( wp_unslash( $_GET['hunt_id'] ) );
+}
+if ( isset( $_GET['tournament_id'] ) ) {
+        $requested_type = 'tournament';
+        $requested_id   = absint( wp_unslash( $_GET['tournament_id'] ) );
+}
 $view_type      = in_array( $requested_type, array( 'hunt', 'tournament' ), true ) ? $requested_type : 'hunt';
 
 $hunt_id       = ( 'tournament' === $view_type ) ? 0 : $requested_id;
@@ -187,16 +196,20 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 		);
 	} else {
 		$hunt_site_id          = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
-		$page_title            = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
-		$guesses               = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
-		$official_winner_ids   = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
-		$ineligible_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_ineligible_winner_ids' ) ? BHG_Bonus_Hunts::get_ineligible_winner_ids( (int) $hunt->id ) : array();
+                $page_title            = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
+                $guesses               = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
+                $official_winner_ids   = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
+                $ineligible_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_ineligible_winner_ids' ) ? BHG_Bonus_Hunts::get_ineligible_winner_ids( (int) $hunt->id ) : array();
 
-		foreach ( $official_winner_ids as $index => $winner_user_id ) {
-			$winner_lookup[ (int) $winner_user_id ] = (int) $index;
-		}
+                $winners_limit         = max( 1, (int) $hunt->winners_count );
+                if ( count( $official_winner_ids ) > $winners_limit ) {
+                        $official_winner_ids = array_slice( $official_winner_ids, 0, $winners_limit );
+                }
 
-		$winners_limit         = max( 1, (int) $hunt->winners_count );
+                $has_official_winners = ! empty( $official_winner_ids );
+                foreach ( $official_winner_ids as $index => $winner_user_id ) {
+                        $winner_lookup[ (int) $winner_user_id ] = (int) $index;
+                }
 		$final_balance_raw     = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
 		$has_final_balance     = null !== $final_balance_raw;
 		$final_balance_value   = $has_final_balance ? (float) $final_balance_raw : null;
@@ -412,15 +425,18 @@ foreach ( $notices as $notice ) :
 				<td colspan="6" class="bhg-text-center"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'There are no winners yet' ) ); ?></td>
 			</tr>
 	<?php else : ?>
-		<?php foreach ( $guesses as $index => $row ) : ?>
-			<?php
-			$position    = (int) $index + 1;
-			$user_id     = isset( $row->user_id ) ? (int) $row->user_id : 0;
-			$is_winner   = ( $user_id > 0 && isset( $winner_lookup[ $user_id ] ) );
-			$row_classes = array( 'bhg-results-row' );
-			if ( $is_winner ) {
-				$row_classes[] = 'bhg-results-row--winner';
-			}
+                <?php foreach ( $guesses as $index => $row ) : ?>
+                        <?php
+                        $position    = (int) $index + 1;
+                        $user_id     = isset( $row->user_id ) ? (int) $row->user_id : 0;
+                        $is_winner   = ( $has_official_winners && $user_id > 0 && isset( $winner_lookup[ $user_id ] ) );
+                        if ( ! $has_official_winners && $position <= $winners_limit ) {
+                                $is_winner = true;
+                        }
+                        $row_classes = array( 'bhg-results-row' );
+                        if ( $is_winner ) {
+                                $row_classes[] = 'bhg-results-row--winner';
+                        }
 
 			$name          = $row->display_name ? $row->display_name : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
 			$guess_display = isset( $row->guess ) ? bhg_format_money( (float) $row->guess ) : bhg_t( 'label_emdash', '—' );

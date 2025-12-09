@@ -2961,7 +2961,7 @@ return ob_get_clean();
 			   $hunt_site_id = isset( $selected_hunt->affiliate_site_id ) ? (int) $selected_hunt->affiliate_site_id : 0;
 
 			   ob_start();
-			   echo '<div class="bhg-active-hunt">';
+                           echo '<div class="bhg-active-hunt">';
 
 			   if ( count( $hunts ) > 1 ) {
 				   echo '<form class="bhg-hunt-selector" method="get">';
@@ -2990,7 +2990,9 @@ return ob_get_clean();
 
                             $show_num_bonuses = isset( $selected_hunt->num_bonuses_visible ) ? (int) $selected_hunt->num_bonuses_visible : 1;
                             $show_affiliate   = isset( $selected_hunt->affiliate_visible ) ? (int) $selected_hunt->affiliate_visible : 1;
+                            $guess_url        = function_exists( 'bhg_get_guess_submission_url' ) ? bhg_get_guess_submission_url( $selected_hunt_id ) : add_query_arg( array( 'bhg_hunt' => $selected_hunt_id ), get_permalink() );
 
+                            echo '<div class="bhg-hunt-details">';
                             echo '<div class="bhg-hunt-card">';
                             echo '<h3>' . esc_html( $selected_hunt->title ) . '</h3>';
                                             echo '<ul class="bhg-hunt-meta">';
@@ -2999,11 +3001,11 @@ return ob_get_clean();
                                                     echo '<li><strong>' . esc_html( bhg_t( 'label_number_bonuses', 'Number of Bonuses' ) ) . ':</strong> ' . (int) $selected_hunt->num_bonuses . '</li>';
                                             }
 
-					   $opened_at = isset( $selected_hunt->created_at ) ? (string) $selected_hunt->created_at : '';
-					   if ( '' !== $opened_at && '0000-00-00 00:00:00' !== $opened_at ) {
-							   $opened_label = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $opened_at, true );
-							   echo '<li><strong>' . esc_html( bhg_t( 'label_opened', 'Opened' ) ) . ':</strong> ' . esc_html( $opened_label ) . '</li>';
-					   }
+                                           $opened_at = isset( $selected_hunt->created_at ) ? (string) $selected_hunt->created_at : '';
+                                           if ( '' !== $opened_at && '0000-00-00 00:00:00' !== $opened_at ) {
+                                                           $opened_label = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $opened_at, true );
+                                                           echo '<li><strong>' . esc_html( bhg_t( 'label_opened', 'Opened' ) ) . ':</strong> ' . esc_html( $opened_label ) . '</li>';
+                                           }
 
                                           $closed_at      = isset( $selected_hunt->closed_at ) ? (string) $selected_hunt->closed_at : '';
                                           $closed_display = '-';
@@ -3013,10 +3015,9 @@ return ob_get_clean();
 
                                           $status_label = bhg_t( 'label_status', 'Status' );
                                           $status_value = 'open' === $selected_hunt->status ? bhg_t( 'status_active_guess_now', 'Active: Guess Now' ) : bhg_t( 'status_closed', 'Closed' );
-                                          $guess_url    = add_query_arg( array( 'bhg_hunt' => $selected_hunt_id ), get_permalink() );
 
-                                          if ( 'open' === $selected_hunt->status ) {
-                                                          $status_link = sprintf(
+                                          if ( 'open' === $selected_hunt->status && '' !== $guess_url ) {
+                                                          $status_link  = sprintf(
                                                                           '<a href="%s" class="bhg-hunt-status-link">%s</a>',
                                                                           esc_url( $guess_url ),
                                                                           esc_html( bhg_t( 'status_active_guess_now', 'Active: Guess Now' ) )
@@ -3026,33 +3027,33 @@ return ob_get_clean();
 
                                           echo '<li><strong>' . esc_html( $status_label ) . ':</strong> ' . wp_kses_post( $status_value ) . '</li>';
 
-					   $affiliate_name = isset( $selected_hunt->affiliate_site_name ) ? $selected_hunt->affiliate_site_name : '';
-					   if ( '' === $affiliate_name && isset( $selected_hunt->affiliate_site_id ) && (int) $selected_hunt->affiliate_site_id > 0 ) {
-							   $sites_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
-							   if ( $sites_table ) {
-									   $affiliate_name = $wpdb->get_var(
-											   $wpdb->prepare(
-													   "SELECT name FROM {$sites_table} WHERE id = %d",
-													   (int) $selected_hunt->affiliate_site_id
-											   )
-									   ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-							   }
-					   }
+                                           $affiliate_name = isset( $selected_hunt->affiliate_site_name ) ? $selected_hunt->affiliate_site_name : '';
+                                           if ( '' === $affiliate_name && isset( $selected_hunt->affiliate_site_id ) && (int) $selected_hunt->affiliate_site_id > 0 ) {
+                                                           $sites_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+                                                           if ( $sites_table ) {
+                                                                           $affiliate_name = $wpdb->get_var(
+                                                                                           $wpdb->prepare(
+                                                                                                           "SELECT name FROM {$sites_table} WHERE id = %d",
+                                                                                                           (int) $selected_hunt->affiliate_site_id
+                                                                                           )
+                                                                           ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                                           }
+                                           }
                                             if ( $show_affiliate ) {
                                                     $affiliate_display = '' !== $affiliate_name ? $affiliate_name : '-';
                                                     echo '<li><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> ' . esc_html( $affiliate_display ) . '</li>';
                                             }
-					   if ( ! empty( $selected_hunt->prizes ) ) {
-							   echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
-					   }
-					   if ( $has_final ) {
-							   echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $final_balance ) ) . '</li>';
-					   }
-					   echo '</ul>';
+                                           if ( ! empty( $selected_hunt->prizes ) ) {
+                                                           echo '<li><strong>' . esc_html( bhg_t( 'sc_prizes', 'Prizes' ) ) . ':</strong> ' . wp_kses_post( $selected_hunt->prizes ) . '</li>';
+                                           }
+                                           if ( $has_final ) {
+                                                           echo '<li><strong>' . esc_html( bhg_t( 'label_final_balance', 'Final Balance' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $final_balance ) ) . '</li>';
+                                           }
+                                           echo '</ul>';
 
-					   if ( '' !== $win_limit_notice ) {
-							   echo '<div class="bhg-win-limit-notice">' . esc_html( $win_limit_notice ) . '</div>';
-					   }
+                                           if ( '' !== $win_limit_notice ) {
+                                                           echo '<div class="bhg-win-limit-notice bhg-info-block">' . esc_html( $win_limit_notice ) . '</div>';
+                                           }
 
 					   $regular_prizes = isset( $prize_sets['regular'] ) && is_array( $prize_sets['regular'] ) ? $prize_sets['regular'] : array();
 					   $premium_prizes = isset( $prize_sets['premium'] ) && is_array( $prize_sets['premium'] ) ? $prize_sets['premium'] : array();
@@ -3113,6 +3114,7 @@ return ob_get_clean();
                                                            echo '</div>';
                                            }
                                            echo '</div>';
+                                           echo '</div>';
 
                                            if ( class_exists( 'BHG_Buttons' ) ) {
                                                            $buttons_markup = BHG_Buttons::render_for_placement( 'active_bonushunt' );
@@ -3123,7 +3125,7 @@ return ob_get_clean();
 
                            echo '<div class="bhg-table-wrapper">';
                           if ( empty( $rows ) ) {
-                                   echo '<div class="bhg-info-block bhg-info-block--muted">' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No guesses have been submitted for this hunt yet.' ) ) . '</div>';
+                                   echo '<div class="bhg-info-block bhg-info-block--muted">' . esc_html( bhg_t( 'notice_no_guesses_yet', 'No Guesses Yet.' ) ) . '</div>';
                            } else {
 				   echo '<table class="bhg-leaderboard bhg-active-hunt-table">';
 				   echo '<thead><tr>';
@@ -3884,9 +3886,9 @@ $status_filter  = in_array( $status_request, array( 'open', 'closed' ), true ) ?
 								return add_query_arg( $args, $base_url );
 						};
 
-						if ( ! $rows ) {
-                                                          return '<div class="bhg-info-block bhg-info-block--muted">' . esc_html( bhg_t( 'notice_no_guesses_found', 'No guesses found.' ) ) . '</div>';
-						}
+                                                if ( ! $rows ) {
+                                                          return '<div class="bhg-info-block bhg-info-block--muted">' . esc_html( bhg_t( 'notice_no_guesses_found', 'No Guesses Found.' ) ) . '</div>';
+                                                }
 
 		$show_aff = $need_users;
 
