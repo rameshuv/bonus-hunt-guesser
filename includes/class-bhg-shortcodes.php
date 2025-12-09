@@ -6091,7 +6091,7 @@ $base
 };
 ob_start();
                 echo '<div class="bhg-tournament-view">';
-                echo '<div class="bhg-tournament-details">';
+echo '<div class="bhg-tournament-details">';
 echo '<p><a href="' . esc_url( remove_query_arg( 'bhg_tournament_id' ) ) . '">&larr; ' . esc_html( bhg_t( 'label_back_to_tournaments', 'Back to tournaments' ) ) . '</a></p>';
 $heading = $tournament->title ? $tournament->title : bhg_t( 'label_tournament', 'Tournament' );
 
@@ -6122,6 +6122,17 @@ echo '</div>';
 
 if ( ! empty( $tournament->description ) ) {
 echo '<div class="bhg-tournament-description">' . wp_kses_post( wpautop( $tournament->description ) ) . '</div>';
+}
+
+if ( ! class_exists( 'BHG_Buttons' ) && file_exists( BHG_PLUGIN_DIR . 'includes/class-bhg-buttons.php' ) ) {
+        require_once BHG_PLUGIN_DIR . 'includes/class-bhg-buttons.php';
+}
+
+if ( class_exists( 'BHG_Buttons' ) ) {
+        $tournament_buttons = BHG_Buttons::render_for_placement( 'active_tournament' );
+        if ( '' !== $tournament_buttons ) {
+                echo '<div class="bhg-tournament-buttons">' . wp_kses_post( $tournament_buttons ) . '</div>';
+        }
 }
 
 $affiliate_name = isset( $tournament->affiliate_site_name ) ? (string) $tournament->affiliate_site_name : '';
