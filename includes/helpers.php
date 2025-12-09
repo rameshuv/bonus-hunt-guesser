@@ -1322,20 +1322,29 @@ if ( ! function_exists( 'bhg_get_guess_submission_url' ) ) {
 		 * @param int $hunt_id Hunt identifier.
 		 * @return string
 		 */
-	function bhg_get_guess_submission_url( $hunt_id ) {
-			$hunt_id = (int) $hunt_id;
+        function bhg_get_guess_submission_url( $hunt_id ) {
+                $hunt_id = (int) $hunt_id;
 
-		if ( $hunt_id <= 0 ) {
-				return '';
-		}
+                if ( $hunt_id <= 0 ) {
+                        return '';
+                }
 
-			$front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'active-bonus-hunt' ) : '';
-		if ( '' === $front_url ) {
-				return '';
-		}
+                $settings   = get_option( 'bhg_plugin_settings', array() );
+                $custom_url = isset( $settings['guess_now_redirect'] ) ? trim( (string) $settings['guess_now_redirect'] ) : '';
+                if ( '' !== $custom_url ) {
+                        $validated = wp_validate_redirect( $custom_url, '' );
+                        if ( $validated ) {
+                                return add_query_arg( 'bhg_hunt', $hunt_id, $validated );
+                        }
+                }
 
-			return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
-	}
+                $front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'active-bonus-hunt' ) : '';
+                if ( '' === $front_url ) {
+                        return '';
+                }
+
+                return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
+        }
 }
 
 if ( ! function_exists( 'bhg_get_period_window_start' ) ) {
