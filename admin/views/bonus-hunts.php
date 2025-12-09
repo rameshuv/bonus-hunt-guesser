@@ -232,15 +232,16 @@ if ( 'list' === $view ) :
 														)
 													),
 													'bhg_edit_hunt'
-												);
-												$results_url = add_query_arg(
-													array(
-														'page'    => 'bhg-bonus-hunts-results',
-														'hunt_id' => (int) $h->id,
-														'id'      => (int) $h->id,
-													),
-													admin_url( 'admin.php' )
-												);
+                                                                                                );
+                                                                                                $results_url = add_query_arg(
+                                                                                                        array(
+                                                                                                                'page'    => 'bhg-bonus-hunts-results',
+                                                                                                                'type'    => 'hunt',
+                                                                                                                'hunt_id' => (int) $h->id,
+                                                                                                                'id'      => (int) $h->id,
+                                                                                                        ),
+                                                                                                        admin_url( 'admin.php' )
+                                                                                                );
 												?>
 				<tr>
 <td><?php echo esc_html( (int) $h->id ); ?></td>
