@@ -237,49 +237,42 @@ class BHG_Badges {
          * @param object $badge   Badge config.
          * @return bool
          */
-private static function user_meets_badge( $user_id, $badge ) {
-$threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
-$metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
-$site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
+	private static function user_meets_badge( $user_id, $badge ) {
+		$threshold = isset( $badge->threshold ) ? (int) $badge->threshold : 0;
+		$metric    = isset( $badge->user_data ) ? (string) $badge->user_data : 'none';
+		$site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_id : 0;
 
-                $affiliate_days = null;
-                if ( $site_id > 0 ) {
-                        // Affiliate website based badges require membership and a recorded activation date.
-                        if ( ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
-                                return false;
-                        }
+		$affiliate_days = null;
+		if ( $site_id > 0 ) {
+			// Affiliate website based badges require membership and a recorded activation date.
+			if ( ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
+				return false;
+			}
 
-                $affiliate_days = null;
-                if ( $site_id > 0 ) {
-                        // Affiliate website based badges require membership and a recorded activation date.
-                        if ( ! bhg_is_user_affiliate_for_site( $user_id, $site_id ) ) {
-                                return false;
-                        }
+			$affiliate_days = self::get_days_affiliate_active( $user_id, $site_id );
+			if ( $affiliate_days < 0 ) {
+				return false;
+			}
+		}
 
-                        $affiliate_days = self::get_days_affiliate_active( $user_id, $site_id );
-                        if ( $affiliate_days < 0 ) {
-                                return false;
-                        }
-                }
+		switch ( $metric ) {
+			case 'bonushunt_wins':
+				return self::get_bonushunt_wins( $user_id ) >= $threshold;
+			case 'tournament_wins':
+				return self::get_tournament_wins( $user_id ) >= $threshold;
+			case 'guesses':
+				return self::get_total_guesses( $user_id ) >= $threshold;
+			case 'registration_days':
+				return self::get_days_since_registration( $user_id ) >= $threshold;
+			case 'affiliate_days':
+				return is_int( $affiliate_days ) && $affiliate_days >= $threshold;
+			case 'none':
+			default:
+				return ( null !== $affiliate_days ) ? $affiliate_days >= $threshold : false;
+		}
+	}
 
-                switch ( $metric ) {
-                        case 'bonushunt_wins':
-                                return self::get_bonushunt_wins( $user_id ) >= $threshold;
-                        case 'tournament_wins':
-                                return self::get_tournament_wins( $user_id ) >= $threshold;
-                        case 'guesses':
-                                return self::get_total_guesses( $user_id ) >= $threshold;
-                        case 'registration_days':
-                                return self::get_days_since_registration( $user_id ) >= $threshold;
-                        case 'affiliate_days':
-                                return is_int( $affiliate_days ) && $affiliate_days >= $threshold;
-                        case 'none':
-                        default:
-                                return ( null !== $affiliate_days ) ? $affiliate_days >= $threshold : false;
-                }
-        }
-
-        /**
+	/**
          * Render a single badge element.
          *
          * @param object $badge Badge config.
@@ -384,17 +377,17 @@ $site_id   = isset( $badge->affiliate_site_id ) ? (int) $badge->affiliate_site_i
          * @param int $site_id Affiliate site ID (optional).
          * @return int
          */
-        private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
-                $date = bhg_get_affiliate_activation_date( $user_id, $site_id );
-                if ( ! $date ) {
-                        return -1;
-                }
+        	private static function get_days_affiliate_active( $user_id, $site_id = 0 ) {
+		$date = bhg_get_affiliate_activation_date( $user_id, $site_id );
+		if ( ! $date ) {
+			return -1;
+		}
 
-                $timestamp = strtotime( $date );
-                if ( ! $timestamp ) {
-                        return -1;
-                }
+		$timestamp = strtotime( $date );
+		if ( ! $timestamp ) {
+			return -1;
+		}
 
-return floor( ( time() - $timestamp ) / DAY_IN_SECONDS );
-}
+		return floor( ( time() - $timestamp ) / DAY_IN_SECONDS );
+	}
 }
