@@ -67,13 +67,7 @@ class BHG_Ads {
          * @return string HTML comment with optional admin-only notice markup.
          */
         private static function shortcode_notice( $reason ) {
-                $comment = '<!-- ' . esc_html( $reason ) . ' -->';
-
-                if ( current_user_can( 'manage_options' ) ) {
-                        return '<div class="bhg-shortcode-note bhg-shortcode-note--ads">' . esc_html( $reason ) . '</div>' . $comment;
-                }
-
-                return $comment;
+                return '<!-- ' . esc_html( $reason ) . ' -->';
         }
 
 	/**
