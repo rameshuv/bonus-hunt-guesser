@@ -1467,7 +1467,9 @@ private function normalize_prize_layout( $layout ) {
                 }
 
                 ob_start();
-                echo '<div class="bhg-prize-summary-grid bhg-info-block">';
+                echo '<div class="bhg-prize-summary bhg-info-block">';
+                echo '<div class="bhg-prize-summary-heading">' . esc_html( bhg_t( 'label_prize_summary', 'Prize Summary' ) ) . '</div>';
+                echo '<div class="bhg-prize-summary-grid">';
 
                 if ( ! empty( $regular_summary ) ) {
                         echo '<div class="bhg-prize-summary-column">';
@@ -1499,6 +1501,7 @@ private function normalize_prize_layout( $layout ) {
                         echo '</div>';
                 }
 
+                echo '</div>';
                 echo '</div>';
 
                 return ob_get_clean();
