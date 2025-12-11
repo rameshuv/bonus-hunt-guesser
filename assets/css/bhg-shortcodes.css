@@ -86,6 +86,20 @@
     padding: 0;
 }
 
+/* List links */
+.bhg-tournament-list .bhg-tournament-details a,
+.bhg-hunt-list .bhg-hunt-details a {
+    border: 0;
+    box-shadow: none;
+    text-decoration: none;
+    padding-bottom: 0;
+}
+
+.bhg-tournament-list .bhg-tournament-details a:hover,
+.bhg-hunt-list .bhg-hunt-details a:hover {
+    text-decoration: underline;
+}
+
 .bhg-hunt-card {
     background: linear-gradient(135deg, #f8fafc 0%, #f2f6fb 100%);
     display: flex;
