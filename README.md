@@ -1,6 +1,6 @@
 # Bonus Hunt Guesser
 
-**Version:** 8.0.23
+**Version:** 8.0.24
 **Requires:** WordPress 6.3.5+, PHP 7.4+, MySQL 5.5.5+
 
 ## Overview
