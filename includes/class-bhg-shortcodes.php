@@ -5273,21 +5273,21 @@ $leaderboard_defaults = array(
                                                $show_prizes        = $this->attribute_to_bool( $show_prizes_attr, true );
 
                                                $raw_fields     = array_map( 'trim', explode( ',', (string) $a['fields'] ) );
-            $allowed_fields = array( 'pos', 'user', 'points', 'wins', 'avg', 'avg_hunt', 'avg_tournament', 'aff', 'site', 'hunt', 'tournament' );
-						$normalized     = array();
-						foreach ( $raw_fields as $field ) {
-								$key = sanitize_key( $field );
-								if ( 'avg' === $key ) {
-										$key = 'avg_hunt';
-								}
-								if ( in_array( $key, $allowed_fields, true ) ) {
-										$normalized[] = $key;
-								}
-						}
-                               $fields_arr = array_values( array_unique( $normalized ) );
-                               if ( empty( $fields_arr ) ) {
-                                               $fields_arr = array( 'pos', 'user', 'wins', 'avg_hunt', 'avg_tournament', 'aff' );
-                               }
+                                               $allowed_fields = array( 'pos', 'user', 'points', 'wins', 'avg', 'avg_hunt', 'avg_tournament', 'aff', 'site', 'hunt', 'tournament' );
+                                               $normalized     = array();
+                                               foreach ( $raw_fields as $field ) {
+                                                               $key = sanitize_key( $field );
+                                                               if ( 'avg' === $key ) {
+                                                                               $key = 'avg_hunt';
+                                                               }
+                                                               if ( in_array( $key, $allowed_fields, true ) ) {
+                                                                               $normalized[] = $key;
+                                                               }
+                                               }
+                                               $fields_arr = array_values( array_unique( $normalized ) );
+                                               if ( empty( $fields_arr ) ) {
+                                                               $fields_arr = array( 'pos', 'user', 'points', 'wins', 'avg_hunt', 'avg_tournament', 'aff' );
+                                               }
 
 $default_filters    = self::LEADERBOARD_DEFAULT_FILTERS;
 $enabled_filters    = $default_filters;
@@ -5370,22 +5370,34 @@ $raw_tournament = wp_unslash( $_GET['bhg_tournament'] );
 } elseif ( isset( $_GET['bhg_tournament_id'] ) ) {
 $raw_tournament = wp_unslash( $_GET['bhg_tournament_id'] );
 }
+
 $raw_bonushunt = $shortcode_bonushunt;
 if ( isset( $_GET['bhg_bonushunt'] ) ) {
 $raw_bonushunt = wp_unslash( $_GET['bhg_bonushunt'] );
 }
+
 $raw_site = ( $filter_site_enabled && isset( $_GET['bhg_site'] ) ) ? wp_unslash( $_GET['bhg_site'] ) : $shortcode_site;
 $raw_aff  = ( $filter_affiliate_enabled && isset( $_GET['bhg_aff'] ) ) ? wp_unslash( $_GET['bhg_aff'] ) : $shortcode_aff;
 
-$tournament_id = max( 0, absint( $raw_tournament ) );
-$bonushunt_id  = max( 0, absint( $raw_bonushunt ) );
-$website_id    = max( 0, absint( $raw_site ) );
-if ( $website_id <= 0 && '' !== (string) $raw_site ) {
+                                               $tournament_id = max( 0, absint( $raw_tournament ) );
+                                               $bonushunt_id  = max( 0, absint( $raw_bonushunt ) );
+                                               $website_id    = max( 0, absint( $raw_site ) );
+
+                                               if ( $tournament_id > 0 && ! in_array( 'points', $fields_arr, true ) ) {
+                                                               $user_index = array_search( 'user', $fields_arr, true );
+                                                               if ( false !== $user_index ) {
+                                                                               array_splice( $fields_arr, $user_index + 1, 0, 'points' );
+                                                               } else {
+                                                                               array_unshift( $fields_arr, 'points' );
+                                                               }
+                                               }
+
+                                               if ( $website_id <= 0 && '' !== (string) $raw_site ) {
         $resolved_site = $this->resolve_affiliate_site_id( $raw_site );
         if ( $resolved_site > 0 ) {
                 $website_id = $resolved_site;
         }
-}
+                                               }
 
                                                 $tournament_filter_active = $tournament_id > 0;
 
