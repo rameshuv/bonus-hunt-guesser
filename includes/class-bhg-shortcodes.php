@@ -6851,22 +6851,34 @@ $content = $this->render_prize_section( $prizes, $layout, $size, $display_overri
 public function winner_notifications_shortcode( $atts ) {
 global $wpdb;
 
-			$a = shortcode_atts(
-				array( 'limit' => 5 ),
-				$atts,
-				'bhg_winner_notifications'
-			);
+       $a = shortcode_atts(
+               array(
+                       'limit'          => 5,
+                       'affiliate_site' => 'yes',
+               ),
+               $atts,
+               'bhg_winner_notifications'
+       );
 
 						$hunts_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_bonus_hunts' ) );
 			if ( ! $hunts_table ) {
-					return '';
-			}
-						// db call ok; no-cache ok.
-						$sql                   = $wpdb->prepare(
-							"SELECT id, title, final_balance, winners_count, closed_at FROM {$hunts_table} WHERE status = 'closed' ORDER BY closed_at DESC LIMIT %d",
-							(int) $a['limit']
-						);
-										$hunts = $wpdb->get_results( $sql );
+                                       return '';
+                       }
+                       $aff_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
+
+                       $show_affiliate = ! in_array( strtolower( (string) $a['affiliate_site'] ), array( 'no', 'false', '0' ), true );
+
+                       // db call ok; no-cache ok.
+                       $select = 'SELECT h.id, h.title, h.starting_balance, h.final_balance, h.winners_count, h.status, h.created_at, h.closed_at, h.affiliate_site_id';
+                       if ( $aff_table ) {
+                               $select .= ', aff.name AS affiliate_site_name';
+                       }
+
+                       $sql   = $wpdb->prepare(
+                               $select . ' FROM ' . $hunts_table . ( $aff_table ? ' h LEFT JOIN ' . $aff_table . ' aff ON aff.id = h.affiliate_site_id' : ' h' ) . " WHERE h.status = 'closed' ORDER BY h.closed_at DESC LIMIT %d",
+                               (int) $a['limit']
+                       ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                       $hunts = $wpdb->get_results( $sql );
 
 			if ( ! $hunts ) {
 				return '<p>' . esc_html( bhg_t( 'notice_no_closed_hunts', 'No closed hunts yet.' ) ) . '</p>';
@@ -6880,31 +6892,56 @@ global $wpdb;
 			);
 
 			ob_start();
-			echo '<div class="bhg-winner-notifications">';
-			foreach ( $hunts as $hunt ) {
-				$winners = function_exists( 'bhg_get_top_winners_for_hunt' )
-				? bhg_get_top_winners_for_hunt( $hunt->id, (int) $hunt->winners_count )
-				: array();
+                       echo '<div class="bhg-winner-notifications">';
+                       foreach ( $hunts as $hunt ) {
+                               $winners = function_exists( 'bhg_get_top_winners_for_hunt' )
+                               ? bhg_get_top_winners_for_hunt( $hunt->id, (int) $hunt->winners_count )
+                               : array();
 
-				echo '<div class="bhg-winner">';
-				echo '<p><strong>' . esc_html( $hunt->title ) . '</strong></p>';
-				if ( null !== $hunt->final_balance ) {
-					echo '<p><em>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</em> ' . esc_html( bhg_format_money( (float) $hunt->final_balance ) ) . '</p>';
-				}
+                               $start_balance = isset( $hunt->starting_balance ) ? bhg_format_money( (float) $hunt->starting_balance ) : bhg_t( 'label_emdash', '—' );
+                               $opened        = $hunt->created_at ? mysql2date( get_option( 'date_format' ), $hunt->created_at ) : '';
+                               $closed        = $hunt->closed_at ? mysql2date( get_option( 'date_format' ), $hunt->closed_at ) : '';
+                               $affiliate     = '';
+                               if ( $show_affiliate ) {
+                                       if ( isset( $hunt->affiliate_site_name ) && '' !== $hunt->affiliate_site_name ) {
+                                               $affiliate = $hunt->affiliate_site_name;
+                                       } elseif ( isset( $hunt->affiliate_site_id ) && (int) $hunt->affiliate_site_id > 0 ) {
+                                               // translators: %d: affiliate site ID.
+                                               $affiliate = sprintf( bhg_t( 'label_affiliate_id', 'Site #%d' ), (int) $hunt->affiliate_site_id );
+                                       }
+                               }
 
-				if ( $winners ) {
-					echo '<ul class="bhg-winner-list">';
-					foreach ( $winners as $w ) {
-						$u  = get_userdata( (int) $w->user_id );
-						$nm = $u ? $u->user_login : sprintf( bhg_t( 'label_user_number', 'User #%d' ), (int) $w->user_id );
-											echo '<li>' . esc_html( $nm ) . ' ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' ' . esc_html( bhg_format_money( (float) $w->guess ) ) . ' (' . esc_html( bhg_format_money( (float) $w->diff ) ) . ')</li>';
-					}
-					echo '</ul>';
-				}
+                               echo '<div class="bhg-winner-card bhg-info-block">';
+                               echo '<h3 class="bhg-winner-card__title">' . esc_html( $hunt->title ) . '</h3>';
 
-				echo '</div>';
-			}
-			echo '</div>';
+                               echo '<ul class="bhg-hunt-meta">';
+                               echo '<li><strong>' . esc_html( bhg_t( 'label_start_balance', 'Starting Balance' ) ) . ':</strong> ' . esc_html( $start_balance ) . '</li>';
+                               echo '<li><strong>' . esc_html( bhg_t( 'label_opened', 'Opened' ) ) . ':</strong> ' . esc_html( $opened ? $opened : bhg_t( 'label_emdash', '—' ) ) . '</li>';
+                               echo '<li><strong>' . esc_html( bhg_t( 'label_closed', 'Closed' ) ) . ':</strong> ' . esc_html( $closed ? $closed : bhg_t( 'label_emdash', '—' ) ) . '</li>';
+                               if ( $show_affiliate ) {
+                                       echo '<li><strong>' . esc_html( bhg_t( 'label_affiliate_site', 'Affiliate Site' ) ) . ':</strong> ' . esc_html( '' !== $affiliate ? $affiliate : bhg_t( 'label_emdash', '—' ) ) . '</li>';
+                               }
+                               if ( null !== $hunt->final_balance ) {
+                                       echo '<li><strong>' . esc_html( bhg_t( 'sc_final', 'Final' ) ) . ':</strong> ' . esc_html( bhg_format_money( (float) $hunt->final_balance ) ) . '</li>';
+                               }
+                               echo '</ul>';
+
+                               if ( $winners ) {
+                                       echo '<div class="bhg-winner-card__winners">';
+                                       echo '<h4>' . esc_html( bhg_t( 'label_winners', 'Winners' ) ) . '</h4>';
+                                       echo '<ul class="bhg-winner-list">';
+                                       foreach ( $winners as $w ) {
+                                               $u  = get_userdata( (int) $w->user_id );
+                                               $nm = $u ? $u->user_login : sprintf( bhg_t( 'label_user_number', 'User #%d' ), (int) $w->user_id );
+                                               echo '<li><span class="bhg-winner-name">' . esc_html( $nm ) . '</span> ' . esc_html( bhg_t( 'label_emdash', '—' ) ) . ' <span class="bhg-winner-guess">' . esc_html( bhg_format_money( (float) $w->guess ) ) . '</span> <span class="bhg-winner-diff">(' . esc_html( bhg_format_money( (float) $w->diff ) ) . ')</span></li>';
+                                       }
+                                       echo '</ul>';
+                                       echo '</div>';
+                               }
+
+                               echo '</div>';
+                       }
+                       echo '</div>';
 return ob_get_clean();
 }
 
