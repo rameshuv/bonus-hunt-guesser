@@ -1295,10 +1295,17 @@ if ( ! function_exists( 'bhg_get_hunt_results_url' ) ) {
 				return '';
 		}
 
-			$front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'user-guesses' ) : '';
-		if ( '' !== $front_url ) {
-				return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
-		}
+                $front_url = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'user-guesses' ) : '';
+                if ( '' !== $front_url ) {
+                                return add_query_arg( 'bhg_hunt', $hunt_id, $front_url );
+                }
+
+                if ( isset( $_SERVER['REQUEST_URI'] ) ) {
+                                $current = wp_validate_redirect( wp_unslash( $_SERVER['REQUEST_URI'] ), '' );
+                                if ( '' !== $current ) {
+                                                return add_query_arg( 'bhg_hunt', $hunt_id, $current );
+                                }
+                }
 
 		if ( function_exists( 'current_user_can' ) && current_user_can( 'manage_options' ) ) {
 				return add_query_arg(
