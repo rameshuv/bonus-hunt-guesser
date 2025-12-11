@@ -5902,9 +5902,14 @@ $user_label = $this->format_username_with_badges( $row->user_login, (int) $row->
                                                                                 echo '<td>' . (int) $pos . '</td>';
                                                                 } elseif ( 'user' === $field ) {
 echo '<td>' . wp_kses_post( $user_label ) . '</td>';
-                                                                } elseif ( 'points' === $field ) {
-                                                                                $points_value = isset( $row->points ) ? (int) $row->points : 0;
-                                                                                echo '<td>' . esc_html( (string) $points_value ) . '</td>';
+} elseif ( 'points' === $field ) {
+$points_value = isset( $row->points ) ? (int) $row->points : 0;
+
+if ( 0 === $points_value && isset( $row->total_points ) ) {
+$points_value = (int) $row->total_points;
+}
+
+echo '<td>' . esc_html( (string) $points_value ) . '</td>';
                                                                 } elseif ( 'wins' === $field ) {
                                                                                 echo '<td>' . (int) $row->total_wins . '</td>';
                                                                 } elseif ( 'avg_hunt' === $field ) {
@@ -6397,7 +6402,13 @@ $resolved_last_win = $row->last_win_date;
 echo '<tr' . $class_attr . '>';
 echo '<td data-label="' . esc_attr( $position_label ) . '">' . (int) $position_number . '</td>';
 echo '<td data-label="' . esc_attr( $username_label ) . '">' . wp_kses_post( $user_label ) . '</td>';
-echo '<td data-label="' . esc_attr( $points_label ) . '">' . (int) $row->points . '</td>';
+$points_cell_value = isset( $row->points ) ? (int) $row->points : 0;
+
+if ( 0 === $points_cell_value && isset( $row->total_points ) ) {
+$points_cell_value = (int) $row->total_points;
+}
+
+echo '<td data-label="' . esc_attr( $points_label ) . '">' . (int) $points_cell_value . '</td>';
 echo '<td data-label="' . esc_attr( $wins_label ) . '">' . (int) $row->wins . '</td>';
 echo '<td data-label="' . esc_attr( $last_win_label ) . '">';
 echo $resolved_last_win ? esc_html( mysql2date( get_option( 'date_format' ), $resolved_last_win ) ) : esc_html( bhg_t( 'label_emdash', '—' ) );
