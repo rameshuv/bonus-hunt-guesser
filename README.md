@@ -3,6 +3,10 @@
 **Version:** 8.0.24
 **Requires:** WordPress 6.3.5+, PHP 7.4+, MySQL 5.5.5+
 
+### Delivery Readiness
+
+Built for WordPress 6.3.5 on PHP 7.4 with MySQL 5.5.5+, this release is packaged as version **8.0.24** and includes the full shortcode and admin feature set requested for production delivery.
+
 ## Overview
 
 Bonus Hunt Guesser delivers the complete workflow agreed with the client for
