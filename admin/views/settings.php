@@ -24,6 +24,9 @@ $hunt_limit_period       = isset( $hunt_limit['period'] ) ? sanitize_key( $hunt_
 $tour_limit_count        = isset( $tournament_limit['count'] ) ? (int) $tournament_limit['count'] : 0;
 $tour_limit_period       = isset( $tournament_limit['period'] ) ? sanitize_key( $tournament_limit['period'] ) : 'none';
 $shortcode_rows_per_page = isset( $settings['shortcode_rows_per_page'] ) ? max( 1, (int) $settings['shortcode_rows_per_page'] ) : 25;
+$admin_rows_per_page     = isset( $settings['admin_rows_per_page'] ) ? max( 1, (int) $settings['admin_rows_per_page'] ) : 25;
+$guess_now_redirect      = isset( $settings['guess_now_redirect'] ) ? (string) $settings['guess_now_redirect'] : '';
+$ticket_redirect         = isset( $settings['create_ticket_redirect'] ) ? (string) $settings['create_ticket_redirect'] : '';
 $ticker_interval         = max( 1, (int) get_option( 'bhg_jackpot_ticker_interval', 5 ) );
 $ticker_scroll_speed     = max( 1, (int) get_option( 'bhg_jackpot_ticker_scroll_speed', 25 ) );
 $ticker_separator        = (string) get_option( 'bhg_jackpot_ticker_separator', '-' );
@@ -107,6 +110,13 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="number" class="small-text" id="bhg_shortcode_rows_per_page" name="bhg_shortcode_rows_per_page" value="<?php echo esc_attr( $shortcode_rows_per_page ); ?>" min="1" step="1">
 <p class="description"><?php echo esc_html( bhg_t( 'shortcode_rows_per_page_help', 'Sets the default number of rows for public leaderboards, tournaments, and other paginated tables.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_admin_rows_per_page"><?php echo esc_html( bhg_t( 'admin_rows_per_page', 'Admin rows per page' ) ); ?></label></th>
+<td>
+<input type="number" class="small-text" id="bhg_admin_rows_per_page" name="bhg_admin_rows_per_page" value="<?php echo esc_attr( $admin_rows_per_page ); ?>" min="1" step="1">
+<p class="description"><?php echo esc_html( bhg_t( 'admin_rows_per_page_help', 'Controls pagination counts on admin tables such as results.' ) ); ?></p>
 </td>
 </tr>
 <tr>
@@ -202,6 +212,20 @@ foreach ( $currencies as $key => $label ) :
 <td>
 <input type="url" class="regular-text" id="bhg_post_submit_redirect" name="bhg_post_submit_redirect" value="<?php echo isset( $settings['post_submit_redirect'] ) ? esc_attr( $settings['post_submit_redirect'] ) : ''; ?>" placeholder="<?php echo esc_attr( bhg_t( 'post_submit_redirect_placeholder', 'https://example.com/thank-you' ) ); ?>">
 <p class="description"><?php echo esc_html( bhg_t( 'post_submit_redirect_description', 'Send users to this URL after submitting or editing a guess. Leave blank to stay on the same page.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_guess_now_redirect"><?php echo esc_html( bhg_t( 'guess_now_redirect_url', 'Guess Now redirect URL' ) ); ?></label></th>
+<td>
+<input type="url" class="regular-text" id="bhg_guess_now_redirect" name="bhg_guess_now_redirect" value="<?php echo esc_attr( $guess_now_redirect ); ?>" placeholder="<?php echo esc_attr( home_url( '/guess' ) ); ?>">
+<p class="description"><?php echo esc_html( bhg_t( 'guess_now_redirect_help', 'Optional override for all “Guess Now” buttons and links. The hunt ID will be appended as ?bhg_hunt=ID.' ) ); ?></p>
+</td>
+</tr>
+<tr>
+<th scope="row"><label for="bhg_create_ticket_redirect"><?php echo esc_html( bhg_t( 'create_ticket_redirect_url', 'Create Ticket redirect URL' ) ); ?></label></th>
+<td>
+<input type="url" class="regular-text" id="bhg_create_ticket_redirect" name="bhg_create_ticket_redirect" value="<?php echo esc_attr( $ticket_redirect ); ?>" placeholder="<?php echo esc_attr( home_url( '/support' ) ); ?>">
+<p class="description"><?php echo esc_html( bhg_t( 'create_ticket_redirect_help', 'Link used for “Create Ticket” actions in admin results. Leave blank to hide the action.' ) ); ?></p>
 </td>
 </tr>
 <?php

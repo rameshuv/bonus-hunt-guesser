@@ -131,8 +131,8 @@ class BHG_Bonus_Hunts {
 	 * @param int    $limit     Maximum number of hunts to return.
 	 * @return array<int,object> Hunt rows.
 	 */
-	public static function get_closed_hunts_for_selector( $timeframe, $limit = 50 ) {
-		global $wpdb;
+        public static function get_closed_hunts_for_selector( $timeframe, $limit = 50 ) {
+                global $wpdb;
 
 		$hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
 		$limit       = max( 1, (int) $limit );
@@ -157,13 +157,33 @@ class BHG_Bonus_Hunts {
 		$where_sql = implode( ' AND ', $where );
 		$params[]  = $limit;
 
-		return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->prepare(
-				"SELECT id, title, closed_at FROM {$hunts_table} WHERE {$where_sql} ORDER BY closed_at DESC, id DESC LIMIT %d",
-				...$params
-			)
-		);
-	}
+                return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                        $wpdb->prepare(
+                                "SELECT id, title, closed_at FROM {$hunts_table} WHERE {$where_sql} ORDER BY closed_at DESC, id DESC LIMIT %d",
+                                ...$params
+                        )
+                );
+        }
+
+        /**
+         * Retrieve the most recent hunts (any status) for the selector when no closed hunts are available.
+         *
+         * @param int $limit Maximum number of hunts to return.
+         * @return array<int,object> Hunt rows.
+         */
+        public static function get_recent_hunts_for_results_selector( $limit = 50 ) {
+                global $wpdb;
+
+                $hunts_table = esc_sql( $wpdb->prefix . 'bhg_bonus_hunts' );
+                $limit       = max( 1, (int) $limit );
+
+                return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                        $wpdb->prepare(
+                                "SELECT id, title, COALESCE(closed_at, created_at) AS closed_at FROM {$hunts_table} ORDER BY COALESCE(closed_at, created_at) DESC, id DESC LIMIT %d",
+                                $limit
+                        )
+                );
+        }
 
 	/**
 	 * Retrieve tournaments for the results selector filtered by timeframe.
