@@ -709,6 +709,10 @@ flex: 1;
     margin-top: var(--bhg-spacing);
 }
 
+.bhg-dashboard-button {
+    margin-left: 16px;
+}
+
 /* Buttons */
 .bhg-wrap .bhg-dashboard-button,
 .bhg-wrap .button,
@@ -743,6 +747,11 @@ flex: 1;
 
 .bhg-wrap .column-actions .button {
     margin-bottom: 8px;
+}
+
+.bhg-prize-list .column-actions .button {
+    display: inline-block;
+    margin-bottom: 10px;
 }
 
 .bhg-prize-position-grid {
