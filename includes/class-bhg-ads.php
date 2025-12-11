@@ -66,13 +66,9 @@ class BHG_Ads {
          * @param string $reason Message explaining why rendering was skipped.
          * @return string Empty string (no notice output).
          */
- private static function shortcode_notice( $reason ) {
- if ( is_admin() && current_user_can( 'manage_options' ) ) {
- return '<div class="notice notice-info"><p>' . esc_html( $reason ) . '</p></div>';
- }
-
- return '';
- }
+        private static function shortcode_notice( $reason ) {
+                return '';
+        }
 
 	/**
 	 * Determine current user's affiliate status (global toggle).
