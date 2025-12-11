@@ -14,8 +14,9 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
-$settings        = get_option( 'bhg_plugin_settings', array() );
-$ticket_redirect = isset( $settings['create_ticket_redirect'] ) ? (string) $settings['create_ticket_redirect'] : '';
+$settings          = get_option( 'bhg_plugin_settings', array() );
+$ticket_redirect   = isset( $settings['create_ticket_redirect'] ) ? (string) $settings['create_ticket_redirect'] : '';
+$admin_rows_per_page = isset( $settings['admin_rows_per_page'] ) ? max( 1, (int) $settings['admin_rows_per_page'] ) : 25;
 
 if ( ! class_exists( 'BHG_Bonus_Hunts' ) ) {
 	require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts.php';
@@ -60,6 +61,10 @@ if ( isset( $_GET['tournament_id'] ) ) {
         $requested_id   = absint( wp_unslash( $_GET['tournament_id'] ) );
 }
 $view_type      = in_array( $requested_type, array( 'hunt', 'tournament' ), true ) ? $requested_type : 'hunt';
+$page_param     = 'bhg_results_page';
+$current_page   = isset( $_GET[ $page_param ] ) ? max( 1, (int) $_GET[ $page_param ] ) : 1;
+$total_pages    = 1;
+$current_offset = 0;
 
 $hunt_id       = ( 'tournament' === $view_type ) ? 0 : $requested_id;
 $tournament_id = ( 'tournament' === $view_type ) ? $requested_id : 0;
@@ -187,6 +192,11 @@ if ( 'tournament' === $view_type && $tournament_id ) {
                 $winners_limit      = $configured_winners > 0 ? $configured_winners : 3;
                 $winners_limit      = apply_filters( 'bhg_tournament_winners_limit', $winners_limit, $tournament );
                 $winners_limit      = max( 1, (int) $winners_limit );
+
+                $total_pages   = max( 1, (int) ceil( $total_participants / $admin_rows_per_page ) );
+                $current_page  = min( $current_page, $total_pages );
+                $current_offset = ( $current_page - 1 ) * $admin_rows_per_page;
+                $results        = array_slice( $results, $current_offset, $admin_rows_per_page );
         }
 } elseif ( 'hunt' === $view_type && $hunt_id ) {
 	$hunt = BHG_Bonus_Hunts::get_hunt( $hunt_id );
@@ -217,12 +227,17 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 		$final_balance_value   = $has_final_balance ? (float) $final_balance_raw : null;
 		$total_participants    = count( $guesses );
 		$actual_winner_count   = count( $official_winner_ids );
-		$final_balance_display = $has_final_balance ? bhg_format_money( $final_balance_value ) : bhg_t( 'label_emdash', '—' );
-		$winners_display       = number_format_i18n( $actual_winner_count ? $actual_winner_count : $winners_limit );
-		$participants_display  = number_format_i18n( $total_participants );
+                $final_balance_display = $has_final_balance ? bhg_format_money( $final_balance_value ) : bhg_t( 'label_emdash', '—' );
+                $winners_display       = number_format_i18n( $actual_winner_count ? $actual_winner_count : $winners_limit );
+                $participants_display  = number_format_i18n( $total_participants );
 
-		// If win-limit rules exclude some winners, show a friendly notice.
-		if ( ! empty( $ineligible_winner_ids ) && function_exists( 'bhg_get_win_limit_config' ) && function_exists( 'bhg_build_win_limit_notice' ) ) {
+                $total_pages   = max( 1, (int) ceil( $total_participants / $admin_rows_per_page ) );
+                $current_page  = min( $current_page, $total_pages );
+                $current_offset = ( $current_page - 1 ) * $admin_rows_per_page;
+                $guesses        = array_slice( $guesses, $current_offset, $admin_rows_per_page );
+
+                // If win-limit rules exclude some winners, show a friendly notice.
+                if ( ! empty( $ineligible_winner_ids ) && function_exists( 'bhg_get_win_limit_config' ) && function_exists( 'bhg_build_win_limit_notice' ) ) {
 			$limit_config = bhg_get_win_limit_config( 'hunt' );
 			$limit_count  = isset( $limit_config['count'] ) ? (int) $limit_config['count'] : 0;
 			$limit_period = isset( $limit_config['period'] ) ? $limit_config['period'] : 'none';
@@ -367,7 +382,7 @@ foreach ( $notices as $notice ) :
         <?php else : ?>
                 <?php foreach ( $results as $index => $row ) : ?>
 			<?php
-			$position    = (int) $index + 1;
+                        $position    = (int) $current_offset + (int) $index + 1;
 			$is_winner   = ( $position <= $winners_limit );
 			$row_classes = array( 'bhg-results-row' );
 			if ( $is_winner ) {
@@ -394,8 +409,24 @@ foreach ( $notices as $notice ) :
                         </tr>
         <?php endforeach; ?>
         <?php endif; ?>
-		</tbody>
-	</table>
+                </tbody>
+        </table>
+        <?php
+        if ( $total_pages > 1 ) {
+                $pagination_links = paginate_links(
+                        array(
+                                'base'   => esc_url( add_query_arg( $page_param, '%#%' ) ),
+                                'format' => '',
+                                'current' => $current_page,
+                                'total'  => $total_pages,
+                        )
+                );
+
+                if ( $pagination_links ) {
+                        echo '<div class="tablenav"><div class="tablenav-pages">' . wp_kses_post( $pagination_links ) . '</div></div>';
+                }
+        }
+        ?>
 <?php elseif ( 'hunt' === $view_type && $hunt ) : ?>
 	<div class="bhg-results-summary">
 		<div class="bhg-summary-card">
@@ -438,7 +469,7 @@ foreach ( $notices as $notice ) :
         <?php else : ?>
                 <?php foreach ( $guesses as $index => $row ) : ?>
                         <?php
-                        $position    = (int) $index + 1;
+                        $position    = (int) $current_offset + (int) $index + 1;
                         $user_id     = isset( $row->user_id ) ? (int) $row->user_id : 0;
                         $is_winner   = ( $has_official_winners && $user_id > 0 && isset( $winner_lookup[ $user_id ] ) );
                         if ( ! $has_official_winners && $position <= $winners_limit ) {
@@ -493,8 +524,24 @@ foreach ( $notices as $notice ) :
                                 </td>
                         </tr>
         <?php endforeach; ?>
-	<?php endif; ?>
-		</tbody>
-	</table>
+        <?php endif; ?>
+                </tbody>
+        </table>
+        <?php
+        if ( $total_pages > 1 ) {
+                $pagination_links = paginate_links(
+                        array(
+                                'base'   => esc_url( add_query_arg( $page_param, '%#%' ) ),
+                                'format' => '',
+                                'current' => $current_page,
+                                'total'  => $total_pages,
+                        )
+                );
+
+                if ( $pagination_links ) {
+                        echo '<div class="tablenav"><div class="tablenav-pages">' . wp_kses_post( $pagination_links ) . '</div></div>';
+                }
+        }
+        ?>
 <?php endif; ?>
 </div>
