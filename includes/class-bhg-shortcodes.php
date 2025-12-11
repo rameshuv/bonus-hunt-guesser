@@ -1136,6 +1136,7 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
 
                                 $orderby_map = array(
                                                 'wins'           => 'total_wins',
+                                                'points'         => 'tr.points',
                                                 'user'           => 'u.user_login',
                                                 'avg_hunt'       => 'hunt_stats.avg_hunt_pos',
                                                 'avg_tournament' => 'tour_rank.avg_tournament_pos',
@@ -1157,6 +1158,7 @@ $orderby_request      = sanitize_key( (string) $args['orderby'] );
                                 $select_parts = array(
                                                 'tr.user_id',
                                                 'u.user_login',
+                                                'tr.points',
                                                 $win_count_clause . ' AS total_wins',
                                 );
 
