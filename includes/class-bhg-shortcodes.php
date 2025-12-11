@@ -5160,38 +5160,49 @@ echo '<table class="bhg-hunts"><thead><tr>';
 						}
 						echo '</tr></thead><tbody>';
 
-			foreach ( $rows as $row ) {
-				echo '<tr>';
-				echo '<td>' . esc_html( $row->title ) . '</td>';
-							echo '<td>' . esc_html( bhg_format_money( (float) $row->starting_balance ) ) . '</td>';
-								echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_money( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-								$winners_display = isset( $row->winners_count ) ? number_format_i18n( (int) $row->winners_count ) : bhg_t( 'label_emdash', '—' );
-								echo '<td>' . esc_html( $winners_display ) . '</td>';
-								$status_key = strtolower( (string) $row->status );
-								echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
-								$details_html = esc_html( bhg_t( 'label_emdash', '—' ) );
-								if ( 'closed' === $status_key ) {
-										$results_url = function_exists( 'bhg_get_hunt_results_url' ) ? bhg_get_hunt_results_url( (int) $row->id ) : '';
-										if ( '' !== $results_url ) {
-												$details_html = '<a class="bhg-hunt-link" href="' . esc_url( $results_url ) . '">' . esc_html( bhg_t( 'link_show_results', 'Show Results' ) ) . '</a>';
-										}
-								} elseif ( 'open' === $status_key ) {
-										$guessing_enabled = isset( $row->guessing_enabled ) ? (int) $row->guessing_enabled : 1;
-										if ( $guessing_enabled > 0 ) {
-												$guess_url = function_exists( 'bhg_get_guess_submission_url' ) ? bhg_get_guess_submission_url( (int) $row->id ) : '';
-												if ( '' !== $guess_url ) {
-														$details_html = '<a class="bhg-hunt-link" href="' . esc_url( $guess_url ) . '">' . esc_html( bhg_t( 'link_guess_now', 'Guess Now' ) ) . '</a>';
-												}
-										} else {
-												$details_html = esc_html( bhg_t( 'label_guessing_closed', 'Guessing Closed' ) );
-										}
-								}
-								echo '<td>' . $details_html . '</td>';
-								if ( $show_site ) {
-										echo '<td>' . ( $row->site_name ? esc_html( $row->site_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
-								}
-				echo '</tr>';
-			}
+                        foreach ( $rows as $row ) {
+                                $hunt_id          = isset( $row->id ) ? (int) $row->id : 0;
+                                $status_key       = strtolower( (string) $row->status );
+                                $guessing_enabled = isset( $row->guessing_enabled ) ? (int) $row->guessing_enabled : 1;
+                                $guess_url        = function_exists( 'bhg_get_guess_submission_url' ) ? bhg_get_guess_submission_url( $hunt_id ) : '';
+                                $results_url      = function_exists( 'bhg_get_hunt_results_url' ) ? bhg_get_hunt_results_url( $hunt_id ) : '';
+
+                                $title_link = '';
+                                if ( 'open' === $status_key && $guessing_enabled > 0 && '' !== $guess_url ) {
+                                        $title_link = $guess_url;
+                                } elseif ( '' !== $results_url ) {
+                                        $title_link = $results_url;
+                                }
+
+                                $title_markup = '' !== $title_link ? '<a class="bhg-hunt-title-link" href="' . esc_url( $title_link ) . '">' . esc_html( $row->title ) . '</a>' : esc_html( $row->title );
+
+                                echo '<tr>';
+                                echo '<td>' . $title_markup . '</td>';
+                                echo '<td>' . esc_html( bhg_format_money( (float) $row->starting_balance ) ) . '</td>';
+                                echo '<td>' . ( isset( $row->final_balance ) ? esc_html( bhg_format_money( (float) $row->final_balance ) ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                $winners_display = isset( $row->winners_count ) ? number_format_i18n( (int) $row->winners_count ) : bhg_t( 'label_emdash', '—' );
+                                echo '<td>' . esc_html( $winners_display ) . '</td>';
+                                echo '<td>' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</td>';
+
+                                $details_html = esc_html( bhg_t( 'label_emdash', '—' ) );
+                                if ( 'closed' === $status_key && '' !== $results_url ) {
+                                        $details_html = '<a class="bhg-hunt-link" href="' . esc_url( $results_url ) . '">' . esc_html( bhg_t( 'link_show_results', 'Show Results' ) ) . '</a>';
+                                } elseif ( 'open' === $status_key ) {
+                                        if ( $guessing_enabled > 0 && '' !== $guess_url ) {
+                                                $details_html = '<a class="bhg-hunt-link" href="' . esc_url( $guess_url ) . '">' . esc_html( bhg_t( 'link_guess_now', 'Guess Now' ) ) . '</a>';
+                                        } else {
+                                                $details_html = esc_html( bhg_t( 'label_guessing_closed', 'Guessing Closed' ) );
+                                        }
+                                } elseif ( '' !== $results_url ) {
+                                        $details_html = '<a class="bhg-hunt-link" href="' . esc_url( $results_url ) . '">' . esc_html( bhg_t( 'link_show_results', 'Show Results' ) ) . '</a>';
+                                }
+
+                                echo '<td>' . $details_html . '</td>';
+                                if ( $show_site ) {
+                                        echo '<td>' . ( $row->site_name ? esc_html( $row->site_name ) : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+                                }
+                                echo '</tr>';
+                        }
 						echo '</tbody></table>';
 
                                                 $pagination = paginate_links(
