@@ -5420,11 +5420,12 @@ $raw_aff  = ( $filter_affiliate_enabled && isset( $_GET['bhg_aff'] ) ) ? wp_unsl
 // Preload dropdown data for filters.
 $tournaments                 = array();
 $sites                       = array();
-$leaderboard_prizes_markup   = '';
-$leaderboard_summary_markup  = '';
-$selected_tournament_row     = null;
-$selected_bonushunt_row      = null;
-$default_prize_layout        = $this->get_default_prize_layout();
+                       $leaderboard_prizes_markup   = '';
+                       $leaderboard_summary_markup  = '';
+                       $selected_tournament_row     = null;
+                       $selected_bonushunt_row      = null;
+                       $tournament_points_map       = array();
+                       $default_prize_layout        = $this->get_default_prize_layout();
 
 $tournaments_table = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_tournaments' ) );
 $sites_table       = esc_sql( $this->sanitize_table( $wpdb->prefix . 'bhg_affiliate_websites' ) );
@@ -5455,15 +5456,26 @@ if ( $tournaments_table ) {
                                                                                  if ( $tournament_filter_active && $show_prizes && class_exists( 'BHG_Prizes' ) && method_exists( 'BHG_Prizes', 'get_prizes_by_ids' ) ) {
                                                                                                $tournament_meta = $wpdb->get_row(
                                                                                                                $wpdb->prepare(
-                                                                                                                               "SELECT status, prizes, winners_count FROM {$tournaments_table} WHERE id = %d",
+                                                                                                                               "SELECT status, prizes, winners_count, points_map FROM {$tournaments_table} WHERE id = %d",
                                                                                                                                $tournament_id
                                                                                                                )
                                                                                                );
                                                                                                if ( $tournament_meta && ! empty( $tournament_meta->prizes ) ) {
                                                                                                                $status = strtolower( (string) $tournament_meta->status );
                                                                                                                if ( 'active' === $status ) {
-                      $prize_maps = $this->normalize_prize_maps_from_storage( $tournament_meta->prizes, isset( $tournament_meta->winners_count ) ? (int) $tournament_meta->winners_count : 0 );
-                      $prizes     = $this->load_prize_sets_from_maps( $prize_maps );
+                                                                                                                              $prize_maps = $this->normalize_prize_maps_from_storage( $tournament_meta->prizes, isset( $tournament_meta->winners_count ) ? (int) $tournament_meta->winners_count : 0 );
+                                                                                                                              $prizes     = $this->load_prize_sets_from_maps( $prize_maps );
+
+                                                                                                                              if ( isset( $tournament_meta->points_map ) ) {
+                                                                                                                                              $decoded_points = json_decode( $tournament_meta->points_map, true );
+                                                                                                                                              if ( is_array( $decoded_points ) && function_exists( 'bhg_sanitize_points_map' ) ) {
+                                                                                                                                                              $tournament_points_map = bhg_sanitize_points_map( $decoded_points );
+                                                                                                                                              }
+                                                                                                                              }
+
+                                                                                                                              if ( empty( $tournament_points_map ) && function_exists( 'bhg_get_default_points_map' ) ) {
+                                                                                                                                              $tournament_points_map = bhg_get_default_points_map();
+                                                                                                                              }
 
                                             if ( ! empty( $prizes['regular'] ) || ! empty( $prizes['premium'] ) ) {
                                       $section_options = class_exists( 'BHG_Prizes' ) ? BHG_Prizes::prepare_section_options( array(
@@ -5823,7 +5835,7 @@ echo '<div class="bhg-leaderboard-headings">' . implode( '', $heading_parts ) . 
                                                 }
                                                 echo '</tr></thead><tbody>';
 
-                                                echo $this->render_leaderboard_rows( $rows, $fields_arr, $offset, $need_aff );
+                       echo $this->render_leaderboard_rows( $rows, $fields_arr, $offset, $need_aff, $tournament_points_map );
                                                 echo '</tbody></table>';
 
                                                 if ( $total_pages > 1 ) {
@@ -5880,7 +5892,7 @@ $add_args['bhg_aff'] = $aff_filter;
                 *
                 * @return string HTML table rows.
                 */
-               private function render_leaderboard_rows( $rows, $fields_arr, $offset, $need_aff ) {
+               private function render_leaderboard_rows( $rows, $fields_arr, $offset, $need_aff, $points_map = array() ) {
                                $pos = $offset + 1;
 
                                ob_start();
@@ -5907,6 +5919,10 @@ $points_value = isset( $row->points ) ? (int) $row->points : 0;
 
 if ( 0 === $points_value && isset( $row->total_points ) ) {
 $points_value = (int) $row->total_points;
+}
+
+if ( 0 === $points_value && isset( $points_map[ $pos ] ) ) {
+        $points_value = (int) $points_map[ $pos ];
 }
 
 echo '<td>' . esc_html( (string) $points_value ) . '</td>';
@@ -6406,6 +6422,10 @@ $points_cell_value = isset( $row->points ) ? (int) $row->points : 0;
 
 if ( 0 === $points_cell_value && isset( $row->total_points ) ) {
 $points_cell_value = (int) $row->total_points;
+}
+
+if ( 0 === $points_cell_value && isset( $tournament_points_map[ $position_number ] ) ) {
+        $points_cell_value = (int) $tournament_points_map[ $position_number ];
 }
 
 echo '<td data-label="' . esc_attr( $points_label ) . '">' . (int) $points_cell_value . '</td>';
