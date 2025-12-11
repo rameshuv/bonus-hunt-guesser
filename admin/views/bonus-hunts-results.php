@@ -14,6 +14,8 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 
 global $wpdb;
+$settings        = get_option( 'bhg_plugin_settings', array() );
+$ticket_redirect = isset( $settings['create_ticket_redirect'] ) ? (string) $settings['create_ticket_redirect'] : '';
 
 if ( ! class_exists( 'BHG_Bonus_Hunts' ) ) {
 	require_once BHG_PLUGIN_DIR . 'includes/class-bhg-bonus-hunts.php';
@@ -27,11 +29,12 @@ if ( ! class_exists( 'BHG_Prizes' ) && file_exists( BHG_PLUGIN_DIR . 'includes/c
 $timeframe        = isset( $_GET['timeframe'] ) ? sanitize_key( wp_unslash( $_GET['timeframe'] ) ) : 'month';
 $valid_timeframes = array( 'month', 'year', 'all' );
 if ( ! in_array( $timeframe, $valid_timeframes, true ) ) {
-	$timeframe = 'month';
+        $timeframe = 'month';
 }
 
 $selector_limit       = (int) apply_filters( 'bhg_results_selector_limit', 50 );
 $hunts_selector       = BHG_Bonus_Hunts::get_closed_hunts_for_selector( $timeframe, $selector_limit );
+$hunts_selector       = $hunts_selector ? $hunts_selector : BHG_Bonus_Hunts::get_recent_hunts_for_results_selector( $selector_limit );
 $tournaments_selector = BHG_Bonus_Hunts::get_tournaments_for_selector( $timeframe, $selector_limit );
 
 // Build quick lookup maps for select controls.
@@ -48,6 +51,14 @@ foreach ( (array) $tournaments_selector as $tournament_row ) {
 // View selection.
 $requested_type = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : 'hunt';
 $requested_id   = isset( $_GET['id'] ) ? absint( wp_unslash( $_GET['id'] ) ) : 0;
+if ( isset( $_GET['hunt_id'] ) ) {
+        $requested_type = 'hunt';
+        $requested_id   = absint( wp_unslash( $_GET['hunt_id'] ) );
+}
+if ( isset( $_GET['tournament_id'] ) ) {
+        $requested_type = 'tournament';
+        $requested_id   = absint( wp_unslash( $_GET['tournament_id'] ) );
+}
 $view_type      = in_array( $requested_type, array( 'hunt', 'tournament' ), true ) ? $requested_type : 'hunt';
 
 $hunt_id       = ( 'tournament' === $view_type ) ? 0 : $requested_id;
@@ -187,16 +198,20 @@ if ( 'tournament' === $view_type && $tournament_id ) {
 		);
 	} else {
 		$hunt_site_id          = isset( $hunt->affiliate_site_id ) ? (int) $hunt->affiliate_site_id : 0;
-		$page_title            = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
-		$guesses               = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
-		$official_winner_ids   = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
-		$ineligible_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_ineligible_winner_ids' ) ? BHG_Bonus_Hunts::get_ineligible_winner_ids( (int) $hunt->id ) : array();
+                $page_title            = sprintf( bhg_t( 'title_results_s', 'Results — %s' ), $hunt->title );
+                $guesses               = BHG_Bonus_Hunts::get_hunt_guesses_ranked( (int) $hunt->id );
+                $official_winner_ids   = method_exists( 'BHG_Bonus_Hunts', 'get_hunt_winner_ids' ) ? BHG_Bonus_Hunts::get_hunt_winner_ids( (int) $hunt->id ) : array();
+                $ineligible_winner_ids = method_exists( 'BHG_Bonus_Hunts', 'get_ineligible_winner_ids' ) ? BHG_Bonus_Hunts::get_ineligible_winner_ids( (int) $hunt->id ) : array();
 
-		foreach ( $official_winner_ids as $index => $winner_user_id ) {
-			$winner_lookup[ (int) $winner_user_id ] = (int) $index;
-		}
+                $winners_limit         = max( 1, (int) $hunt->winners_count );
+                if ( count( $official_winner_ids ) > $winners_limit ) {
+                        $official_winner_ids = array_slice( $official_winner_ids, 0, $winners_limit );
+                }
 
-		$winners_limit         = max( 1, (int) $hunt->winners_count );
+                $has_official_winners = ! empty( $official_winner_ids );
+                foreach ( $official_winner_ids as $index => $winner_user_id ) {
+                        $winner_lookup[ (int) $winner_user_id ] = (int) $index;
+                }
 		$final_balance_raw     = isset( $hunt->final_balance ) ? $hunt->final_balance : null;
 		$has_final_balance     = null !== $final_balance_raw;
 		$final_balance_value   = $has_final_balance ? (float) $final_balance_raw : null;
@@ -336,20 +351,21 @@ foreach ( $notices as $notice ) :
 
 	<table class="widefat striped bhg-results-table">
 		<thead>
-			<tr>
-				<th scope="col"><?php echo esc_html( bhg_t( 'sc_position', 'Position' ) ); ?></th>
-							<th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
-				<th scope="col"><?php echo esc_html( bhg_t( 'label_points', 'Points' ) ); ?></th>
-				<th scope="col"><?php echo esc_html( bhg_t( 'wins', 'Wins' ) ); ?></th>
-			</tr>
-		</thead>
-		<tbody>
-	<?php if ( empty( $results ) ) : ?>
-			<tr>
-				<td colspan="4" class="bhg-text-center"><?php echo esc_html( bhg_t( 'no_results_yet', 'No results yet.' ) ); ?></td>
-			</tr>
-	<?php else : ?>
-		<?php foreach ( $results as $index => $row ) : ?>
+                        <tr>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'sc_position', 'Position' ) ); ?></th>
+                                                        <th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'label_points', 'Points' ) ); ?></th>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'wins', 'Wins' ) ); ?></th>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                        </tr>
+                </thead>
+                <tbody>
+        <?php if ( empty( $results ) ) : ?>
+                        <tr>
+                                <td colspan="5" class="bhg-text-center"><?php echo esc_html( bhg_t( 'no_results_yet', 'No results yet.' ) ); ?></td>
+                        </tr>
+        <?php else : ?>
+                <?php foreach ( $results as $index => $row ) : ?>
 			<?php
 			$position    = (int) $index + 1;
 			$is_winner   = ( $position <= $winners_limit );
@@ -364,13 +380,20 @@ foreach ( $notices as $notice ) :
 			);
 			?>
 			<tr class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
-				<td><span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span></td>
-				<td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $row->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
-				<td><?php echo esc_html( number_format_i18n( (int) $row->points ) ); ?></td>
-				<td><?php echo esc_html( number_format_i18n( (int) $row->wins ) ); ?></td>
-			</tr>
-	<?php endforeach; ?>
-	<?php endif; ?>
+                                <td><span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span></td>
+                                <td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $row->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
+                                <td><?php echo esc_html( number_format_i18n( (int) $row->points ) ); ?></td>
+                                <td><?php echo esc_html( number_format_i18n( (int) $row->wins ) ); ?></td>
+                                <td>
+                                        <?php if ( '' !== $ticket_redirect ) : ?>
+                                                <a href="<?php echo esc_url( add_query_arg( array( 'tournament_id' => (int) $tournament_id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
+                                        <?php else : ?>
+                                                <span class="bhg-muted">&mdash;</span>
+                                        <?php endif; ?>
+                                </td>
+                        </tr>
+        <?php endforeach; ?>
+        <?php endif; ?>
 		</tbody>
 	</table>
 <?php elseif ( 'hunt' === $view_type && $hunt ) : ?>
@@ -397,30 +420,34 @@ foreach ( $notices as $notice ) :
 
 	<table class="widefat striped bhg-results-table">
 		<thead>
-			<tr>
-				<th scope="col"><?php echo esc_html( bhg_t( 'sc_position', 'Position' ) ); ?></th>
-							<th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
-				<th scope="col"><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) ); ?></th>
-				<th scope="col"><?php echo esc_html( bhg_t( 'difference', 'Difference' ) ); ?></th>
-				<th scope="col"><?php echo esc_html( bhg_t( 'date', 'Date' ) ); ?></th>
-				<th scope="col"><?php echo esc_html( bhg_t( 'label_price', 'Price' ) ); ?></th>
-			</tr>
-		</thead>
-		<tbody>
-	<?php if ( empty( $guesses ) ) : ?>
-			<tr>
-				<td colspan="6" class="bhg-text-center"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'There are no winners yet' ) ); ?></td>
-			</tr>
-	<?php else : ?>
-		<?php foreach ( $guesses as $index => $row ) : ?>
-			<?php
-			$position    = (int) $index + 1;
-			$user_id     = isset( $row->user_id ) ? (int) $row->user_id : 0;
-			$is_winner   = ( $user_id > 0 && isset( $winner_lookup[ $user_id ] ) );
-			$row_classes = array( 'bhg-results-row' );
-			if ( $is_winner ) {
-				$row_classes[] = 'bhg-results-row--winner';
-			}
+                        <tr>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'sc_position', 'Position' ) ); ?></th>
+                                                        <th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'sc_guess', 'Guess' ) ); ?></th>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'difference', 'Difference' ) ); ?></th>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'date', 'Date' ) ); ?></th>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'label_price', 'Price' ) ); ?></th>
+                                <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                        </tr>
+                </thead>
+                <tbody>
+        <?php if ( empty( $guesses ) ) : ?>
+                        <tr>
+                                <td colspan="7" class="bhg-text-center"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'There are no winners yet' ) ); ?></td>
+                        </tr>
+        <?php else : ?>
+                <?php foreach ( $guesses as $index => $row ) : ?>
+                        <?php
+                        $position    = (int) $index + 1;
+                        $user_id     = isset( $row->user_id ) ? (int) $row->user_id : 0;
+                        $is_winner   = ( $has_official_winners && $user_id > 0 && isset( $winner_lookup[ $user_id ] ) );
+                        if ( ! $has_official_winners && $position <= $winners_limit ) {
+                                $is_winner = true;
+                        }
+                        $row_classes = array( 'bhg-results-row' );
+                        if ( $is_winner ) {
+                                $row_classes[] = 'bhg-results-row--winner';
+                        }
 
 			$name          = $row->display_name ? $row->display_name : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
 			$guess_display = isset( $row->guess ) ? bhg_format_money( (float) $row->guess ) : bhg_t( 'label_emdash', '—' );
@@ -453,12 +480,19 @@ foreach ( $notices as $notice ) :
 			<tr class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
 				<td><span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span></td>
 				<td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $row->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
-				<td><?php echo esc_html( $guess_display ); ?></td>
-				<td><?php echo esc_html( $diff_value ); ?></td>
-				<td><?php echo esc_html( $submitted_on ); ?></td>
-				<td><?php echo ( '' !== $prize_title ) ? esc_html( $prize_title ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
-			</tr>
-	<?php endforeach; ?>
+                                <td><?php echo esc_html( $guess_display ); ?></td>
+                                <td><?php echo esc_html( $diff_value ); ?></td>
+                                <td><?php echo esc_html( $submitted_on ); ?></td>
+                                <td><?php echo ( '' !== $prize_title ) ? esc_html( $prize_title ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+                                <td>
+                                        <?php if ( '' !== $ticket_redirect ) : ?>
+                                                <a href="<?php echo esc_url( add_query_arg( array( 'hunt_id' => (int) $hunt->id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
+                                        <?php else : ?>
+                                                <span class="bhg-muted">&mdash;</span>
+                                        <?php endif; ?>
+                                </td>
+                        </tr>
+        <?php endforeach; ?>
 	<?php endif; ?>
 		</tbody>
 	</table>

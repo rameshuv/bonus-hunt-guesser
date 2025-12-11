@@ -171,6 +171,23 @@
         margin-top: 1.5rem;
         padding-top: 1rem;
 }
+.bhg-prize-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin: 1rem 0 0;
+        padding: 0;
+}
+.bhg-prize-summary-column {
+        background: #fff;
+        border: 1px solid #d7dde5;
+        border-radius: 10px;
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.05);
+        padding: 14px 16px;
+}
+.bhg-prize-summary-wrap {
+        margin: 1.25rem 0;
+}
 
 .bhg-prize-summary-title {
         font-size: 1rem;
