@@ -61,10 +61,10 @@ class BHG_Ads {
         }
 
         /**
-         * Provide an admin-visible notice while keeping output silent for visitors.
+         * Suppress shortcode notices for all contexts (ads are optional).
          *
          * @param string $reason Message explaining why rendering was skipped.
-         * @return string HTML comment with optional admin-only notice markup.
+         * @return string Empty string (no notice output).
          */
  private static function shortcode_notice( $reason ) {
  if ( is_admin() && current_user_can( 'manage_options' ) ) {
