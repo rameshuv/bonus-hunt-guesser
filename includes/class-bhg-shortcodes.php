@@ -7817,12 +7817,13 @@ if ( ! $rows ) {
 echo '<p>' . esc_html( bhg_t( 'notice_no_data_yet', 'No data yet.' ) ) . '</p>';
 } else {
 echo '<div class="bhg-table-wrapper">';
-echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
+echo '<table class="bhg-leaderboard"><thead><tr><th>' . esc_html( bhg_t( 'label_position', 'Position' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th><th>' . esc_html( bhg_t( 'label_points', 'Points' ) ) . '</th><th>' . esc_html( bhg_t( 'sc_wins', 'Times Won' ) ) . '</th></tr></thead><tbody>';
 						$pos = 1;
 					foreach ( $rows as $r ) {
 /* translators: %d: user ID. */
 $user_label = $this->format_username_with_badges( $r->user_login, (int) $r->user_id );
- echo '<tr><td>' . (int) $pos . '</td><td>' . wp_kses_post( $user_label ) . '</td><td>' . (int) $r->total_wins . '</td></tr>';
+ $points = isset( $r->points ) ? (int) $r->points : ( (isset( $r->total_points ) ? (int) $r->total_points : 0) );
+ echo '<tr><td>' . (int) $pos . '</td><td>' . wp_kses_post( $user_label ) . '</td><td>' . $points . '</td><td>' . (int) $r->total_wins . '</td></tr>';
 							++$pos;
 					}
 echo '</tbody></table>';
