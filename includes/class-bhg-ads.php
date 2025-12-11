@@ -66,9 +66,13 @@ class BHG_Ads {
          * @param string $reason Message explaining why rendering was skipped.
          * @return string HTML comment with optional admin-only notice markup.
          */
-        private static function shortcode_notice( $reason ) {
-                return '<!-- ' . esc_html( $reason ) . ' -->';
-        }
+ private static function shortcode_notice( $reason ) {
+ if ( is_admin() && current_user_can( 'manage_options' ) ) {
+ return '<div class="notice notice-info"><p>' . esc_html( $reason ) . '</p></div>';
+ }
+
+ return '';
+ }
 
 	/**
 	 * Determine current user's affiliate status (global toggle).
