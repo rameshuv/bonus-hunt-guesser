@@ -95,6 +95,7 @@
     border-bottom: none !important;
     box-shadow: none !important;
     padding-bottom: 0;
+    background-image: none;
 }
 
 .bhg-tournament-list .bhg-tournament-details a:hover,

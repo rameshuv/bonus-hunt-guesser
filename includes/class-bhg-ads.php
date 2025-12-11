@@ -306,9 +306,9 @@ class BHG_Ads {
 	 * @return string
 	 */
         public static function shortcode( $atts = array(), $content = '', $tag = '' ) {
-                if ( ! self::ads_enabled() ) {
-                        return self::shortcode_notice( 'BHG ad suppressed: ads disabled in settings.' );
-                }
+               if ( ! self::ads_enabled() ) {
+                       return '';
+               }
 
 		$a = shortcode_atts(
 			array(
@@ -321,18 +321,18 @@ class BHG_Ads {
 		);
 
                 $id = $a['id'] ? (int) $a['id'] : (int) $a['ad'];
-                if ( $id <= 0 ) {
-                        return self::shortcode_notice( 'BHG ad suppressed: missing ad="" or id="" attribute.' );
-                }
+               if ( $id <= 0 ) {
+                       return '';
+               }
 
 		$status = strtolower( trim( $a['status'] ) );
 
 		global $wpdb;
                 $table          = esc_sql( $wpdb->prefix . 'bhg_ads' );
                 $allowed_tables = array( $table );
-                if ( ! in_array( $table, $allowed_tables, true ) ) {
-                                return self::shortcode_notice( 'BHG ad suppressed: invalid ads table.' );
-                }
+               if ( ! in_array( $table, $allowed_tables, true ) ) {
+                               return '';
+               }
 
                 $row = $wpdb->get_row(
                         $wpdb->prepare(
@@ -340,26 +340,26 @@ class BHG_Ads {
                                 $id
                         )
                 );
-                if ( ! $row ) {
-                        return self::shortcode_notice( 'BHG ad suppressed: ad not found.' );
-                }
-                if ( ! in_array( $row->placement, self::get_allowed_placements(), true ) ) {
-                        return self::shortcode_notice( 'BHG ad suppressed: invalid placement.' );
-                }
+               if ( ! $row ) {
+                       return '';
+               }
+               if ( ! in_array( $row->placement, self::get_allowed_placements(), true ) ) {
+                       return '';
+               }
 
                 if ( 'all' !== $status ) {
                         $expected = ( 'inactive' === $status ) ? 0 : 1;
-                        if ( (int) $row->active !== $expected ) {
-                                return self::shortcode_notice( 'BHG ad suppressed: status mismatch.' );
-                        }
-                }
+                       if ( (int) $row->active !== $expected ) {
+                               return '';
+                       }
+               }
 
-                if ( ! self::visibility_ok( $row->visible_to ) ) {
-                        return self::shortcode_notice( 'BHG ad suppressed: visibility rules not met.' );
-                }
-                if ( ! self::page_target_ok( $row->target_pages ) ) {
-                        return self::shortcode_notice( 'BHG ad suppressed: page targeting not met.' );
-                }
+               if ( ! self::visibility_ok( $row->visible_to ) ) {
+                       return '';
+               }
+               if ( ! self::page_target_ok( $row->target_pages ) ) {
+                       return '';
+               }
 
 		return self::render_ad_row( $row );
 	}
