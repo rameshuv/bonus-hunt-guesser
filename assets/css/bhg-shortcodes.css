@@ -92,7 +92,10 @@
     border: 0;
     box-shadow: none;
     text-decoration: none;
+    border-bottom: none !important;
+    box-shadow: none !important;
     padding-bottom: 0;
+    background-image: none;
 }
 
 .bhg-tournament-list .bhg-tournament-details a:hover,
@@ -527,6 +530,48 @@
     background: linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%);
     border-color: #d7dde5;
     color: #2d3643;
+}
+
+.bhg-winner-notifications {
+    display: grid;
+    gap: 16px;
+}
+
+.bhg-winner-card {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+}
+
+.bhg-winner-card__title {
+    margin: 0 0 10px;
+}
+
+.bhg-winner-card__winners {
+    margin-top: 12px;
+}
+
+.bhg-winner-list {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+}
+
+.bhg-winner-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid #eceff4;
+}
+
+.bhg-winner-list li:last-child {
+    border-bottom: none;
+}
+
+.bhg-winner-name {
+    font-weight: 600;
+}
+
+.bhg-winner-guess,
+.bhg-winner-diff {
+    font-variant-numeric: tabular-nums;
 }
 
 .bhg-hunt-status-link {
