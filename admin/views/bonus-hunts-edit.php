@@ -124,6 +124,7 @@ $base     = remove_query_arg( 'ppaged' );
                                                                                 <td>
                                                                                                 <div class="bhg-prize-position-grid">
                                                                                                                 <?php for ( $i = 1; $i <= $winners_count; $i++ ) : ?>
+														<div class="bhg-prize-position">
                                                                                                                                 <label for="bhg_regular_prize_<?php echo esc_attr( $i ); ?>">
                                                                                                                                                 <?php echo esc_html( sprintf( bhg_t( 'prize_position_label', 'Place %d' ), $i ) ); ?>
                                                                                                                                 </label>
@@ -133,7 +134,8 @@ $base     = remove_query_arg( 'ppaged' );
                                                                                                                                                                 <?php $selected_val = isset( $selected_prizes['regular'][ $i ] ) ? (int) $selected_prizes['regular'][ $i ] : 0; ?>
                                                                                                                                                                 <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( $selected_val, (int) $prize_row->id ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
                                                                                                                                                 <?php endforeach; ?>
-                                                                                                                                </select>
+</select>
+</div>
                                                                                                                 <?php endfor; ?>
                                                                                                 </div>
                                                                                                 <p class="description"><?php echo esc_html( bhg_t( 'regular_prize_set_help', 'Select prizes awarded to non-affiliate winners.' ) ); ?></p>
@@ -144,6 +146,7 @@ $base     = remove_query_arg( 'ppaged' );
                                                                                 <td>
                                                                                                 <div class="bhg-prize-position-grid">
                                                                                                                 <?php for ( $i = 1; $i <= $winners_count; $i++ ) : ?>
+														<div class="bhg-prize-position">
                                                                                                                                 <label for="bhg_premium_prize_<?php echo esc_attr( $i ); ?>">
                                                                                                                                                 <?php echo esc_html( sprintf( bhg_t( 'prize_position_label', 'Place %d' ), $i ) ); ?>
                                                                                                                                 </label>
@@ -153,7 +156,8 @@ $base     = remove_query_arg( 'ppaged' );
                                                                                                                                                                 <?php $selected_val = isset( $selected_prizes['premium'][ $i ] ) ? (int) $selected_prizes['premium'][ $i ] : 0; ?>
                                                                                                                                                                 <option value="<?php echo esc_attr( (int) $prize_row->id ); ?>" <?php selected( $selected_val, (int) $prize_row->id ); ?>><?php echo esc_html( $prize_row->title ); ?></option>
                                                                                                                                                 <?php endforeach; ?>
-                                                                                                                                </select>
+</select>
+</div>
                                                                                                                 <?php endfor; ?>
                                                                                                 </div>
                                                                                                 <p class="description"><?php echo esc_html( bhg_t( 'premium_prize_set_help', 'Select additional prizes shown to affiliate winners.' ) ); ?></p>

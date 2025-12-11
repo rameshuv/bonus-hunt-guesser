@@ -3,7 +3,7 @@
  * Plugin Name: Bonus Hunt Guesser
  * Plugin URI: https://yourdomain.com/
  * Description: Comprehensive bonus hunt management system with tournaments, leaderboards, and user guessing functionality.
- * Version: 8.0.23
+ * Version: 8.0.24
  * Requires at least: 6.3.5
  * Requires PHP: 7.4
  * Requires MySQL: 5.5.5
@@ -717,14 +717,22 @@ function bhg_handle_settings_save() {
 		}
 	}
 
-	$per_page_input = filter_input( INPUT_POST, 'bhg_shortcode_rows_per_page', FILTER_SANITIZE_NUMBER_INT );
+        $per_page_input = filter_input( INPUT_POST, 'bhg_shortcode_rows_per_page', FILTER_SANITIZE_NUMBER_INT );
 
-	if ( null !== $per_page_input ) {
-		$per_page_value = absint( $per_page_input );
-		if ( $per_page_value > 0 ) {
-			$settings['shortcode_rows_per_page'] = $per_page_value;
-		}
-	}
+        if ( null !== $per_page_input ) {
+                $per_page_value = absint( $per_page_input );
+                if ( $per_page_value > 0 ) {
+                        $settings['shortcode_rows_per_page'] = $per_page_value;
+                }
+        }
+
+        $admin_page_input = filter_input( INPUT_POST, 'bhg_admin_rows_per_page', FILTER_SANITIZE_NUMBER_INT );
+        if ( null !== $admin_page_input ) {
+                $admin_page_value = absint( $admin_page_input );
+                if ( $admin_page_value > 0 ) {
+                        $settings['admin_rows_per_page'] = $admin_page_value;
+                }
+        }
 
 	// Validate that min is not greater than max.
 	if ( isset( $settings['min_guess_amount'] ) && isset( $settings['max_guess_amount'] ) &&
@@ -778,12 +786,36 @@ function bhg_handle_settings_save() {
 	$ads_enabled_value       = is_string( $ads_enabled_value ) ? $ads_enabled_value : '';
 	$settings['ads_enabled'] = '1' === $ads_enabled_value ? 1 : 0;
 
-	if ( isset( $_POST['bhg_email_from'] ) ) {
-		$email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
-		if ( $email_from ) {
-			$settings['email_from'] = $email_from;
-		}
-	}
+        if ( isset( $_POST['bhg_email_from'] ) ) {
+                $email_from = sanitize_email( wp_unslash( $_POST['bhg_email_from'] ) );
+                if ( $email_from ) {
+                        $settings['email_from'] = $email_from;
+                }
+        }
+
+        if ( isset( $_POST['bhg_guess_now_redirect'] ) ) {
+                $guess_target = esc_url_raw( trim( wp_unslash( $_POST['bhg_guess_now_redirect'] ) ) );
+                if ( '' !== $guess_target ) {
+                        $validated = wp_validate_redirect( $guess_target, '' );
+                        if ( $validated ) {
+                                $settings['guess_now_redirect'] = $validated;
+                        }
+                } else {
+                        $settings['guess_now_redirect'] = '';
+                }
+        }
+
+        if ( isset( $_POST['bhg_create_ticket_redirect'] ) ) {
+                $ticket_target = esc_url_raw( trim( wp_unslash( $_POST['bhg_create_ticket_redirect'] ) ) );
+                if ( '' !== $ticket_target ) {
+                        $validated_ticket = wp_validate_redirect( $ticket_target, '' );
+                        if ( $validated_ticket ) {
+                                $settings['create_ticket_redirect'] = $validated_ticket;
+                        }
+                } else {
+                        $settings['create_ticket_redirect'] = '';
+                }
+        }
 
 	$redirect_input = filter_input( INPUT_POST, 'bhg_post_submit_redirect', FILTER_SANITIZE_URL );
 	if ( null !== $redirect_input ) {
