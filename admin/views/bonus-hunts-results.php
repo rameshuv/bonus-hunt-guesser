@@ -372,13 +372,15 @@ foreach ( $notices as $notice ) :
                                                         <th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
                                 <th scope="col"><?php echo esc_html( bhg_t( 'label_points', 'Points' ) ); ?></th>
                                 <th scope="col"><?php echo esc_html( bhg_t( 'wins', 'Wins' ) ); ?></th>
-                                <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                <?php if ( $show_ticket_cta ) : ?>
+                                        <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                <?php endif; ?>
                         </tr>
                 </thead>
                 <tbody>
         <?php if ( empty( $results ) ) : ?>
                         <tr>
-                                <td colspan="5" class="bhg-text-center"><?php echo esc_html( bhg_t( 'no_results_yet', 'No results yet.' ) ); ?></td>
+                                <td colspan="<?php echo esc_attr( $show_ticket_cta ? 5 : 4 ); ?>" class="bhg-text-center"><?php echo esc_html( bhg_t( 'no_results_yet', 'No results yet.' ) ); ?></td>
                         </tr>
         <?php else : ?>
                 <?php foreach ( $results as $index => $row ) : ?>
@@ -467,13 +469,15 @@ foreach ( $notices as $notice ) :
                                 <th scope="col"><?php echo esc_html( bhg_t( 'difference', 'Difference' ) ); ?></th>
                                 <th scope="col"><?php echo esc_html( bhg_t( 'date', 'Date' ) ); ?></th>
                                 <th scope="col"><?php echo esc_html( bhg_t( 'label_price', 'Price' ) ); ?></th>
-                                <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                <?php if ( $show_ticket_cta ) : ?>
+                                        <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                <?php endif; ?>
                         </tr>
                 </thead>
                 <tbody>
         <?php if ( empty( $guesses ) ) : ?>
                         <tr>
-                                <td colspan="7" class="bhg-text-center"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'There are no winners yet' ) ); ?></td>
+                                <td colspan="<?php echo esc_attr( $show_ticket_cta ? 7 : 6 ); ?>" class="bhg-text-center"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'There are no winners yet' ) ); ?></td>
                         </tr>
         <?php else : ?>
                 <?php foreach ( $guesses as $index => $row ) : ?>
