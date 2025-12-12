@@ -16,6 +16,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
 global $wpdb;
 $settings          = get_option( 'bhg_plugin_settings', array() );
 $ticket_redirect   = isset( $settings['create_ticket_redirect'] ) ? (string) $settings['create_ticket_redirect'] : '';
+$show_ticket_cta   = '' !== trim( $ticket_redirect );
 $admin_rows_per_page = isset( $settings['admin_rows_per_page'] ) ? max( 1, (int) $settings['admin_rows_per_page'] ) : 25;
 
 if ( ! class_exists( 'BHG_Bonus_Hunts' ) ) {
@@ -371,13 +372,15 @@ foreach ( $notices as $notice ) :
                                                         <th scope="col"><?php echo esc_html( bhg_t( 'sc_user', 'Username' ) ); ?></th>
                                 <th scope="col"><?php echo esc_html( bhg_t( 'label_points', 'Points' ) ); ?></th>
                                 <th scope="col"><?php echo esc_html( bhg_t( 'wins', 'Wins' ) ); ?></th>
-                                <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                <?php if ( $show_ticket_cta ) : ?>
+                                        <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                <?php endif; ?>
                         </tr>
                 </thead>
                 <tbody>
         <?php if ( empty( $results ) ) : ?>
                         <tr>
-                                <td colspan="5" class="bhg-text-center"><?php echo esc_html( bhg_t( 'no_results_yet', 'No results yet.' ) ); ?></td>
+                                <td colspan="<?php echo esc_attr( $show_ticket_cta ? 5 : 4 ); ?>" class="bhg-text-center"><?php echo esc_html( bhg_t( 'no_results_yet', 'No results yet.' ) ); ?></td>
                         </tr>
         <?php else : ?>
                 <?php foreach ( $results as $index => $row ) : ?>
@@ -399,13 +402,11 @@ foreach ( $notices as $notice ) :
                                 <td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $row->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
                                 <td><?php echo esc_html( number_format_i18n( (int) $row->points ) ); ?></td>
                                 <td><?php echo esc_html( number_format_i18n( (int) $row->wins ) ); ?></td>
-                                <td>
-                                        <?php if ( '' !== $ticket_redirect ) : ?>
+                                <?php if ( $show_ticket_cta ) : ?>
+                                        <td>
                                                 <a href="<?php echo esc_url( add_query_arg( array( 'tournament_id' => (int) $tournament_id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
-                                        <?php else : ?>
-                                                <span class="bhg-muted">&mdash;</span>
-                                        <?php endif; ?>
-                                </td>
+                                        </td>
+                                <?php endif; ?>
                         </tr>
         <?php endforeach; ?>
         <?php endif; ?>
@@ -458,13 +459,15 @@ foreach ( $notices as $notice ) :
                                 <th scope="col"><?php echo esc_html( bhg_t( 'difference', 'Difference' ) ); ?></th>
                                 <th scope="col"><?php echo esc_html( bhg_t( 'date', 'Date' ) ); ?></th>
                                 <th scope="col"><?php echo esc_html( bhg_t( 'label_price', 'Price' ) ); ?></th>
-                                <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                <?php if ( $show_ticket_cta ) : ?>
+                                        <th scope="col"><?php echo esc_html( bhg_t( 'label_actions', 'Actions' ) ); ?></th>
+                                <?php endif; ?>
                         </tr>
                 </thead>
                 <tbody>
         <?php if ( empty( $guesses ) ) : ?>
                         <tr>
-                                <td colspan="7" class="bhg-text-center"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'There are no winners yet' ) ); ?></td>
+                                <td colspan="<?php echo esc_attr( $show_ticket_cta ? 7 : 6 ); ?>" class="bhg-text-center"><?php echo esc_html( bhg_t( 'notice_no_winners_yet', 'There are no winners yet' ) ); ?></td>
                         </tr>
         <?php else : ?>
                 <?php foreach ( $guesses as $index => $row ) : ?>
@@ -515,13 +518,11 @@ foreach ( $notices as $notice ) :
                                 <td><?php echo esc_html( $diff_value ); ?></td>
                                 <td><?php echo esc_html( $submitted_on ); ?></td>
                                 <td><?php echo ( '' !== $prize_title ) ? esc_html( $prize_title ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
-                                <td>
-                                        <?php if ( '' !== $ticket_redirect ) : ?>
+                                <?php if ( $show_ticket_cta ) : ?>
+                                        <td>
                                                 <a href="<?php echo esc_url( add_query_arg( array( 'hunt_id' => (int) $hunt->id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
-                                        <?php else : ?>
-                                                <span class="bhg-muted">&mdash;</span>
-                                        <?php endif; ?>
-                                </td>
+                                        </td>
+                                <?php endif; ?>
                         </tr>
         <?php endforeach; ?>
         <?php endif; ?>
