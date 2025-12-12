@@ -402,11 +402,13 @@ foreach ( $notices as $notice ) :
                                 <td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $row->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
                                 <td><?php echo esc_html( number_format_i18n( (int) $row->points ) ); ?></td>
                                 <td><?php echo esc_html( number_format_i18n( (int) $row->wins ) ); ?></td>
+                                <td>
                                 <?php if ( $show_ticket_cta ) : ?>
-                                        <td>
-                                                <a href="<?php echo esc_url( add_query_arg( array( 'tournament_id' => (int) $tournament_id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
-                                        </td>
+                                        <a href="<?php echo esc_url( add_query_arg( array( 'tournament_id' => (int) $tournament_id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
+                                <?php else : ?>
+                                        <span class="bhg-text-muted">—</span>
                                 <?php endif; ?>
+                                </td>
                         </tr>
         <?php endforeach; ?>
         <?php endif; ?>
@@ -518,11 +520,13 @@ foreach ( $notices as $notice ) :
                                 <td><?php echo esc_html( $diff_value ); ?></td>
                                 <td><?php echo esc_html( $submitted_on ); ?></td>
                                 <td><?php echo ( '' !== $prize_title ) ? esc_html( $prize_title ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
+                                <td>
                                 <?php if ( $show_ticket_cta ) : ?>
-                                        <td>
-                                                <a href="<?php echo esc_url( add_query_arg( array( 'hunt_id' => (int) $hunt->id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
-                                        </td>
+                                        <a href="<?php echo esc_url( add_query_arg( array( 'hunt_id' => (int) $hunt->id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
+                                <?php else : ?>
+                                        <span class="bhg-text-muted">—</span>
                                 <?php endif; ?>
+                                </td>
                         </tr>
         <?php endforeach; ?>
         <?php endif; ?>
