@@ -7799,31 +7799,20 @@ $user_name = $this->format_title_label( $user->display_name );
 }
 }
 
-            $value_map = array(
-                'username'  => '' !== $user_name ? '<span class="bhg-jackpot-winner-name">' . esc_html( $user_name ) . '</span>' : '',
-                'amount'    => '<span class="bhg-jackpot-amount">' . esc_html( $format_amount( $amount ) ) . '</span>',
-                'title'     => '' !== $title ? '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span>' : '',
-                'affiliate' => '' !== $affiliate ? '<span class="bhg-jackpot-affiliate">' . esc_html( $affiliate ) . '</span>' : '',
-                'date'      => $created_at ? '<time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>' : '',
-            );
+$field_values = array(
+'username'  => '' !== $user_name ? '<span class="bhg-jackpot-winner-name">' . esc_html( $user_name ) . '</span>' : '',
+'amount'    => '<span class="bhg-jackpot-amount">' . esc_html( $format_amount( $amount ) ) . '</span>',
+'title'     => '' !== $title ? '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span>' : '',
+'affiliate' => '' !== $affiliate ? '<span class="bhg-jackpot-affiliate">' . esc_html( $affiliate ) . '</span>' : '',
+'date'      => $created_at ? '<time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>' : '',
+);
 
-            $parts       = array();
-            $placeholder = esc_html( bhg_t( 'label_emdash', '—' ) );
+$parts = $this->build_field_parts_from_tokens( $field_tokens, $field_values );
 
-            foreach ( $field_tokens as $token ) {
-                $value = $render_token_value( $token, $value_map, $placeholder );
-
-                if ( '' === $value ) {
-                    continue;
-                }
-
-                $parts[] = $value;
-            }
-
-            echo '<li class="bhg-jackpot-winner">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
-        }
-        echo '</ul>';
-        return ob_get_clean();
+echo '<li class="bhg-jackpot-winner">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
+}
+echo '</ul>';
+return ob_get_clean();
 }
 
 ob_start();
