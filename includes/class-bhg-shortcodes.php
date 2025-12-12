@@ -2640,7 +2640,7 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 		return array();
 	}
 
-		$sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, r.wins, r.last_win_date\n\t\t\tFROM {$results_tbl} r\n\t\t\tINNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n\t\t\tWHERE r.user_id = %d\n\t\t\tORDER BY r.points DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
+$sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, r.total_points, r.wins, r.last_win_date\n\t\t\tFROM {$results_tbl} r\n\t\t\tINNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n\t\t\tWHERE r.user_id = %d\n\t\t\tORDER BY r.points DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
 		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $user_id ) );
 
 		if ( empty( $rows ) ) {
@@ -2720,15 +2720,16 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 		$rank = (int) $ranking_map[ $tid ][ $user_id ];
 	}
 
-		$formatted[] = array(
-		'tournament_id' => $tid,
-		'title'         => isset( $row->title ) ? (string) $row->title : '',
-		'status'        => isset( $row->status ) ? (string) $row->status : '',
-		'points'        => isset( $row->points ) ? (int) $row->points : 0,
-		'wins'          => isset( $row->wins ) ? (int) $row->wins : 0,
-		'last_win_date' => isset( $row->last_win_date ) ? (string) $row->last_win_date : '',
-		'rank'          => $rank,
-		);
+$formatted[] = array(
+'tournament_id' => $tid,
+'title'         => isset( $row->title ) ? (string) $row->title : '',
+'status'        => isset( $row->status ) ? (string) $row->status : '',
+'points'        => isset( $row->points ) ? (int) $row->points : 0,
+'total_points'  => isset( $row->total_points ) ? (int) $row->total_points : 0,
+'wins'          => isset( $row->wins ) ? (int) $row->wins : 0,
+'last_win_date' => isset( $row->last_win_date ) ? (string) $row->last_win_date : '',
+'rank'          => $rank,
+);
 	}
 
 		return $formatted;
