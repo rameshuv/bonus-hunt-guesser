@@ -7621,23 +7621,24 @@ echo '<li class="bhg-jackpot-ticker__item">';
                                                                 return $this->shortcode_notice( 'BHG jackpot winners suppressed: jackpots module missing.' );
                                                 }
 
-                                                $atts = shortcode_atts(
-                                                                array(
-                                                                                'layout'    => 'table',
-                                                                                'limit'     => 10,
-                                                                                'affiliate' => 0,
-                                                                                'year'      => 0,
-                                                                                'empty'     => '',
-                                                                                'show_title'     => 'show',
-                                                                                'show_amount'    => 'show',
-                                                                                'show_username'  => 'show',
-                                                                                'show_affiliate' => 'show',
-                                                                                'show_date'      => 'show',
-                                                                                'strong'         => '',
-                                                                ),
-                                                                $atts,
-                                                                'bhg_jackpot_winners'
-                                                );
+$atts = shortcode_atts(
+array(
+'layout'    => 'table',
+'limit'     => 10,
+'affiliate' => 0,
+'year'      => 0,
+'empty'     => '',
+'fields'    => 'username,amount,title,affiliate,date',
+'show_title'     => 'show',
+'show_amount'    => 'show',
+'show_username'  => 'show',
+'show_affiliate' => 'show',
+'show_date'      => 'show',
+'strong'         => '',
+),
+$atts,
+'bhg_jackpot_winners'
+);
 
 						$args = array( 'limit' => max( 1, absint( $atts['limit'] ) ) );
 
@@ -7659,151 +7660,201 @@ return '<div class="bhg-jackpot-winners-empty">' . esc_html( $atts['empty'] ) . 
 return $this->shortcode_notice( 'BHG jackpot winners suppressed: no winners found for filters.' );
 }
 
-                                                $layout         = sanitize_key( $atts['layout'] );
-                                                $visibility     = static function ( $value ) {
-                                                                $value = strtolower( (string) $value );
+$layout         = sanitize_key( $atts['layout'] );
+$visibility     = static function ( $value ) {
+$value = strtolower( (string) $value );
 
-                                                                return ! in_array( $value, array( 'hide', '0', 'false', 'no' ), true );
-                                                };
-                                                $strong_fields  = array_filter( array_map( 'sanitize_key', array_map( 'trim', explode( ',', (string) $atts['strong'] ) ) ) );
-                                                $maybe_strong   = static function ( $field, $text ) use ( $strong_fields ) {
-                                                                if ( '' === $text ) {
-                                                                                return '';
-                                                                }
+return ! in_array( $value, array( 'hide', '0', 'false', 'no' ), true );
+};
+$format_amount  = static function ( $amount ) {
+if ( function_exists( 'bhg_format_money' ) ) {
+return bhg_format_money( $amount );
+}
 
-                                                                $escaped = esc_html( $text );
+return number_format_i18n( (float) $amount, 2 );
+};
 
-                                                                return in_array( $field, $strong_fields, true ) ? '<strong>' . $escaped . '</strong>' : $escaped;
-                                                };
-                                                $format_amount  = static function ( $amount ) {
-                                                                if ( function_exists( 'bhg_format_money' ) ) {
-                                                                                return bhg_format_money( $amount );
-                                                                }
+$allowed_fields = array( 'username', 'amount', 'title', 'affiliate', 'date' );
+$field_config  = $this->parse_field_tokens( $atts['fields'], $allowed_fields, array( 'username', 'amount', 'title', 'affiliate', 'date' ) );
+$field_tokens  = $field_config['tokens'];
 
-								return number_format_i18n( (float) $amount, 2 );
-						};
+$visibility_flags = array(
+'username'  => $visibility( $atts['show_username'] ),
+'amount'    => $visibility( $atts['show_amount'] ),
+'title'     => $visibility( $atts['show_title'] ),
+'affiliate' => $visibility( $atts['show_affiliate'] ),
+'date'      => $visibility( $atts['show_date'] ),
+);
 
-                                                if ( 'list' === $layout ) {
-                                                                $capitalize_first = static function ( $text ) {
-                                                                                if ( '' === $text ) {
-                                                                                                return '';
-                                                                                }
+$field_tokens = array_values(
+array_filter(
+array_map(
+static function ( $token ) use ( $visibility_flags ) {
+if ( isset( $token['field'] ) ) {
+$field = (string) $token['field'];
+if ( isset( $visibility_flags[ $field ] ) && false === $visibility_flags[ $field ] ) {
+return null;
+}
+}
 
-                                                                                $first = mb_substr( $text, 0, 1, 'UTF-8' );
-                                                                                $rest  = mb_substr( $text, 1, null, 'UTF-8' );
+return $token;
+},
+$field_tokens
+),
+static function ( $token ) {
+return null !== $token;
+}
+)
+);
 
-                                                                                return mb_strtoupper( $first, 'UTF-8' ) . $rest;
-                                                                };
+if ( empty( $field_tokens ) ) {
+$visible_defaults = array();
+foreach ( $allowed_fields as $field ) {
+if ( isset( $visibility_flags[ $field ] ) && $visibility_flags[ $field ] ) {
+$visible_defaults[] = $field;
+}
+}
 
-                                                                ob_start();
-                                                                echo '<ul class="bhg-jackpot-winners">';
-                                                                foreach ( $rows as $row ) {
-                                                                $title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-                                                                $amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-                                                                $created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
-                                                                $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-                                                                $affiliate  = isset( $row['affiliate_site_name'] ) ? $row['affiliate_site_name'] : '';
-                                                                $user_name  = '';
-                                                                if ( $user_id ) {
-                                                                                $user = get_userdata( $user_id );
-                                                                                if ( $user ) {
-                                                                                                $user_name = $user->display_name;
-                                                                                }
-                                                                }
+$field_config = $this->parse_field_tokens( implode( ',', $visible_defaults ), $allowed_fields, $visible_defaults );
+$field_tokens = $field_config['tokens'];
+}
 
-                                                                  if ( $user_name ) {
-                                                                                  $user_name = $this->format_title_label( $user_name );
-                                                                  }
+$strong_fields = array_filter( array_map( 'sanitize_key', array_map( 'trim', explode( ',', (string) $atts['strong'] ) ) ) );
+$field_tokens = array_map(
+static function ( $token ) use ( $strong_fields ) {
+if ( isset( $token['field'] ) && in_array( $token['field'], $strong_fields, true ) ) {
+$token['bold'] = true;
+}
 
-                                                                  if ( $title ) {
-                                                                                  $title = $this->format_title_label( $title );
-                                                                  }
+return $token;
+},
+$field_tokens
+);
 
-                                                                                $parts = array();
-                                                                                if ( $visibility( $atts['show_username'] ) && $user_name ) {
-                                                                                                $parts[] = '<span class="bhg-jackpot-winner-name">' . $maybe_strong( 'username', $this->format_title_label( $user_name ) ) . '</span>';
-                                                                                }
-                                                                                if ( $visibility( $atts['show_amount'] ) ) {
-                                                                                                $parts[] = '<span class="bhg-jackpot-amount">' . $maybe_strong( 'amount', $format_amount( $amount ) ) . '</span>';
-                                                                                }
-                                                                                if ( $visibility( $atts['show_title'] ) && $title ) {
-                                                                                                $parts[] = '<span class="bhg-jackpot-name">' . $maybe_strong( 'title', $this->format_title_label( $title ) ) . '</span>';
-                                                                                }
-                                                                                if ( $visibility( $atts['show_affiliate'] ) && $affiliate ) {
-                                                                                                $parts[] = '<span class="bhg-jackpot-affiliate">' . $maybe_strong( 'affiliate', $affiliate ) . '</span>';
-                                                                                }
-                                                                                if ( $visibility( $atts['show_date'] ) && $created_at ) {
-                                                                                                $parts[] = '<time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>';
-                                                                                }
+$header_labels = array(
+'username'  => bhg_t( 'sc_user', 'User' ),
+'amount'    => bhg_t( 'label_amount', 'Amount' ),
+'title'     => bhg_t( 'label_title', 'Title' ),
+'affiliate' => bhg_t( 'label_affiliate_website', 'Affiliate Website' ),
+'date'      => bhg_t( 'label_date', 'Date' ),
+);
 
-                                                                                $parts = array_filter( $parts, static function ( $part ) {
-                                                                                                return '' !== $part;
-                                                                                } );
+$render_token_value = static function ( $token, $value_map, $placeholder = '' ) {
+$text = '';
 
-                                                                                echo '<li class="bhg-jackpot-winner">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
-                                                                }
-                                                                echo '</ul>';
-                                                                return ob_get_clean();
-                                                }
+if ( isset( $token['literal'] ) ) {
+$text = esc_html( (string) $token['literal'] );
+} elseif ( isset( $token['field'] ) ) {
+$field  = (string) $token['field'];
+$value  = isset( $value_map[ $field ] ) ? (string) $value_map[ $field ] : '';
+$prefix = isset( $token['prefix'] ) && '' !== $token['prefix'] ? esc_html( (string) $token['prefix'] ) : '';
+$suffix = isset( $token['suffix'] ) && '' !== $token['suffix'] ? esc_html( (string) $token['suffix'] ) : '';
+
+$text = '' !== $value || '0' === $value ? $prefix . $value . $suffix : $placeholder;
+}
+
+if ( '' === $text ) {
+return '';
+}
+
+$is_bold = isset( $token['bold'] ) ? (bool) $token['bold'] : false;
+
+return $is_bold ? '<strong>' . $text . '</strong>' : $text;
+};
+
+if ( 'list' === $layout ) {
+ob_start();
+echo '<ul class="bhg-jackpot-winners">';
+foreach ( $rows as $row ) {
+$title      = isset( $row['jackpot_title'] ) ? $this->format_title_label( (string) $row['jackpot_title'] ) : '';
+$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+$created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
+$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+$affiliate  = isset( $row['affiliate_site_name'] ) ? $this->format_title_label( (string) $row['affiliate_site_name'] ) : '';
+$user_name  = '';
+if ( $user_id ) {
+$user = get_userdata( $user_id );
+if ( $user ) {
+$user_name = $this->format_title_label( $user->display_name );
+}
+}
+
+$field_values = array(
+'username'  => '' !== $user_name ? '<span class="bhg-jackpot-winner-name">' . esc_html( $user_name ) . '</span>' : '',
+'amount'    => '<span class="bhg-jackpot-amount">' . esc_html( $format_amount( $amount ) ) . '</span>',
+'title'     => '' !== $title ? '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span>' : '',
+'affiliate' => '' !== $affiliate ? '<span class="bhg-jackpot-affiliate">' . esc_html( $affiliate ) . '</span>' : '',
+'date'      => $created_at ? '<time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>' : '',
+);
+
+$parts = $this->build_field_parts_from_tokens( $field_tokens, $field_values );
+
+echo '<li class="bhg-jackpot-winner">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
+}
+echo '</ul>';
+return ob_get_clean();
+}
 
 ob_start();
 echo '<div class="bhg-table-wrapper">';
 echo '<table class="bhg-jackpot-winners-table"><thead><tr>';
-                                                if ( $visibility( $atts['show_username'] ) ) {
-                                                                echo '<th>' . esc_html( bhg_t( 'sc_user', 'User' ) ) . '</th>';
-                                                }
-                                                if ( $visibility( $atts['show_amount'] ) ) {
-                                                                echo '<th>' . esc_html( bhg_t( 'label_amount', 'Amount' ) ) . '</th>';
-                                                }
-                                                if ( $visibility( $atts['show_title'] ) ) {
-                                                                echo '<th>' . esc_html( bhg_t( 'label_title', 'Title' ) ) . '</th>';
-                                                }
-                                                if ( $visibility( $atts['show_affiliate'] ) ) {
-                                                                echo '<th>' . esc_html( bhg_t( 'label_affiliate_website', 'Affiliate Website' ) ) . '</th>';
-                                                }
-                                                if ( $visibility( $atts['show_date'] ) ) {
-                                                                echo '<th>' . esc_html( bhg_t( 'label_date', 'Date' ) ) . '</th>';
-                                                }
+foreach ( $field_tokens as $token ) {
+$label = '';
+
+if ( isset( $token['literal'] ) ) {
+$label = (string) $token['literal'];
+} elseif ( isset( $token['field'] ) && isset( $header_labels[ $token['field'] ] ) ) {
+$label = $header_labels[ $token['field'] ];
+}
+
+if ( '' === $label ) {
+continue;
+}
+
+echo '<th>' . esc_html( $label ) . '</th>';
+}
 echo '</tr></thead><tbody>';
-                                                foreach ( $rows as $row ) {
-                                                                $title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-                                                                $amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-                                                                $created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
-                                                                $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-                                                                $affiliate  = isset( $row['affiliate_site_name'] ) ? $row['affiliate_site_name'] : '';
-                                                                $user_name  = '';
-                                                                if ( $user_id ) {
-                                                                                $user = get_userdata( $user_id );
-										if ( $user ) {
-												$user_name = $user->display_name;
-										}
-								}
+foreach ( $rows as $row ) {
+$title      = isset( $row['jackpot_title'] ) ? $this->format_title_label( (string) $row['jackpot_title'] ) : '';
+$amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+$created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
+$user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+$affiliate  = isset( $row['affiliate_site_name'] ) ? $this->format_title_label( (string) $row['affiliate_site_name'] ) : '';
+$user_name  = '';
+if ( $user_id ) {
+$user = get_userdata( $user_id );
+if ( $user ) {
+$user_name = $this->format_title_label( $user->display_name );
+}
+}
 
-										if ( $user_name ) {
-											$user_name = $this->format_title_label( $user_name );
-										}
+$value_map = array(
+'username'  => $user_name,
+'amount'    => $format_amount( $amount ),
+'title'     => $title,
+'affiliate' => $affiliate,
+'date'      => $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '',
+);
 
-										if ( $title ) {
-											$title = $this->format_title_label( $title );
-										}
-            echo '<tr>';
-            if ( $visibility( $atts['show_username'] ) ) {
-                    echo '<td data-label="' . esc_attr( bhg_t( 'sc_user', 'User' ) ) . '">' . $maybe_strong( 'username', $user_name ) . '</td>';
-            }
-            if ( $visibility( $atts['show_amount'] ) ) {
-                    echo '<td data-label="' . esc_attr( bhg_t( 'label_amount', 'Amount' ) ) . '">' . $maybe_strong( 'amount', $format_amount( $amount ) ) . '</td>';
-            }
-            if ( $visibility( $atts['show_title'] ) ) {
-                    echo '<td data-label="' . esc_attr( bhg_t( 'label_title', 'Title' ) ) . '">' . $maybe_strong( 'title', $title ) . '</td>';
-            }
-            if ( $visibility( $atts['show_affiliate'] ) ) {
-                    echo '<td data-label="' . esc_attr( bhg_t( 'label_affiliate_website', 'Affiliate Website' ) ) . '">' . $maybe_strong( 'affiliate', $affiliate ) . '</td>';
-            }
-            if ( $visibility( $atts['show_date'] ) ) {
-                    echo '<td data-label="' . esc_attr( bhg_t( 'label_date', 'Date' ) ) . '">' . esc_html( $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '' ) . '</td>';
-            }
-            echo '</tr>';
-                                                }
+echo '<tr>';
+foreach ( $field_tokens as $token ) {
+$label = '';
+if ( isset( $token['literal'] ) ) {
+$label = (string) $token['literal'];
+} elseif ( isset( $token['field'] ) && isset( $header_labels[ $token['field'] ] ) ) {
+$label = $header_labels[ $token['field'] ];
+}
+
+if ( '' === $label ) {
+continue;
+}
+
+$value = $render_token_value( $token, $value_map, bhg_t( 'label_emdash', '—' ) );
+
+echo '<td data-label="' . esc_attr( $label ) . '">' . ( '' !== $value ? $value : esc_html( bhg_t( 'label_emdash', '—' ) ) ) . '</td>';
+}
+echo '</tr>';
+}
 echo '</tbody></table>';
 echo '</div>';
 
