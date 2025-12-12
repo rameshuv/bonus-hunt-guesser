@@ -2302,31 +2302,54 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 	 *
 	 * @return string
 	 */
-	private function format_username_label( $label, $user_id = 0 ) {
-		$label = (string) $label;
+        private function format_username_label( $label, $user_id = 0 ) {
+                $label = (string) $label;
 
-		if ( '' === $label && $user_id > 0 ) {
-			/* translators: %d: user ID. */
-			$label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), $user_id );
-		}
+                if ( '' === $label && $user_id > 0 ) {
+                        /* translators: %d: user ID. */
+                        $label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), $user_id );
+                }
 
-		if ( '' === $label ) {
-			return $label;
-		}
+                $charset = get_bloginfo( 'charset' );
+                $charset = $charset ? $charset : 'UTF-8';
 
-		$charset = get_bloginfo( 'charset' );
-		$charset = $charset ? $charset : 'UTF-8';
+                if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
+                        $first = mb_substr( $label, 0, 1, $charset );
+                        $rest  = mb_substr( $label, 1, null, $charset );
+                        $label = mb_strtoupper( $first, $charset ) . $rest;
+                } else {
+                        $label = ucfirst( $label );
+                }
 
-		if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
-			$first = mb_substr( $label, 0, 1, $charset );
-			$rest  = mb_substr( $label, 1, null, $charset );
-			$label = mb_strtoupper( $first, $charset ) . $rest;
-		} else {
-			$label = ucfirst( $label );
-		}
+                return $label;
+        }
 
-		return $label;
-	}
+        /**
+         * Ensure titles start with a capital letter while preserving the rest of the text.
+         *
+         * @param string $label Raw title text.
+         * @return string Title with the first character capitalized.
+         */
+        private function format_title_label( $label ) {
+                $label = (string) $label;
+
+                if ( '' === $label ) {
+                        return $label;
+                }
+
+                $charset = get_bloginfo( 'charset' );
+                $charset = $charset ? $charset : 'UTF-8';
+
+                if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
+                        $first = mb_substr( $label, 0, 1, $charset );
+                        $rest  = mb_substr( $label, 1, null, $charset );
+                        $label = mb_strtoupper( $first, $charset ) . $rest;
+                } else {
+                        $label = ucfirst( $label );
+                }
+
+                return $label;
+        }
 
 	/**
 	 * Normalize a username label and append qualifying badges when available.
@@ -4226,7 +4249,7 @@ $atts,
                                                foreach ( $rows as $row ) {
                                                                $hunt_id     = isset( $row->hunt_id ) ? (int) $row->hunt_id : 0;
                                                                $user_id     = isset( $row->user_id ) ? (int) $row->user_id : 0;
-                                                               $hunt_title  = isset( $row->hunt_title ) && '' !== (string) $row->hunt_title ? (string) $row->hunt_title : bhg_t( 'label_unnamed_hunt', 'Untitled hunt' );
+                                                               $hunt_title  = isset( $row->hunt_title ) && '' !== (string) $row->hunt_title ? $this->format_title_label( (string) $row->hunt_title ) : bhg_t( 'label_unnamed_hunt', 'Untitled hunt' );
                                                                $created_at  = isset( $row->created_at ) ? $row->created_at : '';
                                                                $date_output = $created_at ? mysql2date( get_option( 'date_format' ), $created_at ) : '';
                                                                $position    = isset( $row->position ) ? (int) $row->position : 0;
@@ -4293,7 +4316,7 @@ $user_label = $this->format_username_with_badges( $user_label, $user_id );
                                                                if ( $show_tournament && $hunt_id > 0 && isset( $hunt_tournaments[ $hunt_id ] ) ) {
                                                                                foreach ( $hunt_tournaments[ $hunt_id ] as $tid ) {
                                                                                                if ( isset( $tournament_titles[ $tid ] ) ) {
-                                                                                                               $tournament_names[] = $tournament_titles[ $tid ];
+                                                                                               $tournament_names[] = $this->format_title_label( $tournament_titles[ $tid ] );
                                                                                                }
                                                                                }
                                                                }
@@ -4621,7 +4644,7 @@ $atts,
                                                                $parts = array();
 
                                                                if ( $show_name ) {
-                                                                               $title = isset( $row->title ) && '' !== (string) $row->title ? (string) $row->title : bhg_t( 'label_unnamed_tournament', 'Untitled tournament' );
+                                                                               $title = isset( $row->title ) && '' !== (string) $row->title ? $this->format_title_label( (string) $row->title ) : bhg_t( 'label_unnamed_tournament', 'Untitled tournament' );
                                                                                $parts[] = '<span class="bhg-tournament-name">' . esc_html( $title ) . '</span>';
                                                                }
 
@@ -4771,7 +4794,7 @@ $atts,
                                                                $parts = array();
 
                                                                if ( $show_title ) {
-                                                                               $title = isset( $row->title ) && '' !== (string) $row->title ? (string) $row->title : bhg_t( 'label_unnamed_hunt', 'Untitled hunt' );
+                                                                               $title = isset( $row->title ) && '' !== (string) $row->title ? $this->format_title_label( (string) $row->title ) : bhg_t( 'label_unnamed_hunt', 'Untitled hunt' );
                                                                                $parts[] = '<span class="bhg-hunt-title">' . esc_html( $title ) . '</span>';
                                                                }
 
