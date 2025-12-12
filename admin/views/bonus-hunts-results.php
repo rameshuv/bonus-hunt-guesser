@@ -385,26 +385,34 @@ foreach ( $notices as $notice ) :
         <?php else : ?>
                 <?php foreach ( $results as $index => $row ) : ?>
 			<?php
-                        $position    = (int) $current_offset + (int) $index + 1;
-			$is_winner   = ( $position <= $winners_limit );
-			$row_classes = array( 'bhg-results-row' );
-			if ( $is_winner ) {
-				$row_classes[] = 'bhg-results-row--winner';
-			}
-			$name = $row->display_name ? $row->display_name : sprintf(
-				/* translators: %d: user ID. */
-				bhg_t( 'label_user_hash', 'user#%d' ),
-				(int) $row->user_id
-			);
-			?>
-			<tr class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
+                        $position       = (int) $current_offset + (int) $index + 1;
+                        $is_winner      = ( $position <= $winners_limit );
+                        $row_classes    = array( 'bhg-results-row' );
+                        $user_id        = isset( $row->user_id ) ? (int) $row->user_id : 0;
+                        $can_create_ticket = ( $user_id > 0 ) && $show_ticket_cta;
+                        if ( $is_winner ) {
+                                $row_classes[] = 'bhg-results-row--winner';
+                        }
+                        $name = $row->display_name ? $row->display_name : sprintf(
+                                /* translators: %d: user ID. */
+                                bhg_t( 'label_user_hash', 'user#%d' ),
+                                $user_id
+                        );
+                        ?>
+                        <tr class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
                                 <td><span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span></td>
-                                <td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $row->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
+                                <td>
+                                <?php if ( $user_id > 0 ) : ?>
+                                        <a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . $user_id ) ); ?>"><?php echo esc_html( $name ); ?></a>
+                                <?php else : ?>
+                                        <span class="bhg-text-muted"><?php echo esc_html( $name ); ?></span>
+                                <?php endif; ?>
+                                </td>
                                 <td><?php echo esc_html( number_format_i18n( (int) $row->points ) ); ?></td>
                                 <td><?php echo esc_html( number_format_i18n( (int) $row->wins ) ); ?></td>
                                 <td>
-                                <?php if ( $show_ticket_cta ) : ?>
-                                        <a href="<?php echo esc_url( add_query_arg( array( 'tournament_id' => (int) $tournament_id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
+                                <?php if ( $can_create_ticket ) : ?>
+                                        <a href="<?php echo esc_url( add_query_arg( array( 'tournament_id' => (int) $tournament_id, 'user_id' => $user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
                                 <?php else : ?>
                                         <span class="bhg-text-muted">—</span>
                                 <?php endif; ?>
@@ -485,7 +493,9 @@ foreach ( $notices as $notice ) :
                                 $row_classes[] = 'bhg-results-row--winner';
                         }
 
-			$name          = $row->display_name ? $row->display_name : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+                        $can_create_ticket = ( $user_id > 0 ) && $show_ticket_cta;
+
+                        $name          = $row->display_name ? $row->display_name : sprintf( /* translators: %d: user ID. */ bhg_t( 'label_user_hash', 'user#%d' ), $user_id );
 			$guess_display = isset( $row->guess ) ? bhg_format_money( (float) $row->guess ) : bhg_t( 'label_emdash', '—' );
 			$diff_value    = ( isset( $row->diff ) && null !== $row->diff ) ? bhg_format_money( abs( (float) $row->diff ) ) : bhg_t( 'label_emdash', '—' );
 			$created_at    = isset( $row->created_at ) ? $row->created_at : null;
@@ -515,14 +525,20 @@ foreach ( $notices as $notice ) :
 			?>
 			<tr class="<?php echo esc_attr( implode( ' ', $row_classes ) ); ?>">
 				<td><span class="bhg-badge <?php echo esc_attr( $is_winner ? 'bhg-badge-primary' : 'bhg-badge-muted' ); ?>"><?php echo esc_html( $position ); ?></span></td>
-				<td><a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . (int) $row->user_id ) ); ?>"><?php echo esc_html( $name ); ?></a></td>
+                                <td>
+                                <?php if ( $user_id > 0 ) : ?>
+                                        <a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . $user_id ) ); ?>"><?php echo esc_html( $name ); ?></a>
+                                <?php else : ?>
+                                        <span class="bhg-text-muted"><?php echo esc_html( $name ); ?></span>
+                                <?php endif; ?>
+                                </td>
                                 <td><?php echo esc_html( $guess_display ); ?></td>
                                 <td><?php echo esc_html( $diff_value ); ?></td>
                                 <td><?php echo esc_html( $submitted_on ); ?></td>
                                 <td><?php echo ( '' !== $prize_title ) ? esc_html( $prize_title ) : esc_html( bhg_t( 'label_emdash', '—' ) ); ?></td>
                                 <td>
-                                <?php if ( $show_ticket_cta ) : ?>
-                                        <a href="<?php echo esc_url( add_query_arg( array( 'hunt_id' => (int) $hunt->id, 'user_id' => (int) $row->user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
+                                <?php if ( $can_create_ticket ) : ?>
+                                        <a href="<?php echo esc_url( add_query_arg( array( 'hunt_id' => (int) $hunt->id, 'user_id' => $user_id ), $ticket_redirect ) ); ?>" class="button button-secondary"><?php echo esc_html( bhg_t( 'link_create_ticket', 'Create Ticket' ) ); ?></a>
                                 <?php else : ?>
                                         <span class="bhg-text-muted">—</span>
                                 <?php endif; ?>
