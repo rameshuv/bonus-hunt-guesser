@@ -7684,6 +7684,17 @@ return $this->shortcode_notice( 'BHG jackpot winners suppressed: no winners foun
 						};
 
                                                 if ( 'list' === $layout ) {
+                                                                $capitalize_first = static function ( $text ) {
+                                                                                if ( '' === $text ) {
+                                                                                                return '';
+                                                                                }
+
+                                                                                $first = mb_substr( $text, 0, 1, 'UTF-8' );
+                                                                                $rest  = mb_substr( $text, 1, null, 'UTF-8' );
+
+                                                                                return mb_strtoupper( $first, 'UTF-8' ) . $rest;
+                                                                };
+
                                                                 ob_start();
                                                                 echo '<ul class="bhg-jackpot-winners">';
                                                                 foreach ( $rows as $row ) {
