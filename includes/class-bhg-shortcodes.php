@@ -235,6 +235,33 @@ add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
                }
 
                /**
+                * Determine if a sanitized table contains a given column.
+                *
+                * @param string $table  Sanitized table name.
+                * @param string $column Column to check.
+                * @return bool Whether the column exists.
+                */
+               private function table_has_column( $table, $column ) {
+                               global $wpdb;
+
+                               if ( '' === $table || '' === $column ) {
+                                               return false;
+                               }
+
+                               $wpdb->last_error = '';
+                               $exists           = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                       $wpdb->prepare( 'SHOW COLUMNS FROM ' . $table . ' LIKE %s', $column )
+                               );
+
+                               if ( $wpdb->last_error ) {
+                                               $wpdb->last_error = '';
+                                               return false;
+                               }
+
+                               return ! empty( $exists );
+               }
+
+               /**
                 * Return an admin-visible notice with a silent front-end comment.
                 *
                 * @param string $message Notice content.
@@ -2640,8 +2667,11 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 		return array();
 	}
 
-$sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, r.total_points, r.wins, r.last_win_date\n\t\t\tFROM {$results_tbl} r\n\t\t\tINNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n\t\t\tWHERE r.user_id = %d\n\t\t\tORDER BY COALESCE(NULLIF(r.points, 0), r.total_points, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $user_id ) );
+$has_total_points   = $this->table_has_column( $results_tbl, 'total_points' );
+$total_points_field = $has_total_points ? 'r.total_points' : 'r.points';
+
+$sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$total_points_field} AS total_points, r.wins, r.last_win_date\n\t\t\tFROM {$results_tbl} r\n\t\t\tINNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n\t\t\tWHERE r.user_id = %d\n\t\t\tORDER BY COALESCE(NULLIF(r.points, 0), {$total_points_field}, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
+                $rows = $wpdb->get_results( $wpdb->prepare( $sql, $user_id ) );
 
 		if ( empty( $rows ) ) {
 		return array();
@@ -2658,11 +2688,12 @@ $sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, r.to
 		$ranking_map = array();
 
 		if ( ! empty( $tournament_ids ) ) {
-		$placeholders = implode( ', ', array_fill( 0, count( $tournament_ids ), '%d' ) );
-		$args         = array_values( $tournament_ids );
-$sql_ranks    = "SELECT tournament_id, user_id, points, total_points, wins, last_win_date\n\t\t\tFROM {$results_tbl}\n\t\t\tWHERE tournament_id IN ({$placeholders})\n\t\t\tORDER BY tournament_id ASC, COALESCE(NULLIF(points, 0), total_points, 0) DESC, wins DESC, last_win_date ASC, user_id ASC";
-		$prepared     = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql_ranks ), $args ) );
-$rank_rows    = $wpdb->get_results( $prepared );
+               $placeholders       = implode( ', ', array_fill( 0, count( $tournament_ids ), '%d' ) );
+               $args               = array_values( $tournament_ids );
+               $total_points_order = $has_total_points ? 'total_points' : 'points';
+$sql_ranks          = "SELECT tournament_id, user_id, points, {$total_points_order} AS total_points, wins, last_win_date\n\t\t\tFROM {$results_tbl}\n\t\t\tWHERE tournament_id IN ({$placeholders})\n\t\t\tORDER BY tournament_id ASC, COALESCE(NULLIF(points, 0), {$total_points_order}, 0) DESC, wins DESC, last_win_date ASC, user_id ASC";
+               $prepared           = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql_ranks ), $args ) );
+$rank_rows          = $wpdb->get_results( $prepared );
 
 		if ( $rank_rows ) {
 		$current_tournament = null;
