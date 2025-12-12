@@ -2352,6 +2352,22 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
         }
 
         /**
+         * Resolve a numeric points value from a row with sensible fallbacks.
+         *
+         * @param array $row Result row containing points data.
+         * @return int
+         */
+        private function resolve_points_from_row( $row ) {
+                $points = isset( $row['points'] ) ? (int) $row['points'] : 0;
+
+                if ( 0 === $points && isset( $row['total_points'] ) ) {
+                        $points = (int) $row['total_points'];
+                }
+
+                return $points;
+        }
+
+        /**
          * Parse a comma-separated list of field tokens, allowing optional bold markers and inline text.
          *
          * Supported patterns:
@@ -7195,10 +7211,11 @@ echo '</tr></thead><tbody>';
             $last_win     = $row['last_win_date'] ? mysql2date( get_option( 'date_format' ), $row['last_win_date'] ) : '';
             $rank_cell    = null === $row['rank'] ? '&mdash;' : esc_html( (string) (int) $row['rank'] );
             $last_win_cell = $last_win ? esc_html( $last_win ) : '&mdash;';
+            $points_cell   = $this->resolve_points_from_row( $row );
 
             echo '<tr>';
             echo '<td data-label="' . esc_attr( bhg_t( 'label_tournament', 'Tournament' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
-            echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . esc_html( (int) $row['points'] ) . '</td>';
+            echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . esc_html( (int) $points_cell ) . '</td>';
             echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Times Won' ) ) . '">' . esc_html( (int) $row['wins'] ) . '</td>';
             echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_cell . '</td>';
             echo '<td data-label="' . esc_attr( bhg_t( 'label_last_win', 'Last win' ) ) . '">' . $last_win_cell . '</td>';
@@ -7313,10 +7330,12 @@ $total_points = 0;
 $best_rank    = null;
 
 foreach ( $tournaments as $row ) {
-$total_points += (int) $row['points'];
-if ( isset( $row['rank'] ) && $row['rank'] && ( null === $best_rank || (int) $row['rank'] < $best_rank ) ) {
-$best_rank = (int) $row['rank'];
-}
+        $row_points = $this->resolve_points_from_row( $row );
+        $total_points += $row_points;
+
+        if ( isset( $row['rank'] ) && $row['rank'] && ( null === $best_rank || (int) $row['rank'] < $best_rank ) ) {
+                $best_rank = (int) $row['rank'];
+        }
 }
 
 $currency_callback = function_exists( 'bhg_format_money' ) ? 'bhg_format_money' : static function( $value ) {
@@ -7380,10 +7399,11 @@ echo '</tr></thead><tbody>';
                 $last_win     = $row['last_win_date'] ? mysql2date( get_option( 'date_format' ), $row['last_win_date'] ) : '';
                 $rank_cell    = null === $row['rank'] ? '&mdash;' : esc_html( (string) (int) $row['rank'] );
                 $last_win_cell = $last_win ? esc_html( $last_win ) : '&mdash;';
+                $points_cell   = $this->resolve_points_from_row( $row );
 
                 echo '<tr>';
                 echo '<td data-label="' . esc_attr( bhg_t( 'label_tournament', 'Tournament' ) ) . '">' . esc_html( $row['title'] ) . '</td>';
-                echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . esc_html( (string) (int) $row['points'] ) . '</td>';
+                echo '<td data-label="' . esc_attr( bhg_t( 'label_points', 'Points' ) ) . '">' . esc_html( (string) (int) $points_cell ) . '</td>';
                 echo '<td data-label="' . esc_attr( bhg_t( 'label_wins', 'Times Won' ) ) . '">' . esc_html( (string) (int) $row['wins'] ) . '</td>';
                 echo '<td data-label="' . esc_attr( bhg_t( 'label_rank', 'Rank' ) ) . '">' . $rank_cell . '</td>';
                 echo '<td data-label="' . esc_attr( bhg_t( 'label_last_win', 'Last win' ) ) . '">' . $last_win_cell . '</td>';
