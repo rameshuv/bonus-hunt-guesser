@@ -404,13 +404,20 @@ button[type="submit"]:active,
     background-color: #f3f4f6;
 }
 
-.bhg-table-wrapper th,
 .bhg-table th,
 .bhg-leaderboard th,
 .bhg-profile-table th {
     font-weight: 600;
     color: #ffffff;
 }
+
+/* Table header text always white */
+.bhg-user-guesses thead th,
+.bhg-user-guesses thead th a {
+  color: #ffffff !important;
+}
+
+
 
 /* Links in sortable headers */
 .bhg-leaderboard th a,
