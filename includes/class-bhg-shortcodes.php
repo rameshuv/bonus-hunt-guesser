@@ -11,6 +11,11 @@
 if (!defined("ABSPATH")) {
     exit();
 }
+if (class_exists('BHG_Shortcodes')) {
+    return;
+}
+
+
 
 if (!class_exists("BHG_Shortcodes")) {
     /**
@@ -375,15 +380,12 @@ if (!class_exists("BHG_Shortcodes")) {
          */
         private function shortcode_admin_notice($message)
         {
-            if (current_user_can("manage_options")) {
-                return '<div class="bhg-shortcode-note">' .
-                    esc_html($message) .
-                    "</div><!-- " .
-                    esc_html($message) .
-                    " -->";
+            // Show internal shortcode diagnostics ONLY when WP_DEBUG is enabled
+            // and the current user is an admin. Otherwise stay silent.
+            if (defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')) {
+                return '<div class="bhg-shortcode-note">' . esc_html($message) . '</div>';
             }
-
-            return "";
+            return '';
         }
 
         /**
