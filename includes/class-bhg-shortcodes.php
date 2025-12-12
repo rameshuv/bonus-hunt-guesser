@@ -2645,7 +2645,7 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 		return $formatted;
 	}
 
-		/**
+				/**
 		 * Retrieve tournament standings for a user.
 		 *
 		 * @param int $user_id User identifier.
@@ -2667,14 +2667,17 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 				return array();
 			}
 
-			$has_total_points     = $this->table_has_column( $results_tbl, 'total_points' );
-			$total_points_field   = $has_total_points ? 'r.total_points' : 'r.points';
-			$previous_suppression = $wpdb->suppress_errors();
+			$has_total_points   = $this->table_has_column( $results_tbl, 'total_points' );
+			$total_points_field = $has_total_points ? 'r.total_points' : 'r.points';
 
-			$sql  = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$total_points_field} AS total_points, r.wins, r.last_win_date\n			FROM {$results_tbl} r\n			INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n			WHERE r.user_id = %d\n			ORDER BY COALESCE(NULLIF(r.points, 0), {$total_points_field}, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
-			$wpdb->suppress_errors( true );
+			$previous_suppression = $wpdb->suppress_errors( true );
+
+			$sql  = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$total_points_field} AS total_points, r.wins, r.last_win_date
+				FROM {$results_tbl} r
+				INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id
+				WHERE r.user_id = %d
+				ORDER BY COALESCE(NULLIF(r.points, 0), {$total_points_field}, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
 			$rows = $wpdb->get_results( $wpdb->prepare( $sql, $user_id ) );
-			$wpdb->suppress_errors( $previous_suppression );
 
 			if ( $has_total_points && $wpdb->last_error && false !== stripos( $wpdb->last_error, 'total_points' ) ) {
 				// Fall back for older schemas without total_points.
@@ -2682,14 +2685,16 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 				$has_total_points   = false;
 				$total_points_field = 'r.points';
 
-				$fallback_sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$total_points_field} AS total_points, r.wins, r.last_win_date\n			FROM {$results_tbl} r\n			INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n			WHERE r.user_id = %d\n			ORDER BY COALESCE(NULLIF(r.points, 0), {$total_points_field}, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
-
-				$wpdb->suppress_errors( true );
-				$rows = $wpdb->get_results( $wpdb->prepare( $fallback_sql, $user_id ) );
-				$wpdb->suppress_errors( $previous_suppression );
+				$fallback_sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$total_points_field} AS total_points, r.wins, r.last_win_date
+					FROM {$results_tbl} r
+					INNER JOIN {$tours_tbl} t ON t.id = r.tournament_id
+					WHERE r.user_id = %d
+					ORDER BY COALESCE(NULLIF(r.points, 0), {$total_points_field}, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
+				$rows         = $wpdb->get_results( $wpdb->prepare( $fallback_sql, $user_id ) );
 			}
 
 			if ( empty( $rows ) ) {
+				$wpdb->suppress_errors( $previous_suppression );
 				return array();
 			}
 
@@ -2708,27 +2713,33 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 				$placeholders       = implode( ', ', array_fill( 0, count( $tournament_ids ), '%d' ) );
 				$args               = array_values( $tournament_ids );
 				$total_points_order = $has_total_points ? 'total_points' : 'points';
-				$sql_ranks          = "SELECT tournament_id, user_id, points, {$total_points_order} AS total_points, wins, last_win_date\n			FROM {$results_tbl}\n			WHERE tournament_id IN ({$placeholders})\n			ORDER BY tournament_id ASC, COALESCE(NULLIF(points, 0), {$total_points_order}, 0) DESC, wins DESC, last_win_date ASC, user_id ASC";
-				$prepared           = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql_ranks ), $args ) );
 
-				$wpdb->suppress_errors( true );
+				$sql_ranks = "SELECT tournament_id, user_id, points, {$total_points_order} AS total_points, wins, last_win_date
+					FROM {$results_tbl}
+					WHERE tournament_id IN ({$placeholders})
+					ORDER BY tournament_id ASC, COALESCE(NULLIF(points, 0), {$total_points_order}, 0) DESC, wins DESC, last_win_date ASC, user_id ASC";
+
+				$prepared  = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql_ranks ), $args ) );
 				$rank_rows = $wpdb->get_results( $prepared );
-				$wpdb->suppress_errors( $previous_suppression );
 
 				if ( $has_total_points && $wpdb->last_error && false !== stripos( $wpdb->last_error, 'total_points' ) ) {
 					$wpdb->last_error     = '';
 					$has_total_points     = false;
 					$total_points_order   = 'points';
-					$sql_ranks            = "SELECT tournament_id, user_id, points, {$total_points_order} AS total_points, wins, last_win_date\n			FROM {$results_tbl}\n			WHERE tournament_id IN ({$placeholders})\n			ORDER BY tournament_id ASC, COALESCE(NULLIF(points, 0), {$total_points_order}, 0) DESC, wins DESC, last_win_date ASC, user_id ASC";
-					$prepared             = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql_ranks ), $args ) );
 
-					$wpdb->suppress_errors( true );
+					$sql_ranks = "SELECT tournament_id, user_id, points, {$total_points_order} AS total_points, wins, last_win_date
+						FROM {$results_tbl}
+						WHERE tournament_id IN ({$placeholders})
+						ORDER BY tournament_id ASC, COALESCE(NULLIF(points, 0), {$total_points_order}, 0) DESC, wins DESC, last_win_date ASC, user_id ASC";
+
+					$prepared  = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql_ranks ), $args ) );
 					$rank_rows = $wpdb->get_results( $prepared );
-					$wpdb->suppress_errors( $previous_suppression );
 				}
 			}
 
-			if ( $rank_rows ) {
+			$wpdb->suppress_errors( $previous_suppression );
+
+			if ( ! empty( $rank_rows ) ) {
 				$current_tournament = null;
 				$position_counter   = 0;
 				$current_rank       = 0;
@@ -2754,7 +2765,6 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 					++$position_counter;
 
 					$points = isset( $rank_row->points ) ? (int) $rank_row->points : 0;
-
 					if ( 0 === $points && isset( $rank_row->total_points ) ) {
 						$points = (int) $rank_row->total_points;
 					}
@@ -2802,12 +2812,6 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 			return $formatted;
 		}
 
-/**
- * Retrieve prizes associated with hunts the user has won.
- *
- * @param int $user_id User identifier.
- * @return array[]
- */
 private function get_user_prize_rows( $user_id ) {
 global $wpdb;
 
@@ -7867,31 +7871,27 @@ $user_name = $this->format_title_label( $user->display_name );
 }
 }
 
-            $value_map = array(
-                'username'  => '' !== $user_name ? '<span class="bhg-jackpot-winner-name">' . esc_html( $user_name ) . '</span>' : '',
-                'amount'    => '<span class="bhg-jackpot-amount">' . esc_html( $format_amount( $amount ) ) . '</span>',
-                'title'     => '' !== $title ? '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span>' : '',
-                'affiliate' => '' !== $affiliate ? '<span class="bhg-jackpot-affiliate">' . esc_html( $affiliate ) . '</span>' : '',
-                'date'      => $created_at ? '<time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>' : '',
-            );
+$field_values = array(
+	'username'  => '' !== $user_name ? '<span class="bhg-jackpot-winner-name">' . esc_html( $user_name ) . '</span>' : '',
+	'amount'    => '<span class="bhg-jackpot-amount">' . esc_html( $format_amount( $amount ) ) . '</span>',
+	'title'     => '' !== $title ? '<span class="bhg-jackpot-name">' . esc_html( $title ) . '</span>' : '',
+	'affiliate' => '' !== $affiliate ? '<span class="bhg-jackpot-affiliate">' . esc_html( $affiliate ) . '</span>' : '',
+	'date'      => $created_at ? '<time datetime="' . esc_attr( $created_at ) . '">' . esc_html( mysql2date( get_option( 'date_format' ), $created_at ) ) . '</time>' : '',
+);
 
-            $parts       = array();
-            $placeholder = esc_html( bhg_t( 'label_emdash', '—' ) );
+$parts = $this->build_field_parts_from_tokens( $field_tokens, $field_values );
+$parts = array_filter(
+	$parts,
+	static function ( $part ) {
+		return '' !== $part;
+	}
+);
 
-            foreach ( $field_tokens as $token ) {
-                $value = $render_token_value( $token, $value_map, $placeholder );
+echo '<li class="bhg-jackpot-winner">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
+}
 
-                if ( '' === $value ) {
-                    continue;
-                }
-
-                $parts[] = $value;
-            }
-
-            echo '<li class="bhg-jackpot-winner">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
-        }
-        echo '</ul>';
-        return ob_get_clean();
+echo '</ul>';
+return ob_get_clean();
 }
 
 ob_start();
