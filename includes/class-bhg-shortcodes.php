@@ -264,18 +264,60 @@ add_shortcode( 'bonushunt-list', array( $this, 'bonushunt_list_shortcode' ) );
                /**
                 * Return an admin-visible notice with a silent front-end comment.
                 *
-                * @param string $message Notice content.
-                * @return string HTML to render.
+                * @param string $table  Sanitized table name.
+                * @param string $column Column to check.
+                * @return bool Whether the column exists.
                 */
-               private function shortcode_notice( $message ) {
-                               $comment = '<!-- ' . esc_html( $message ) . ' -->';
+               private function table_has_column( $table, $column ) {
+                               global $wpdb;
 
-                               if ( current_user_can( 'manage_options' ) ) {
-                                               return '<div class="bhg-shortcode-note">' . esc_html( $message ) . '</div>' . $comment;
+                               if ( '' === $table || '' === $column ) {
+                                               return false;
                                }
 
-                               return $comment;
+                               $wpdb->last_error = '';
+                               $exists           = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+                                       $wpdb->prepare( 'SHOW COLUMNS FROM ' . $table . ' LIKE %s', $column )
+                               );
+
+                               if ( $wpdb->last_error ) {
+                                               $wpdb->last_error = '';
+                                               return false;
+                               }
+
+                               return ! empty( $exists );
                }
+
+	/**
+	 * Return an admin-visible notice with a silent front-end comment.
+	 *
+	 * @param string $message Notice content.
+	 * @return string HTML to render.
+	 */
+	private function shortcode_notice( $message ) {
+		$comment = '<!-- ' . esc_html( $message ) . ' -->';
+
+		if ( current_user_can( 'manage_options' ) ) {
+			return '<div class="bhg-shortcode-note">' . esc_html( $message ) . '</div>' . $comment;
+		}
+
+		return $comment;
+	}
+
+	/**
+	 * Return an admin-only notice and stay silent for non-admin users.
+	 *
+	 * @param string $message Notice content.
+	 * @return string HTML to render for admins or an empty string for others.
+	 */
+	private function shortcode_admin_notice( $message ) {
+		if ( current_user_can( 'manage_options' ) ) {
+			return '<div class="bhg-shortcode-note">' . esc_html( $message ) . '</div><!-- ' . esc_html( $message ) . ' -->';
+		}
+
+		return '';
+	}
+
 
                 /**
                  * Calculates start and end datetime for a given timeline keyword.
@@ -2645,7 +2687,7 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 		return $formatted;
 	}
 
-				/**
+		/**
 		 * Retrieve tournament standings for a user.
 		 *
 		 * @param int $user_id User identifier.
@@ -3051,33 +3093,27 @@ return ob_get_clean();
 }
 
 
-               /**
-                * Minimal login hint used by some themes.
-                *
-                * @param array $atts Shortcode attributes. Unused.
-                * @return string HTML output.
-                */
-               public function login_hint_shortcode( $atts = array() ) {
-                               unset( $atts ); // Parameter unused but kept for shortcode signature.
+/**
+ * Minimal login hint used by some themes.
+ *
+ * @param array $atts Shortcode attributes. Unused.
+ * @return string HTML output.
+ */
+public function login_hint_shortcode( $atts = array() ) {
+unset( $atts ); // Parameter unused but kept for shortcode signature.
 
-                               if ( is_user_logged_in() ) {
-                                               $reason = 'BHG login notice suppressed: user already logged in.';
+if ( is_user_logged_in() ) {
+return $this->shortcode_admin_notice( 'BHG login notice suppressed: user already logged in.' );
+}
+$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
+$base     = wp_validate_redirect( $raw, home_url( '/' ) );
+$redirect = esc_url_raw( add_query_arg( array(), $base ) );
 
-                                               if ( current_user_can( 'manage_options' ) ) {
-                                                               return '<div class="bhg-shortcode-note bhg-shortcode-note--login">' . esc_html( $reason ) . '</div><!-- ' . esc_html( $reason ) . ' -->';
-                                               }
+$login_url = function_exists( 'bhg_get_login_url' ) ? bhg_get_login_url( $redirect ) : wp_login_url( $redirect );
 
-                                               return '<!-- ' . esc_html( $reason ) . ' -->';
-                               }
-				$raw      = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : home_url( '/' );
-				$base     = wp_validate_redirect( $raw, home_url( '/' ) );
-				$redirect = esc_url_raw( add_query_arg( array(), $base ) );
-
-			$login_url = function_exists( 'bhg_get_login_url' ) ? bhg_get_login_url( $redirect ) : wp_login_url( $redirect );
-
-			return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
-				. '<p><a class="button button-primary" href="' . esc_url( $login_url ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
-		}
+return '<p>' . esc_html( bhg_t( 'notice_login_to_continue', 'Please log in to continue.' ) ) . '</p>'
+. '<p><a class="button button-primary" href="' . esc_url( $login_url ) . '">' . esc_html( bhg_t( 'button_log_in', 'Log in' ) ) . '</a></p>';
+}
 
 			/**
 			 * Renders list of open hunts.
@@ -7575,7 +7611,7 @@ $output .= '</table></div>';
 				 */
 public function jackpot_current_shortcode( $atts ) {
 if ( ! class_exists( 'BHG_Jackpots' ) ) {
-return $this->shortcode_notice( 'BHG jackpot current suppressed: jackpots module missing.' );
+return $this->shortcode_admin_notice( 'BHG jackpot current suppressed: jackpots module missing.' );
 }
 
 						$atts = shortcode_atts(
@@ -7589,13 +7625,13 @@ return $this->shortcode_notice( 'BHG jackpot current suppressed: jackpots module
 $jackpot_id = absint( $atts['id'] );
 
 if ( $jackpot_id <= 0 ) {
-return $this->shortcode_notice( 'BHG jackpot current suppressed: provide id="" attribute.' );
+return $this->shortcode_admin_notice( 'BHG jackpot current suppressed: provide id="" attribute.' );
 }
 
 $amount = BHG_Jackpots::instance()->get_formatted_amount( $jackpot_id );
 
 if ( '' === $amount ) {
-return $this->shortcode_notice( 'BHG jackpot current suppressed: jackpot not found.' );
+return $this->shortcode_admin_notice( 'BHG jackpot current suppressed: jackpot not found.' );
 }
 
 						return '<span class="bhg-jackpot-amount" data-jackpot-id="' . esc_attr( $jackpot_id ) . '">' . esc_html( $amount ) . '</span>';
@@ -7708,10 +7744,10 @@ echo '<li class="bhg-jackpot-ticker__item">';
 				 * @param array $atts Shortcode attributes.
 				 * @return string
 				 */
-                                public function jackpot_winners_shortcode( $atts ) {
-                                                if ( ! class_exists( 'BHG_Jackpots' ) ) {
-                                                                return $this->shortcode_notice( 'BHG jackpot winners suppressed: jackpots module missing.' );
-                                                }
+public function jackpot_winners_shortcode( $atts ) {
+if ( ! class_exists( 'BHG_Jackpots' ) ) {
+return $this->shortcode_admin_notice( 'BHG jackpot winners suppressed: jackpots module missing.' );
+}
 
 $atts = shortcode_atts(
 array(
@@ -7749,7 +7785,7 @@ if ( $atts['empty'] ) {
 return '<div class="bhg-jackpot-winners-empty">' . esc_html( $atts['empty'] ) . '</div>';
 }
 
-return $this->shortcode_notice( 'BHG jackpot winners suppressed: no winners found for filters.' );
+return $this->shortcode_admin_notice( 'BHG jackpot winners suppressed: no winners found for filters.' );
 }
 
 $layout         = sanitize_key( $atts['layout'] );
