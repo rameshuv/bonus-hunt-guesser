@@ -7658,28 +7658,36 @@ return $this->shortcode_notice( 'BHG jackpot winners suppressed: no winners foun
                                                                 ob_start();
                                                                 echo '<ul class="bhg-jackpot-winners">';
                                                                 foreach ( $rows as $row ) {
-                                                                                $title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
-                                                                                $amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
-                                                                                $created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
-                                                                                $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
-                                                                                $affiliate  = isset( $row['affiliate_site_name'] ) ? $row['affiliate_site_name'] : '';
-                                                                                $user_name  = '';
-                                                                                if ( $user_id ) {
-                                                                                                $user = get_userdata( $user_id );
-                                                                                                if ( $user ) {
-                                                                                                                $user_name = $user->display_name;
-                                                                                                }
+                                                                $title      = isset( $row['jackpot_title'] ) ? $row['jackpot_title'] : '';
+                                                                $amount     = isset( $row['amount_after'] ) ? (float) $row['amount_after'] : 0.0;
+                                                                $created_at = isset( $row['created_at'] ) ? $row['created_at'] : '';
+                                                                $user_id    = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+                                                                $affiliate  = isset( $row['affiliate_site_name'] ) ? $row['affiliate_site_name'] : '';
+                                                                $user_name  = '';
+                                                                if ( $user_id ) {
+                                                                                $user = get_userdata( $user_id );
+                                                                                if ( $user ) {
+                                                                                                $user_name = $user->display_name;
                                                                                 }
+                                                                }
+
+                                                                  if ( $user_name ) {
+                                                                                  $user_name = $this->format_title_label( $user_name );
+                                                                  }
+
+                                                                  if ( $title ) {
+                                                                                  $title = $this->format_title_label( $title );
+                                                                  }
 
                                                                                 $parts = array();
                                                                                 if ( $visibility( $atts['show_username'] ) && $user_name ) {
-                                                                                                $parts[] = '<span class="bhg-jackpot-winner-name">' . $maybe_strong( 'username', $capitalize_first( $user_name ) ) . '</span>';
+                                                                                                $parts[] = '<span class="bhg-jackpot-winner-name">' . $maybe_strong( 'username', $this->format_title_label( $user_name ) ) . '</span>';
                                                                                 }
                                                                                 if ( $visibility( $atts['show_amount'] ) ) {
                                                                                                 $parts[] = '<span class="bhg-jackpot-amount">' . $maybe_strong( 'amount', $format_amount( $amount ) ) . '</span>';
                                                                                 }
                                                                                 if ( $visibility( $atts['show_title'] ) && $title ) {
-                                                                                                $parts[] = '<span class="bhg-jackpot-name">' . $maybe_strong( 'title', $capitalize_first( $title ) ) . '</span>';
+                                                                                                $parts[] = '<span class="bhg-jackpot-name">' . $maybe_strong( 'title', $this->format_title_label( $title ) ) . '</span>';
                                                                                 }
                                                                                 if ( $visibility( $atts['show_affiliate'] ) && $affiliate ) {
                                                                                                 $parts[] = '<span class="bhg-jackpot-affiliate">' . $maybe_strong( 'affiliate', $affiliate ) . '</span>';
@@ -7730,6 +7738,14 @@ echo '</tr></thead><tbody>';
 												$user_name = $user->display_name;
 										}
 								}
+
+										if ( $user_name ) {
+											$user_name = $this->format_title_label( $user_name );
+										}
+
+										if ( $title ) {
+											$title = $this->format_title_label( $title );
+										}
             echo '<tr>';
             if ( $visibility( $atts['show_username'] ) ) {
                     echo '<td data-label="' . esc_attr( bhg_t( 'sc_user', 'User' ) ) . '">' . $maybe_strong( 'username', $user_name ) . '</td>';
