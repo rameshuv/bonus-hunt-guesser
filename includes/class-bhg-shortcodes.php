@@ -2670,8 +2670,18 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
 $has_total_points   = $this->table_has_column( $results_tbl, 'total_points' );
 $total_points_field = $has_total_points ? 'r.total_points' : 'r.points';
 
-$sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$total_points_field} AS total_points, r.wins, r.last_win_date\n\t\t\tFROM {$results_tbl} r\n\t\t\tINNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n\t\t\tWHERE r.user_id = %d\n\t\t\tORDER BY COALESCE(NULLIF(r.points, 0), {$total_points_field}, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
+$sql  = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$total_points_field} AS total_points, r.wins, r.last_win_date\n\t\t\tFROM {$results_tbl} r\n\t\t\tINNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n\t\t\tWHERE r.user_id = %d\n\t\t\tORDER BY COALESCE(NULLIF(r.points, 0), {$total_points_field}, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
                 $rows = $wpdb->get_results( $wpdb->prepare( $sql, $user_id ) );
+
+                if ( $has_total_points && $wpdb->last_error && false !== stripos( $wpdb->last_error, 'total_points' ) ) {
+                        // Fall back for older schemas without total_points.
+                        $wpdb->last_error   = '';
+                        $has_total_points   = false;
+                        $total_points_field = 'r.points';
+
+                        $fallback_sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$total_points_field} AS total_points, r.wins, r.last_win_date\n\t\t\tFROM {$results_tbl} r\n\t\t\tINNER JOIN {$tours_tbl} t ON t.id = r.tournament_id\n\t\t\tWHERE r.user_id = %d\n\t\t\tORDER BY COALESCE(NULLIF(r.points, 0), {$total_points_field}, 0) DESC, r.wins DESC, r.last_win_date ASC, t.title ASC";
+                        $rows         = $wpdb->get_results( $wpdb->prepare( $fallback_sql, $user_id ) );
+                }
 
 		if ( empty( $rows ) ) {
 		return array();
@@ -2694,6 +2704,15 @@ $sql = "SELECT t.id, t.title, t.status, t.start_date, t.end_date, r.points, {$to
 $sql_ranks          = "SELECT tournament_id, user_id, points, {$total_points_order} AS total_points, wins, last_win_date\n\t\t\tFROM {$results_tbl}\n\t\t\tWHERE tournament_id IN ({$placeholders})\n\t\t\tORDER BY tournament_id ASC, COALESCE(NULLIF(points, 0), {$total_points_order}, 0) DESC, wins DESC, last_win_date ASC, user_id ASC";
                $prepared           = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql_ranks ), $args ) );
 $rank_rows          = $wpdb->get_results( $prepared );
+
+               if ( $has_total_points && $wpdb->last_error && false !== stripos( $wpdb->last_error, 'total_points' ) ) {
+                       $wpdb->last_error     = '';
+                       $has_total_points     = false;
+                       $total_points_order   = 'points';
+$sql_ranks            = "SELECT tournament_id, user_id, points, {$total_points_order} AS total_points, wins, last_win_date\n\t\t\tFROM {$results_tbl}\n\t\t\tWHERE tournament_id IN ({$placeholders})\n\t\t\tORDER BY tournament_id ASC, COALESCE(NULLIF(points, 0), {$total_points_order}, 0) DESC, wins DESC, last_win_date ASC, user_id ASC";
+                       $prepared             = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql_ranks ), $args ) );
+                       $rank_rows            = $wpdb->get_results( $prepared );
+               }
 
 		if ( $rank_rows ) {
 		$current_tournament = null;
