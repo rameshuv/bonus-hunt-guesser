@@ -390,6 +390,10 @@ foreach ( $notices as $notice ) :
                         $row_classes    = array( 'bhg-results-row' );
                         $user_id        = isset( $row->user_id ) ? (int) $row->user_id : 0;
                         $can_create_ticket = ( $user_id > 0 ) && $show_ticket_cta;
+                        $points         = isset( $row->points ) ? (int) $row->points : 0;
+                        if ( $points <= 0 && isset( $row->total_points ) ) {
+                                $points = (int) $row->total_points;
+                        }
                         if ( $is_winner ) {
                                 $row_classes[] = 'bhg-results-row--winner';
                         }
@@ -410,7 +414,7 @@ foreach ( $notices as $notice ) :
                                         <span class="bhg-text-muted"><?php echo esc_html( $name ); ?></span>
                                 <?php endif; ?>
                                 </td>
-                                <td><?php echo esc_html( number_format_i18n( (int) $row->points ) ); ?></td>
+                                <td><?php echo esc_html( number_format_i18n( $points ) ); ?></td>
                                 <td><?php echo esc_html( number_format_i18n( (int) $row->wins ) ); ?></td>
                                 <td>
                                 <?php if ( $can_create_ticket ) : ?>
