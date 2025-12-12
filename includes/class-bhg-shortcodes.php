@@ -2351,6 +2351,136 @@ return '<div class="bhg-prize-tabset" data-bhg-prize-tabs="1"><div class="bhg-pr
                 return $label;
         }
 
+        /**
+         * Parse a comma-separated list of field tokens, allowing optional bold markers and inline text.
+         *
+         * Supported patterns:
+         *  - <b>field</b>            → bold field output.
+         *  - Prefix(field)suffix     → render the field value wrapped with prefix/suffix text.
+         *  - Literal text            → render text verbatim (escaped) when it is not a known field.
+         *
+         * @param string|string[] $raw_fields     Raw field list.
+         * @param string[]        $allowed_fields Allowed field keys.
+         * @param string[]        $default_fields Fallback list when none provided.
+         *
+         * @return array{ tokens: array<int, array{field?:string,literal?:string,prefix?:string,suffix?:string,bold:bool}>, fields: string[] }
+         */
+        private function parse_field_tokens( $raw_fields, array $allowed_fields, array $default_fields ) {
+                $raw_fields = is_array( $raw_fields ) ? $raw_fields : explode( ',', (string) $raw_fields );
+
+                $tokens = array();
+                $fields = array();
+
+                foreach ( $raw_fields as $raw_field ) {
+                        $raw_field = trim( (string) $raw_field );
+                        if ( '' === $raw_field ) {
+                                continue;
+                        }
+
+                        $bold = false;
+                        if ( preg_match( '/^<b>(.+)<\/b>$/i', $raw_field, $match ) ) {
+                                $bold      = true;
+                                $raw_field = trim( (string) $match[1] );
+                        }
+
+                        $matched = false;
+                        foreach ( $allowed_fields as $allowed ) {
+                                $pattern = '/^(.*)\((' . preg_quote( $allowed, '/' ) . ')\)(.*)$/i';
+                                if ( preg_match( $pattern, $raw_field, $matches ) ) {
+                                        $tokens[] = array(
+                                                'field'  => $allowed,
+                                                'prefix' => trim( (string) $matches[1] ),
+                                                'suffix' => trim( (string) $matches[3] ),
+                                                'bold'   => $bold,
+                                        );
+                                        $fields[] = $allowed;
+                                        $matched  = true;
+                                        break;
+                                }
+                        }
+
+                        if ( $matched ) {
+                                continue;
+                        }
+
+                        $normalized = sanitize_key( $raw_field );
+                        if ( in_array( $normalized, $allowed_fields, true ) ) {
+                                $tokens[] = array(
+                                        'field' => $normalized,
+                                        'bold'  => $bold,
+                                );
+                                $fields[] = $normalized;
+                                continue;
+                        }
+
+                        $tokens[] = array(
+                                'literal' => $raw_field,
+                                'bold'    => $bold,
+                        );
+                }
+
+                if ( empty( $tokens ) ) {
+                        foreach ( $default_fields as $default ) {
+                                if ( ! in_array( $default, $allowed_fields, true ) ) {
+                                        continue;
+                                }
+
+                                $tokens[] = array(
+                                        'field' => $default,
+                                        'bold'  => false,
+                                );
+                                $fields[] = $default;
+                        }
+                }
+
+                $fields = array_values( array_unique( $fields ) );
+
+                return array(
+                        'tokens' => $tokens,
+                        'fields' => $fields,
+                );
+        }
+
+        /**
+         * Convert parsed tokens to output parts using a map of prepared field values.
+         *
+         * @param array<int, array{field?:string,literal?:string,prefix?:string,suffix?:string,bold:bool}> $tokens Parsed field tokens.
+         * @param array<string, string> $value_map                   Map of field => prepared HTML output.
+         *
+         * @return string[] List of HTML-safe segments ready for joining.
+         */
+        private function build_field_parts_from_tokens( array $tokens, array $value_map ) {
+                $parts = array();
+
+                foreach ( $tokens as $token ) {
+                        $text = '';
+
+                        if ( isset( $token['literal'] ) ) {
+                                $text = esc_html( (string) $token['literal'] );
+                        } elseif ( isset( $token['field'] ) ) {
+                                $field  = (string) $token['field'];
+                                $value  = isset( $value_map[ $field ] ) ? (string) $value_map[ $field ] : '';
+                                $prefix = isset( $token['prefix'] ) && '' !== $token['prefix'] ? esc_html( (string) $token['prefix'] ) : '';
+                                $suffix = isset( $token['suffix'] ) && '' !== $token['suffix'] ? esc_html( (string) $token['suffix'] ) : '';
+
+                                if ( '' === $value && '0' !== $value ) {
+                                        continue;
+                                }
+
+                                $text = $prefix . $value . $suffix;
+                        }
+
+                        if ( '' === $text ) {
+                                continue;
+                        }
+
+                        $is_bold = isset( $token['bold'] ) ? (bool) $token['bold'] : false;
+                        $parts[] = $is_bold ? '<strong>' . $text . '</strong>' : $text;
+                }
+
+                return $parts;
+        }
+
 	/**
 	 * Normalize a username label and append qualifying badges when available.
 	 *
@@ -4133,19 +4263,10 @@ $atts,
 
                                                $limit = max( 1, min( 100, (int) $atts['limit'] ) );
 
-                                               $raw_fields = array_map( 'trim', explode( ',', (string) $atts['fields'] ) );
-                                               $allowed    = array( 'date', 'username', 'prize', 'bonushunt', 'tournament', 'position' );
-                                               $fields     = array();
-                                               foreach ( $raw_fields as $field ) {
-                                                               $key = sanitize_key( $field );
-                                                               if ( in_array( $key, $allowed, true ) ) {
-                                                                               $fields[] = $key;
-                                                               }
-                                               }
-
-                                               if ( empty( $fields ) ) {
-                                                               $fields = array( 'date', 'username', 'prize', 'bonushunt' );
-                                               }
+                                               $allowed_fields = array( 'date', 'username', 'prize', 'bonushunt', 'tournament', 'position' );
+                                               $field_config   = $this->parse_field_tokens( $atts['fields'], $allowed_fields, array( 'date', 'username', 'prize', 'bonushunt' ) );
+                                               $fields         = $field_config['fields'];
+                                               $field_tokens   = $field_config['tokens'];
 
                                                $show_date       = in_array( 'date', $fields, true );
                                                $show_username   = in_array( 'username', $fields, true );
@@ -4321,29 +4442,16 @@ $user_label = $this->format_username_with_badges( $user_label, $user_id );
                                                                                }
                                                                }
 
-                                                               $parts = array();
-                                                               if ( $show_date ) {
-                                                                               $parts[] = '<span class="bhg-winner-date">' . esc_html( $date_output ) . '</span>';
-                                                               }
-                                                               if ( $show_position && $position > 0 ) {
-                                                                               $parts[] = '<span class="bhg-winner-position">#' . esc_html( number_format_i18n( $position ) ) . '</span>';
-                                                               }
-                                                               if ( $show_username ) {
-$parts[] = '<span class="bhg-winner-username">' . wp_kses_post( $user_label ) . '</span>';
-                                                               }
-                                                               if ( $show_prize ) {
-                                                                               $parts[] = '<span class="bhg-winner-prize">' . esc_html( '' !== $prize_title ? $prize_title : bhg_t( 'label_emdash', '—' ) ) . '</span>';
-                                                               }
-                                                               if ( $show_hunt ) {
-                                                                               $parts[] = '<span class="bhg-winner-hunt">' . esc_html( $hunt_title ) . '</span>';
-                                                               }
-                                                               if ( $show_tournament ) {
-                                                                               $parts[] = '<span class="bhg-winner-tournament">' . esc_html( ! empty( $tournament_names ) ? implode( ', ', $tournament_names ) : bhg_t( 'label_emdash', '—' ) ) . '</span>';
-                                                               }
+                                                               $field_values = array(
+                                                                               'date'       => $show_date ? '<span class="bhg-winner-date">' . esc_html( $date_output ) . '</span>' : '',
+                                                                               'position'   => ( $show_position && $position > 0 ) ? '<span class="bhg-winner-position">#' . esc_html( number_format_i18n( $position ) ) . '</span>' : '',
+                                                                               'username'   => $show_username ? '<span class="bhg-winner-username">' . wp_kses_post( $user_label ) . '</span>' : '',
+                                                                               'prize'      => $show_prize ? '<span class="bhg-winner-prize">' . esc_html( '' !== $prize_title ? $prize_title : bhg_t( 'label_emdash', '—' ) ) . '</span>' : '',
+                                                                               'bonushunt'  => $show_hunt ? '<span class="bhg-winner-hunt">' . esc_html( $hunt_title ) . '</span>' : '',
+                                                                               'tournament' => $show_tournament ? '<span class="bhg-winner-tournament">' . esc_html( ! empty( $tournament_names ) ? implode( ', ', $tournament_names ) : bhg_t( 'label_emdash', '—' ) ) . '</span>' : '',
+                                                               );
 
-                                                               $parts = array_filter( $parts, static function ( $part ) {
-                                                                               return '' !== $part;
-                                                               } );
+                                                               $parts = $this->build_field_parts_from_tokens( $field_tokens, $field_values );
 
                                                                $items[] = '<li class="bhg-latest-winner-item">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
                                                }
@@ -4382,24 +4490,16 @@ $atts,
 
                                                $limit = max( 1, min( 100, (int) $atts['limit'] ) );
 
-                                               $raw_fields = array_map( 'trim', explode( ',', (string) $atts['fields'] ) );
-                                               $allowed    = array( 'position', 'username', 'times_won', 'avg_hunt', 'avg_tournament' );
-                                               $fields     = array();
-                                               foreach ( $raw_fields as $field ) {
-                                                               $key = sanitize_key( $field );
-                                                               if ( in_array( $key, $allowed, true ) ) {
-                                                                               $fields[] = $key;
-                                                               }
-                                               }
-                                               if ( empty( $fields ) ) {
-                                                               $fields = array( 'position', 'username', 'times_won' );
-                                               }
+            $allowed_fields = array( 'position', 'username', 'times_won', 'avg_hunt', 'avg_tournament' );
+            $field_config   = $this->parse_field_tokens( $atts['fields'], $allowed_fields, array( 'position', 'username', 'times_won' ) );
+            $fields         = $field_config['fields'];
+            $field_tokens   = $field_config['tokens'];
 
-                                               $show_position       = in_array( 'position', $fields, true );
-                                               $show_username       = in_array( 'username', $fields, true );
-                                               $show_times_won      = in_array( 'times_won', $fields, true );
-                                               $show_avg_hunt       = in_array( 'avg_hunt', $fields, true );
-                                               $show_avg_tournament = in_array( 'avg_tournament', $fields, true );
+            $show_position       = in_array( 'position', $fields, true );
+            $show_username       = in_array( 'username', $fields, true );
+            $show_times_won      = in_array( 'times_won', $fields, true );
+            $show_avg_hunt       = in_array( 'avg_hunt', $fields, true );
+            $show_avg_tournament = in_array( 'avg_tournament', $fields, true );
 
                                                $timeline_key      = sanitize_key( (string) $atts['timeline'] );
                                                $allowed_timelines = array( 'all_time', 'today', 'this_week', 'this_month', 'this_quarter', 'this_year', 'last_year' );
@@ -4475,55 +4575,41 @@ $atts,
 
                                                $items = array();
                                                $position_counter = $offset + 1;
-                                               foreach ( $rows as $row ) {
-                                                               $parts = array();
+            foreach ( $rows as $row ) {
+                    $label = '';
+                    if ( isset( $row->user_login ) && '' !== (string) $row->user_login ) {
+                            $label = (string) $row->user_login;
+                    } elseif ( isset( $row->user_id ) ) {
+                            /* translators: %d: user ID. */
+                            $label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
+                    }
+                    if ( '' !== $label ) {
+                            if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
+                                    $first = mb_substr( $label, 0, 1, $charset );
+                                    $rest  = mb_substr( $label, 1, null, $charset );
+                                    $label = mb_strtoupper( $first, $charset ) . $rest;
+                            } else {
+                                    $label = ucfirst( $label );
+                            }
+                    }
 
-                                                               if ( $show_position ) {
-                                                                               $parts[] = '<span class="bhg-leaderboard-pos">#' . esc_html( number_format_i18n( $position_counter ) ) . '</span>';
-                                                               }
+                    $wins_value      = isset( $row->total_wins ) ? (int) $row->total_wins : 0;
+                    $avg_hunt        = isset( $row->avg_hunt_pos ) ? number_format_i18n( (float) $row->avg_hunt_pos, 0 ) : bhg_t( 'label_emdash', '—' );
+                    $avg_tournament  = isset( $row->avg_tournament_pos ) ? number_format_i18n( (float) $row->avg_tournament_pos, 0 ) : bhg_t( 'label_emdash', '—' );
 
-                                                               if ( $show_username ) {
-                                                                               $label = '';
-                                                                               if ( isset( $row->user_login ) && '' !== (string) $row->user_login ) {
-                                                                                               $label = (string) $row->user_login;
-                                                                               } elseif ( isset( $row->user_id ) ) {
-                                                                                               /* translators: %d: user ID. */
-                                                                                               $label = sprintf( bhg_t( 'label_user_hash', 'user#%d' ), (int) $row->user_id );
-                                                                               }
-                                                                               if ( '' !== $label ) {
-                                                                                               if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
-                                                                                                               $first = mb_substr( $label, 0, 1, $charset );
-                                                                                                               $rest  = mb_substr( $label, 1, null, $charset );
-                                                                                                               $label = mb_strtoupper( $first, $charset ) . $rest;
-                                                                                               } else {
-                                                                                                               $label = ucfirst( $label );
-                                                                                               }
-                                                                               }
-                                                                               $parts[] = '<span class="bhg-leaderboard-user">' . esc_html( $label ) . '</span>';
-                                                               }
+                    $field_values = array(
+                            'position'       => $show_position ? '<span class="bhg-leaderboard-pos">#' . esc_html( number_format_i18n( $position_counter ) ) . '</span>' : '',
+                            'username'       => $show_username ? '<span class="bhg-leaderboard-user">' . esc_html( $label ) . '</span>' : '',
+                            'times_won'      => $show_times_won ? '<span class="bhg-leaderboard-wins">' . esc_html( number_format_i18n( $wins_value ) ) . '</span>' : '',
+                            'avg_hunt'       => $show_avg_hunt ? '<span class="bhg-leaderboard-avg-hunt">' . esc_html( $avg_hunt ) . '</span>' : '',
+                            'avg_tournament' => $show_avg_tournament ? '<span class="bhg-leaderboard-avg-tournament">' . esc_html( $avg_tournament ) . '</span>' : '',
+                    );
 
-                                                               if ( $show_times_won ) {
-                                                                               $wins_value = isset( $row->total_wins ) ? (int) $row->total_wins : 0;
-                                                                               $parts[]     = '<span class="bhg-leaderboard-wins">' . esc_html( number_format_i18n( $wins_value ) ) . '</span>';
-                                                               }
+                    $parts = $this->build_field_parts_from_tokens( $field_tokens, $field_values );
 
-                                                               if ( $show_avg_hunt ) {
-                                                                               $avg_hunt = isset( $row->avg_hunt_pos ) ? number_format_i18n( (float) $row->avg_hunt_pos, 0 ) : bhg_t( 'label_emdash', '—' );
-                                                                               $parts[]  = '<span class="bhg-leaderboard-avg-hunt">' . esc_html( $avg_hunt ) . '</span>';
-                                                               }
-
-                                                               if ( $show_avg_tournament ) {
-                                                                               $avg_tournament = isset( $row->avg_tournament_pos ) ? number_format_i18n( (float) $row->avg_tournament_pos, 0 ) : bhg_t( 'label_emdash', '—' );
-                                                                               $parts[]        = '<span class="bhg-leaderboard-avg-tournament">' . esc_html( $avg_tournament ) . '</span>';
-                                                               }
-
-                                                               $parts = array_filter( $parts, static function ( $part ) {
-                                                                               return '' !== $part;
-                                                               } );
-
-                                                               $items[] = '<li class="bhg-leaderboard-list-item">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
-                                                               ++$position_counter;
-                                               }
+                    $items[] = '<li class="bhg-leaderboard-list-item">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
+                    ++$position_counter;
+            }
 
                                                return '<ul class="bhg-leaderboard-list">' . implode( '', $items ) . '</ul>';
                                }
@@ -4562,24 +4648,16 @@ $atts,
                                                                $order = 'desc';
                                                }
 
-                                               $raw_fields = array_map( 'trim', explode( ',', (string) $atts['fields'] ) );
-                                               $allowed    = array( 'name', 'start_date', 'end_date', 'status', 'details' );
-                                               $fields     = array();
-                                               foreach ( $raw_fields as $field ) {
-                                                               $key = sanitize_key( $field );
-                                                               if ( in_array( $key, $allowed, true ) ) {
-                                                                               $fields[] = $key;
-                                                               }
-                                               }
-                                               if ( empty( $fields ) ) {
-                                                               $fields = array( 'name', 'start_date', 'status' );
-                                               }
+            $allowed_fields = array( 'name', 'start_date', 'end_date', 'status', 'details' );
+            $field_config   = $this->parse_field_tokens( $atts['fields'], $allowed_fields, array( 'name', 'start_date', 'status' ) );
+            $fields         = $field_config['fields'];
+            $field_tokens   = $field_config['tokens'];
 
-                                               $show_name    = in_array( 'name', $fields, true );
-                                               $show_start   = in_array( 'start_date', $fields, true );
-                                               $show_end     = in_array( 'end_date', $fields, true );
-                                               $show_status  = in_array( 'status', $fields, true );
-                                               $show_details = in_array( 'details', $fields, true );
+            $show_name    = in_array( 'name', $fields, true );
+            $show_start   = in_array( 'start_date', $fields, true );
+            $show_end     = in_array( 'end_date', $fields, true );
+            $show_status  = in_array( 'status', $fields, true );
+            $show_details = in_array( 'details', $fields, true );
 
                                                $status_filter = sanitize_key( (string) $atts['status'] );
                                                if ( ! in_array( $status_filter, array( 'active', 'closed', 'all' ), true ) ) {
@@ -4640,44 +4718,31 @@ $atts,
                                                $details_base = function_exists( 'bhg_get_core_page_url' ) ? bhg_get_core_page_url( 'tournaments' ) : '';
 
                                                $items = array();
-                                               foreach ( $rows as $row ) {
-                                                               $parts = array();
+            foreach ( $rows as $row ) {
+                    $title = isset( $row->title ) && '' !== (string) $row->title ? $this->format_title_label( (string) $row->title ) : bhg_t( 'label_unnamed_tournament', 'Untitled tournament' );
 
-                                                               if ( $show_name ) {
-                                                                               $title = isset( $row->title ) && '' !== (string) $row->title ? $this->format_title_label( (string) $row->title ) : bhg_t( 'label_unnamed_tournament', 'Untitled tournament' );
-                                                                               $parts[] = '<span class="bhg-tournament-name">' . esc_html( $title ) . '</span>';
-                                                               }
+                    $start_value = isset( $row->start_date ) && $row->start_date ? mysql2date( get_option( 'date_format' ), $row->start_date ) : bhg_t( 'label_emdash', '—' );
+                    $end_value   = isset( $row->end_date ) && $row->end_date ? mysql2date( get_option( 'date_format' ), $row->end_date ) : bhg_t( 'label_emdash', '—' );
+                    $status_key  = isset( $row->status ) ? strtolower( (string) $row->status ) : 'unknown';
 
-                                                               if ( $show_start ) {
-                                                                               $start_value = isset( $row->start_date ) && $row->start_date ? mysql2date( get_option( 'date_format' ), $row->start_date ) : bhg_t( 'label_emdash', '—' );
-                                                                               $parts[]      = '<span class="bhg-tournament-start">' . esc_html( $start_value ) . '</span>';
-                                                               }
+                    $details_url = '';
+                    if ( $show_details && '' !== $details_base ) {
+                            $details_url = add_query_arg( 'bhg_tournament_id', (int) $row->id, $details_base );
+                    }
+                    $details_text = '' !== $details_url ? '<a href="' . esc_url( $details_url ) . '">' . esc_html( bhg_t( 'label_show_details', 'Show details' ) ) . '</a>' : esc_html( bhg_t( 'label_emdash', '—' ) );
 
-                                                               if ( $show_end ) {
-                                                                               $end_value = isset( $row->end_date ) && $row->end_date ? mysql2date( get_option( 'date_format' ), $row->end_date ) : bhg_t( 'label_emdash', '—' );
-                                                                               $parts[]    = '<span class="bhg-tournament-end">' . esc_html( $end_value ) . '</span>';
-                                                               }
+                    $field_values = array(
+                            'name'       => $show_name ? '<span class="bhg-tournament-name">' . esc_html( $title ) . '</span>' : '',
+                            'start_date' => $show_start ? '<span class="bhg-tournament-start">' . esc_html( $start_value ) . '</span>' : '',
+                            'end_date'   => $show_end ? '<span class="bhg-tournament-end">' . esc_html( $end_value ) . '</span>' : '',
+                            'status'     => $show_status ? '<span class="bhg-tournament-status">' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</span>' : '',
+                            'details'    => $show_details ? '<span class="bhg-tournament-details">' . $details_text . '</span>' : '',
+                    );
 
-                                                               if ( $show_status ) {
-                                                                               $status_key = isset( $row->status ) ? strtolower( (string) $row->status ) : 'unknown';
-                                                                               $parts[]    = '<span class="bhg-tournament-status">' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</span>';
-                                                               }
+                    $parts = $this->build_field_parts_from_tokens( $field_tokens, $field_values );
 
-                                                               if ( $show_details ) {
-                                                                               $details_url = '';
-                                                                               if ( '' !== $details_base ) {
-                                                                                               $details_url = add_query_arg( 'bhg_tournament_id', (int) $row->id, $details_base );
-                                                                               }
-                                                                               $details_text = '' !== $details_url ? '<a href="' . esc_url( $details_url ) . '">' . esc_html( bhg_t( 'label_show_details', 'Show details' ) ) . '</a>' : esc_html( bhg_t( 'label_emdash', '—' ) );
-                                                                               $parts[]      = '<span class="bhg-tournament-details">' . $details_text . '</span>';
-                                                               }
-
-                                                               $parts = array_filter( $parts, static function ( $part ) {
-                                                                               return '' !== $part;
-                                                               } );
-
-                                                               $items[] = '<li class="bhg-tournament-list-item">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
-                                               }
+                    $items[] = '<li class="bhg-tournament-list-item">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
+            }
 
                                                return '<ul class="bhg-tournament-list">' . implode( '', $items ) . '</ul>';
                                }
@@ -4715,18 +4780,10 @@ $atts,
                                                                $order = 'desc';
                                                }
 
-                                               $raw_fields = array_map( 'trim', explode( ',', (string) $atts['fields'] ) );
-                                               $allowed    = array( 'title', 'start_balance', 'final_balance', 'winners', 'status', 'details' );
-                                               $fields     = array();
-                                               foreach ( $raw_fields as $field ) {
-                                                               $key = sanitize_key( $field );
-                                                               if ( in_array( $key, $allowed, true ) ) {
-                                                                               $fields[] = $key;
-                                                               }
-                                               }
-                                               if ( empty( $fields ) ) {
-                                                               $fields = array( 'title', 'status', 'details' );
-                                               }
+                                               $allowed_fields = array( 'title', 'start_balance', 'final_balance', 'winners', 'status', 'details' );
+                                               $field_config   = $this->parse_field_tokens( $atts['fields'], $allowed_fields, array( 'title', 'status', 'details' ) );
+                                               $fields         = $field_config['fields'];
+                                               $field_tokens   = $field_config['tokens'];
 
                                                $show_title   = in_array( 'title', $fields, true );
                                                $show_start   = in_array( 'start_balance', $fields, true );
@@ -4791,55 +4848,38 @@ $atts,
 
                                                $items = array();
                                                foreach ( $rows as $row ) {
-                                                               $parts = array();
+                                                               $title         = isset( $row->title ) && '' !== (string) $row->title ? $this->format_title_label( (string) $row->title ) : bhg_t( 'label_unnamed_hunt', 'Untitled hunt' );
+                                                               $start_balance = isset( $row->starting_balance ) ? bhg_format_money( (float) $row->starting_balance ) : bhg_t( 'label_emdash', '—' );
+                                                               $final_balance = isset( $row->final_balance ) && '' !== $row->final_balance ? bhg_format_money( (float) $row->final_balance ) : bhg_t( 'label_emdash', '—' );
+                                                               $winners_count = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
+                                                               $status_key    = isset( $row->status ) ? strtolower( (string) $row->status ) : 'unknown';
 
-                                                               if ( $show_title ) {
-                                                                               $title = isset( $row->title ) && '' !== (string) $row->title ? $this->format_title_label( (string) $row->title ) : bhg_t( 'label_unnamed_hunt', 'Untitled hunt' );
-                                                                               $parts[] = '<span class="bhg-hunt-title">' . esc_html( $title ) . '</span>';
-                                                               }
-
-                                                               if ( $show_start ) {
-                                                                               $start_balance = isset( $row->starting_balance ) ? bhg_format_money( (float) $row->starting_balance ) : bhg_t( 'label_emdash', '—' );
-                                                                               $parts[]        = '<span class="bhg-hunt-start">' . esc_html( $start_balance ) . '</span>';
-                                                               }
-
-                                                               if ( $show_final ) {
-                                                                               $final_balance = isset( $row->final_balance ) && '' !== $row->final_balance ? bhg_format_money( (float) $row->final_balance ) : bhg_t( 'label_emdash', '—' );
-                                                                               $parts[]        = '<span class="bhg-hunt-final">' . esc_html( $final_balance ) . '</span>';
-                                                               }
-
-                                                               if ( $show_winners ) {
-                                                                               $winners_count = isset( $row->winners_count ) ? (int) $row->winners_count : 0;
-                                                                               $parts[]       = '<span class="bhg-hunt-winners">' . esc_html( number_format_i18n( $winners_count ) ) . '</span>';
-                                                               }
-
-                                                               if ( $show_status ) {
-                                                                               $status_key = isset( $row->status ) ? strtolower( (string) $row->status ) : 'unknown';
-                                                                               $parts[]    = '<span class="bhg-hunt-status">' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</span>';
-                                                               }
-
-                                                               if ( $show_details ) {
-                                                                               $details_markup = esc_html( bhg_t( 'label_emdash', '—' ) );
-                                                                               $hunt_id        = isset( $row->id ) ? (int) $row->id : 0;
-                                                                               if ( $hunt_id > 0 ) {
-                                                                                               $status = isset( $row->status ) ? strtolower( (string) $row->status ) : 'open';
-                                                                                               if ( 'closed' === $status && function_exists( 'bhg_get_hunt_results_url' ) ) {
-                                                                                                               $results_url   = bhg_get_hunt_results_url( $hunt_id );
-                                                                                                               $details_markup = '' !== $results_url ? '<a href="' . esc_url( $results_url ) . '">' . esc_html( bhg_t( 'link_show_results', 'Show Results' ) ) . '</a>' : $details_markup;
-                                                                                               } elseif ( 'open' === $status && function_exists( 'bhg_get_guess_submission_url' ) ) {
-                                                                                                               $guess_enabled = isset( $row->guessing_enabled ) ? (int) $row->guessing_enabled : 1;
-                                                                                                               if ( $guess_enabled > 0 ) {
-                                                                                                                               $guess_url      = bhg_get_guess_submission_url( $hunt_id );
-                                                                                                                               $details_markup = '' !== $guess_url ? '<a href="' . esc_url( $guess_url ) . '">' . esc_html( bhg_t( 'link_guess_now', 'Guess Now' ) ) . '</a>' : $details_markup;
-                                                                                                               }
+                                                               $details_markup = esc_html( bhg_t( 'label_emdash', '—' ) );
+                                                               $hunt_id        = isset( $row->id ) ? (int) $row->id : 0;
+                                                               if ( $show_details && $hunt_id > 0 ) {
+                                                                               $status = isset( $row->status ) ? strtolower( (string) $row->status ) : 'open';
+                                                                               if ( 'closed' === $status && function_exists( 'bhg_get_hunt_results_url' ) ) {
+                                                                                               $results_url   = bhg_get_hunt_results_url( $hunt_id );
+                                                                                               $details_markup = '' !== $results_url ? '<a href="' . esc_url( $results_url ) . '">' . esc_html( bhg_t( 'link_show_results', 'Show Results' ) ) . '</a>' : $details_markup;
+                                                                               } elseif ( 'open' === $status && function_exists( 'bhg_get_guess_submission_url' ) ) {
+                                                                                               $guess_enabled = isset( $row->guessing_enabled ) ? (int) $row->guessing_enabled : 1;
+                                                                                               if ( $guess_enabled > 0 ) {
+                                                                                                               $guess_url      = bhg_get_guess_submission_url( $hunt_id );
+                                                                                                               $details_markup = '' !== $guess_url ? '<a href="' . esc_url( $guess_url ) . '">' . esc_html( bhg_t( 'link_guess_now', 'Guess Now' ) ) . '</a>' : $details_markup;
                                                                                                }
                                                                                }
-                                                                               $parts[] = '<span class="bhg-hunt-details">' . $details_markup . '</span>';
                                                                }
 
-                                                               $parts = array_filter( $parts, static function ( $part ) {
-                                                                               return '' !== $part;
-                                                               } );
+                                                               $field_values = array(
+                                                                               'title'         => $show_title ? '<span class="bhg-hunt-title">' . esc_html( $title ) . '</span>' : '',
+                                                                               'start_balance' => $show_start ? '<span class="bhg-hunt-start">' . esc_html( $start_balance ) . '</span>' : '',
+                                                                               'final_balance' => $show_final ? '<span class="bhg-hunt-final">' . esc_html( $final_balance ) . '</span>' : '',
+                                                                               'winners'       => $show_winners ? '<span class="bhg-hunt-winners">' . esc_html( number_format_i18n( $winners_count ) ) . '</span>' : '',
+                                                                               'status'        => $show_status ? '<span class="bhg-hunt-status">' . esc_html( bhg_t( $status_key, ucfirst( $status_key ) ) ) . '</span>' : '',
+                                                                               'details'       => $show_details ? '<span class="bhg-hunt-details">' . $details_markup . '</span>' : '',
+                                                               );
+
+                                                               $parts = $this->build_field_parts_from_tokens( $field_tokens, $field_values );
 
                                                                $items[] = '<li class="bhg-bonushunt-list-item">' . implode( ' <span class="bhg-separator">&mdash;</span> ', $parts ) . '</li>';
                                                }
